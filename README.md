@@ -1,64 +1,78 @@
-# Village Observer V0.9
+# Village Observer V0.10
 
-V0.9는 V0.8의 225년 장기 로그에서 확인된 문제를 바탕으로 한 **확장 AI / 건물 유지 / 교역선 / 장기 로그 패치**입니다.
+V0.10 focuses on national AI decision quality, a scarcer timber economy, road progression, settlement maintenance visibility, and an in-game balance encyclopedia.
 
-> 버전 규칙: V0.9 다음은 V0.10, V0.11 … 순서로 이어집니다. 사용자가 따로 지시하지 않는 한 V1.0으로 자동 승격하지 않습니다.
+## Major changes
 
-## 주요 변경
+### Nation overview
+- The Nation > Overview screen now shows total food in addition to average/minimum reserve days.
+- A compact AI assessment shows the nation's current strategic mode, wood stock relative to target, and inactive-building share.
 
-### 1. 확장 AI의 식량 판단 변경
-- 더 이상 `가장 식량이 부족한 정착지 한 곳`만으로 국가 전체 확장을 막지 않습니다.
-- 각 정착지의 식량 비축일과 주민 수를 함께 보아 **식량난에 노출된 국가 인구 비율**을 계산합니다.
-- 소수의 외딴 정착지가 굶는다고 수백 명 규모 국가 전체가 수십 년 동안 개척을 중단하는 현상을 완화했습니다.
-- 인구 밀도가 충분한 국가가 5년 이상 새 영토를 얻지 못하면 완만한 장기 정체 보너스가 EXPAND 점수에 추가됩니다.
-- 여전히 국가 인구 9명 미만, 개척 가능 성인 2명 미만, 지나치게 낮은 평균 식량, 인구에 비해 과도하게 넓은 영토 등은 확장을 실제로 제한합니다.
+### Timber economy
+Natural wood regeneration was reduced substantially:
+- Plain: 0.012/day
+- Grass: 0.028/day
+- Forest: 0.220/day
+- Rock: 0.008/day
+- Mountain: 0.015/day
 
-### 2. 교역선 표시 개선
-- 최근 교역선 보존/표시 기간을 45일에서 **180일**로 늘렸습니다.
-- 오래된 교역선은 점차 흐려집니다.
-- 10배속에서 교역선이 몇 초 만에 사라져 보이지 않던 문제를 완화했습니다.
+Internal logistics now redistributes wood roughly every 15 days when one settlement has a large surplus and another is short. Timber-surplus nations also stage wood at trading posts, and autonomous trade values wood imports more strongly when the buyer has low timber stocks or poor natural timber reserves.
 
-### 3. Gold 건물 유지비 제거
-- 기존 `building.maint` 기반 일일 Gold 유지비를 완전히 비활성화했습니다.
-- 건물 유지 때문에 국가 Gold가 장기적으로 증발하지 않습니다.
+### Smarter AI
+The utility AI now evaluates multiple signals together instead of leaning mainly on one national statistic:
+- population-weighted food stress
+- average food reserve
+- housing occupancy
+- wood and stone stocks versus target
+- inactive-building share / average condition
+- reachable trade partners
+- settlement density and years since the last expansion
+- frontier availability, settler availability, threat and relations
 
-### 4. 물자 + 현지 노동 기반 건물 유지
-- 건물은 계절마다 소량의 목재/석재와 현지 관리 노동을 요구합니다.
-- 물자는 현지 재고를 우선 사용하고, 부족분은 V0.8의 거리·지형·도로 기반 내부 물류로 공급합니다.
-- 유지 자재량은 대략 원래 건설비의 연간 2% 수준에서 시작합니다.
-- 관리 노동은 **해당 정착지 주민**이 공급합니다. 국가 반대편 주민이 원격으로 건물을 관리하지 않습니다.
-- 회관 → 주택/개척거점 → 식량/저장시설 → 방어/도로/생산시설 → 교역소/시장 순으로 유지 우선도가 적용됩니다.
-- 건물 상태는 0~100으로 관리됩니다. 상태가 너무 낮으면 건물이 비활성화되어 저장량·주거·도로·생산·교역 효과를 잃습니다.
-- 인력/물자가 회복되면 다시 수리되어 활성화될 수 있습니다.
-- 일반 건물이 상태 0에서 약 3년 이상 방치되면 붕괴할 수 있습니다. 회관·주택·개척거점은 자동 붕괴에서 보호합니다.
-- Gold 유지비는 없습니다.
+Each nation also keeps short policy memory. Repeating the same non-urgent policy for many seasons gains a diminishing score, while genuinely urgent problems can still keep the same policy active. AI decision logs now include `strategyMode`, detailed signals, and repeat penalties.
 
-### 5. 장기 개발 로그 구조 변경
-- 상세 이벤트와 5일 스냅샷은 **최근 약 50년**을 유지합니다.
-- 그 이전 시기는 **연도별 요약**으로 계속 보존됩니다.
-- 연도별 요약에는 세계 인구/영토/Gold/건강/교역/지식과 각 국가의 핵심 상태, 해당 연도의 이벤트 종류별 횟수가 들어갑니다.
-- 수동 메모는 별도 보존됩니다.
-- 이벤트 ID는 오래된 로그를 정리해도 계속 증가하므로 V0.8의 `14001` 반복 문제를 제거했습니다.
-- Devlog JSON은 공백 들여쓰기를 제거한 compact JSON으로 내보내 파일 크기도 추가로 줄였습니다.
+### Housing strain
+Residents living in settlements whose active housing capacity is below population accumulate housing strain. Prolonged strain gradually affects energy, happiness, then health, and makes migration toward settlements with real active capacity more attractive.
 
-### 6. 유지관리/확장 진단 데이터
-스냅샷에 다음 항목이 추가됩니다.
-- 전체 건물 수 / 비활성 건물 수
-- 평균 건물 상태
-- 누적 유지 목재/석재
-- 식량난 인구 비율
-- 마지막 영토 확장 시점
+### Settlement maintenance UI
+Nation > Settlements now shows per-settlement seasonal upkeep requirements:
+- wood
+- stone
+- local labor
 
-## 호환성
-- V0.8 세이브를 V0.9에서 불러올 수 있습니다.
-- V0.9 세이브는 `version: "0.9"`로 저장됩니다.
-- GitHub Pages에서는 루트 `index.html`을 V0.9 파일로 교체하면 됩니다.
+Inactive buildings are individually highlighted in yellow and display their current condition. The summary line is also yellow only when an inactive building exists.
 
-## 테스트 메모
-- standalone HTML JavaScript 문법 검사 통과
-- 14×14 단기/중기 자동 시뮬레이션 및 V0.9 save → load → 계속 진행 확인
-- V0.8 형식 세이브 → V0.9 마이그레이션 확인
-- 100×100 / 240일 엔진 smoke test 확인
-- 1인 정착지에 여러 시설을 강제로 둔 유지관리 테스트에서 회관·주택은 우선 유지되고, 과잉 상업/생산시설은 점진적으로 비활성화되는 동작 확인
+### Roads
+Road bonuses now apply only to tiles that actually contain an active road building. Owning the Roads technology no longer turns every owned tile into a road implicitly.
 
-장기 밸런스는 확률적이며 실제 플레이 로그를 바탕으로 계속 조정합니다.
+Road levels automatically improve with technology:
+- Lv.1 Dirt Road — Roads technology — path cost x0.78
+- Lv.2 Stone Road — Engineering — path cost x0.62
+- Lv.3 Trunk Road — Urbanization — path cost x0.48
+
+Road tiles and adjacent road connections are visible on the map, with R1/R2/R3 markers.
+
+### Trade routes
+Recent trades are grouped by route before rendering. Repeated trades over the same endpoints therefore remain a dashed line instead of multiple dashed lines stacking into an apparent solid line. Routes remain visible for 180 days and fade with age.
+
+### Balance Codex
+A new `Codex` bottom tab contains live V0.10 balance values:
+- building construction costs
+- seasonal maintenance costs and labor
+- building capacity/storage/effects
+- resident production formulas
+- terrain regeneration values
+- expansion cost
+- internal logistics rules
+- road levels and path modifiers
+- all technology costs and effects
+
+This is intended to reduce the need to inspect source code or ask externally whenever a balance value is needed.
+
+## Compatibility
+- V0.10 saves load directly.
+- V0.9 and V0.8 saves can be migrated into V0.10.
+- V0.10 uses its own localStorage key: `village-observer-v0-10`.
+
+## Versioning
+The project remains in the 0.x series. The next versions are expected to be V0.11, V0.12, and so on. It will not become V1.0 unless explicitly requested.
