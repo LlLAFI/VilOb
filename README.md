@@ -1,95 +1,63 @@
-# Village Observer V0.11
+# Village Observer V0.12
 
-V0.11 focuses on infrastructure realism, timed construction, richer resident happiness, and the first planning layer for the future AI V3 architecture.
+Village Observer는 실제 주민(Person) 개체의 생활과 선택이 정착지(Settlement), 국가(Nation), 세계(World)의 변화로 이어지는 **bottom-up 자율 사회 시뮬레이션**입니다.
 
-## Version policy
-V0.11 continues the pre-1.0 line. Future versions proceed as V0.12, V0.13, etc. The project does not automatically advance to V1.0.
+## V0.12 변경사항
 
-## Major changes
+### 1. 지도 국가 색상과 국가 탭 연동
+- 지도에서 사용하는 국가 색상을 국가 탭에서도 동일하게 표시합니다.
+- 국가 선택 카드 상단에 해당 국가의 색 띠가 표시됩니다.
+- 선택한 국가의 상세 패널 최상단에도 같은 색상과 국가명이 표시됩니다.
+- 지도와 국가 탭은 동일한 공통 색상 팔레트를 참조합니다.
 
-### Encyclopedia UI persistence
-- The Balance Encyclopedia remembers the last selected page while the simulation continues.
-- Production/Resources, Logistics/Roads, Technology, etc. no longer reset to Buildings on each UI refresh.
+### 2. 스냅샷 CSV 국가명 누락 수정
+- V0.11에서 CSV의 `village` 열이 비어 있던 문제를 수정했습니다.
+- 이제 각 행에 델마/모라/벨른/세른 등 실제 국가명이 기록됩니다.
 
-### Building condition now scales effects
-- Condition 70–100%: 100% building effect.
-- Condition below 70%: effect decreases linearly toward zero.
-- Condition 0%: building is inactive and provides no effect.
-- Scaled systems include housing capacity, storage capacity, farmstead/quarry production bonuses, roads, trading posts, and palisade defense.
-- UI distinguishes degraded buildings (yellow) from fully inactive buildings (red).
+### 3. 연간 로그 이벤트 집계 보정
+- 겨울 30일에 발생한 이벤트가 이미 생성된 해당 연도 요약의 `eventCounts`에 반영되지 않을 수 있던 문제를 보정했습니다.
+- 상세 로그와 연간 요약의 이벤트 수 일관성을 개선했습니다.
 
-### Building collapse and frontier ruins
-- Most buildings collapse after prolonged time at 0% condition.
-- Outposts have a shorter 0%-condition grace period: 4 seasons.
-- A collapsed frontier outpost is recorded as a building ruin.
-- A tiny undeveloped frontier settlement can be abandoned and converted into a map ruin when its outpost collapses.
-- Town halls and houses remain protected from automatic deletion to avoid uncontrollable housing cascades, but at 0% they provide no effect.
+### 4. 내부 이주와 빈 정착지 재배치 충돌 수정
+- 정착지의 마지막 주민은 내부 이주 후보가 되지 않도록 변경했습니다.
+- 주민이 정착지를 떠난 직후 같은 주민이 다시 빈 정착지를 채우는 식의 이주/재배치 충돌을 방지합니다.
 
-### Timed construction
-Buildings are no longer completed instantly. Resources are committed when construction starts, then local labor advances the project over time.
+## 핵심 구조
 
-Base construction work-days:
-- Road: 45
-- Farmstead: 60
-- House: 75
-- Palisade: 90
-- Granary: 90
-- Outpost reconstruction: 90
-- Warehouse: 110
-- Quarry: 120
-- Trading post: 120
-- Market: 150
+`World → Nation → Settlement → Person`
 
-Local adult workers and building skill affect daily construction progress. Projects can stall when a settlement has no adult labor.
+- **Person**: 나이, 성별, 건강, 허기, 에너지, 행복도, 직업, 기술, 관계, 거주지 등을 가진 실제 주민 개체
+- **Settlement**: 국가가 소유한 타일 단위 정착지. 현지 주민, 자원 재고, 건물, 유지관리와 건설 프로젝트가 존재
+- **Nation**: 여러 정착지와 주민을 묶는 국가. Gold, 기술, AI, 교역, 확장과 전략 계획을 관리
+- **World**: 지도, 지형, 국가, 시간, 사건, 이주, 교역, 확장 등을 관리
 
-### Capital roads
-- The capital is no longer excluded from road construction.
-- After Roads technology, the capital is the first road candidate before the network expands outward.
+## 시간
 
-### Thinner road rendering
-- Road lines are roughly two-thirds of their V0.10 visual thickness.
-- Lv.1/Lv.2/Lv.3 road distinctions remain visible.
+- 1 tick ≈ 1일
+- 1계절 = 30일
+- 1년 = 120일 = 4계절
 
-### Happiness system expansion
-Resident happiness remains an individual 0–100 stat, but is no longer pulled almost uniformly toward ~65.
-It now responds to:
-- hunger and food security
-- health and energy
-- local housing pressure
-- local building condition
-- security/threat
-- relationships and nearby parents
-- employment
-- recent relocation
-- national food crisis
+## 실행
 
-Happiness has a modest productivity effect of approximately -12% to +12% at the extremes.
-Low happiness also reduces willingness to join pioneer groups unless risk tolerance is high. Existing birth behavior continues to use maternal happiness.
+GitHub Pages에는 루트의 `index.html`을 그대로 업로드하면 됩니다. 별도 서버나 빌드 과정 없이 브라우저에서 실행됩니다.
 
-### AI V3 groundwork
-V0.11 still uses Utility AI for the final seasonal action, but now maintains a planning layer above it.
-Each nation calculates:
-- a simple one-year forecast for population, food, wood, stone, and Gold
-- its top three strategic goals
-- resource reserves for food, maintenance, housing, expansion, and trade
+개발용 모듈 소스는 `source/` 폴더에 있습니다.
 
-Possible goals include Food Stability, Infrastructure Recovery, Housing Expansion, Timber Security, Territorial Expansion, Trade Network Growth, and Living Standards.
-These goals influence Utility scores and are recorded in telemetry. This is groundwork for a later architecture where national goals and settlement-level actions are separated more fully.
+## 저장
 
-### UI / telemetry
-- Nation overview shows average happiness, construction count, top strategic goals, one-year forecast, and reserved resources.
-- Resident list shows current happiness and happiness target.
-- Settlement cards show effective housing capacity, local average happiness, degraded/inactive building states, and construction progress.
-- Devlog adds building degradation/reactivation, construction start/completion/stall, AI goals, forecast, reserves, happiness distribution, and construction project counts.
+- 브라우저 `localStorage`
+- JSON 세이브 내보내기/가져오기
+- V0.12는 V0.8~V0.12 세이브를 불러올 수 있습니다.
+- V0.12 저장 키를 사용하며 이전 버전 저장 키도 순차적으로 확인합니다.
 
-## Compatibility
-- Loads V0.8, V0.9, V0.10, and V0.11 saves.
-- Saves created in V0.11 use the V0.11 schema.
+## 개발자 데이터
 
-## Validation performed
-- 20-year autonomous simulation completed with all four nations active in the validation run.
-- Capital road project correctly starts on the capital and takes time to finish.
-- 35% building condition produces 50% effect; 0% provides no effect.
-- Outpost 0%-condition collapse grace behavior verified.
-- Save/load and V0.10-to-V0.11 migration verified.
-- 100×100 map, 600-day Node simulation completed in approximately 1.7 seconds in the validation environment.
+- 개발 로그 JSON
+- 스냅샷 CSV
+- 최근 약 50년의 상세 로그 + 장기 연간 요약
+- Gold 교역 감사(Gold audit)
+
+## 배포 저장소
+
+- GitHub: `LILAFI/Vilob`
+- GitHub Pages: `https://lilafi.github.io/Vilob/`
