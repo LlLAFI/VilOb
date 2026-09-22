@@ -1,10 +1,10 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><title>Village Observer V0.12</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><title>Village Observer V0.13</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
 
 </style></head><body>
-<div class="shell"><header class="topbar"><div><div class="eyebrow">Village Observer · V0.12</div><strong id="timeLabel">1년 봄 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><div class="eyebrow">Village Observer · V0.13</div><strong id="timeLabel">1년 봄 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><button id="newWorldBtn">새 세계</button></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -1316,6 +1316,196 @@ if(typeof document!=='undefined'){
 })(window.VSim);
 
 </script><script>
-window.VSim=window.VSim||{};(function(NS){window.villageObserver=new NS.UI(NS.V012.attachWorld(new NS.World(14,14)));})(window.VSim);
+window.VSim=window.VSim||{};
+(function(NS){
+"use strict";
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ============================================================
+   V0.13 · settlement population visibility / adaptive diplomatic AI /
+           sparse strategic rivalry / local food balance
+   ============================================================ */
+
+const FOOD_SPOIL_THRESHOLD=.78;
+const FOOD_SPOIL_SAFE=.72;
+const FOOD_SPOIL_RATE=.035;
+const EMERGENCY_FOOD_DAYS=10;
+const EMERGENCY_TARGET_DAYS=24;
+const CONCERN_ENTER=50;
+const CONCERN_RESOLVE=38;
+
+function ensureV13Nation(v,w){
+ v._world=w;
+ v.strategicConcerns=v.strategicConcerns||{};
+ v.strategicConcernStates=v.strategicConcernStates||{};
+ v.foodBalanceStats=v.foodBalanceStats||{spoiled:0,emergencyMoved:0,emergencyMoves:0};
+ return v;
+}
+function attachV13World(w){NS.V012.attachWorld(w);for(const v of w.villages||[])ensureV13Nation(v,w);return w;}
+
+/* ---------- Sparse strategic competition: border + recent trade contacts only ---------- */
+function borderContacts(v,w){
+ const day=w.ordinalDay();if(v._v13BorderCache?.day===day&&v._v13BorderCache.size===v.territory.size)return new Set(v._v13BorderCache.ids);
+ const ids=new Set();for(const id of v.territory){for(const n of w.map.neighbors4(id)){if(n.ownerId!=null&&n.ownerId!==v.id)ids.add(n.ownerId);}}v._v13BorderCache={day,size:v.territory.size,ids:[...ids]};return ids;
+}
+function contactIds(v,w){
+ const ids=borderContacts(v,w),day=w.ordinalDay();
+ for(const r of w.recentTrades||[]){if(day-(r.day||0)>180)continue;if(r.buyerId===v.id)ids.add(r.sellerId);else if(r.sellerId===v.id)ids.add(r.buyerId);}
+ return [...ids].filter(id=>w.villages.some(x=>x.id===id&&x.status==='active'));
+}
+function nationPower(v){return v.population()+v.territory.size*3.4+v.technologies.size*2.4+Math.log2(Math.max(1,v.gold)+1)*1.4;}
+function recentDependency(v,o,w){
+ let imp=0,exp=0;const day=w.ordinalDay();
+ for(const r of w.recentTrades||[]){if(day-(r.day||0)>180)continue;const q=Number(r.qty)||0;if(r.buyerId===v.id&&r.sellerId===o.id)imp+=q;else if(r.sellerId===v.id&&r.buyerId===o.id)exp+=q;}
+ const total=imp+exp;if(total<1)return 0;return clamp((imp-exp)/total,0,1);
+}
+function strategicConcernDetail(v,o,w){
+ ensureV13Nation(v,w);const borders=borderContacts(v,w),border=borders.has(o.id),own=nationPower(v),other=nationPower(o),ratio=other/Math.max(1,own),dependency=recentDependency(v,o,w),relation=Number(v.relations?.[o.id]||0);
+ let score=8+(border?18:0)+clamp((ratio-.90)*60,0,45)+clamp((o.territory.size-v.territory.size)*2,0,20)+clamp((o.technologies.size-v.technologies.size)*2,0,12)+dependency*15-clamp(relation,0,120)/120*8;
+ if(v.brain?.type==='diplomatic')score*=.84;else if(v.brain?.type==='expansionist')score*=1.08;else if(v.brain?.type==='survival')score*=.96;
+ return{score:clamp(score,0,100),border,powerRatio:ratio,dependency,relation,target:o};
+}
+NS.Village.prototype.strategicConcernList=function(w){
+ ensureV13Nation(this,w);const day=w.ordinalDay();if(this._v13ConcernCache?.day===day)return this._v13ConcernCache.rows;const rows=contactIds(this,w).map(id=>{const o=w.villages.find(x=>x.id===id);return o?strategicConcernDetail(this,o,w):null;}).filter(Boolean).sort((a,b)=>b.score-a.score);
+ this.strategicConcerns=Object.fromEntries(rows.map(r=>[r.target.id,+r.score.toFixed(1)]));this._v13ConcernCache={day,rows};return rows;
+};
+NS.Village.prototype.maxStrategicConcern=function(w){return this.strategicConcernList(w)[0]||null;};
+function updateConcernEvents(v,w){
+ const active=new Set();
+ for(const r of v.strategicConcernList(w)){
+  active.add(String(r.target.id));const key=String(r.target.id),was=!!v.strategicConcernStates[key];
+  if(r.score>=CONCERN_ENTER&&!was){v.strategicConcernStates[key]=true;w.telemetry.record('STRATEGIC_CONCERN_ENTER',w,{village:v.name,target:r.target.name,concern:+r.score.toFixed(1),border:r.border,powerRatio:+r.powerRatio.toFixed(2),dependency:+r.dependency.toFixed(2)});}
+  else if(r.score<CONCERN_RESOLVE&&was){v.strategicConcernStates[key]=false;w.telemetry.record('STRATEGIC_CONCERN_RESOLVED',w,{village:v.name,target:r.target.name,concern:+r.score.toFixed(1)});}
+  if(r.score>=CONCERN_ENTER){const drift=r.score>=75?.55:.20;v.relations[r.target.id]=(v.relations[r.target.id]||0)-drift;}
+ }
+ for(const key of Object.keys(v.strategicConcernStates)){if(!active.has(key)&&v.strategicConcernStates[key])v.strategicConcernStates[key]=false;}
+}
+
+/* ---------- Diplomatic AI: trade first, but stop looping when trade fails to solve structure ---------- */
+const plan12=NS.Village.prototype.updateStrategicPlan;
+NS.Village.prototype.updateStrategicPlan=function(w){
+ const p=plan12.call(this,w);if(this.brain?.type!=='diplomatic')return p;const x=this.strategicProfile(w),structural=Math.max(x.woodDef||0,Math.max(0,60-(x.avg||0))/60,x.housingUrgency||0),ready=(x.stagnantYears||0)>6&&structural>.25&&(x.front||0)>0&&(x.settlers||0)>=2;
+ p.adaptiveExpansion=!!ready;if(ready){p.reserves.wood=Math.max(p.reserves.wood||0,46);p.reserves.stone=Math.max(p.reserves.stone||0,16);p.reserves.food=Math.max(p.reserves.food||0,this.population()*.36*55);}return p;
+};
+const startConstruction12=NS.Village.prototype.startConstruction;
+NS.Village.prototype.startConstruction=function(w,tileId,type,reason='AI'){
+ const p=this.aiPlan||this.updateStrategicPlan(w);if(this.brain?.type==='diplomatic'&&p?.adaptiveExpansion&&this.tradingPosts().length>0){const protectedTypes=new Set(['warehouse','market','quarry','farmstead','trading_post']);if(protectedTypes.has(type)&&this.wood<46)return false;}
+ return startConstruction12.call(this,w,tileId,type,reason);
+};
+const baseScores12=NS.VillageBrain.prototype.baseScores;
+NS.VillageBrain.prototype.baseScores=function(v,w){
+ const s=baseScores12.call(this,v,w),x=v._v10LastProfile||v.strategicProfile(w),concern=v.maxStrategicConcern(w),mem=v.aiMemory||{};
+ if(concern)s.SECURITY+=(concern.score/100)*(this.type==='diplomatic'?7:12);
+ if(this.type==='diplomatic'){
+  const structural=Math.max(x.woodDef||0,Math.max(0,60-(x.avg||0))/60,x.housingUrgency||0),stagnant=Math.max(0,(x.stagnantYears||0)-5);
+  if(stagnant>0&&structural>.20){
+   s.EXPAND+=Math.min(42,stagnant*2.2+structural*24);
+   if((x.occ||0)>.84)s.HOUSING+=Math.min(28,((x.occ-.84)/.20)*28);
+   if((x.reachable||0)===0)s.TRADE-=Math.min(24,8+stagnant*1.6);
+   else if(mem.lastAction==='TRADE'&&(mem.streak||0)>=6)s.TRADE-=Math.min(24,(mem.streak-5)*2.2+structural*8);
+  }
+ }
+ return s;
+};
+
+/* ---------- Strategic export restraint: soft balancing, never a full embargo ---------- */
+const deal12=NS.World.prototype.dealCandidate;
+NS.World.prototype.dealCandidate=function(buyer,seller,resource,route){
+ const d=deal12.call(this,buyer,seller,resource,route);if(!d)return null;
+ const info=strategicConcernDetail(seller,buyer,this),c=info.score;if(c<=38)return d;
+ const severity=clamp((c-38)/50,0,1),maxCut=resource==='food'?.10:resource==='wood'?.30:.24,temper=seller.brain?.type==='diplomatic'?.62:1,factor=1-severity*maxCut*temper;
+ if(factor>=.995)return d;
+ d.qty*=factor;d.price*=factor;d.fee*=factor;d.total*=factor;d.score*=factor;d.strategicConcern=+c.toFixed(1);d.strategicRestraintFactor=+factor.toFixed(3);
+ return d.qty>=1.5?d:null;
+};
+
+/* ---------- Local food balance: emergency relief + high-stock spoilage ---------- */
+const logistics12=NS.World.prototype.processInternalLogistics;
+NS.World.prototype.processInternalLogistics=function(){
+ for(const v of this.activeVillages){ensureV13Nation(v,this);const occupied=[...v.territory].filter(id=>v.tileResidents(id).some(p=>p.alive));if(occupied.length<2)continue;
+  const receivers=occupied.filter(id=>v.settlementReserveDays(id)<EMERGENCY_FOOD_DAYS).sort((a,b)=>v.settlementReserveDays(a)-v.settlementReserveDays(b));
+  for(const rid of receivers){const rpop=v.tileResidents(rid).filter(p=>p.alive).length;if(!rpop)continue;const donors=occupied.filter(id=>id!==rid&&v.settlementReserveDays(id)>70).map(id=>({id,days:v.settlementReserveDays(id),...v.internalLogisticsCapacity(id,rid,'food',false)})).filter(x=>x.capacity>0).sort((a,b)=>b.days-a.days||a.cost-b.cost);if(!donors.length)continue;
+   const q=donors[0],donorPop=v.tileResidents(q.id).filter(p=>p.alive).length,need=Math.max(0,rpop*.36*EMERGENCY_TARGET_DAYS-v.stockAt(rid,'food')),surplus=Math.max(0,v.stockAt(q.id,'food')-donorPop*.36*60),qty=Math.min(q.capacity*1.5,need,surplus);if(qty<1)continue;
+   const took=v.withdrawAt(q.id,'food',qty),put=v.depositAt(rid,'food',took);if(put<took)v.depositAt(q.id,'food',took-put);if(put<=0)continue;v.logisticsStats.moves++;v.logisticsStats.foodMoved=(v.logisticsStats.foodMoved||0)+put;v.foodBalanceStats.emergencyMoved+=put;v.foodBalanceStats.emergencyMoves++;
+   this.telemetry.record('INTERNAL_LOGISTICS',this,{village:v.name,resource:'food',qty:+put.toFixed(1),fromTileId:q.id,toTileId:rid,routeCost:+q.cost.toFixed(2),capacity:+(q.capacity*1.5).toFixed(2),reason:'EMERGENCY_FOOD'});
+  }
+ }
+ logistics12.call(this);
+};
+function processFoodSpoilage(v,w){
+ ensureV13Nation(v,w);let total=0;
+ for(const id of v.territory){const t=w.map.get(id);if(!t?.stocks)continue;const cap=v.settlementCaps(id).food,stock=t.stocks.food||0;if(cap<=0||stock/cap<=FOOD_SPOIL_THRESHOLD)continue;const granary=t.buildingEfficiency?.('granary')||0,excess=Math.max(0,stock-cap*FOOD_SPOIL_SAFE),rate=FOOD_SPOIL_RATE*(1-.55*granary),loss=Math.min(stock,excess*rate);if(loss<=.05)continue;t.stocks.food-=loss;total+=loss;}
+ if(total>0){v.foodBalanceStats.spoiled+=total;if(total>=8)w.telemetry.record('FOOD_SPOILAGE',w,{village:v.name,qty:+total.toFixed(1),threshold:FOOD_SPOIL_THRESHOLD,granaryProtection:true});}
+ return total;
+}
+const seasonal12=NS.Village.prototype.seasonalTick;
+NS.Village.prototype.seasonalTick=function(w){seasonal12.call(this,w);processFoodSpoilage(this,w);updateConcernEvents(this,w);};
+
+/* ---------- Telemetry ---------- */
+const snap12=NS.Telemetry.prototype.snapshot;
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){
+ const s=snap12.call(this,w,reason,note);for(const r of s.villages||[]){const v=w.villages.find(x=>x.id===r.id);if(!v)continue;ensureV13Nation(v,w);const c=v.maxStrategicConcern(w);r.maxStrategicConcern=+(c?.score||0).toFixed(1);r.strategicConcernTarget=c?.target?.name||'';r.foodSpoiled=+v.foodBalanceStats.spoiled.toFixed(1);r.emergencyFoodMoved=+v.foodBalanceStats.emergencyMoved.toFixed(1);}return s;
+};
+NS.Telemetry.prototype.snapshotsCSV=function(){
+ const c=['simTime','ordinalDay','reason','note','village','status','brain','population','avgHealth','avgHappiness','avgEnergy','avgHunger','food','foodReserveDays','wood','stone','gold','foodStorage','woodStorage','stoneStorage','security','threat','focus','territoryTiles','occupiedTiles','resourceFoodRatio','resourceWoodRatio','resourceStoneRatio','resourceGoldRatio','expansionTarget','expansionProgress','age0_14','age15_17','age18_42','age43_64','age65plus','reproductiveWomen','reproductiveMen','technologyCount','technologies','researchTarget','researchLabel','researchProgress','researchCost','totalKnowledge','tradeCount','tradeImports','tradeExports','tradeGoldSpent','tradeGoldEarned','tradeShippingEarned','internalMigrations','externalIn','externalOut','settlements','warehouses','tradingPosts','houses','houseLimitTotal','reachableTradeNations','nearestTradeCost','maxStrategicConcern','strategicConcernTarget','foodSpoiled','emergencyFoodMoved'];
+ const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`,rows=[c.map(esc).join(',')];for(const s of this.snapshots||[])for(const v of s.villages||[])rows.push(c.map(k=>esc(k==='village'?(v.name??v.village??''):Object.prototype.hasOwnProperty.call(v,k)?v[k]:k==='simTime'?s.simTime:k==='ordinalDay'?s.ordinalDay:k==='reason'?s.reason:k==='note'?s.note:'')).join(','));return rows.join('\n');
+};
+const json12=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=json12.call(this,w);d.version='0.13';d.worldSummary.strategicCompetition='sparse border/recent-trade concern + soft export restraint';d.worldSummary.diplomaticAdaptation='trade-first with stagnation/structural-deficit escape';d.worldSummary.foodBalance='local emergency food logistics + high-stock seasonal spoilage';return d;};
+
+/* ---------- Save migration ---------- */
+const serV12=NS.Village.prototype.serialize;
+NS.Village.prototype.serialize=function(){const d=serV12.call(this);d.strategicConcerns=this.strategicConcerns||{};d.strategicConcernStates=this.strategicConcernStates||{};d.foodBalanceStats=this.foodBalanceStats||{};return d;};
+const serW12=NS.World.prototype.serialize,fromW12=NS.World.from;
+NS.World.prototype.serialize=function(){const d=serW12.call(this);d.version='0.13';d.v13={settlementPopulationUI:true,diplomaticAdaptation:true,strategicCompetition:true,foodBalance:true};return d;};
+NS.World.from=function(d){
+ if(!['0.8','0.9','0.10','0.11','0.12','0.13'].includes(d.version))throw new Error('V0.8~V0.13 세이브만 불러올 수 있습니다.');
+ const source=d.version,w=fromW12(source==='0.13'?{...d,version:'0.12'}:d);if(source==='0.13')for(const v of w.villages){const src=(d.villages||[]).find(x=>x.id===v.id)||{};v.strategicConcerns=src.strategicConcerns||{};v.strategicConcernStates=src.strategicConcernStates||{};v.foodBalanceStats=src.foodBalanceStats||{spoiled:0,emergencyMoved:0,emergencyMoves:0};}return attachV13World(w);
+};
+NS.V013={attachWorld:attachV13World,strategicConcern:strategicConcernDetail,contactIds,foodSpoil:{threshold:FOOD_SPOIL_THRESHOLD,safe:FOOD_SPOIL_SAFE,rate:FOOD_SPOIL_RATE},emergencyFoodDays:EMERGENCY_FOOD_DAYS};
+
+(function(){
+ const KEY13='village-observer-v0-13',KEY12='village-observer-v0-12',KEY11='village-observer-v0-11',KEY10='village-observer-v0-10',KEY9='village-observer-v0-9',KEY8='village-observer-v0-8';
+ function dl(name,text,type='application/json'){const blob=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+ NS.SaveSystem={
+  save(w){localStorage.setItem(KEY13,JSON.stringify(w.serialize()));},
+  load(){const r=localStorage.getItem(KEY13)||localStorage.getItem(KEY12)||localStorage.getItem(KEY11)||localStorage.getItem(KEY10)||localStorage.getItem(KEY9)||localStorage.getItem(KEY8);return r?NS.World.from(JSON.parse(r)):null;},
+  export(w){dl(`village-observer-v013-save-${w.year}y.json`,JSON.stringify(w.serialize()));},
+  exportDevJSON(w){dl(`village-observer-v013-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},
+  exportDevCSV(w){dl(`village-observer-v013-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+w.telemetry.snapshotsCSV(),'text/csv;charset=utf-8');},
+  async import(file){return NS.World.from(JSON.parse(await file.text()));}
+ };
+})();
+
+/* ---------- UI ---------- */
+if(NS.UI){
+ const card12=NS.UI.prototype.settlementCard,content12=NS.UI.prototype.renderVillageContent,codex12=NS.UI.prototype.renderCodex;
+ NS.UI.prototype.setWorld=function(w){this.stop();this.world=attachV13World(w);this.render();};
+ NS.UI.prototype.renderHeader=function(){this.q('timeLabel').textContent=this.world.timestamp();this.q('worldMood').textContent=` · ${this.world.activeVillages.length}개 국가`;this.q('playBtn').textContent=this.world.running?'⏸':'▶';document.querySelectorAll('.speed').forEach(b=>b.classList.toggle('active',+b.dataset.speed===this.world.speed));this.q('runtimeStatus').textContent='✓ V0.13 정착지 인구 시각화 · 외교형 적응 · 전략적 견제 · 식량 균형';this.q('runtimeStatus').style.color='#5bd79d';};
+ NS.UI.prototype.settlementCard=function(v,id){
+  let html=card12.call(this,v,id),t=this.world.map.get(id);if(!t)return html;const n=v.tileResidents(id).filter(p=>p.alive).length,cap=Math.max(.1,NS.V011.effectiveLocalCapacity(t)),pct=clamp(n/cap*100,0,100),over=n>cap,cls=over?'v13-pop-over':pct>=80?'v13-pop-high':'';
+  const block=`<div class="v13-pop-row ${cls}"><span class="v13-pop-badge">👥 <strong>${n}명</strong></span><div class="v13-pop-meter" title="유효 주거 ${cap.toFixed(1)}명"><span style="width:${pct.toFixed(1)}%"></span></div><span class="v13-pop-cap">주거 ${n}/${cap.toFixed(0)}</span></div>`;
+  const pos=html.indexOf('</strong>');if(pos>=0)html=html.slice(0,pos+9)+block+html.slice(pos+9);return html;
+ };
+ NS.UI.prototype.renderVillageContent=function(){
+  content12.call(this);const v=this.world.selectedNation,el=this.q('villageContent');if(!v||!el||this.sub!=='overview')return;el.querySelector('.v13-diplomacy')?.remove();const rows=v.strategicConcernList(this.world),box=document.createElement('div');box.className='v13-diplomacy';const body=rows.length?rows.slice(0,4).map(r=>{const label=r.score>=75?'높음':r.score>=55?'경계':r.score>=35?'주의':'낮음';return`<div class="v13-concern-row"><span><strong>${r.target.name}</strong>${r.border?' · 국경 접촉':''}</span><span class="v13-concern-${label==='높음'||label==='경계'?'high':label==='주의'?'mid':'low'}">${label} ${r.score.toFixed(0)}</span></div>`;}).join(''):'<div class="small muted">현재 국경·최근 교역으로 연결된 전략적 접촉국이 없습니다.</div>';
+  box.innerHTML=`<strong>⚖️ 외교·전략적 경계</strong><div class="small muted">국경, 상대적 세력, 기술·영토 격차와 최근 교역 의존을 바탕으로 계산합니다. 높은 경계는 전략 자원 수출을 완만하게 줄이고 SECURITY 판단에 반영됩니다.</div>${body}`;el.appendChild(box);
+ };
+ NS.UI.prototype.renderCodex=function(){
+  codex12.call(this);const el=this.q('codexContent');if(!el||el.dataset.v13Ready)return;const prod=el.querySelector('[data-page="prod"]'),logi=el.querySelector('[data-page="logi"]');if(prod)prod.insertAdjacentHTML('beforeend',`<div class="codex-note"><strong>V0.13 식량 보관 균형</strong><br>정착지 식량 저장률이 ${(FOOD_SPOIL_THRESHOLD*100).toFixed(0)}%를 넘으면 ${(FOOD_SPOIL_SAFE*100).toFixed(0)}% 기준 초과분의 약 ${(FOOD_SPOIL_RATE*100).toFixed(0)}%가 계절마다 부패합니다. 활성 곡물창고는 손실을 약 55% 줄입니다.</div>`);if(logi)logi.insertAdjacentHTML('beforeend',`<div class="codex-note"><strong>긴급 식량 수송</strong><br>주민이 있는 정착지의 식량이 ${EMERGENCY_FOOD_DAYS}일 미만이면 70일 초과 비축 정착지에서 우선 구호 수송을 시도하며, 1회 수송용량은 평시의 1.5배까지 사용합니다.<br><strong>전략적 견제</strong><br>모든 국가 쌍을 전수 비교하지 않고 실제 국경 또는 최근 180일 교역 상대만 평가합니다. 경계가 높으면 목재·석재 수출량을 일부 줄이며 식량 제한은 훨씬 약합니다.</div>`);el.dataset.v13Ready='1';
+ };
+}
+if(typeof document!=='undefined'){
+ const st=document.createElement('style');st.textContent=`
+ .v13-pop-row{display:grid;grid-template-columns:auto minmax(70px,1fr) auto;gap:8px;align-items:center;margin:8px 0 5px;padding:7px 8px;border-radius:9px;background:rgba(105,173,255,.08);border:1px solid rgba(105,173,255,.18)}.v13-pop-badge{font-size:14px}.v13-pop-badge strong{font-size:17px}.v13-pop-cap{font-size:11px;color:var(--muted);white-space:nowrap}.v13-pop-meter{height:9px;border-radius:99px;background:#273950;overflow:hidden}.v13-pop-meter span{display:block;height:100%;background:var(--nation-color,var(--accent));border-radius:99px}.v13-pop-high{border-color:rgba(245,202,112,.38)}.v13-pop-over{border-color:rgba(255,127,137,.55);background:rgba(255,127,137,.08)}.v13-pop-over .v13-pop-cap{color:var(--bad)}
+ .v13-diplomacy{margin-top:10px;padding:10px;border:1px solid rgba(189,156,255,.25);border-radius:10px;background:rgba(120,80,170,.07)}.v13-concern-row{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}.v13-concern-row:last-child{border-bottom:0}.v13-concern-high{color:#ff9c9c}.v13-concern-mid{color:#ffd36f}.v13-concern-low{color:#8fd9b3}
+ @media(max-width:600px){.v13-pop-row{grid-template-columns:auto 1fr}.v13-pop-cap{grid-column:1/-1}.v13-concern-row{align-items:center}}
+ `;document.head.appendChild(st);
+}
+
+})(window.VSim);
+
+</script><script>
+window.VSim=window.VSim||{};(function(NS){window.villageObserver=new NS.UI(NS.V013.attachWorld(new NS.World(14,14)));})(window.VSim);
 
 </script></body></html>
