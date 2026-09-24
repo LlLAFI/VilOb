@@ -1,10 +1,10 @@
-# Village Observer V0.30B2 — 생존·재정·전문화 최종 밸런스
+# Village Observer V0.30B3 — 기아·개척지·시장투자 후속 밸런스
 
 Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
 
-V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**와 연결하고, 식량·목재·석재의 현지가격을 실제 소비·예상수요·생산·물류 신호에 맞게 정교화하는 버전입니다. **V0.30A**는 UI·연간 통계·재정 유동성·성능 관측·상위시설 진단을 보완했고, **V0.30B2**는 53년 장기 데이터에서 확인된 극초기 국가 붕괴와 국가별 Treasury 편중, 전문시설 발생경로를 최종 밸런싱하는 버전입니다.
+V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**와 연결하고, 식량·목재·석재의 현지가격을 실제 소비·예상수요·생산·물류 신호에 맞게 정교화하는 버전입니다. **V0.30A**는 UI·연간 통계·재정 유동성·성능 관측·상위시설 진단을 보완했고, **V0.30B2**는 53년 장기 데이터에서 확인된 극초기 국가 붕괴와 국가별 Treasury 편중, 전문시설 발생경로를 밸런싱했고, **V0.30B3**는 같은 세션을 63년까지 연장해 확인한 초기 집단아사, 개척지 재포기 churn, Treasury reserve에 의한 경제시설 투자 정지, Stoneworks 이중 gate를 후속 보완하는 버전입니다.
 
-저장 데이터 버전은 `0.30B2`, localStorage 키는 `village-observer-v0-30b2`입니다. V0.30A 및 그 이하 세이브는 fallback chain으로 읽은 뒤 V0.30B2 런타임 필드를 붙입니다. 내부 데이터 모델은 V0.30A/V0.30을 계승하므로 기존 세이브의 Person·Settlement·Nation identity를 유지합니다.
+저장 데이터 버전은 `0.30B3`, localStorage 키는 `village-observer-v0-30b3`입니다. V0.30B2 및 그 이하 세이브는 fallback chain으로 읽은 뒤 V0.30B3 런타임 필드를 붙입니다. 내부 데이터 모델은 V0.30B2/V0.30A/V0.30을 계승하므로 기존 세이브의 Person·Settlement·Nation identity를 유지합니다.
 
 ---
 
@@ -13,6 +13,205 @@ V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**
 `README.md`는 구현 의도·계산 규칙·호환성·관측 항목·검증 결과를 남기는 **상세 기술 문서**입니다.
 
 인게임 패치노트는 이 README를 대체하지 않으며, 플레이 중 핵심 변경사항만 빠르게 확인하기 위한 요약 UI입니다.
+
+---
+
+# V0.30B3 후속 밸런스
+
+V0.30B2 동일 세션을 약 63년까지 진행했을 때 6개 Nation은 모두 생존했고 장기 구간에서는 아사가 멈췄습니다. 따라서 V0.30B3의 목적은 생존보호를 더 강하게 만드는 것이 아니라, **9~16년에 집중된 급격한 Hunger 100 사망을 완만하게 만들고, 빈 개척지의 즉시 포기와 국가 Treasury reserve 때문에 경제시설이 멈추는 구조를 정리하는 것**입니다.
+
+동시에 B2에서 Stoneworks 후보조건과 V0.20 실제 건설조건이 서로 달랐던 이중 gate를 제거해, AI trigger·실제 startConstruction·diagnostic이 같은 기준을 보도록 합니다.
+
+## B3.1 Hunger 100 사망 유예와 severe Hunger 조기감지
+
+기본 식량 요구량은 그대로 유지합니다.
+
+- 0~14세: `0.30 / cycle`
+- 15세 이상: `0.42 / cycle`
+- 기존 기본 metabolism의 Hunger 상승량은 변경하지 않음
+
+V0.29에서 추가 식량분 `.05 / .06`을 80% 미만 섭취했을 때 적용되던 추가 Hunger 패널티는 `+1.2 → +0.6`으로 완화합니다.
+
+아사 판정은 다음과 같이 변경됩니다.
+
+1. Hunger가 100에 처음 도달하면 `STARVATION_CRITICAL_ENTER_B3`를 기록합니다.
+2. 즉시 사망하지 않고 12 calendar days의 극심기아 유예를 둡니다.
+3. 이 기간 동안 Person은 여전히 행동·식사를 시도할 수 있습니다.
+4. Hunger가 95 미만으로 회복되면 극심기아 카운터를 초기화합니다.
+5. Hunger 100 상태가 충분히 지속되면 `DEATH_STARVATION`이 발생하며 `criticalHungerCalendarDays`를 로그에 남깁니다.
+
+Early Survival Crisis에는 국가 평균 Hunger 외에 실제 Person의 꼬리위험을 추가합니다.
+
+- Hunger ≥85 주민 존재: risk 증가
+- Hunger ≥95 주민 1명 이상: 즉시 위기 후보
+- Hunger ≥85 주민 2명 이상: 즉시 위기 후보
+
+Emergency Food Convoy 재평가 cooldown은 기존 10 ordinal cycles에서 5 cycles로 줄입니다. 현재 360일제에서 약 30 calendar days → 약 15 calendar days입니다.
+
+## B3.2 개척지 vacancy grace와 재집결 보정
+
+V0.30B2까지 `maintainSettlements()`는 비핵심 Settlement 인구가 0명이 되었을 때 즉시 donor를 찾고, donor가 없으면 같은 tick에서 바로 영토를 포기했습니다. 이 구조는 `개척 → 일시적 공백 → 포기 → 재개척` churn을 키웠습니다.
+
+V0.30B3에서는:
+
+- 빈 비핵심 Settlement에 `unoccupiedDays`를 누적
+- 약 90 calendar days에 해당하는 30 ordinal cycles 동안 소유권과 건물을 유지
+- 유예기간 중 기존 migration/repopulation이 실제 주민을 보내면 즉시 정상화
+- 유예기간이 끝날 때까지 주민이 돌아오지 못하면 `OUTPOST_ABANDONED`
+- 최초 공백에는 `SETTLEMENT_VACANCY_GRACE_B3` 기록
+
+또한 Early Survival의 강제 재집결은 가능하면 외곽 Settlement의 마지막 Person을 남깁니다. `pop=1`인 변경의 마지막 주민까지 이동시키는 것은 Nation 전체 인구가 10명 이하이거나 위험도 5 이상인 극단적 위기로 한정합니다.
+
+## B3.3 Settlement market 선투자와 Treasury reserve 역할 분리
+
+B2에서 전략 Treasury reserve는 국가가 선택적 지출로 국고를 0까지 사용하는 것을 막았지만, 자연런에서는 모든 Nation이 reserve 아래로 내려간 뒤 Trading Post 같은 경제시설까지 반복적으로 차단되는 사례가 확인되었습니다.
+
+V0.30B3에서는 다음 경제시설을 **Settlement market 투자 대상**으로 취급합니다.
+
+- Trading Post
+- Market
+- Quarry / Deep Quarry
+- Stoneworks
+- Merchant Guild
+- Grand Market
+
+Gold 비용이 있는 경제시설은:
+
+1. 해당 Settlement의 `marketGold`에서 최소 지역 유동성 reserve를 제외한 surplus를 먼저 사용
+2. 부족분만 Nation Treasury가 부담
+3. 인구 30명 이상 Nation은 Treasury가 전략 reserve 아래로 더 내려가지 않는 범위에서만 보조
+4. Nation Treasury가 이미 reserve 아래더라도 Settlement market이 Gold 비용을 전액 부담할 수 있으면 건설 허용
+
+Gold는 Settlement market → Nation Treasury → construction payment로 보존 이동하므로 새로운 Gold를 생성하지 않습니다. 실제 공동부담은 기존 `SETTLEMENT_BUILD_COFINANCE`와 B3 `marketInvestments / marketGoldInvested` telemetry에 기록합니다.
+
+## B3.4 Stoneworks canonical eligibility
+
+V0.30B2에서는 `tryStoneworksB2()`의 후보조건과 V0.20 `startConstruction('stoneworks')`의 실제 허용조건이 달랐습니다. 따라서 diagnostic에서 준비 완료처럼 보여도 실제 건설경로에서 다시 거절될 수 있었습니다.
+
+V0.30B3는 `stoneworksEligibility()` 하나를 canonical 조건으로 사용합니다.
+
+공통 확인 항목:
+
+- Nation active / Survival Mode 여부
+- MASONRY 기술
+- 같은 타일에 Stoneworks 존재 여부
+- 진행 중 공사와의 충돌
+- Nation별 Stoneworks 상한
+- 최근 240일 stone import
+- 최근 240일 construction activity
+- 현지 stone price
+- 실제 건축공간
+- demand score
+
+기본 수요 후보는 `stoneImports ≥18` 또는 `recentConstruction ≥2` 또는 `stonePrice ≥0.62`, 그리고 score 34 이상입니다.
+
+이 함수는:
+
+- B2 seasonal Stoneworks trigger
+- V0.20의 실제 `startConstruction('stoneworks')` gate
+- V0.30A specialization diagnostic
+
+세 경로가 공동으로 사용합니다.
+
+Merchant Guild / Grand Market / Deep Quarry의 기존 핵심 threshold는 V0.30B3에서 낮추지 않습니다.
+
+## B3.5 석재 위기와 QUARRY 연구 우선도
+
+63년 데이터에서는 Stone이 심하게 부족한 Nation이 QUARRY 기술을 아직 연구하지 않은 반면, QUARRY 보유 Nation은 상대적으로 석재 압력이 낮은 경우가 있었습니다.
+
+V0.30B3는 기술 비용이나 prerequisite를 바꾸지 않고 연구 선택 AI에만 압력을 추가합니다.
+
+석재 압력은 다음 신호를 조합합니다.
+
+- 현재 stone / targetStone 비율
+- Settlement stone 최고가격
+- 최근 stone maintenance shortfall
+
+압력이 충분히 높으면:
+
+- MASONRY 미보유 + 연구 가능 → MASONRY 우선
+- MASONRY 보유 + QUARRY 연구 가능 → QUARRY 우선
+
+선택은 `B3_STONE_RESEARCH_PRIORITY`로 기록합니다.
+
+## B3.6 UI 보완
+
+- 상단 시간은 버전 버튼 아래 구조를 유지
+- `연도 · 분기 · 일`은 `var(--accent)` 파란색, desktop 13px/700, mobile 12px
+- 뒤의 `· 6개 국가` 표시는 기존 muted 계열 유지
+- 지도 Settlement/상업/항구/폐허 주요 아이콘과 원형 배경을 기존의 약 60% 크기로 축소
+- 행정권 `A`, 생활권 `L`, 도로 `R` 등 레이어 표식 크기는 변경하지 않음
+- 국가 → 경제의 `생존·재정` 박스는 Survival Mode ON일 때만 녹색 강조, OFF일 때는 일반 V0.30 정보박스 색상 사용
+
+## B3.7 추가 telemetry
+
+Nation/snapshot에 다음 B3 관측값을 추가합니다.
+
+- `severeHunger85B3`
+- `severeHunger95B3`
+- `starvationGraceEntriesB3`
+- `starvationDeathsAfterGraceB3`
+- `vacantGraceTilesB3`
+- `vacantGraceAbandonsB3`
+- `marketInvestmentsB3`
+- `marketGoldInvestedB3`
+- `stoneResearchPrioritiesB3`
+
+World JSON에는 `v30B3Revision`, 새 demography model, frontier retention, economic investment, Stoneworks canonical gate, UI 변경사항을 기록합니다.
+
+## B3.8 검증 기록
+
+### 정적 검증
+
+- standalone `index.html` inline JavaScript 40개 추출
+- 전부 `node --check` 통과
+
+### Chromium 실제 로드
+
+확인 항목:
+
+- document title: `Village Observer V0.30B3`
+- 상단 badge: `Village Observer · V0.30B3`
+- time label: 13px / 700 / accent blue
+- world serialize version: `0.30B3`
+- active nations: 6
+- runtime exception: 0
+
+### 기능 단위 회귀
+
+- Hunger 100 최초 판정에서 Person 생존 유지
+- 12 calendar days 경과 후 Hunger 100 지속 시 `DEATH_STARVATION`
+- B3 starvation critical timestamp serialize/load 보존
+- severe Hunger 95 한 명이 Survival profile에 직접 반영
+- 빈 비핵심 Settlement: 29 ordinal cycles까지 소유권 유지, 30번째 cycle에서 포기
+- Settlement market 30G / Nation Treasury 0G 조건에서 Trading Post 6G 비용을 market이 전액 보존 부담
+- Stoneworks canonical eligibility 통과 후 기존 V0.20 hidden gate에 재차 막히지 않고 construction project 생성
+- 석재압력 조건에서 QUARRY 연구 우선 선택 확인
+- 생존·재정 박스: OFF 기본색 / ON 녹색 강조 확인
+- map `drawIcon()`의 원형 및 emoji scale 60% 적용 확인
+
+### Save migration
+
+테스트용 V0.30B2 형식 save를 B3에서 load한 결과:
+
+- Person 수: 88 → 88
+- active nations: 6 → 6
+- 재serialize version: `0.30B3`
+- runtime exception: 0
+
+### 확률적 smoke run
+
+한 번의 약 13년 smoke run 결과 예시:
+
+- active nations: 6 / 6
+- population: 168
+- claimed territory: 27 tiles
+- starvation deaths: 8
+- Early Survival crisis enter: 7
+- Emergency Food Convoy: 69
+- runtime exception: 0
+
+이 smoke run은 생산 RNG를 고정하지 않은 짧은 회귀시험이며 장기 밸런스 결론으로 사용하지 않습니다. 특히 V0.30B3의 목적은 아사를 제거하는 것이 아니라 **초기 Hunger 100의 즉시 사망을 완화하고 AI가 severe Hunger를 더 일찍 인지하도록 하는 것**입니다. 최종 평가는 실제 60~100년 플레이 데이터로 다시 수행합니다.
 
 ---
 
