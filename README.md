@@ -1,328 +1,327 @@
-# Village Observer V0.32A
+# Village Observer V0.32B
 
-## 군사사회 기반 · 지도/제련 보정
+## 실제 Person 동원 · 평시 Cohort/Garrison V1
 
-V0.32A는 V0.31 계열의 철경제를 닫고 V0.32 「군사사회 V1」로 진입하는 첫 기반 버전이다. 이 버전의 목적은 전투를 즉시 활성화하는 것이 아니라, 이후 동원·부대 이동·주둔·요새화·국지전이 실제 Person과 연결될 수 있도록 데이터 구조와 관측 기반을 먼저 고정하는 것이다.
+V0.32B는 V0.32A에서 준비한 `Person-backed MilitaryCohort / Garrison` 구조를 처음으로 실제 시뮬레이션에 연결하는 버전이다.
 
-동시에 V0.31I 첫 자연주행에서 확인된 두 잔여 문제를 수정한다.
+이 버전의 핵심 목표는 전투를 만드는 것이 아니라 다음 한 문장을 실제 규칙으로 만드는 것이다.
 
-1. 기본 지도에서 행정/상업 주요 아이콘이 구형 분석 레이어에 의해 한 번 더 렌더되어 겹쳐 보이는 문제
-2. 철광석은 제련소까지 운송되지만 목재 연료가 제련소 정착지로 이동하지 않아 철 생산이 정지할 수 있는 문제
+> 군대에 들어간 사람은 실제 Person이며, 군 복무 중에는 민간 경제의 노동자로 동시에 존재할 수 없다.
 
----
-
-## 1. 지도 주요 아이콘 중복 제거
-
-V0.31I에서는 일반 주거 아이콘을 제거하고 행정 중심지와 주요 상업시설만 기본 지도에 남겼다. 그러나 초기 지도 renderer와 V0.15 분석 레이어의 `redrawBoundariesAndIcons()`가 모두 같은 주요 아이콘을 그리는 경로가 남아 있었다.
-
-특히 시장·교역소가 존재하는 타일에서 같은 위치에 아이콘이 두 번 그려져 집/상점 모양이 겹쳐 보일 수 있었다.
-
-V0.32A에서는 icon ownership을 다음처럼 정리했다.
-
-- 기본 지도: primary map renderer만 주요 아이콘을 그린다.
-- 인구/자원/건물/물류 레이어: primary renderer는 주요 아이콘을 생략하고, 분석 overlay가 마지막에 한 번만 다시 그린다.
-- 국경선과 선택 타일 흰색 outline은 기존처럼 유지한다.
-
-따라서 어떤 지도 레이어에서도 같은 주요 거점 아이콘이 중복 렌더되지 않는다.
-
-표적 Canvas 테스트에서 비행정 시장 타일을 강제로 만든 뒤 기본 지도를 다시 렌더했을 때 해당 타일의 주요 아이콘 `fillText()` 호출은 정확히 1회였다.
+따라서 V0.32B에서는 실제 Person 일부가 예비군 또는 평시 현역으로 전환되고, 현역 Person은 실제 Cohort와 Garrison의 구성원이 된다. 아직 부대 이동, 무기·장비 생산, 군사시설, 요새화, 전투는 활성화하지 않는다.
 
 ---
 
-## 2. 제련소 목재 연료 물류
+## 1. 동원 조건
 
-기존 V0.31 산업 물류는 다음 세 경로를 지원했다.
+기존 V0.32A의 기본 적격 기준을 유지한다.
 
-- `ORE_TO_SMELTER`: 철광석 → 제련소
-- `IRON_TO_SMITHY`: 철 → 대장간
-- `TOOLS_DISTRIBUTION`: 도구 → 각 정착지
-
-하지만 제련에는 철광석뿐 아니라 목재 연료가 필요하다. 제련소가 있는 Settlement에 목재가 부족하면 철광석과 철공 인력이 모두 있어도 생산이 정지할 수 있었다.
-
-V0.32A에서는 `industrialFlows31()`에 다음 경로를 추가했다.
-
-- `WOOD_TO_SMELTER_FUEL`: 목재가 18 미만인 제련소 Settlement에, 목재 24 초과의 다른 실거주 Settlement에서 연료를 운송한다.
-
-이 운송은 새로운 자원 생성이 아니다. 기존 `move31()`을 그대로 사용하므로 실제 Settlement stock을 출발지에서 빼고 목적지에 넣으며, 기존 내부 물류 capacity/거리 제약을 그대로 따른다.
-
-표적 테스트에서는 제련소 목재 0 상태에서 `WOOD_TO_SMELTER_FUEL` 이벤트가 발생했고 실제로 16.2 목재가 이동했다. 이후 철공 Person을 제련소에 배치한 생산 테스트에서 철광석과 목재가 실제로 소비되고 철 0.616이 생산되었다.
-
----
-
-## 3. Person-backed 군사 모델의 원칙
-
-V0.32 이후 군사 시스템의 핵심 원칙은 다음과 같다.
-
-> MilitaryCohort는 가상 병력을 생성하는 객체가 아니다. 실제 Person ID를 묶어서 성능 효율적으로 계산하는 집단 단위다.
-
-따라서 V0.32A에서는 `manpower=100` 같은 독립적인 가상 병력 수를 생성하지 않는다. Cohort의 실제 구성원은 `memberIds`로만 관리한다.
-
-향후 전투에서 사망자가 발생하면 해당 member Person이 실제로 사망하며 국가·세계 인구도 함께 감소하는 구조를 전제로 한다.
-
-자동기계나 Person과 독립된 전력 규모는 훨씬 이후 시대의 별도 시스템으로 남긴다.
-
----
-
-## 4. Person 군복무 상태 기반
-
-모든 Person에 다음 필드를 준비한다.
-
-- `militaryStatus32A`
-  - `civilian`
-  - `reserve`
-  - `active`
-  - `wounded`
-  - `captured`
-- `militaryCohortId32A`
-- `militaryWoundedUntil32A`
-- `militaryCapturedBy32A`
-- `militaryServiceDays32A`
-
-V0.32A에서는 자동으로 reserve나 active 상태로 바꾸지 않는다. 신규 세계와 V0.31I 이하 마이그레이션 세계는 모두 civilian에서 시작한다.
-
-동원 가능 Person은 현재 관측용으로 다음 조건을 사용한다.
-
-- 생존
+- 생존 상태
 - 18~50세
-- 건강 45 이상
-- 개척(PIONEER) 임무 중이 아님
-- wounded/captured 상태가 아님
+- Health 45 이상
+- 실제 개척 임무 수행 중이 아님
+- 부상/포로 상태가 아님
+- 성별 제한 없음
 
-성별 제한은 두지 않는다.
+V0.32B에서는 기술 발전에 따라 실제 군사조직이 단계적으로 등장한다.
 
-이 조건은 V0.32B의 실제 동원 AI를 만들기 전에 장기 데이터를 관측하기 위한 첫 기준이며, 필요하면 B에서 조정할 수 있다.
+### ADMINISTRATION
 
----
+`ADMINISTRATION` 연구 이후 국가는 동원 가능한 Person 일부를 `reserve`로 등록한다.
 
-## 5. MilitaryCohort 기반 구조
+예비군은 군사적 인력 풀에 등록되지만 평시에는 기존 민간 직업과 경제활동을 그대로 수행한다.
 
-V0.32A에서 `MilitaryCohort` 클래스를 추가한다.
+### WATCHTOWERS
 
-주요 필드:
+`WATCHTOWERS` 연구 이후 소수의 `active` 현역을 실제로 조직한다.
 
-- `id`
-- `nationId`
-- `name`
-- `memberIds`
-- `tileId`
-- `homeTileId`
-- `status`
-- `training`
-- `morale`
-- `equipment`
-- `supply`
-- `fortification`
-- `createdDay`
+현역 목표 비율은 국가 AI 성향에 따라 기본값이 다르며 다음 요소가 추가로 영향을 준다.
 
-특히 `tileId`를 처음부터 포함한다. 아직 V0.32A에서는 부대를 실제로 만들거나 이동시키지 않지만, 이후 부대가 지도 위 어느 타일에 존재하는지 계속 관측하기 위한 구조를 미리 고정한다.
+- 전략적 경계(`maxStrategicConcern`)
+- 기존 threat
+- 식량 비축일
+- Survival Mode
+- 국가 AI 성향
 
-`fortification` 역시 후속 패치의 야전 요새화에 사용할 예약 필드다.
+확장형 국가는 평시 현역 비율이 조금 높고, 교역외교형은 조금 낮다. 생존 위기나 낮은 식량 비축은 현역 규모를 강하게 제한한다.
+
+V0.32B에서는 `PEACE / WATCH` 두 단계만 실제로 사용한다. 더 큰 부분동원·총동원 체계는 후속 패치에서 확장한다.
 
 ---
 
-## 6. Garrison 기반 구조
+## 2. 실제 Person 동원
 
-`Garrison` 클래스도 추가한다.
+현역으로 선발된 Person은 다음 상태가 된다.
 
-주요 필드:
+- `militaryStatus32A = active`
+- `militaryCohortId32A = 실제 Cohort ID`
+- `militaryActiveSince32B = 동원 시점`
 
-- `id`
-- `nationId`
-- `tileId`
-- `cohortIds`
-- `status`
-- `fortification`
-- `createdDay`
+선발 우선순위는 다음 요소를 사용한다.
 
-Garrison은 Settlement/요새/전략타일에 고정 또는 장기 주둔하는 군사 존재를 위한 기반이다.
+- Combat skill
+- Health
+- Loyalty
+- 기존 `경비` 직업
+- 연령대
 
-V0.32A에서는 자동으로 생성하지 않는다.
+식량이 불안정할 때 농업계 직업을 우선 보존하며, 철광산·제련소·대장간의 핵심 산업 노동자도 가능한 한 후순위로 둔다.
+
+이는 절대적인 보호 규칙이 아니다. 충분한 인력이 없거나 군사적 필요가 높아지면 생산 노동자도 실제로 군대에 들어갈 수 있다.
 
 ---
 
-## 7. 군사 UI V1 기반
+## 3. 민간 노동 이탈
 
-국가 탭에 `군사` subtab을 추가한다.
+현역 Person은 기존 Person 객체 그대로 존재하지만 군 복무 동안 다음 민간 활동에서 제외된다.
 
-현재 표시값:
+- 농업 / 채집 / 사냥
+- 목재 채취
+- 채석 / 철광 채굴
+- 제련 / 대장간 작업
+- 상업 노동과 임금 수령
+- 건설 노동
+- 유지보수 노동
+- 개척민 선발
+- 국내/국외 민간 이주 후보
+
+이를 기존 시스템 전체에 별도의 `if military` 조건으로 흩뿌리지 않고, 현역 Person을 기존 `PIONEER` 노동 제외 경로에 예약시키는 호환 방식으로 처리한다.
+
+단, `Person.act()`의 최종 wrapper가 먼저 현역 여부를 확인하므로 실제 행동 문구는 개척이 아니라 `주둔군 복무 · 훈련과 경계 중`으로 표시된다.
+
+전역 시 기존 assignment를 복구하고 직업 재검토를 즉시 허용한다.
+
+### 군사 노동 손실 telemetry
+
+- `militaryLaborRemoved32B`: 현재 민간 노동에서 빠진 현역 Person 수
+- `militaryLaborRemovedDays32B`: 누적 민간 노동 이탈 person-day
+
+현재 달력 구조에서 한 macro simulation day는 3 calendar-day이므로 현역 1명이 한 번의 macro work cycle을 지나면 3 person-day가 누적된다.
+
+---
+
+## 4. 예비군
+
+예비군은 `militaryStatus32A = reserve` 상태이지만 평시에는 민간 경제에서 빠지지 않는다.
+
+즉 V0.32B의 상태 구분은 다음과 같다.
+
+- `civilian`: 일반 Person
+- `reserve`: 동원 명부에는 있으나 평시 민간 노동 유지
+- `active`: 실제 현역, 민간 노동 이탈
+- `wounded`: 후속 전투 시스템용
+- `captured`: 후속 전투 시스템용
+
+전략적 경계나 AI 정책 변화에 따라 현역 목표가 감소하면 기존 현역은 우선 예비군으로 전환된다.
+
+---
+
+## 5. 첫 MilitaryCohort
+
+현역 Person이 1명 이상 존재하면 국가별로 첫 Cohort를 만든다.
+
+기본 명칭:
+
+- `<국가명> 제1주둔대`
+
+Cohort는 `memberIds` 배열만으로 병력을 표현한다.
+
+독립적인 `manpower=100` 같은 가상 병력 숫자는 생성하지 않는다.
+
+따라서 다음 불변조건을 유지한다.
+
+> Cohort member 수 = 실제 active Person 수
+
+V0.32B에서는 모든 첫 Cohort가 국가의 core Settlement에 배치된다. 부대가 타일 사이를 실제 이동하는 시스템은 V0.32D 범위다.
+
+Cohort가 관측하는 값:
+
+- 위치 tileId
+- 실제 Person 구성원
+- training
+- morale
+- supply
+- equipment (현재 0, V0.32C에서 활성화 예정)
+- fortification (현재 0, 후속 버전에서 활성화 예정)
+
+훈련도는 구성원의 Combat skill과 누적 복무기간을 바탕으로 관측한다.
+
+---
+
+## 6. Garrison
+
+현역 Cohort가 존재하면 국가 core Settlement에 실제 `Garrison`을 생성한다.
+
+현재 Garrison은 다음만 담당한다.
+
+- 어느 타일에 병력이 주둔 중인지 저장
+- 해당 타일의 Cohort ID 연결
+- 향후 요새화와 방어시설 시스템의 부착점 제공
+
+V0.32B에서는 지도 위 군사 마커를 아직 그리지 않는다. 지도에서 병력 위치를 지속적으로 관측하는 군사 레이어는 V0.32D에서 도입할 예정이다.
+
+현재는 국가 → 군사 탭의 Cohort 카드에서 `(x,y)` 위치를 확인할 수 있다.
+
+---
+
+## 7. 국가 군사 UI
+
+국가 화면의 `군사` 탭을 V0.32B 규칙에 맞게 갱신했다.
+
+표시 항목:
 
 - 동원 가능 Person
-- 현역
-- 예비
-- Cohort 수
-- 주둔지 수
-- 부상/포로 수
-- 현재 동원 단계
-
-V0.32A에서는 현역/예비/Cohort/Garrison이 모두 0인 것이 정상이다.
-
-군사 탭은 현재 시스템이 Person-backed 방식이며 아직 자동 동원·전투를 시작하지 않았다는 점을 명시한다.
-
----
-
-## 8. Telemetry / Snapshot / CSV
-
-국가 단위로 다음 필드를 추가한다.
-
-- `militaryEligiblePopulation32A`
-- `activeMilitary32A`
-- `reserveMilitary32A`
-- `woundedMilitary32A`
-- `capturedMilitary32A`
-- `militaryCohorts32A`
-- `garrisons32A`
-- `militaryCohortMembers32A`
-- `militaryFrameworkReady32A`
-- `mobilizationLevel32A`
-
-세계 단위에는 합계 값을 기록한다.
-
-Devlog `worldSummary`에는 다음 설계 의도를 명시한다.
-
-- `militaryFramework32A`
-- `militaryPopulationIntegrity32A`
-- `smelterFuelLogistics32A`
-- `mapIconDedup32A`
-
----
-
-## 9. 저장/호환성
-
-세이브 버전은 `0.32A`다.
-
-저장 데이터에는 다음 메타가 들어간다.
-
-```json
-{
-  "version": "0.32A",
-  "v32a": {
-    "revision": "military-foundation-map-smelter-fuel",
-    "militaryFramework": true,
-    "personBackedCohorts": true,
-    "battlesEnabled": false
-  }
-}
-```
-
-V0.32A 세이브를 다시 불러올 때:
-
-- Person의 군복무 상태
-- Cohort member ID
+- 현역 / 목표 현역
+- 예비 / 목표 예비
+- 민간 노동 이탈 인원
+- Cohort / Garrison 수
+- 전략적 경계
+- 동원 단계
+- 군사 doctrine
+- 누적 민간 노동 이탈 person-day
+- 누적 동원 / 전역 수
 - Cohort 위치
-- Garrison 구성
-
-을 복원한다.
-
-V0.31I 이하 세이브는 기존 fallback chain으로 불러오고 모든 생존 Person을 civilian 상태로 초기화한다.
+- 실제 구성 Person 이름
+- 훈련 / 사기 / 보급
 
 ---
 
-## 10. 이번 버전에서 의도적으로 하지 않는 것
+## 8. 신규 telemetry
 
-V0.32A에는 다음 기능을 넣지 않았다.
+국가 Snapshot / CSV / Devlog에 다음 필드를 추가한다.
 
-- 자동 동원
-- reserve/active 자동 배정
-- 병영·훈련장·무기고
-- 군사장비 생산
-- 부대 지도 이동
-- 군사 지도 레이어
-- AI 방어선
-- 야전 요새화
-- 실제 전투
-- 사망/부상/포로 처리
+- `militaryEligiblePopulation32B`
+- `activeMilitary32B`
+- `reserveMilitary32B`
+- `militaryTargetActive32B`
+- `militaryTargetReserve32B`
+- `militaryLaborRemoved32B`
+- `militaryLaborRemovedDays32B`
+- `militaryMobilizations32B`
+- `militaryDemobilizations32B`
+- `militaryReserveRegistrations32B`
+- `militaryCohorts32B`
+- `garrisons32B`
+- `militaryCohortMembers32B`
+- `militaryAvgTraining32B`
+- `militaryAvgMorale32B`
+- `militaryAvgSupply32B`
+- `militaryConcern32B`
+- `mobilizationLevel32B`
+- `militaryDoctrine32B`
 
-이들을 한꺼번에 활성화하지 않는 이유는 이후 데이터에서 군사 때문에 기존 경제·인구 시스템이 변화했는지 원인을 단계별로 추적하기 위해서다.
+주요 이벤트:
 
----
-
-## 11. 검증 결과
-
-### Static
-
-- inline script: 48개
-- Node `--check`: 오류 0
-
-### Chromium 기본 실행
-
-- Title: `Village Observer V0.32A`
-- Badge: `Village Observer · V0.32A`
-- 군사 subtab: 1개
-- serialize version: `0.32A`
-- page error: 0
-- console error: 0
-
-### 지도 아이콘 중복 표적 테스트
-
-강제로 일반 소유 타일에 시장을 만들고 기본 지도를 재렌더했다.
-
-- 해당 좌표의 주요 아이콘 호출: 1회
-- 겹침 재현: 없음
-
-### 제련소 연료 물류 표적 테스트
-
-- 제련소 목재: 0
-- 다른 실거주 Settlement: 목재 충분
-- 결과: `WOOD_TO_SMELTER_FUEL` 발생
-- 이동량: 16.2
-
-추가 제련 생산 테스트:
-
-- 철광석 감소
-- 목재 감소
-- 철 0.616 생산
-- Person 행동: `제련소에서 철광석을 제련 중`
-
-### Person-backed Cohort 저장 테스트
-
-검증을 위해 실제 Person 1명을 임시 active로 변경하고 Cohort/Garrison을 만든 뒤 serialize → load했다.
-
-- military status: active 유지
-- `militaryCohortId32A`: 유지
-- Cohort: 1
-- Garrison: 1
-- Cohort member: 실제 Person ID 1개 유지
-
-### V0.31I → V0.32A 마이그레이션
-
-- V0.32A attach 성공
-- 기존 Person: civilian 초기화
-- Cohort: 0
-
-### 자연주행 회귀
-
-새 19×19 세계를 21년 1분기 1일까지 자연주행했다.
-
-- simulation advance: 7,200 step
-- 활성 국가: 6
-- 폐허: 0
-- 인구: 191
-- 군사 active: 0
-- civilian 외 군사상태: 0
-- Cohort: 0
-- Garrison: 0
-- 관측 동원가능 Person: 39
-- Gold trade audit checks: 7
-- mismatch: 0
-- page error: 0
-- console error: 0
-
-즉 V0.32A 군사 기반 추가만으로 기존 사회가 자동 군사화되거나 경제 규칙이 변하지 않았다.
+- `MILITARY_COHORT_FORMED32B`
+- `GARRISON_ESTABLISHED32B`
+- `MILITARY_MOBILIZED32B`
+- `MILITARY_DEMOBILIZED32B`
+- `MILITARY_RESERVE_REVIEW32B`
 
 ---
 
-## 12. V0.32B 인계점
+## 9. 저장 호환
 
-V0.32B의 주제는 **실제 Person 동원 + 최초 Cohort/Garrison 생성**으로 잡는다.
+새 저장 버전:
 
-A에서 이미 다음 준비가 완료되어 있다.
+- `0.32B`
+- localStorage key: `village-observer-v0-32b`
+
+fallback은 V0.32A 이하 기존 저장을 유지한다.
+
+V0.32B 세이브는 다음을 보존한다.
 
 - Person 군복무 상태
-- 동원 가능 인구 계산
-- Person ID 기반 Cohort
-- 타일 위치 필드
-- Garrison 구조
-- 향후 fortification 필드
-- 군사 UI/Telemetry 기본 슬롯
+- 현역/예비 등록 시점
+- 군 복무 중 노동 제외 marker
+- Cohort 실제 memberIds
+- Garrison
+- 군사 누적 통계
 
-따라서 B에서는 이 구조 위에서 평시 군사정책과 실제 노동력 이탈을 처음 활성화하면 된다.
+V0.32A 세이브를 불러오면 군사 기반은 그대로 승계되며, 다음 seasonal military review부터 B의 실제 동원이 시작된다.
+
+---
+
+## 10. 검증
+
+### 정적 검증
+
+- inline script: 49개
+- Node syntax error: 0
+
+### Chromium runtime
+
+- 문서 title: `Village Observer V0.32B`
+- version badge: `V0.32B`
+- page error: 0
+- console error: 0
+
+### 강제 동원 표적 테스트
+
+`ADMINISTRATION + WATCHTOWERS`를 가진 국가에 충분한 적격 성인을 제공한 뒤 military review를 실행했다.
+
+결과:
+
+- 실제 active Person 생성
+- 실제 reserve Person 생성
+- 현역 Person `memberIds`와 Cohort 구성원 일치
+- Cohort 위치 = 국가 core tile
+- Garrison 위치 = 국가 core tile
+- 현역의 civilian facility slot 해제
+- 현역 유지보수 queue = 0
+- 현역 construction task = 없음
+- 현역 행동 = `주둔군 복무 · 훈련과 경계 중`
+
+한 현역이 macro day 1회를 통과했을 때 `militaryLaborRemovedDays32B`는 정확히 3 증가했다.
+
+### 저장/재로드
+
+동원 이후 V0.32B serialize → JSON round-trip → `World.from()`을 수행했다.
+
+재로드 후 다음이 모두 유지됐다.
+
+- active Person
+- reserve Person
+- 현역의 군사 노동 예약 상태
+- Cohort
+- Cohort memberIds
+- Garrison
+- 누적 군사 노동 이탈량
+
+### 전역 테스트
+
+`WATCHTOWERS` 조건을 제거해 목표 현역을 0으로 낮춘 뒤 military review를 수행했다.
+
+- active → reserve 전환
+- 기존 civilian assignment 복구
+- Cohort 제거
+- Garrison 제거
+
+### 3년 강제 군사 스트레스 테스트
+
+6개 국가 모두에 `ADMINISTRATION + WATCHTOWERS`를 부여하고 3년간 실행했다.
+
+- 6개국 모두 Cohort/Garrison 유지
+- 국가별 현역 1명, 예비 1~2명 수준
+- 모든 국가에서 Cohort member 수 = 실제 active Person 수
+- 현역 1명 국가의 누적 민간 노동 이탈 = 1,080 person-day
+- page/runtime error = 0
+
+이는 `360일 × 3년 = 1,080 person-day`와 정확히 일치한다.
+
+---
+
+## 11. V0.32B에서 의도적으로 하지 않는 것
+
+다음은 아직 구현하지 않는다.
+
+- 무기/군사장비 생산
+- 병영/훈련장/무기고
+- 부대의 지도상 이동
+- 지도 군사 레이어
+- 야전 요새화
+- AI 방어선
+- 전투
+- 전사/부상/포로 발생
+
+다음 단계 V0.32C에서는 기존 철경제를 군사장비와 연결하고 병영·훈련장·무기고 및 장비 충족도를 도입하는 것이 기본 방향이다.
