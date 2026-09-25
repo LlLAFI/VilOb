@@ -1,10 +1,10 @@
-# Village Observer V0.30B3 — 기아·개척지·시장투자 후속 밸런스
+# Village Observer V0.30B4 — 기아 유예·생존모드·시장 경로 수정
 
 Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
 
-V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**와 연결하고, 식량·목재·석재의 현지가격을 실제 소비·예상수요·생산·물류 신호에 맞게 정교화하는 버전입니다. **V0.30A**는 UI·연간 통계·재정 유동성·성능 관측·상위시설 진단을 보완했고, **V0.30B2**는 53년 장기 데이터에서 확인된 극초기 국가 붕괴와 국가별 Treasury 편중, 전문시설 발생경로를 밸런싱했고, **V0.30B3**는 같은 세션을 63년까지 연장해 확인한 초기 집단아사, 개척지 재포기 churn, Treasury reserve에 의한 경제시설 투자 정지, Stoneworks 이중 gate를 후속 보완하는 버전입니다.
+V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**와 연결하고, 식량·목재·석재의 현지가격을 실제 소비·예상수요·생산·물류 신호에 맞게 정교화하는 버전입니다. **V0.30A**는 UI·연간 통계·재정 유동성·성능 관측·상위시설 진단을 보완했고, **V0.30B2**는 53년 장기 데이터에서 확인된 극초기 국가 붕괴와 국가별 Treasury 편중, 전문시설 발생경로를 밸런싱했고, **V0.30B3**는 같은 세션을 63년까지 연장해 확인한 초기 집단아사, 개척지 재포기 churn, Treasury reserve에 의한 경제시설 투자 정지, Stoneworks 이중 gate를 후속 보완하는 버전입니다. **V0.30B4**는 B3 100년 장기런에서 드러난 Hunger 100 유예 sentinel 오류, 성숙국 Survival Mode 영구화, 기본 Market 미건설과 specialization 금융 진단 불일치를 수정하는 마감 보완입니다.
 
-저장 데이터 버전은 `0.30B3`, localStorage 키는 `village-observer-v0-30b3`입니다. V0.30B2 및 그 이하 세이브는 fallback chain으로 읽은 뒤 V0.30B3 런타임 필드를 붙입니다. 내부 데이터 모델은 V0.30B2/V0.30A/V0.30을 계승하므로 기존 세이브의 Person·Settlement·Nation identity를 유지합니다.
+저장 데이터 버전은 `0.30B4`, localStorage 키는 `village-observer-v0-30b4`입니다. V0.30B3 및 그 이하 세이브는 fallback chain으로 읽은 뒤 V0.30B4 런타임 필드를 붙입니다. 내부 데이터 모델은 V0.30B3/V0.30B2/V0.30A/V0.30을 계승하므로 기존 세이브의 Person·Settlement·Nation identity를 유지합니다.
 
 ---
 
@@ -13,6 +13,195 @@ V0.30은 V0.29에서 형성된 국내경제를 **도시·행정·재정 구조**
 `README.md`는 구현 의도·계산 규칙·호환성·관측 항목·검증 결과를 남기는 **상세 기술 문서**입니다.
 
 인게임 패치노트는 이 README를 대체하지 않으며, 플레이 중 핵심 변경사항만 빠르게 확인하기 위한 요약 UI입니다.
+
+---
+
+# V0.30B4 기아 유예·생존모드·시장 경로 수정
+
+V0.30B3 실제 100년 장기런은 6개 Nation이 모두 생존하고 인구 2,057명, 개척가능 290타일 중 242타일(83.45%)을 점유해 **초기 붕괴 방지와 개척지 retention은 성공**했음을 보여주었습니다. Outpost abandonment도 누적 2회로 감소했고 Settlement 재정착은 229회 발생해 B3의 vacancy grace가 실제로 작동했습니다.
+
+반면 같은 데이터에서 다음 네 문제가 확인되었습니다.
+
+1. `starvationGraceEntriesB3 = 0`인데 `starvationDeathsAfterGraceB3`가 증가했고, 일부 `DEATH_STARVATION` 로그의 `criticalHungerCalendarDays`가 수만 일로 기록됨.
+2. 약 18년 이후 `survivalNations30B2 = 6`이 100년까지 유지되어 모든 성숙국이 국가비상상태에 고정됨.
+3. `MARKET` 기술이 확산된 후기에도 기본 `market` Building이 0이라 `grand_market` 경로가 구조적으로 닫힘.
+4. V0.30A specialization diagnostic은 B3 이후 실제 금융구조인 `Settlement market surplus + Treasury reserve 초과분`이 아니라 Treasury Gold만 보고 blocker를 표시하는 구간이 남음.
+
+V0.30B4는 이 네 항목을 수정하며, B3에서 성공한 vacancy grace·Settlement market 투자·Quarry/Stoneworks 경로의 핵심 문턱은 다시 완화하지 않습니다.
+
+## B4.1 Hunger 100 12일 grace sentinel 오류 수정
+
+B3의 Person 필드 `_v30b3Hunger100SinceCal`은 미진입 상태에서 `null`을 사용했습니다. 그러나 기존 검사에서 `Number(null) === 0`이 되어 `null`을 유효한 0일차 timestamp로 오인했습니다. 후기 세계에서는 현재 calendar day가 수만 일이므로 새로 Hunger 100에 도달한 Person도 곧바로 수만 일 동안 굶은 것으로 계산될 수 있었습니다.
+
+B4는 다음을 보장합니다.
+
+- `null`, 빈 문자열, 비유한값, 0 이하 값은 모두 **미진입 sentinel**로 명시 처리
+- 처음 실제 Hunger 100을 확인한 현재 `calendarOrdinalDay`를 시작일로 기록
+- 11 calendar days 지속 시 생존
+- 12 calendar days 이상 지속 시 `DEATH_STARVATION`
+- Hunger가 95 미만으로 회복되면 기존 B3 규칙대로 critical streak 초기화
+- Person serialize/load에서도 `null`을 숫자 0으로 변환하지 않음
+- B4 선행 guard 이벤트 `STARVATION_CRITICAL_ENTER_B4`를 추가해 실제 최초 진입을 검증 가능
+
+기본 식량 소비량과 B3에서 완화한 추가 Hunger 패널티 `+0.6`은 이번 패치에서 다시 조정하지 않습니다. 먼저 의도했던 12일 rule이 실제로 작동하는 결과를 재검증합니다.
+
+## B4.2 Survival Mode의 인구규모별 severe Hunger 판정
+
+B3는 소국 붕괴를 빨리 감지하기 위해 `Hunger >=95 1명` 또는 `Hunger >=85 2명`을 국가적 hard crisis 후보로 사용했습니다. 이 값은 10~30명 국가에는 의미가 있지만 300~500명 Nation에서도 같은 절대 인원을 적용하면서 후기 국가들이 Survival Mode에서 빠져나오지 못했습니다.
+
+B4는 severe Hunger를 인구규모별로 해석합니다.
+
+### 인구 30명 이하
+
+- 기존 보호 성격 유지
+- `Hunger >=95` 1명 또는 `Hunger >=85` 2명은 hard local-to-national crisis
+
+### 인구 31~100명
+
+- `Hunger >=95` 2명 이상이면서 인구의 3% 이상, 또는
+- `Hunger >=85` 4명 이상이면서 인구의 8% 이상일 때 hard crisis
+- risk 가중치는 그보다 약한 2% / 4% 비율부터 반영
+
+### 인구 100명 초과
+
+- `Hunger >=95`가 최소 4명이며 인구의 약 3% 이상, 또는
+- `Hunger >=85`가 최소 10명이며 인구의 약 8% 이상일 때 국가적 hard crisis
+- 그보다 작은 지역 기아는 국가 전체 Survival Mode보다 기존 internal logistics / Emergency Food Convoy가 우선 대응
+
+Survival Mode 해제도 중대형 Nation에서는 severe Hunger가 정확히 0명이 될 것을 요구하지 않습니다. `Hunger >=85` 비율이 2% 미만이고 Hunger 95 이상 주민이 인구규모에 비해 매우 적으면 다른 평균 식량·건강·최근 아사·access 조건과 함께 정상 발전체제로 복귀할 수 있습니다.
+
+Snapshot에는 다음을 추가합니다.
+
+- `severeHungerShare85B4`
+- `severeHungerShare95B4`
+- `survivalRisk30B4`
+- `survivalMode30B4`
+- `survivalNations30B4`
+
+## B4.3 기본 Market 생성경로 보강
+
+기존 `autoInfrastructure()`는 `MARKET` 기술을 보유하면 **core tile 한 곳**에만 `market` 건설을 시도했습니다. 후기 core가 주택·창고·행정시설 등으로 공간이 찬 경우 `BUILDING_BLOCKED_SPACE` 뒤 다른 Settlement를 보지 않아, Nation 전체가 MARKET 기술을 가지고도 기본 Market Building이 0개로 남을 수 있었습니다.
+
+B4에서는 Nation이 `MARKET` 기술을 보유하고 실제 `market`이 0개일 때 일반 infrastructure보다 먼저 **첫 Market 경로**를 확인합니다.
+
+후보 Settlement는:
+
+- 실제 Nation 소유 타일
+- 진행 중인 건설/개축/토지개발 프로젝트가 없는 곳
+- 실제 주민수
+- Settlement commerce pressure
+- 사용 가능한 build space
+- 해당 Settlement market surplus와 Treasury reserve 초과분
+
+을 함께 평가합니다.
+
+직접 Market footprint를 수용할 수 있는 후보가 있으면 `B4_MARKET_BASE_PATH`로 착공합니다. 적절한 인구가 있으나 공간만 부족하고 추가 개발 잠재력이 있으면 `B4_MARKET_SPACE` 토지개발을 먼저 시도합니다.
+
+Market 비용은 기존 비용·재료 규칙을 유지하며 별도 Gold를 생성하지 않습니다. B3의 Settlement market 선투자 규칙을 그대로 사용합니다.
+
+## B4.4 specialization Gold diagnostic 금융규칙 일치
+
+Merchant Guild / Grand Market / Deep Quarry의 기존 V0.30A diagnostic은 `TREASURY_GOLD`를 기준으로 했습니다. B3부터 경제시설은 해당 Settlement의 market surplus가 Gold를 먼저 부담할 수 있으므로 이 blocker는 실제 건설 가능성과 어긋날 수 있습니다.
+
+B4는 기존 시설별 기술·base building·throughput·terrain 조건은 유지하면서 Gold 부분만 실제 금융모델과 맞춥니다.
+
+`실제 사용 가능 Gold = 해당 base Settlement market surplus + max(0, Nation Treasury - strategic reserve)`
+
+이에 따라 B4 diagnostic은:
+
+- `marketAvailable`
+- `treasurySpendable`
+- `goldFunding`
+- `financeTileId`
+
+를 함께 남기고, 실제 총 funding이 부족할 때만 `GOLD_FINANCE` blocker를 표시합니다.
+
+Stoneworks는 이미 B3 canonical diagnostic을 사용하므로 그 기준을 그대로 유지합니다.
+
+## B4.5 성능 관측
+
+B3 100년 장기런은 speed 10 기준 대략:
+
+- 50년 / 398명: 약 27.5 ms/day
+- 80년 / 1,105명: 약 96.7 ms/day
+- 98년 / 1,959명: 약 173.4 ms/day
+
+까지 상승했습니다. 다만 이번 B4는 P 패치가 아니므로 scheduler, Person action cadence, route cache 구조를 변경하지 않습니다.
+
+대신 새 경로 자체의 비용을 분리해서 저장합니다.
+
+- `b4MarketPathMs`
+- `b4MarketPathCalls`
+- `b4SpecializationDiagMs`
+- `b4SpecializationDiagCalls`
+
+이를 통해 다음 1,000~2,000 Person 장기런에서 B4 신규 로직이 후기 병목에 의미 있는 비중을 차지하는지 먼저 확인합니다.
+
+## B4.6 저장 호환
+
+- World save version: `0.30B4`
+- localStorage: `village-observer-v0-30b4`
+- fallback: B3 → B2 → A → V0.30 이하
+- B3 Person Hunger critical timestamp 유지
+- `null` starvation sentinel은 load 후에도 `null` 유지
+- Person / Settlement / Nation identity와 기존 B3 시장투자·vacancy grace 상태 유지
+
+## B4.7 구현 검증
+
+### 정적 검증
+
+- standalone `index.html` inline script: **41개**
+- 전부 JavaScript parse 검사 통과
+
+### 실제 Chromium document load
+
+보안정책상 local `file:` navigation 대신 DevTools `Page.setDocumentContent`로 동일 standalone HTML bytes를 실제 Chromium document에 로드해 검증했습니다.
+
+확인 항목:
+
+- document title: `Village Observer V0.30B4`
+- badge: `Village Observer · V0.30B4`
+- serialize version: `0.30B4`
+- B4 runtime object load 성공
+- 검증 과정 runtime exception 0
+
+### Hunger grace 단위검증
+
+calendar day 388 기준으로 강제로 Hunger 100 상태를 재현했습니다.
+
+- critical 시작 후 11일: **생존**
+- critical 시작 후 12일: **아사 발생**
+- `null` sentinel Person serialize 결과: `null`
+
+즉 B3 장기런에서 나타난 `null → 0 → 수만 일 굶음` 경로는 차단되었습니다.
+
+### Survival scale 단위검증
+
+- 인구 200명, Hunger >=85 주민 2명: **Survival Mode 진입하지 않음**
+- 인구 20명, Hunger >=85 주민 2명: **Survival Mode 진입**
+- 인구 200명, 동일한 소수 severe Hunger 상태에서 기존 Survival Mode의 안정기간을 충족: **정상 해제 확인**
+
+따라서 소국 보호는 유지하면서 성숙국의 영구 비상상태 문제를 분리했습니다.
+
+### Market / 금융진단 단위검증
+
+- core tile을 공간부족 상태로 만들고 인접 실제 Settlement에 충분한 공간·시장자금을 제공
+- B4 첫 Market 경로 실행
+- Market construction project가 **core가 아닌 인접 Settlement에서 `B4_MARKET_BASE_PATH` 사유로 시작**되는 것을 확인
+
+또한 Treasury 0G, Trading Post Settlement market surplus 98G인 테스트에서 Merchant Guild diagnostic은 더 이상 `TREASURY_GOLD`를 표시하지 않고 실제 funding 98G를 인식했습니다.
+
+### 짧은 확률적 회귀
+
+약 25년의 production RNG smoke run에서:
+
+- active Nation: 6 / 6
+- 인구: 약 210명
+- 영토: 약 65타일
+- Hunger critical grace 진입과 실제 아사 모두 발생
+- Survival Crisis 진입/해제가 모두 발생
+
+아사는 제거하지 않았으며, B4의 목적은 **12일 유예를 정확히 적용하고 국가 규모에 맞는 위기판정을 하는 것**입니다. Market 자연발생과 후기 Survival 해제율은 실제 플레이 장기데이터에서 다시 판단합니다.
 
 ---
 
