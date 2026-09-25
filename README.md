@@ -1,16 +1,112 @@
-# Village Observer V0.31A — 철기경제 연결 복구
+# Village Observer V0.31F — 철산업 재정 게이트·자원 통계 수정
 
 Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
 
-**V0.31A**는 V0.31의 자원 일반화·철기경제 구조를 유지하면서, 92년 자연주행에서 확인된 **철광산 완공 후 실제 광부가 배치되지 않아 철광석 생산이 0에 고정되는 노동시장 연결 문제**를 수정하는 보완 패치입니다. 새로운 직업이나 별도 산업 AI를 추가하지 않고, 기존 `광부`/`철공`의 직업·작업장 선택이 철광산·제련소·대장간의 실제 원료와 빈 슬롯을 인식하도록 연결합니다. 철산업 시설은 기존 Settlement market 공동투자 경로를 사용합니다.
+**V0.31F**는 V0.31A의 노동배치 수정 위에서, 87년 자연주행까지도 철광산이 0개로 남은 원인을 **건설 전 Treasury-only reserve 선검사와 실제 Settlement market 공동재정의 불일치**로 좁혀 수정하는 Fix 패치입니다. 경제시설의 Gold 가능 여부는 더 이상 구형 선검사에서 종결되지 않고, 기존 `payBuild()`의 **Settlement market 잉여 + Treasury strategic reserve 초과분** 규칙까지 도달해 하나의 재정 판단으로 처리됩니다.
 
-저장 데이터 버전은 `0.31A`, localStorage 키는 `village-observer-v0-31a`입니다. V0.31을 우선 fallback으로 읽으며 V0.30B4 및 그 이하 세이브도 기존 migration chain을 통해 로드합니다. 기존 Person·Settlement·Nation identity와 V0.31 산업 통계는 유지합니다.
+동시에 V0.31에서 늘어난 자원 수에 맞춰 장기 통계 UI를 일반화합니다. 기존 식량·목재·석재 개별 보유량 항목을 `자원 보유량` 하나로 합치고, `평균 가격`과 같은 `RESOURCE_DEFS` 기반 자원 드롭다운을 공유합니다. 세계/국가 범위에서는 식량·목재·석재·철광석·철·도구를 선택하며, 정착지 장기 기록은 기존 압축 history가 보유한 식량·목재·석재만 제공합니다.
+
+저장 데이터 버전은 `0.31F`, localStorage 키는 `village-observer-v0-31f`입니다. V0.31A를 우선 fallback으로 읽으며 V0.31 및 V0.30 계열 세이브도 기존 migration chain을 통해 로드합니다. 기존 Person·Settlement·Nation identity와 V0.31A worker telemetry는 유지합니다.
 
 ---
 
 ## 문서 역할
 
 `README.md`는 구현 의도·계산 규칙·호환성·관측 항목·검증 결과를 남기는 **상세 기술 문서**입니다. 인게임 패치노트는 이 README를 대체하지 않으며, 플레이 중 핵심 변경사항만 빠르게 확인하기 위한 요약 UI입니다.
+
+---
+
+# V0.31F — 철산업 재정 게이트·자원 통계 수정
+
+## F.1 87년 자연주행에서 확인된 재정 선검사 병목
+
+V0.31A의 노동시장 표적 테스트에서는 철광산에 광부가 배치되고 철광석→철→도구가 정상 생산되었습니다. 그러나 자연주행에서는 87년까지 철광 매장량이 충분히 확보되고 대부분의 국가가 `IRON_MINING`을 연구했는데도 실제 철광산이 0개로 유지되었습니다.
+
+원인은 건설 흐름이 다음처럼 두 단계의 서로 다른 Gold 판정을 사용한 데 있었습니다.
+
+```text
+startConstruction()
+  → reserveAllows() : Treasury만 기준으로 Gold reserve 선검사
+  → payBuild()      : Settlement market 공동부담 + Treasury reserve 초과분
+```
+
+따라서 Settlement market에 충분한 Gold가 있어도 `reserveAllows()`에서 먼저 실패하면 공동부담 로직에 도달하지 못했습니다.
+
+## F.2 경제시설 Gold 판정 단일화
+
+다음 경제시설은 Gold 선검사에서 Treasury-only 판정을 사용하지 않습니다.
+
+- 교역소 / 시장
+- 채석장 / 심층 채석장 / 석재가공소
+- 상인조합 / 대시장
+- 철광산 / 제련소 / 대장간
+
+목재·석재 등 실물자원의 기존 reserve 검사는 유지합니다. Gold는 실제 결제 단계의 기존 공동재정 규칙을 최종 판정으로 사용합니다.
+
+```text
+사용 가능 Gold
+= 해당 Settlement market 잉여
++ max(0, Nation Treasury - strategic reserve)
+```
+
+실제 지출 순서는 기존과 동일합니다.
+
+1. Settlement market 잉여 Gold 우선
+2. 부족분만 Treasury strategic reserve 초과분에서 부담
+3. 총 사용 가능 Gold가 비용보다 작으면 건설 실패
+
+새 Gold 생성, 자동 보조금, 가상 재정은 추가하지 않습니다.
+
+## F.3 자원 보유량 통계 통합
+
+통계 메뉴의 개별 `식량 / 목재 / 석재` 보유량 항목을 제거하고 `자원 보유량` 하나로 통합합니다.
+
+세계/국가 범위에서 선택 가능한 자원:
+
+- 🌾 식량
+- 🪵 목재
+- 🪨 석재
+- ⛏️ 철광석
+- ⚙️ 철
+- 🛠️ 도구
+
+자원 목록은 별도 UI 상수 대신 `RESOURCE_DEFS`를 사용합니다. 이후 자원이 registry에 추가되면 같은 선택기 구조로 확장할 수 있습니다.
+
+## F.4 평균 가격 선택기 일반화
+
+기존 V0.30A의 `평균 가격` 드롭다운도 동일한 `RESOURCE_DEFS` 목록을 사용합니다. 따라서 세계/국가 통계에서 철광석·철·도구의 평균가격도 기존 식량·목재·석재와 같은 방식으로 선택할 수 있습니다.
+
+정착지의 압축 장기 history는 아직 신규 산업자원 필드를 저장하지 않으므로 정착지 범위에서는 기존 3자원만 표시합니다. 로그 크기를 다시 늘리는 신규 Settlement telemetry는 이번 Fix에 추가하지 않습니다.
+
+## F.5 범위에서 제외한 변경
+
+V0.31F는 연결 오류와 통계 UI만 수정합니다. 다음 값은 변경하지 않습니다.
+
+- 식량 소비량
+- Survival Mode 조건
+- Frontier / 인구 밸런스
+- 철 기술 연구비용
+- 철광석 지질·매장량
+- 철광석→철→도구 변환비율
+- 도구 생산성 효과
+- Person 노동 슬롯 수
+
+## F.6 구현 검증
+
+정적 검증:
+
+- inline JavaScript 44개 전체 `node --check` 통과
+
+Chromium 표적 검증:
+
+- document title / badge / save version = `V0.31F` / `0.31F`
+- `RESOURCE_DEFS` 6종 확인
+- `자원 보유량`, `평균 가격` 두 공통 통계 항목 확인
+- 자원 드롭다운 6종 확인
+- Treasury 0G, local Settlement market 100G 조건에서 철광산 8G 건설 성공
+- 같은 테스트에서 market Gold 100 → 92G, Treasury 0G 유지
+
+이는 경제시설이 구형 Treasury-only 선검사에 막히지 않고 실제 공동재정 결제까지 도달함을 확인하는 회귀 테스트입니다. 자연주행에서 철광산→제련소→대장간이 실제로 이어지는지는 후속 장기 데이터로 검증합니다.
 
 ---
 
