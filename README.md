@@ -1,16 +1,198 @@
-# Village Observer V0.31 — 자원 일반화·철기경제 V1
+# Village Observer V0.31A — 철기경제 연결 복구
 
 Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
 
-**V0.31**은 V0.30 계열의 도시·행정·국내경제 기반 위에, 앞으로 철·석탄·구리·섬유 등 새로운 물질경제를 추가할 수 있도록 **자원 정의 레지스트리와 공통 재고 API**를 도입하는 첫 버전입니다. 첫 실제 사용 사례로 **철광석 → 철 → 도구**의 물리적 생산사슬을 구현합니다. 생산은 추상 생산력 숫자가 아니라 실제 타일의 매장량, Settlement 재고, 실제 Person 직업, 건물, 국내물류와 교역을 사용합니다.
+**V0.31A**는 V0.31의 자원 일반화·철기경제 구조를 유지하면서, 92년 자연주행에서 확인된 **철광산 완공 후 실제 광부가 배치되지 않아 철광석 생산이 0에 고정되는 노동시장 연결 문제**를 수정하는 보완 패치입니다. 새로운 직업이나 별도 산업 AI를 추가하지 않고, 기존 `광부`/`철공`의 직업·작업장 선택이 철광산·제련소·대장간의 실제 원료와 빈 슬롯을 인식하도록 연결합니다. 철산업 시설은 기존 Settlement market 공동투자 경로를 사용합니다.
 
-저장 데이터 버전은 `0.31`, localStorage 키는 `village-observer-v0-31`입니다. V0.30B4 및 그 이하 세이브는 기존 fallback chain으로 읽은 뒤 V0.31 자원·지질·산업 필드를 안전하게 초기화합니다. 기존 Person·Settlement·Nation identity는 유지합니다.
+저장 데이터 버전은 `0.31A`, localStorage 키는 `village-observer-v0-31a`입니다. V0.31을 우선 fallback으로 읽으며 V0.30B4 및 그 이하 세이브도 기존 migration chain을 통해 로드합니다. 기존 Person·Settlement·Nation identity와 V0.31 산업 통계는 유지합니다.
 
 ---
 
 ## 문서 역할
 
 `README.md`는 구현 의도·계산 규칙·호환성·관측 항목·검증 결과를 남기는 **상세 기술 문서**입니다. 인게임 패치노트는 이 README를 대체하지 않으며, 플레이 중 핵심 변경사항만 빠르게 확인하기 위한 요약 UI입니다.
+
+---
+
+# V0.31A — 철기경제 연결 복구
+
+## A.1 92년 자연주행에서 확인된 문제
+
+V0.31 장기주행에서는 철 기술 연구와 철광산 건설 자체는 자연적으로 발생했습니다. 리오는 42년대에 철광산 건설을 시작하고 44년대에 완공했으며, 이후 92년까지 영토 내 철광석 매장량이 확대되었습니다. 그러나 다음 값은 장기간 모두 0으로 유지되었습니다.
+
+```text
+ironOre31 = 0
+oreMined31 = 0
+iron31 = 0
+ironSmelted31 = 0
+tools31 = 0
+toolsMade31 = 0
+industrialMoves31 = 0
+industrialTrades31 = 0
+```
+
+원인은 철광산 건설 AI나 철광석 지질이 아니라 **기존 V0.29 노동시장 점수와 V0.31 산업시설의 연결**에 있었습니다.
+
+기존 `광부` 직업 선택은 주로 `stoneNeed`를, 광부 작업장 선택은 `stone price / stone ratio`를 사용했습니다. `iron_mine`도 같은 광부 슬롯을 제공하지만 작업장 점수가 석재 기준으로 평가되어 실제 Person이 철광산으로 이동하지 못했습니다. 철광석 생산 함수는 `job === '광부' && workBuildingType29 === 'iron_mine'`일 때만 실행되므로 결과적으로 생산사슬 전체가 정지했습니다.
+
+## A.2 광부 직업 수요 수정
+
+새 직업 `철광부`를 만들지 않습니다. 기존 `광부`를 그대로 사용합니다.
+
+광부 직업 점수는 기존 석재 부족 신호에 더해 다음 경우 철광업 수요 보너스를 받습니다.
+
+- 실제 `iron_mine` 광부 슬롯이 비어 있음
+- Nation 철광석 재고가 인구 대비 낮음
+- 실제 철광석 매장지가 남아 있음
+
+빈 슬롯이 모두 채워지면 추가 수요 보너스는 사라집니다. 따라서 철광산 존재만으로 과도한 광부 전환이 계속되지 않습니다.
+
+## A.3 광부 작업장 선택을 자원별로 분리
+
+V0.31A부터 `광부` 작업장 점수는 시설 종류에 따라 다른 자원을 봅니다.
+
+### Quarry / Deep Quarry
+
+- 기존 stone 가격
+- stone 자원비율
+- 이동비용
+- Settlement hub 특성
+
+### Iron Mine
+
+- 실제 잔존 `resources.iron_ore`
+- `resourceCap.iron_ore`
+- Nation 철광석 비축 부족
+- 이동비용
+- Settlement hub 특성
+
+즉 철광산은 더 이상 stone 가격 때문에 채석장에 항상 밀리지 않습니다.
+
+## A.4 철공 작업장 분리
+
+표적 생산 테스트에서 광부 문제를 고친 뒤, `철공`이 제련소와 대장간을 같은 작업장으로 평가해 제련소 쪽에만 몰리는 두 번째 병목이 확인되었습니다. V0.31A에서는 같은 `철공` 직업을 유지하면서 시설별 수요를 분리합니다.
+
+### Smelter
+
+- 현지 철광석 재고
+- Nation 철 부족
+- 이동비용
+
+### Smithy
+
+- 현지 철 재고
+- Nation 도구 부족
+- 이동비용
+
+따라서 제련소가 철을 만들기 시작한 뒤 대장간에도 실제 철공이 배치될 수 있습니다.
+
+## A.5 빈 산업시설의 정상 직업 재검토
+
+철광산·제련소·대장간에 실제 빈 슬롯이 있을 때, 기존 Person 중 일부의 `_v29NextJobReviewCal`만 앞당깁니다.
+
+이 기능은 다음을 하지 않습니다.
+
+- Person을 강제로 특정 직업에 지정하지 않음
+- 가상 노동력을 생성하지 않음
+- 기존 finite job slot을 우회하지 않음
+- 노동자가 없는 정착지에 순간이동 인력을 만들지 않음
+
+실제 Person은 기존 `chooseJob`과 route 조건을 그대로 거쳐 직업과 작업장을 선택합니다. 재검토는 15 calendar days보다 자주 깨우지 않습니다.
+
+## A.6 철산업 Settlement market 공동투자
+
+기존 B3/B4 경제시설 금융경로의 대상에 다음을 추가합니다.
+
+```text
+iron_mine
+smelter
+smithy
+```
+
+금융 원칙은 바뀌지 않습니다.
+
+1. 건설 Settlement의 `marketGold` 중 local liquidity reserve를 넘는 부분을 먼저 사용
+2. 부족분만 Nation Treasury가 부담
+3. Treasury는 strategic reserve 초과분만 discretionary 산업투자에 사용
+4. 실제 Gold가 보존되며 새 Gold는 생성하지 않음
+
+V0.31A 표적 회귀에서 Treasury `0G`, Settlement market `100G` 상태의 제련소 12G 비용이 시장자금 12G로 전액 결제되고 market Gold가 `100 → 88`로 감소하는 것을 확인했습니다.
+
+## A.7 최소 worker telemetry
+
+새로운 복합 risk score는 추가하지 않고 다음 6개 관측값만 추가합니다.
+
+- `ironMineWorkerSlots31A`
+- `ironMineWorkers31A`
+- `smelterWorkerSlots31A`
+- `smelterWorkers31A`
+- `smithyWorkerSlots31A`
+- `smithyWorkers31A`
+
+국가 snapshot, world 합계, annual summary, CSV에 기록합니다.
+
+## A.8 V0.31A에서 변경하지 않은 항목
+
+이번 패치는 철기경제 연결 복구만 수행합니다. 다음 수치는 변경하지 않습니다.
+
+- 식량 소비 0~14세 `0.30`, 15세 이상 `0.42`
+- Survival Mode 기준
+- 개척/Frontier 규칙
+- 출산·질병·아사 확률 및 12일 grace
+- 철 기술 Knowledge 비용
+- 철광석 지질 생성률·매장량
+- 철광석→철→도구 변환비율
+- 도구 효율 보너스
+
+## A.9 구현 검증
+
+정적 검증:
+
+- inline JavaScript script 43개 `new Function` parse
+- 실패 0
+
+Chromium 실제 브라우저 표적 회귀:
+
+```text
+Title / badge / serialize: V0.31A
+Resource definitions: 6
+Runtime exception: 0
+```
+
+철광산 노동/생산:
+
+```text
+iron mine worker 4 / 4
+oreMined > 0
+iron ore stock > 0
+```
+
+완전 생산사슬 표적 회귀:
+
+```text
+iron mine workers: 4
+smelter workers: 4
+smithy workers: 2
+oreMined: 189.024
+ironSmelted: 108.8832
+toolsMade: 42.2344
+```
+
+AI 산업시설 경로 회귀:
+
+```text
+SMELTING 조건 충족 → smelter construction project 시작
+IRONWORKING + 실제 iron 조건 충족 → smithy construction project 시작
+```
+
+저장 호환 회귀:
+
+```text
+V0.31 형식으로 재해석한 save population: 99 → 99
+reserialize version: 0.31A
+```
+
+이 검증은 생산 함수와 노동/금융/AI 경로의 연결을 확인하기 위한 표적 회귀입니다. 자연 장기주행에서 최초 철광석 생산 시점, 제련소·대장간 등장 시점, 국가 간 철 자원 분업은 다음 사용자 데이터로 별도 검증합니다.
 
 ---
 
