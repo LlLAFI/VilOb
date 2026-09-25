@@ -1,4 +1,665 @@
-# Village Observer V0.30B4 — 기아 유예·생존모드·시장 경로 수정
+# Village Observer V0.31 — 자원 일반화·철기경제 V1
+
+Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
+
+**V0.31**은 V0.30 계열의 도시·행정·국내경제 기반 위에, 앞으로 철·석탄·구리·섬유 등 새로운 물질경제를 추가할 수 있도록 **자원 정의 레지스트리와 공통 재고 API**를 도입하는 첫 버전입니다. 첫 실제 사용 사례로 **철광석 → 철 → 도구**의 물리적 생산사슬을 구현합니다. 생산은 추상 생산력 숫자가 아니라 실제 타일의 매장량, Settlement 재고, 실제 Person 직업, 건물, 국내물류와 교역을 사용합니다.
+
+저장 데이터 버전은 `0.31`, localStorage 키는 `village-observer-v0-31`입니다. V0.30B4 및 그 이하 세이브는 기존 fallback chain으로 읽은 뒤 V0.31 자원·지질·산업 필드를 안전하게 초기화합니다. 기존 Person·Settlement·Nation identity는 유지합니다.
+
+---
+
+## 문서 역할
+
+`README.md`는 구현 의도·계산 규칙·호환성·관측 항목·검증 결과를 남기는 **상세 기술 문서**입니다. 인게임 패치노트는 이 README를 대체하지 않으며, 플레이 중 핵심 변경사항만 빠르게 확인하기 위한 요약 UI입니다.
+
+---
+
+# 1. V0.31 목표
+
+V0.31의 한 문장 목표는 다음과 같습니다.
+
+> **기존 식량·목재·석재 경제를 확장 가능한 자원 구조로 연결하고, 철광석 → 철 → 도구의 실제 생산사슬을 통해 원료 산지·가공 정착지·소비 정착지 사이의 공간적 분업이 발생할 기반을 만든다.**
+
+이번 버전의 범위는 다음과 같습니다.
+
+- V0.30B4 장기 데이터에서 확정된 마감 Fix 2개를 V0.31에 흡수
+- `RESOURCE_DEFS` 기반 자원 정의 레지스트리 도입
+- 기존 `food / wood / stone`은 호환성을 위해 레거시 코어를 유지하면서 같은 정의 레지스트리에 등록
+- 신규 자원 `iron_ore / iron / tools`
+- 공간적으로 편중된 비재생 철광석 매장지
+- 철광산 → 제련소 → 대장간 생산사슬
+- 실제 Person 직업/작업장 슬롯을 통한 채굴·제련·철공
+- 도구 보급에 따른 완만한 채취·건설 효율 향상과 실제 소모
+- 산업자원의 국내 물류와 국가 간 교역
+- 철 부족/매장지에 반응하는 연구·건설·영토확장 AI
+- 지도/국가경제/타일 정보/telemetry/CSV에 철기경제 관측 항목 추가
+
+이번 버전에서 **전쟁, 군인, 무기·갑옷, 석탄·구리·섬유, Settlement 병합, 100×100 전용 최적화**는 구현하지 않습니다. 이들은 후속 버전의 범위입니다.
+
+---
+
+# 2. V0.30 마감 Fix
+
+## 2.1 Hunger 100 사망 경로 통일
+
+V0.30B4는 Hunger 100이 12 calendar days 지속되어야 아사하도록 설계했지만, V0.25의 legacy daily demography가 `hunger >= 100` Person을 별도 경로에서 즉시 사망 처리할 수 있었습니다. 68년 장기런에서는 `STARVATION_CRITICAL_ENTER` 직후 다음 날 구형 `V0.25_HUNGER_HEALTH_DEMOGRAPHY` 사망이 발생하는 사례가 확인되었습니다.
+
+V0.31에서는 legacy 즉사 처리를 제거하고 **모든 Hunger 100 아사를 하나의 12일 grace 경로로 통일**합니다.
+
+- Hunger 100 최초 감지: critical streak 시작
+- 11 calendar days 지속: 생존
+- 12 calendar days 지속: 아사 가능
+- Hunger가 95 미만으로 회복: streak reset
+- 기존 B3/B4 save sentinel 규칙 유지
+
+식량 소비 상수는 롤백하지 않습니다.
+
+- 0~14세: `0.30 / legacy work cycle`
+- 15세 이상: `0.42 / legacy work cycle`
+
+68년 B4 데이터에서 20년 이후 아사가 사라지고, 후기 평균 Hunger와 식량량이 안정되었기 때문에 현재 소비량 자체를 추가 완화하지 않습니다.
+
+## 2.2 Settlement 과분산 Survival risk 완화
+
+현재 맵은 사실상 `1 tile ≈ 1 Settlement` 구조이므로 영토가 넓어질수록 `population / occupied Settlement`가 낮아져, 실제 식량이 충분한 성장국도 장기간 Survival Mode에 남는 왜곡이 발생했습니다.
+
+기존:
+
+```text
+occupied >= 3 && population / occupied < 7
+→ survival risk +1.5
+```
+
+V0.31:
+
+```text
+occupied >= 3 && population / occupied < 7
+→ survival risk +1.0
+```
+
+조건 자체는 삭제하지 않습니다. 소국의 과도한 분산은 여전히 위험신호지만, 이 신호 하나만으로 안정국이 Survival Mode에서 영구 이탈하지 못하는 현상을 줄입니다. 장기적으로 여러 타일을 하나의 Settlement가 포괄하는 구조가 도입되면 이 지표 자체를 재검토합니다.
+
+---
+
+# 3. 자원 일반화 구조
+
+## 3.1 `RESOURCE_DEFS`
+
+V0.31부터 핵심 자원 메타데이터를 한 곳에서 정의합니다.
+
+| ID | 표시명 | 역할 | 기본가격 | 특징 |
+|---|---|---|---:|---|
+| `food` | 식량 | consumable | 0.32 | legacy, tradable |
+| `wood` | 목재 | raw | 0.27 | legacy, tradable |
+| `stone` | 석재 | raw | 0.46 | legacy, tradable |
+| `iron_ore` | 철광석 | mineral_raw | 0.58 | tradable, nonRenewable |
+| `iron` | 철 | processed | 1.08 | tradable |
+| `tools` | 도구 | capital_good | 1.72 | tradable, durable |
+
+`NS.RESOURCE_DEFS`와 `NS.RESOURCE_KEYS`를 통해 신규 시스템이 공통 정의를 참조합니다.
+
+### 호환성 원칙
+
+V0.31은 food/wood/stone의 모든 오래된 코드를 한 번에 재작성하지 않습니다. 기존 세 자원은 검증된 legacy 경로를 계속 사용하고, 새 산업자원은 동일한 외부 인터페이스를 사용하는 확장층으로 연결합니다.
+
+공통 접근 함수는 다음 의미를 갖습니다.
+
+- `stockAt(tileId, resource)` — 정착지별 재고 조회
+- `depositAt(tileId, resource, amount)` — 저장용량 범위에서 입고
+- `withdrawAt(tileId, resource, amount)` — 해당 Settlement 재고에서 출고
+- `withdrawNetwork(resource, amount, preferredTile)` — Nation 내부 재고망에서 실제 출고
+- `settlementCaps(tileId)` — 자원별 저장용량
+- `storageCaps()` — Nation 전체 저장용량
+- `resourceTotal(resource)` — Nation 전체 실제 재고
+
+향후 신규 자원은 가능한 한 이 인터페이스를 사용하여 추가합니다.
+
+---
+
+# 4. 철광석 지질
+
+철광석은 모든 타일에 균등하게 생성하지 않습니다. 좌표 기반 deterministic cluster와 local hash를 결합하여 **지역적으로 편중된 매장지**를 만듭니다. 같은 맵 상태를 불러오면 저장된 매장량을 그대로 유지합니다.
+
+대략적인 지형별 생성 성향은 다음과 같습니다.
+
+| 지형 | 생성 성향 | 대략적 초기 매장량 |
+|---|---|---:|
+| mountain | 높음 | 300~760 |
+| rock | 중상 | 210~560 |
+| forest | 낮음 | 80~220 |
+| grass/plain | 매우 낮음 | 55~170 |
+| water | 없음 | 0 |
+
+`iron_ore`는 `nonRenewable` 자원입니다. 채굴된 양은 자연재생되지 않습니다.
+
+B4 이하 세이브에는 철광석 필드가 없으므로 V0.31 로드 시 지형/좌표에 따라 매장지를 생성합니다. 이미 V0.31로 저장된 세이브는 기존 `resourceCap.iron_ore`와 잔여 `resources.iron_ore`를 그대로 사용합니다.
+
+---
+
+# 5. 기술 트리
+
+V0.31은 철기경제에 필요한 기술만 최소한으로 추가합니다.
+
+## 5.1 철광 채굴 `IRON_MINING`
+
+- 비용: 390 Knowledge
+- 선행: `QUARRY`, `SURVEYING`
+- 해금: 철광산
+- 효과: 철광석 매장지의 전략적 확장 가치 인식
+
+## 5.2 제련 `SMELTING`
+
+- 비용: 520 Knowledge
+- 선행: `IRON_MINING`, `MASONRY`
+- 해금: 제련소
+- 효과: 철광석 + 연료 → 철 생산
+
+## 5.3 철공 `IRONWORKING`
+
+- 비용: 620 Knowledge
+- 선행: `SMELTING`, `CARPENTRY`
+- 해금: 대장간
+- 효과: 철 → 도구 생산
+
+연구 AI는 기존 TechSystem을 유지하면서 실제 매장지·철광석 재고·철 재고·시설·인구 신호가 있을 때 위 기술을 우선순위 후보로 올립니다. 다른 기술을 무조건 배제하는 별도 시대 스크립트는 만들지 않습니다.
+
+---
+
+# 6. 산업시설
+
+## 6.1 철광산 `iron_mine`
+
+건설비:
+
+```text
+wood 24
+stone 16
+gold 8
+```
+
+- footprint: 2.3
+- 실제 직업 슬롯: `광부` 4명, Engineering 보너스 가능
+- 철광석 저장공간: +120
+- 철광석 매장지가 있는 타일에서만 AI 후보가 됨
+- actual natural deposit를 감소시키며 생산
+
+## 6.2 제련소 `smelter`
+
+건설비:
+
+```text
+wood 34
+stone 26
+gold 12
+```
+
+- footprint: 2.2
+- 실제 직업 슬롯: `철공` 4명, Engineering 보너스 가능
+- 철광석 저장공간: +70
+- 철 저장공간: +80
+- 철광석과 목재 연료를 실제로 소비
+
+기본 Person 작업 1회에서 사용 가능한 철광석은 기술·skill 범위에서 제한되며, 실제 변환은 대략:
+
+```text
+iron ore 1.00
++ wood fuel 0.42
+→ iron 0.72
+```
+
+도구가 현지에 보급되어 있으면 생산효율이 소폭 증가합니다.
+
+## 6.3 대장간 `smithy`
+
+건설비:
+
+```text
+wood 30
+stone 18
+iron 5
+gold 14
+```
+
+대장간은 V0.31에서 처음으로 **기존 3자원 외 산업재를 건설 투입재로 사용하는 시설**입니다. `payBuild()` 확장층이 Nation의 실제 철 재고를 확인하고 철을 물리적으로 출고합니다.
+
+- footprint: 1.8
+- 실제 직업 슬롯: `철공` 4명
+- 철 저장공간: +55
+- 도구 저장공간: +70
+
+기본 변환:
+
+```text
+iron 1.00 → tools 0.78
+```
+
+---
+
+# 7. 실제 Person 노동
+
+철기경제 생산은 Settlement의 추상 생산량으로 계산하지 않습니다.
+
+## 철광산
+
+`광부` Person이 실제 `workTileId`의 `iron_mine`에 배정되어야 합니다.
+
+- 타일의 자연 `resources.iron_ore` 감소
+- 같은 Settlement의 `stocks.iron_ore` 증가
+- mining skill에 따라 1회 채굴량 변화
+- 도구가 있으면 완만한 생산 보너스
+- 평소처럼 Hunger/Energy/Knowledge 변화
+
+## 제련소·대장간
+
+새 직업 `철공`을 기존 finite job slot / 노동시장에 추가합니다.
+
+- 제련소: local iron ore + wood를 실제 출고하여 iron 생산
+- 대장간: local iron을 실제 출고하여 tools 생산
+- 원료가 없으면 생산하지 않고 원료 대기 상태가 됨
+- 실업/직업선택/작업장 배정은 기존 V0.29 노동 시스템을 재사용
+
+즉 V0.31에서도 Person identity와 실제 노동을 유지합니다.
+
+---
+
+# 8. 도구 경제
+
+V0.31의 `tools`는 Person 개별 inventory가 아니라 **Settlement/workplace에서 공유되는 내구성 생산재**입니다.
+
+도구 재고가 있는 작업장은:
+
+- food/wood/stone 채취: 약 +10% 수준의 완만한 multiplier
+- 철광 채굴/제련에도 비슷한 소폭 효과
+- construction worker: 약 +8% 효율 보너스
+
+도구는 무한 버프가 아닙니다.
+
+- 생산/채취에 사용할 때 극소량 실제 소모
+- 30 calendar days 단위로 local adult 수에 비례한 wear 발생
+- 산업물류가 도구가 부족한 Settlement로 실제 재고를 이동
+
+군인 개인의 무기·갑옷처럼 Person별 장비 inventory를 만드는 작업은 V0.32 이후로 미룹니다.
+
+---
+
+# 9. 산업 물류
+
+V0.31은 기존 Nation 내부 route-cost/capacity 물류를 재사용합니다.
+
+약 15 calendar days 간격으로 산업재 수요를 확인합니다.
+
+### 철광석
+
+철광산/저장 Settlement → 제련소
+
+- 제련소 철광석 목표재고 약 28
+- 공급지는 철광석이 18 이상 남는 Settlement 우선
+
+### 철
+
+제련소 → 대장간
+
+- 대장간 철 목표재고 약 18
+- 공급지는 철이 10 이상 남는 Settlement 우선
+
+### 도구
+
+대장간/잉여 Settlement → 도구가 부족한 노동 Settlement
+
+이동량은 기존 `internalLogisticsCapacity()`를 통과하며, 출발지 실제 재고가 감소하고 도착지 실제 재고가 증가합니다. 생성/삭제식 순간이동이 아닙니다.
+
+Telemetry event:
+
+- `INDUSTRIAL_LOGISTICS31`
+
+---
+
+# 10. 산업재 국가 간 교역
+
+기존 일반 교역 이후 철광석·철·도구에 대해 별도 산업재 거래 후보를 확인합니다.
+
+교역 전제:
+
+- 기존 trading-post route가 실제로 reachable
+- 구매국이 해당 자원을 사용할 기술 보유
+- 구매국의 Nation 전체 재고가 목표수요보다 낮음
+- 판매국이 최소 잉여재고를 보유
+- 적대관계가 심하지 않음
+
+Gold는 Settlement market cash를 우선 사용합니다. 필요한 경우 Nation Treasury가 최소 reserve를 남기는 범위에서 market으로 bridge할 수 있습니다. 거래 시:
+
+- 판매 Settlement 실제 재고 감소
+- 구매 Settlement 실제 재고 증가
+- 구매 market Gold 감소
+- 판매 market Gold 증가
+
+Telemetry event:
+
+- `INDUSTRIAL_TRADE31`
+
+V0.31의 산업재 교역은 기존 food/wood/stone 교역을 대체하지 않고 그 뒤에 추가됩니다.
+
+---
+
+# 11. 산업 AI
+
+## 11.1 철광산
+
+`IRON_MINING` 보유 후 Nation이 소유한 매장지 중 철광량이 충분한 타일을 평가합니다.
+
+광산 수는 초기에 최소 1개를 허용하며 인구 약 180명 단위로 필요한 상한이 완만하게 증가합니다.
+
+## 11.2 제련소
+
+`SMELTING` 보유 + 철광석/철광산 존재 시 후보가 됩니다.
+
+- 실제 주민 3명 이상 Settlement 우선
+- 철광산 인접/동일 Settlement와 인구를 평가
+- 대략 철광산 2개당 제련소 1개까지 단계적으로 허용
+
+## 11.3 대장간
+
+`IRONWORKING` 보유 + 철/제련소 존재 시 후보가 됩니다.
+
+- 실제 주민 4명 이상 Settlement
+- 기존 경제 hub score가 높은 곳 우선
+- 약 인구 160명당 1개 수준으로 완만하게 증가
+
+## 11.4 공간 부족
+
+V0.31 산업시설 AI는 후보 1개만 보고 실패하지 않습니다.
+
+1. 후보 Settlement들을 순회하며 실제 남은 build space 확인
+2. 공간이 있는 후보에서 정상 construction 시도
+3. 모두 부족하지만 개발 가능한 potential space가 있다면 `V31_INDUSTRY_SPACE` 토지개발 선행
+
+Telemetry:
+
+- `IRON_MINE_PATH31`
+- `V31_INDUSTRY_SPACE_PREP`
+
+---
+
+# 12. 영토확장과 철광석
+
+Nation이 `IRON_MINING`을 연구한 뒤에는 expansion candidate 평가에 철광석 매장가치를 추가합니다.
+
+- 철광석이 없는 타일: 추가점수 없음
+- 매장량이 큰 타일: 점진적 추가점수
+- Nation 철광석 재고가 낮을수록 가치 증가
+
+따라서 모든 국가가 동일한 방향으로 확장하는 것이 아니라, 철기경제를 시작한 국가가 매장지에 더 큰 전략적 가치를 부여할 수 있습니다.
+
+이 기능은 기존 식량·목재·석재·국경·개척 조건을 대체하지 않고 추가 신호로만 작동합니다.
+
+---
+
+# 13. 가격과 수요
+
+산업재도 Settlement별 local price를 가집니다.
+
+가격은 기본적으로 다음 신호를 사용합니다.
+
+- local stock / storage capacity
+- downstream facility 존재
+- local workers
+- local construction demand
+
+예:
+
+- 제련소가 있는 Settlement → 철광석 수요 상승
+- 대장간이 있는 Settlement → 철 수요 상승
+- 노동자/건설이 많은 Settlement → 도구 수요 상승
+
+가격은 base price의 지나친 폭주를 막기 위해 대략 `0.48× ~ 3.2×` 범위로 제한합니다.
+
+---
+
+# 14. UI와 관측
+
+## 지도
+
+자원 레이어 선택기에 `iron_ore`를 추가했습니다. 철광석 자원 레이어에서 공간적 매장지 분포를 확인할 수 있습니다.
+
+## 타일 정보
+
+선택한 Settlement/tile에 다음 정보가 추가됩니다.
+
+- 철광석 자연 매장량/최대 매장량
+- local iron ore stock
+- local iron stock
+- local tools stock
+- 산업시설 상태
+
+## 국가 경제
+
+Nation Economy 화면에 철기경제 카드가 추가되어 다음을 확인할 수 있습니다.
+
+- 철광석 / 철 / 도구 재고
+- 철광산 / 제련소 / 대장간 수
+- 평균 local price
+- 누적 채굴·제련·도구 생산
+- 산업물류 / 산업교역
+
+---
+
+# 15. Telemetry / CSV
+
+Nation snapshot 추가 필드:
+
+```text
+ironOre31
+iron31
+tools31
+ironOreCap31
+ironMines31
+smelters31
+smithies31
+avgIronOrePrice31
+avgIronPrice31
+avgToolsPrice31
+oreMined31
+ironSmelted31
+toolsMade31
+industrialMoves31
+industrialMoved31
+industrialTrades31
+industrialTradeVolume31
+```
+
+World snapshot에는 위 자원의 세계 합계와 평균가격을 추가합니다. 연간 summary에도 같은 해의 최신 산업 필드를 복사합니다.
+
+주요 event:
+
+```text
+IRON_RESEARCH_PRIORITY31
+IRON_MINE_PATH31
+V31_INDUSTRY_SPACE_PREP
+INDUSTRIAL_LOGISTICS31
+INDUSTRIAL_TRADE31
+```
+
+V0.31부터 장기런 분석 시 단순히 “철 시설이 존재하는가”만 보지 않고 다음을 같이 봅니다.
+
+- 매장지가 일부 지역에 실제로 편중되는가
+- 철광산과 제련소가 반드시 같은 Settlement에만 생기지 않는가
+- 철광석/철/도구의 국내 이동이 발생하는가
+- 철광이 없는 Nation이 교역으로 철기경제에 참여하는가
+- tools가 생산된 뒤 생산/건설 구조가 어떻게 달라지는가
+
+---
+
+# 16. 저장·호환성
+
+### 현재 버전
+
+```text
+save version: 0.31
+localStorage: village-observer-v0-31
+export prefix: village-observer-v031-
+```
+
+Fallback load:
+
+```text
+0.30B4
+0.30B3
+0.30B2
+0.30A
+0.30
+0.29
+0.28
+0.27
+...
+```
+
+B4 이하 save를 읽을 때:
+
+- Person identity 유지
+- Nation / Settlement / territory 유지
+- 기존 자원 재고 유지
+- 신규 산업재 stock은 0에서 시작
+- 철광석 지질은 기존 terrain/coordinate를 사용해 안전하게 부착
+- V0.31로 다시 저장하면 version `0.31`
+
+---
+
+# 17. 구현 검증
+
+V0.31 구현 직후 실시한 정적/브라우저 회귀 검증입니다.
+
+## 정적 검사
+
+- inline JavaScript 42개 추출
+- 전부 `node --check` 통과
+
+## 실제 Chromium 부팅
+
+확인 항목:
+
+- document title: `Village Observer V0.31`
+- header badge: `Village Observer · V0.31`
+- serialize version: `0.31`
+- `RESOURCE_DEFS`: food / wood / stone / iron_ore / iron / tools
+- 철광석 매장지 생성
+- 신규 기술 3종 존재
+- 신규 건물 3종 존재
+- map resource selector에 iron ore 존재
+- page runtime exception: 0
+
+## 생산사슬 단위 회귀
+
+실제 Person을 사용해 다음을 각각 확인했습니다.
+
+```text
+iron mine: natural iron ore 감소 + Settlement iron_ore 증가
+smelter: iron_ore + wood 감소 + iron 증가
+smithy: iron 감소 + tools 증가
+```
+
+Person action text도 각 작업장에 맞게 갱신됩니다.
+
+## 산업 AI 표적 회귀
+
+충분한 기술·인구·원료·build space를 가진 Settlement에서 AI가 순서대로:
+
+```text
+iron_mine → smelter → smithy
+```
+
+construction project를 실제 시작하는 것을 확인했습니다. `철공` 직업 슬롯도 제련소·대장간에서 finite slot으로 생성됩니다.
+
+## Hunger 100
+
+calendar day를 충분히 진행한 뒤 강제 경계검사를 실시했습니다.
+
+```text
+critical Hunger 11일: alive
+critical Hunger 12일: starvation death
+```
+
+legacy V0.25 즉사 경로는 제거된 상태입니다.
+
+## B4 migration
+
+B4 형식으로 만든 save를 `World.from()`으로 로드한 결과:
+
+- migration 전후 Person 수 동일
+- 신규 철광석 지질 정상 부착
+- reserialize version `0.31`
+- runtime exception 0
+
+## 짧은 자연 smoke
+
+3~5년 자연 주행에서:
+
+- 6/6 Nation 유지
+- Person/territory 증가 정상
+- serialize `0.31`
+- runtime exception 0
+
+25년 이상의 자연 철기경제 발생 시점·시설 분포·가격 밸런스는 인위적 smoke 결과로 단정하지 않습니다. 이 부분은 실제 플레이 장기 데이터로 검증해야 합니다.
+
+---
+
+# 18. V0.31에서 관찰할 핵심 질문
+
+V0.31은 “철 시설을 추가했다”는 것보다 **공간적 생산사슬이 실제로 발생하는가**가 더 중요합니다.
+
+성공적인 장기런에서 기대하는 현상:
+
+```text
+철광 산지 Settlement
+    ↓ iron_ore
+제련 Settlement
+    ↓ iron
+상업/인구 중심 Settlement의 smithy
+    ↓ tools
+주변 농업·광업·건설 Settlement
+```
+
+반대로 모든 Nation이 모든 Settlement에 철광산·제련소·대장간을 똑같이 짓는다면 자원 일반화 자체는 작동하더라도 공간 전문화는 실패한 것으로 봅니다.
+
+다음 실제 데이터에서는 특히 다음을 분석합니다.
+
+- 최초 IRON_MINING / SMELTING / IRONWORKING 연도
+- 국가별 iron ore 접근성 격차
+- 철광산 / 제련소 / 대장간의 위치 분리 여부
+- 산업재 가격 차이
+- industrial logistics / trade 발생량
+- 철광 비보유 Nation의 수입 의존
+- tools 보급과 생산성 변화
+- 철광석 고갈 속도
+- 추가된 산업 루프의 성능비용
+
+---
+
+# 19. 다음 단계
+
+V0.31이 장기 데이터에서 안정되면 다음 큰 단계는 **V0.32 군사사회**입니다.
+
+기본 방향:
+
+```text
+실제 Person
+→ 군사 직업/징집
+→ 훈련
+→ 철 기반 장비 생산
+→ 실제 장비 보유
+→ 주둔/유지비
+```
+
+V0.33에서 그 위에 실제 지도상 군대·보급·전투·퇴각·점령을 올립니다.
+
+또한 100×100 표준맵을 위해 장기적으로는 현재의 `1 tile ≈ 1 Settlement` 구조를 바꾸어 하나의 중심 Settlement가 여러 주변 타일/옛 마을을 포괄하도록 할 예정입니다. V0.31은 이 미래 구조를 막는 새 하드코딩을 최소화하지만, Settlement 병합 자체는 이번 버전에 포함하지 않습니다.
+
+---
+
+# 이전 버전 상세 기록
+
+아래는 V0.30B4 시점의 상세 기술 문서를 보존한 내용입니다. V0.31에서 변경된 규칙은 위 V0.31 문서를 우선합니다.
+
+## V0.30B4 기록 — 기아 유예·생존모드·시장 경로 수정
 
 Village Observer는 실제 주민(Person)의 생활·노동·이동·소비가 **Settlement → Nation → World** 변화로 이어지는 browser-based bottom-up 사회 시뮬레이션입니다.
 
