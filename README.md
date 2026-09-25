@@ -1,275 +1,328 @@
-# Village Observer V0.31I
+# Village Observer V0.32A
 
-## 릴리스 개요
+## 군사사회 기반 · 지도/제련 보정
 
-V0.31I는 V0.31H 장기주행에서 확인된 **지도 정보 과밀**과 **철광맥 수명/보존 문제**를 수정하는 안정화 패치입니다.
+V0.32A는 V0.31 계열의 철경제를 닫고 V0.32 「군사사회 V1」로 진입하는 첫 기반 버전이다. 이 버전의 목적은 전투를 즉시 활성화하는 것이 아니라, 이후 동원·부대 이동·주둔·요새화·국지전이 실제 Person과 연결될 수 있도록 데이터 구조와 관측 기반을 먼저 고정하는 것이다.
 
-V0.31H에서는 자연주행으로 철광산 → 제련소 → 대장간 → 도구까지 전체 철산업 사슬이 실제로 작동했고, 전국 Settlement 시장 공동재정과 프로젝트 슬롯 재시도도 실전에서 사용됐습니다. 따라서 이번 패치에서는 산업 발화 AI를 다시 흔들지 않고 다음 두 문제에 집중합니다.
+동시에 V0.31I 첫 자연주행에서 확인된 두 잔여 문제를 수정한다.
 
-1. 영토가 넓어진 뒤 일반 소유 타일의 주택/정착지 아이콘이 국가색과 지형을 가리는 문제
-2. 철광석 저장고가 가득 찬 뒤에도 광부가 광맥을 계속 채굴해, 저장되지 못한 철광석이 자연자원에서 소실되던 문제
-
-버전: `0.31I`  
-리비전: `map-declutter-iron-reserve-conservation`  
-기준 코드: V0.31H
+1. 기본 지도에서 행정/상업 주요 아이콘이 구형 분석 레이어에 의해 한 번 더 렌더되어 겹쳐 보이는 문제
+2. 철광석은 제련소까지 운송되지만 목재 연료가 제련소 정착지로 이동하지 않아 철 생산이 정지할 수 있는 문제
 
 ---
 
-## 1. 기본 지도 정보 밀도 정리
+## 1. 지도 주요 아이콘 중복 제거
 
-기존 기본 지도는 거의 모든 소유 타일에 주거 아이콘을 표시했습니다. 초기에는 정착지 분포를 읽기 쉬웠지만 영토가 수십 타일로 커진 뒤에는 동일한 아이콘이 반복되어 국가색과 국경선을 가리는 문제가 생겼습니다.
+V0.31I에서는 일반 주거 아이콘을 제거하고 행정 중심지와 주요 상업시설만 기본 지도에 남겼다. 그러나 초기 지도 renderer와 V0.15 분석 레이어의 `redrawBoundariesAndIcons()`가 모두 같은 주요 아이콘을 그리는 경로가 남아 있었다.
 
-V0.31I부터 일반 소유 타일은 기본 지도에서 **아이콘을 표시하지 않습니다.**
+특히 시장·교역소가 존재하는 타일에서 같은 위치에 아이콘이 두 번 그려져 집/상점 모양이 겹쳐 보일 수 있었다.
 
-기본 지도에 남는 아이콘은 다음과 같습니다.
+V0.32A에서는 icon ownership을 다음처럼 정리했다.
 
-- 행정 중심지: `🏛️`
-- 교역소: `⚖️`
-- 시장: `🏪`
-- 상인조합: `⚖️`
-- 대시장: `🏦`
-- 항구: `⚓`
-- 폐허: `🏚️`
+- 기본 지도: primary map renderer만 주요 아이콘을 그린다.
+- 인구/자원/건물/물류 레이어: primary renderer는 주요 아이콘을 생략하고, 분석 overlay가 마지막에 한 번만 다시 그린다.
+- 국경선과 선택 타일 흰색 outline은 기존처럼 유지한다.
 
-주택, 경작지, 창고, 채석장, 철광산 등 일반 생산/생활 시설은 타일 상세 또는 관련 레이어에서 확인합니다.
+따라서 어떤 지도 레이어에서도 같은 주요 거점 아이콘이 중복 렌더되지 않는다.
 
-또한 소유 타일의 국가색 오버레이를 약 20%에서 약 30%로 강화했습니다. 기존 검은 국가간 국경선은 유지하므로 기본 지도는 **아이콘보다 영토의 색 면과 국경 형태를 먼저 읽는 방식**으로 바뀝니다.
-
-이 아이콘 정리는 최초 기본 렌더러뿐 아니라 V0.15 이후 인구/자원/건물 상태 레이어가 마지막에 아이콘을 다시 그리는 경로에도 동일하게 적용됩니다.
+표적 Canvas 테스트에서 비행정 시장 타일을 강제로 만든 뒤 기본 지도를 다시 렌더했을 때 해당 타일의 주요 아이콘 `fillText()` 호출은 정확히 1회였다.
 
 ---
 
-## 2. 철광석 만재 채굴 손실 수정
+## 2. 제련소 목재 연료 물류
 
-### 이전 문제
+기존 V0.31 산업 물류는 다음 세 경로를 지원했다.
 
-V0.31H의 철광산 생산은 다음 순서였습니다.
+- `ORE_TO_SMELTER`: 철광석 → 제련소
+- `IRON_TO_SMITHY`: 철 → 대장간
+- `TOOLS_DISTRIBUTION`: 도구 → 각 정착지
 
-1. 자연 광맥에서 `harvest(iron_ore)`
-2. Settlement 철광석 저장고에 `depositAt(iron_ore)`
+하지만 제련에는 철광석뿐 아니라 목재 연료가 필요하다. 제련소가 있는 Settlement에 목재가 부족하면 철광석과 철공 인력이 모두 있어도 생산이 정지할 수 있었다.
 
-하지만 `depositAt()`은 저장공간이 부족하면 실제 저장량만 반환합니다. 기존 코드는 저장되지 못한 차이를 자연 광맥으로 돌려놓지 않았습니다.
+V0.32A에서는 `industrialFlows31()`에 다음 경로를 추가했다.
 
-따라서 철광석 창고가 150/150처럼 가득 차도 광부는 계속 자연 광맥을 감소시킬 수 있었고, 초과 채굴분은 재고에도 남지 않는 자원 소실이 발생했습니다.
+- `WOOD_TO_SMELTER_FUEL`: 목재가 18 미만인 제련소 Settlement에, 목재 24 초과의 다른 실거주 Settlement에서 연료를 운송한다.
 
-### V0.31I 수정
+이 운송은 새로운 자원 생성이 아니다. 기존 `move31()`을 그대로 사용하므로 실제 Settlement stock을 출발지에서 빼고 목적지에 넣으며, 기존 내부 물류 capacity/거리 제약을 그대로 따른다.
 
-광부는 채굴 전에 실제 저장 여유량을 계산합니다.
-
-- 저장 여유 0: 자연 광맥을 전혀 채굴하지 않음
-- 저장 여유가 생산량보다 작음: 여유량만큼만 채굴
-- 정상 여유: 기존 생산량만큼 채굴
-- 예외적으로 `depositAt()`이 일부를 받지 못하면 거부된 양을 자연 광맥에 즉시 반환
-
-따라서 저장고 만재 상태에서 철광맥 소실량은 0입니다.
-
-광부의 상태 텍스트도 만재 시 `철광석 저장고 만재로 채굴 대기 중`으로 표시됩니다.
+표적 테스트에서는 제련소 목재 0 상태에서 `WOOD_TO_SMELTER_FUEL` 이벤트가 발생했고 실제로 16.2 목재가 이동했다. 이후 철공 Person을 제련소에 배치한 생산 테스트에서 철광석과 목재가 실제로 소비되고 철 0.616이 생산되었다.
 
 ---
 
-## 3. 철광 매장량 장기화
+## 3. Person-backed 군사 모델의 원칙
 
-V0.31I는 철광맥의 자연 매장량을 **V0.31H 기준 4배**로 조정합니다.
+V0.32 이후 군사 시스템의 핵심 원칙은 다음과 같다.
 
-이 조정은 단순히 모든 철 관련 판단을 4배 강하게 만드는 방식이 아닙니다. 매장량만 커지고, 기존의 광맥 품질/전략 가치 판단은 같은 실질 기준을 유지하도록 정규화했습니다.
+> MilitaryCohort는 가상 병력을 생성하는 객체가 아니다. 실제 Person ID를 묶어서 성능 효율적으로 계산하는 집단 단위다.
 
-조정된 항목의 예:
+따라서 V0.32A에서는 `manpower=100` 같은 독립적인 가상 병력 수를 생성하지 않는다. Cohort의 실제 구성원은 `memberIds`로만 관리한다.
 
-- 철광산 적격 광맥 기준: `70 → 280`
-- 광부 workplace 광맥 점수의 cap/remaining 정규화: 4배 매장량을 기존 척도로 환산
-- 개척지 철광 가치: `cap / 18 → cap / 72`
-- V0.31H 철광산 입지 점수: `cap × 0.18 → cap × 0.045`
+향후 전투에서 사망자가 발생하면 해당 member Person이 실제로 사망하며 국가·세계 인구도 함께 감소하는 구조를 전제로 한다.
 
-따라서 **광맥의 희소성·적격성·AI 선호 구조는 유지하면서 수명만 늘어납니다.**
-
-### 구버전 세이브 마이그레이션
-
-V0.31H 이하 세이브를 V0.31I로 불러오면:
-
-- 기존 `resourceCap.iron_ore` × 4
-- 현재 남은 `resources.iron_ore` × 4
-
-로 변환하여 기존 고갈 비율을 보존합니다.
-
-V0.31I 세이브를 다시 로드할 때는 스케일을 다시 적용하지 않으므로 중복 4배 증가가 발생하지 않습니다.
+자동기계나 Person과 독립된 전력 규모는 훨씬 이후 시대의 별도 시스템으로 남긴다.
 
 ---
 
-## 4. 실제 초기량 / 실제 잔존량 텔레메트리
+## 4. Person 군복무 상태 기반
 
-기존 `ironOreCap31`은 현재 남은 철광석이 아니라 광맥의 최대 capacity 합계입니다. 따라서 광맥 고갈 정도를 판단하기에 적합하지 않았습니다.
+모든 Person에 다음 필드를 준비한다.
 
-V0.31I는 각 광맥의 생성 당시 실제 자연 철광석량을 별도로 보존하고 다음 값을 기록합니다.
+- `militaryStatus32A`
+  - `civilian`
+  - `reserve`
+  - `active`
+  - `wounded`
+  - `captured`
+- `militaryCohortId32A`
+- `militaryWoundedUntil32A`
+- `militaryCapturedBy32A`
+- `militaryServiceDays32A`
 
-### 국가 필드
+V0.32A에서는 자동으로 reserve나 active 상태로 바꾸지 않는다. 신규 세계와 V0.31I 이하 마이그레이션 세계는 모두 civilian에서 시작한다.
 
-- `ironOreInitial31I`: 현재 영토 철광맥의 실제 초기 자연량
-- `ironOreRemaining31I`: 현재 실제 지하 잔존량
-- `ironOreDepletionShare31I`: `(초기량 - 잔존량) / 초기량`
-- `ironDeposits31I`: 보유 철광맥 수
-- `ironDepositsDepleted31I`: 완전 고갈 광맥 수
-- `ironOrePreventedWaste31I`: 구버전 방식이었다면 저장 실패로 소실됐을 채굴량
-- `ironOreStorageFullStops31I`: 저장고 만재로 채굴을 중단한 횟수
-- `ironOrePartialClamps31I`: 저장 여유에 맞춰 부분 채굴한 횟수
+동원 가능 Person은 현재 관측용으로 다음 조건을 사용한다.
 
-### 세계 필드
+- 생존
+- 18~50세
+- 건강 45 이상
+- 개척(PIONEER) 임무 중이 아님
+- wounded/captured 상태가 아님
 
-위 초기량/잔존량/고갈률과 함께 다음을 기록합니다.
+성별 제한은 두지 않는다.
 
-- `claimedIronOreInitial31I`
-- `claimedIronOreRemaining31I`
-- `ironReserveScale31I = 4`
-
-세계 전체 초기량은 아직 어느 국가도 점유하지 않은 광맥도 포함합니다.
-
----
-
-## 5. UI 변경
-
-### 지도
-
-기본 지도 범례:
-
-`기본 지도 · 국가색 영토 · 행정/주요 상업 거점만 표시`
-
-철광석 자원 레이어 범례:
-
-`자연자원 · 철광석 실제 잔존량 / 초기 매장량`
-
-### 타일 상세
-
-철광맥 타일에는 실제 잔존율을 추가합니다.
-
-예:
-
-`I 잔존율 84.2% · 만재 시 광부는 채굴을 멈춰 광맥을 보존합니다.`
-
-### 국가 경제
-
-철기경제 카드 아래에 다음을 추가합니다.
-
-- 천연 철광석 잔존 / 실제 초기량
-- 잔존율
-- 고갈 광맥 수 / 총 광맥 수
-- 저장고 만재 채굴 차단 횟수
-
-기존 `ironOreCap31`은 호환성을 위해 유지하며 UI에서는 의미를 명확히 하기 위해 `초기 매장량`으로 표기합니다.
+이 조건은 V0.32B의 실제 동원 AI를 만들기 전에 장기 데이터를 관측하기 위한 첫 기준이며, 필요하면 B에서 조정할 수 있다.
 
 ---
 
-## 6. 산업 발화 시스템과의 관계
+## 5. MilitaryCohort 기반 구조
 
-V0.31I는 V0.31H의 다음 기능을 변경하지 않습니다.
+V0.32A에서 `MilitaryCohort` 클래스를 추가한다.
 
-- 철광산 → 제련소 → 대장간 우선 발화
-- 전략 산업용 마지막 프로젝트 슬롯 예약
-- 동일 국가 Settlement 시장 Gold 공동투자
-- Treasury strategic reserve
-- 프로젝트 완료 직후 산업 재시도
-- 실제 광부/철공 worker slot
-- 철광석 → 철 → 도구 생산식
-- 산업 물류 및 국가간 철 자원 교역
+주요 필드:
 
-단, 매장량이 4배가 되었으므로 광맥 적격 기준과 AI의 광맥 점수만 동일 실질 기준으로 정규화했습니다.
+- `id`
+- `nationId`
+- `name`
+- `memberIds`
+- `tileId`
+- `homeTileId`
+- `status`
+- `training`
+- `morale`
+- `equipment`
+- `supply`
+- `fortification`
+- `createdDay`
 
----
+특히 `tileId`를 처음부터 포함한다. 아직 V0.32A에서는 부대를 실제로 만들거나 이동시키지 않지만, 이후 부대가 지도 위 어느 타일에 존재하는지 계속 관측하기 위한 구조를 미리 고정한다.
 
-## 7. 세이브 호환성
-
-V0.31I 세이브:
-
-- `version: "0.31I"`
-- `v31i.revision: "map-declutter-iron-reserve-conservation"`
-- `v31i.ironReserveScale: 4`
-- `v31i.geologyScaled: true`
-
-로드 fallback은 V0.31H → G → F → A → 0.31 → V0.30 계열 순으로 유지합니다.
-
-각 Tile은 기존 직렬화가 객체 속성을 보존하므로 `v31iIronInitial`도 세이브에 함께 저장됩니다.
+`fortification` 역시 후속 패치의 야전 요새화에 사용할 예약 필드다.
 
 ---
 
-## 8. 검증 결과
+## 6. Garrison 기반 구조
 
-### 정적 검사
+`Garrison` 클래스도 추가한다.
 
-- inline `<script>`: 47개
-- Node.js `--check`: 오류 0
+주요 필드:
 
-### Chromium 기본 런타임
+- `id`
+- `nationId`
+- `tileId`
+- `cohortIds`
+- `status`
+- `fortification`
+- `createdDay`
 
-- 페이지 제목: `Village Observer V0.31I`
-- `World.serialize().version`: `0.31I`
-- revision: `map-declutter-iron-reserve-conservation`
-- pageerror: 0
+Garrison은 Settlement/요새/전략타일에 고정 또는 장기 주둔하는 군사 존재를 위한 기반이다.
+
+V0.32A에서는 자동으로 생성하지 않는다.
+
+---
+
+## 7. 군사 UI V1 기반
+
+국가 탭에 `군사` subtab을 추가한다.
+
+현재 표시값:
+
+- 동원 가능 Person
+- 현역
+- 예비
+- Cohort 수
+- 주둔지 수
+- 부상/포로 수
+- 현재 동원 단계
+
+V0.32A에서는 현역/예비/Cohort/Garrison이 모두 0인 것이 정상이다.
+
+군사 탭은 현재 시스템이 Person-backed 방식이며 아직 자동 동원·전투를 시작하지 않았다는 점을 명시한다.
+
+---
+
+## 8. Telemetry / Snapshot / CSV
+
+국가 단위로 다음 필드를 추가한다.
+
+- `militaryEligiblePopulation32A`
+- `activeMilitary32A`
+- `reserveMilitary32A`
+- `woundedMilitary32A`
+- `capturedMilitary32A`
+- `militaryCohorts32A`
+- `garrisons32A`
+- `militaryCohortMembers32A`
+- `militaryFrameworkReady32A`
+- `mobilizationLevel32A`
+
+세계 단위에는 합계 값을 기록한다.
+
+Devlog `worldSummary`에는 다음 설계 의도를 명시한다.
+
+- `militaryFramework32A`
+- `militaryPopulationIntegrity32A`
+- `smelterFuelLogistics32A`
+- `mapIconDedup32A`
+
+---
+
+## 9. 저장/호환성
+
+세이브 버전은 `0.32A`다.
+
+저장 데이터에는 다음 메타가 들어간다.
+
+```json
+{
+  "version": "0.32A",
+  "v32a": {
+    "revision": "military-foundation-map-smelter-fuel",
+    "militaryFramework": true,
+    "personBackedCohorts": true,
+    "battlesEnabled": false
+  }
+}
+```
+
+V0.32A 세이브를 다시 불러올 때:
+
+- Person의 군복무 상태
+- Cohort member ID
+- Cohort 위치
+- Garrison 구성
+
+을 복원한다.
+
+V0.31I 이하 세이브는 기존 fallback chain으로 불러오고 모든 생존 Person을 civilian 상태로 초기화한다.
+
+---
+
+## 10. 이번 버전에서 의도적으로 하지 않는 것
+
+V0.32A에는 다음 기능을 넣지 않았다.
+
+- 자동 동원
+- reserve/active 자동 배정
+- 병영·훈련장·무기고
+- 군사장비 생산
+- 부대 지도 이동
+- 군사 지도 레이어
+- AI 방어선
+- 야전 요새화
+- 실제 전투
+- 사망/부상/포로 처리
+
+이들을 한꺼번에 활성화하지 않는 이유는 이후 데이터에서 군사 때문에 기존 경제·인구 시스템이 변화했는지 원인을 단계별로 추적하기 위해서다.
+
+---
+
+## 11. 검증 결과
+
+### Static
+
+- inline script: 48개
+- Node `--check`: 오류 0
+
+### Chromium 기본 실행
+
+- Title: `Village Observer V0.32A`
+- Badge: `Village Observer · V0.32A`
+- 군사 subtab: 1개
+- serialize version: `0.32A`
+- page error: 0
 - console error: 0
 
-### 지도 아이콘 테스트
+### 지도 아이콘 중복 표적 테스트
 
-기본 지도 렌더링에서 Canvas `fillText()`를 관찰했습니다.
+강제로 일반 소유 타일에 시장을 만들고 기본 지도를 재렌더했다.
 
-- 일반 주택 `🏠`: 0회
-- 초기 행정 중심지 `🏛️`: 정상 표시
-- 인구/자원/건물/행정 레이어 렌더: 오류 0
+- 해당 좌표의 주요 아이콘 호출: 1회
+- 겹침 재현: 없음
 
-### 철광석 만재 테스트
+### 제련소 연료 물류 표적 테스트
 
-조건:
+- 제련소 목재: 0
+- 다른 실거주 Settlement: 목재 충분
+- 결과: `WOOD_TO_SMELTER_FUEL` 발생
+- 이동량: 16.2
 
-- 철광산 보유
-- 자연 철광석: 1600
-- 철광석 저장고: 150/150
+추가 제련 생산 테스트:
 
-결과:
+- 철광석 감소
+- 목재 감소
+- 철 0.616 생산
+- Person 행동: `제련소에서 철광석을 제련 중`
 
-- 채굴 전 자연량: 1600
-- 채굴 후 자연량: 1600
-- 저장량 변화: 0
-- `ironOreStorageFullStops31I`: +1
+### Person-backed Cohort 저장 테스트
 
-즉 만재 상태 자원 손실 0을 확인했습니다.
+검증을 위해 실제 Person 1명을 임시 active로 변경하고 Cohort/Garrison을 만든 뒤 serialize → load했다.
 
-### 부분 저장공간 테스트
+- military status: active 유지
+- `militaryCohortId32A`: 유지
+- Cohort: 1
+- Garrison: 1
+- Cohort member: 실제 Person ID 1개 유지
 
-저장공간을 정확히 0.2 남긴 상태에서 광부 행동 1회를 실행했습니다.
+### V0.31I → V0.32A 마이그레이션
 
-- 자연 철광석 감소: 0.2
-- 저장 철광석 증가: 0.2
-- 저장공간 잔여: 0
+- V0.32A attach 성공
+- 기존 Person: civilian 초기화
+- Cohort: 0
 
-생산량 전체를 먼저 캐는 것이 아니라 실제 저장 가능한 양만 채굴합니다.
+### 자연주행 회귀
 
-### 매장량 스케일 / 세이브 테스트
+새 19×19 세계를 21년 1분기 1일까지 자연주행했다.
 
-- H 기준 광맥 cap 312 → I 1248: 정확히 ×4
-- H 세이브 마이그레이션: 정확히 ×4
-- I 저장 후 재로드: 추가 ×4 없음
-- 기존 적격 광맥(구 기준 100 → I 400): 철광산 착공 가능
-- 기존 비적격 소형 광맥(구 기준 60 → I 240): `NO_ELIGIBLE_DEPOSIT` 유지
+- simulation advance: 7,200 step
+- 활성 국가: 6
+- 폐허: 0
+- 인구: 191
+- 군사 active: 0
+- civilian 외 군사상태: 0
+- Cohort: 0
+- Garrison: 0
+- 관측 동원가능 Person: 39
+- Gold trade audit checks: 7
+- mismatch: 0
+- page error: 0
+- console error: 0
 
-### 20년 자연주행 회귀
-
-- 6개국 생존
-- 총인구 약 180명대
-- runtime / console error: 0
-- Gold trade audit mismatch: 0
-- 철광산이 아직 없는 구간에서 `ironOreInitial31I == ironOreRemaining31I`
-- 세계 철광석 고갈률: 0
-
-즉 철광산이 없는 상태에서 텔레메트리가 자연 초기 충전율을 잘못 고갈로 계산하지 않음을 확인했습니다.
+즉 V0.32A 군사 기반 추가만으로 기존 사회가 자동 군사화되거나 경제 규칙이 변하지 않았다.
 
 ---
 
-## 9. 다음 장기주행에서 볼 값
+## 12. V0.32B 인계점
 
-V0.31I의 다음 실제 장기 테스트에서는 50~150년 구간을 중심으로 다음 값을 확인하는 것이 좋습니다.
+V0.32B의 주제는 **실제 Person 동원 + 최초 Cohort/Garrison 생성**으로 잡는다.
 
-1. `ironOreRemaining31I / ironOreInitial31I`
-2. 국가별 `ironOreDepletionShare31I`
-3. `ironOreStorageFullStops31I`
-4. `ironOrePreventedWaste31I`
-5. 광산 완공 시점과 제련소 완공 시점 사이의 광맥 감소량
-6. `TOOLS_ONLINE` 이후 장기 평균 채굴 속도
-7. 100년 이상 시점의 고갈 광맥 수
+A에서 이미 다음 준비가 완료되어 있다.
 
-이 데이터를 기준으로 4배가 과소/적정/과대인지 다시 조정하면 됩니다.
+- Person 군복무 상태
+- 동원 가능 인구 계산
+- Person ID 기반 Cohort
+- 타일 위치 필드
+- Garrison 구조
+- 향후 fortification 필드
+- 군사 UI/Telemetry 기본 슬롯
+
+따라서 B에서는 이 구조 위에서 평시 군사정책과 실제 노동력 이탈을 처음 활성화하면 된다.
