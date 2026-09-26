@@ -1,277 +1,512 @@
-# Village Observer V0.32D3
+# Village Observer V0.32D4
 
-**릴리스명:** 주거-확장 교착 해소 · Expansion blocker 관측 · Formation/행정 경계 마감 · 창고 산업자원 저장  
-**버전:** `0.32D3`  
-**기준 버전:** `V0.32D2`  
-**세이브 키:** `village-observer-v0-32d3`
+**릴리스명:** 후기 도시·시장·성능 안정화 — 건축공간 V2 · 국제가격 V2 · Market Gold 결제 · 수역/로그 최적화  
+**버전:** `0.32D4`  
+**기준 버전:** `V0.32D3`  
+**세이브 키:** `village-observer-v0-32d4`
 
-V0.32D3는 D 계열의 안정화/마감 패치다. D2 장기주행에서 확인된 **과밀 Settlement가 자기 타일의 공간 부족 때문에 HOUSING을 반복 실패하고, 토지정비가 개척에 필요한 Gold·석재·목재까지 소모해 영토 확장도 함께 막는 교착**을 해소한다.
+V0.32D4는 D3 100년 장기주행에서 확인된 네 가지 문제를 한 번에 정리하는 안정화 패치다.
 
-또한 `eligible frontier`와 실제 확장 가능 상태를 분리하여 최종 blocker를 관측하고, Formation의 예정 경로/과거 흔적 표현을 재설계하며, 행정권 경계를 도로와 구분되는 시각 계층으로 정리한다. 기존 고대 창고에는 철광석 저장 한도를 통합한다.
+1. 티아·키오처럼 인구가 증가한 국가에서 특정 Settlement의 주거 과밀이 장기간 해소되지 않는 문제
+2. 세른처럼 자원이 남는 국가가 있는데도 티아 같은 부족국으로 자원이 거의 이동하지 않는 국제교역 정체
+3. 수역의 `waterType`이 없을 때 UI가 무조건 `연안`으로 표시해 모든 물이 연안처럼 보이는 문제
+4. 후기 인구 증가 시 주거·생활권·행정권·경로 계산과 상세 Devlog가 반복되어 SIM 비용이 크게 증가하는 문제
 
-이번 버전에서도 **전투·사상자·포로·점령·야전요새는 추가하지 않는다.** D3는 V0.32E로 넘어가기 전 공간·행정·이동·산업 시스템을 닫는 버전이다.
+이번 버전의 핵심 원칙은 **자원·Gold를 새로 만들지 않고, 실제 남는 공간·실제 시장 유동성·실제 외국 잉여자원을 사용해 교착을 푼다**는 것이다.
 
-## 1. 주거-확장 교착 해소
+전투·사상자·포로·점령 등 V0.32E 군사 확장 범위는 이번에도 추가하지 않는다.
 
-### 1.1 주거 해결 범위를 현재 Settlement 밖으로 확장
+---
 
-주거 압박이 발생하면 D3는 현재 타일에서 바로 실패하지 않고 다음 순서로 실제 해결 공간을 찾는다.
+## 1. 건축공간 V2
 
-1. 같은 생활권의 다른 Settlement/타일
-2. 같은 행정권의 다른 Settlement/타일
-3. 가까운 자국 타일
-4. 그 밖의 자국 Settlement
+### 1.1 지형별 초기/기본 최대 건축공간 소폭 상향
 
-후보는 단순 소유 여부가 아니라 **실제 여유 주거 수용력, 남은 건축공간, 토지정비 잠재공간, 진행 중 프로젝트 충돌**을 확인한다.
+D3까지의 건축공간은 후기 도시화에서 너무 빨리 지형 hard cap에 닿았다. D4에서는 초기 공간과 도시 정비 이전 최대치를 약 5~10% 범위로 상향한다.
 
-### 1.2 실제 빈 주거가 있으면 Person을 내부 이주
+| 지형 | D3 초기 / max | D4 초기 / 기본 max |
+|---|---:|---:|
+| 평야 | 13 / 22 | **14 / 24** |
+| 초지 | 12 / 21 | **13 / 23** |
+| 숲 | 10 / 20 | **11 / 22** |
+| 암지 | 9 / 17 | **9.5 / 18** |
+| 산지 | 6.5 / 14 | **7 / 15** |
 
-다른 Settlement에 실제 빈 수용력이 있으면 신규 건설보다 먼저 Person의 `homeTileId`를 옮겨 압박을 분산한다.
+기존 세이브에서 이미 개발된 `developedBuildSpace`는 줄이지 않는다.
 
-- 개척 중 Person과 현역 군사 Person은 긴급 주거 이주 대상에서 제외한다.
-- 한 번의 주거 해소 행동에서 필요한 인원과 목적지 실제 여유 수용력 범위 안에서만 이동한다.
-- 신규 Person이나 가상 주거는 생성하지 않는다.
-- 누적 이주 인원은 `housingRelocations32D3`로 관측한다.
-- Devlog 이벤트: `HOUSING_RELOCATION32D3`
+### 1.2 후기 기술 「도시 정비」 추가
 
-### 1.3 다른 Settlement의 건축공간 사용
-
-빈 주거만으로 해결할 수 없으면 우선순위 범위 안에서 다음을 시도한다.
-
-1. 기존 `house → row_house` 업그레이드
-2. 기존 `row_house → collective_house` 업그레이드
-3. 실제 남은 건축공간에 새 `house` 프로젝트
-4. 마지막으로 주택을 지을 잠재공간이 남은 타일의 토지정비
-
-성공한 원격 해결은 `HOUSING_REMOTE_ACTION32D3`로 기록한다.
-
-### 1.4 장기 과밀 시 개척/주거 안전재고 예약
-
-한 Settlement가 다음 중 하나를 만족한 상태로 약 **180 calendar days** 지속되면 안전재고 예약이 활성화된다.
-
-- 주거점유율 `120% 이상`
-- 주거 부족 `2명 이상`
-
-예약량:
-
-- Wood **20**
-- Stone **8**
-- Gold **8**
-- Food **12**
-
-이 값은 자원을 새로 만들거나 별도 보관소로 이동시키는 것이 아니다. 기존 AI reserve에 최소 안전선으로 반영하고, 일반 토지정비가 Wood/Stone/Gold를 예약선 아래로 떨어뜨리려 하면 해당 착수를 보류한다.
-
-이미 진행 중인 주거용 토지정비를 무한 중복시키지도 않는다. 자원 예약에 의해 토지정비가 막힌 횟수는 `housingReserveBlocks32D3`에 누적된다.
-
-## 2. 확장 실패 원인 blocker
-
-D3는 `frontier가 존재한다`와 `지금 실제로 개척 프로젝트를 시작할 수 있다`를 분리한다.
-
-주요 최종 blocker:
-
-- `INACTIVE`: 비활성 국가
-- `SURVIVAL`: Recovery/Survival 상태
-- `NO_CANDIDATE`: 중립 frontier 또는 실제 개척 후보 없음
-- `PROJECT_CAP`: 동시 개척 프로젝트 상한 도달
-- `PIONEER`: 지역 개척자 pool 부족
-- `FOOD`: 지역/국가 식량 안전조건 부족
-- `WOOD`: 목재 부족
-- `STONE`: 석재 부족
-- `GOLD`: Gold 부족
-- `DENSITY`: 확장 밀도 조건 미달
-- `SCORE`: 사전 조건상 가능했지만 기존 D2 개척 AI의 최종 선택/점수 단계에서 시작하지 못함
-- `NONE`: 현재 관측 가능한 blocker 없음 또는 확장 시작 성공
-
-D3는 raw frontier 수, 적격 개척 source 수, 실제 후보 타일 수, 현재/최대 프로젝트 수, pioneer pool과 함께 blocker를 저장한다.
-
-- blocker 변경: `EXPANSION_BLOCKER_CHANGED32D3`
-- 개척 시도: `EXPANSION_ATTEMPT32D3`
-- raw frontier가 남아 있는 동일 blocker가 360일 이상 지속: `EXPANSION_STALL32D3`
-
-## 3. Formation 경로 표현 재설계
-
-### 3.1 D2 장거리 점선 예정경로 제거
-
-군사 레이어를 그릴 때 D2의 전체 planned route 점선과 D2 trail을 임시로 숨긴 뒤, D3 전용 표현을 마지막에 그린다.
-
-- 현재 Formation 표식 `▲N`은 유지
-- 목표 `◎` 유지
-- 현재 위치 앞 **최대 5타일**만 chevron으로 표시
-- 각 chevron은 segment 방향을 `atan2`로 계산해 회전
-- 도로의 연속 선형 표현과 명확히 분리
-
-### 3.2 최근 실제 이동 흔적
-
-D3 Formation 관측 상태는 최근 흔적을 다음 형태로 저장한다.
+신규 기술:
 
 ```text
-{ tileId, movedCal }
+URBAN_REDEVELOPMENT / 도시 정비
+요구: URBANIZATION + PUBLIC_WORKS
+Knowledge: 920
 ```
 
-- 실제 `tileId`가 바뀐 경우에만 흔적 추가
-- 최근 **2타일**만 유지
-- 이동 후 **30 calendar days**만 유지
-- 주둔 중에는 새 흔적이 추가되지 않음
+효과:
 
-### 3.3 이동 판정 시각과 실제 이동 시각 분리
+- 평야 최종한계: **28**
+- 초지 최종한계: **27**
+- 숲 최종한계: **25**
+- 암지 최종한계: **20**
+- 산지 최종한계: **16.5**
+- 토지정비 기간 **-14%**
 
-D2의 `lastMoveCal`은 cooldown과 호환성을 위해 그대로 사용한다. D3는 별도 관측 상태에 다음 두 값을 유지한다.
+즉 D4의 신규 기술은 단순히 UI상의 잠재치를 올리는 것이 아니라 V0.17의 실제 `accessiblePotential()`과 토지정비 완료 cap에 직접 반영된다.
 
-- `lastMoveDecisionCal32D3`: D2 이동 판정/cooldown 기준 시각
-- `lastActualMoveCal32D3`: Formation `tileId`가 실제로 마지막 변경된 시각
+### 1.3 기술 AI / Eureka
 
-따라서 목표 도착/이동 실패처럼 판정만 갱신된 상태와 실제 이동을 구별할 수 있다.
+다음 조건이면 AI가 「도시 정비」 연구를 강하게 고려한다.
 
-## 4. 행정권 경계 가독성
+- 대략 55년 이후
+- 국가 인구 220명 이상
+- 또는 Settlement 주거점유가 112% 이상
 
-행정 레이어는 기존 행정권 색상과 중심 표시는 유지하면서, 내부 권역 경계를 추가로 강조한다.
+Eureka는 인구 220명 이상 또는 120% 이상의 주거압력 발생 시 부여될 수 있다.
 
-- 기본 지도와 도로를 먼저 렌더링
-- 같은 국가 내부에서 **서로 다른 행정권이 맞닿는 edge만** 탐색
-- 해당 edge에 어두운 외곽선 + 밝은 내부선의 **2중 실선** 적용
-- 같은 행정권 내부 타일 사이에는 경계선을 추가하지 않음
-- 다른 국가와 맞닿는 edge는 행정권 경계가 아니라 국가 국경이 담당
-- 국가 국경을 마지막에 다시 그려 가장 강하게 유지
+---
 
-시각 계층:
+## 2. 건축공간·주거 UI 재정리
 
-**국가 국경 > 행정권 경계 > 도로 > 일반 타일선**
-
-## 5. 고대 창고 산업자원 저장
-
-별도 야적장 건물은 추가하지 않는다. 기존 `warehouse`와 legacy `storehouse`의 `storage`에 다음 확장을 적용한다.
+기존 표기:
 
 ```text
-iron_ore: +120
+건축공간 18.4 / 22.0 (잠재 22.0)
 ```
 
-현재 철광석 저장 구조:
+은 `잠재`의 의미가 모호했다.
 
-- Settlement 기본 철광석 cap: **30**
-- 고대 창고 1개 추가 시: **150**
-- 증가량: **+120**
+D4 정착지/타일 상세 진단은 다음을 분리한다.
 
-철광산·제련소 등 생산시설 자체 buffer는 유지되므로 창고가 철산업의 강제 선행조건이 되지 않는다. 확장 정의는 `INDUSTRIAL_STORAGE_EXTENSION32D3` registry로 분리해 향후 철·도구 등 비식량 자원을 같은 방식으로 연결할 수 있다.
+- **사용**: 현재 건물 footprint 합
+- **개발됨**: 지금 즉시 건설에 사용할 수 있는 토지
+- **현재 기술상한**: 현재 보유 기술로 토지정비해 도달 가능한 한도
+- **지형 최종한계**: 현재 기술트리에서 해당 지형이 최종적으로 도달 가능한 한도
+- **즉시 남은 공간**: `개발됨 - 사용`
+- **추가 정비 가능**: `현재 기술상한 - 개발됨`
 
-## 6. Snapshot / CSV / Devlog 관측값
+주거 진단에는 함께 표시한다.
 
-국가별 D3 Snapshot/CSV 필드:
+- 실제 주민 수
+- 현재 유효 주거 수용력
+- 빈 주거 수용력
+- 점유율
+- 국가 주거 해결 blocker
+- 「도시 정비」 적용 여부
 
-- `housingPressureMax32D3`
-- `housingReserveActive32D3`
-- `housingReserveDays32D3`
-- `housingRelocations32D3`
-- `housingActions32D3`
-- `housingReserveBlocks32D3`
-- `expansionBlocker32D3`
-- `expansionBlockerDays32D3`
-- `eligibleFrontierTiles32D3`
-- `eligibleFrontierSources32D3`
-- `frontierCandidateTiles32D3`
-- `frontierProjects32D3`
-- `frontierProjectCap32D3`
-- `formationTrailVisible32D3`
-- `formationLastActualMoveCal32D3`
-- `warehouseIronOreBonus32D3`
+---
 
-Global Snapshot에는 활성 housing reserve 국가 수, 누적 주거 이주/해결 행동, 현재 보이는 Formation trail 수, 창고당 철광석 bonus를 추가한다.
+## 3. 티아형 주거 교착 / 구조적 자원 수요
 
-Devlog JSON `worldSummary`에는 D3 주거 해결 방식, expansion blocker, Formation 관측, 행정권 경계, 창고 산업자원 저장 구조를 명시한다.
+D3의 주거 해결 순서는 유지한다.
 
-## 7. 세이브 호환성
+1. 같은 생활권/행정권/자국의 실제 빈 주거로 Person 이주
+2. 기존 주거 고밀도 개축
+3. 다른 Settlement의 실제 빈 건축공간에 새 주택 건설
+4. 토지정비
+5. 기존 expansion 시스템을 통한 영토 확대
 
-- 신규 세이브 버전: `0.32D3`
-- 신규 localStorage key: `village-observer-v0-32d3`
-- localStorage fallback: D2 → D1 → D → C2 → 기존 호환 순서 유지
-- D3 save는 Village별 `v32d3Housing`, `v32d3Expansion`, `v32d3Formation` 상태를 저장
-- D3 `World.from()`은 D3 save를 D2 migration chain에 통과시킨 뒤 D3 상태를 재부착
-- 실제 D2 형식 save → D3 load → D3 재직렬화 회귀 테스트 통과
+D4에서는 여기에 **최종 주거 blocker**를 추가한다.
 
-## 8. 마감 검증 결과
+주요 값:
 
-### 8.1 과밀 Settlement → 다른 Settlement 빈 주거
+- `NONE`
+- `RELOCATION`
+- `WOOD`
+- `STONE`
+- `GOLD`
+- `PROJECT_OR_LABOR`
+- `LAND_DEVELOPMENT`
+- `SPACE_CAP`
 
-강제 시나리오에서 원점 Settlement의 점유율을 **165%**로 만들고, 같은 국가의 다른 Settlement에 실제 빈 주거를 제공했다.
+### 3.1 STRUCTURAL IMPORT DEMAND
 
-- D3 housing pulse: 작동
-- 목적지 실제 거주자: `0 → 3명`
-- Wood / Stone / Gold / Food: 변화 없음
+주거 또는 영토확장이 실제 자원 부족 때문에 막히면 D4는 단순 재고량이 아니라 **구조적 조달 압력**을 계산한다.
 
-즉 현재 Settlement가 포화되어도 국가 내부의 실제 빈 주거를 사용해 교착에서 빠져나온다.
+현재 대상:
 
-### 8.2 다른 Settlement 건축공간 사용
+- Wood
+- Stone
 
-목적지의 빈 주거를 없애고 건축공간만 제공한 시나리오에서 D3는 **다른 Settlement에 실제 house construction project**를 생성했다.
+가중 요소:
 
-### 8.3 확장 blocker
+- 주거 blocker
+- Expansion blocker
+- 목표 재고 대비 실제 재고
+- 극심한 주거 과밀
 
-실제 frontier와 적격 source가 있는 상태에서 각각 하나의 자원만 0으로 만든 결정적 테스트 결과:
+국가 전체에 해당 자원이 충분하면 국내 물류·국내경제가 우선한다. 국가 전체가 부족하면 국제 가격 시스템의 구매 긴급도에 반영된다.
 
-- Wood 부족 → `WOOD`
-- Stone 부족 → `STONE`
-- Gold 부족 → `GOLD`
+---
 
-Gold 부족 시나리오에서는 raw frontier 4, 적격 source 1, 실제 후보 4인 상태에서도 최종 blocker가 `GOLD`로 기록됐다.
+## 4. 국제교역 V2 — 국내가격과 국제 제시가격 분리
 
-### 8.4 안전재고 보존
+D4는 자국 내 재고만으로 국제 거래가격을 결정하지 않는다.
 
-180일 이상 장기 과밀을 강제한 뒤 Wood 25 / Stone 10 / Gold 10에서 일반 토지정비를 시도했다.
+### 4.1 Local Price
 
-- reserve 활성: `true`
-- reserve: Wood 20 / Stone 8 / Gold 8 / Food 12
-- 토지정비 시작 결과: `false`
-- Wood / Stone / Gold: 변화 없음
-- 토지정비 project 수: 변화 없음
-- `housingReserveBlocks32D3`: `+1`
+Settlement의 기존 국내가격은 계속 다음 요인을 반영한다.
 
-### 8.5 고대 창고 철광석 cap 및 저장 보존
+- 현지 재고
+- 저장공간
+- 생산량
+- 건설 수요
+- 최근 거래량
+- 국내 공급/수요
 
-- 창고 없음: iron ore cap 30
-- 창고 1개: iron ore cap 150
-- 증가량: +120
-- 기존 iron ore stock 17을 둔 상태에서 창고 cap을 변경해도 stock 17 유지
+### 4.2 Trade Quote
 
-### 8.6 Formation 이동 흔적
+국제 판매자가 실제로 제시하는 단가는 Local Price에 다음을 추가로 반영한다.
 
-Formation을 실제 인접 타일로 이동시킨 결정적 테스트에서:
+**가격 상승 요인**
 
-- 이전 타일이 `{tileId, movedCal}`로 recent trail에 기록됨
-- `lastActualMoveCal32D3`와 `lastMoveDecisionCal32D3` 모두 별도 값으로 유지됨
+- 해당 구매국이 같은 자원을 반복 구매
+- 구매국에 대한 전략적 경계
+- 나쁜 외교 관계
 
-또한 오래된 흔적을 섞은 테스트에서 30일 초과 항목은 제거되고 최근 2개만 남았다.
+**가격 하락 요인**
 
-### 8.7 Canvas 시각 검증
+- 판매국 Settlement 시장의 Gold 부족
+- 판매국 Treasury까지 포함한 유동성 압박
 
-도로가 촘촘한 강제 A/B/C 행정권 구역에서 실제 Canvas를 렌더링해 확인했다.
+따라서 동일한 Stone이라도 판매 상대에 따라 서로 다른 가격이 가능하다.
 
-- 도로 위에 행정권 2중 실선이 유지됨
-- 같은 행정권 내부 타일에는 불필요한 경계선 없음
-- 국가 국경이 최상위 시각 계층 유지
-- 군사 레이어에서 D2 전체 점선 경로가 사라짐
-- Formation 앞쪽 chevron과 `◎` 목표가 도로와 별도 시각 언어로 표시됨
+---
 
-### 8.8 회귀/런타임
+## 5. 반복 구매 / 전략 프리미엄 / 긴급도
 
-최종 작업본 기준:
+### 5.1 반복 구매 프리미엄
 
-- 56개 inline script 전부 `node --check` 통과
-- 브라우저 smoke: page error 0 / console error 0
-- D2 save → D3 load 성공
-- D3 roundtrip version `0.32D3`
-- 신규 세계 720 sim-day 자동 진행 성공
-- 720일 후 6개 국가 활성 상태 유지
-- Snapshot CSV D3 필드 확인
+`buyer → seller → resource` 조합마다 거래 메모리를 유지한다.
 
-## 9. D3 범위 제한
+기억 값:
 
-이번 버전에서 의도적으로 추가하지 않는 것:
+- 누적 거래량
+- 거래 횟수
+- 마지막 거래일
+- 최근 연속 거래 횟수
+- 마지막 체결 단가
 
-- 전투 판정
+같은 구매국이 계속 같은 자원을 구매하면 판매자는 가격을 조금씩 시험적으로 높인다.
+
+D4 현재 상한은 대략 **+30%**이며, 거래가 장기간 끊기면 프리미엄 효과가 감쇠한다.
+
+### 5.2 전략적 경계는 물량 삭제보다 가격으로 표현
+
+D3 이전의 전략적 수출 억제는 판매국이 구매국을 위험하게 볼수록 거래량을 직접 깎았다.
+
+D4 일반 국제교역에서는 이를 기본적으로 **Strategic Premium**으로 바꾼다.
+
+민수 기본자원:
+
+- Food: 전략가격 영향 낮음
+- Wood / Stone: 중간
+
+산업자원:
+
+- Iron ore
+- Iron
+- Tools
+
+은 더 높은 전략 프리미엄을 허용한다.
+
+기존의 관계도 `< -35` 단순 거래 금지 또한 D4 자율 국제교역에서는 제거했다. 전쟁·금수 같은 명시적인 외교정책이 생기기 전까지는 관계 악화를 **더 비싼 가격/불리한 조건**으로 표현한다.
+
+### 5.3 구매자의 긴급 지불의사
+
+구매국은 구조적 부족이 심할수록 평소보다 높은 가격을 감수한다.
+
+예:
+
+- 일반 재고 부족: 작은 프리미엄 허용
+- Expansion이 Stone 때문에 막힘: 지불의사 증가
+- Housing까지 Stone 때문에 장기간 막힘: 더 높은 지불의사
+- 극심한 과밀과 구조적 부족이 겹침: 가장 높은 지불의사
+
+거래는 다음 조건에서 성립한다.
+
+```text
+판매자의 제시가격 + 운송비 <= 구매자의 최대 지불가격
+```
+
+---
+
+## 6. 국제교역 결제 — Market Gold로 통일
+
+D3까지 일반 Food/Wood/Stone 국제교역은 국가 Treasury를 직접 사용했고, 철산업 국제교역은 Settlement Market Gold를 사용했다.
+
+D4에서는 **일반자원과 산업자원을 Market Gold 방식으로 통일**한다.
+
+정상 결제 흐름:
+
+```text
+구매 Settlement Market Gold
+        ↓
+판매 Settlement Market Gold
+```
+
+### 6.1 구매 시장에 Gold가 부족할 때
+
+1. 같은 국가의 다른 Settlement Market에서 잉여 유동성을 이동
+2. 그래도 부족하고 구조적 긴급도가 높으면 Treasury가 구매 시장에 보조
+3. 해당 Market에서 외국 판매 Settlement Market으로 결제
+
+즉 국가금고가 외국에 바로 송금되지 않는다.
+
+```text
+Treasury → 국내 Market → 외국 Market
+```
+
+Treasury 보조는 평범한 거래가 아니라 **주거·확장·생존과 연결된 긴급 조달**에 집중한다.
+
+### 6.2 판매대금
+
+판매대금은 판매 국가 Treasury가 아니라 **판매 Settlement Market**으로 들어간다.
+
+이후 기존 세금·행정·국내 Gold 순환을 통해 국가재정으로 이동할 수 있다.
+
+---
+
+## 7. Trade Funnel 관측
+
+D4는 국제교역이 실패했을 때 단순 `null`로 끝내지 않고 국가별 누적 blocker를 집계한다.
+
+현재 주요 값:
+
+- `NO_ROUTE`
+- `NO_DEMAND`
+- `NO_SURPLUS`
+- `PRICE`
+- `STRATEGIC_PREMIUM`
+- `BUDGET`
+- `MIN_QTY`
+- `STORAGE`
+
+국가 UI에는 다음을 표시한다.
+
+- D4 국제 거래 횟수 / 거래량
+- Treasury 긴급지원 누계
+- 국내 Market 간 유동성 이전 누계
+- Wood / Stone 구조수요
+- 주거 blocker
+- 최다 거래탈락 사유
+- 최근 체결 제시가격 / 운송 포함 가격 / 구매자 지불의사
+
+### Snapshot / CSV 필드
+
+- `housingBlocker32D4`
+- `structuralWoodDemand32D4`
+- `structuralStoneDemand32D4`
+- `tradeExecuted32D4`
+- `tradeVolume32D4`
+- `tradeTopBlocker32D4`
+- `tradeNoRoute32D4`
+- `tradeNoDemand32D4`
+- `tradeNoSurplus32D4`
+- `tradePriceBlock32D4`
+- `tradeStrategicPriceBlock32D4`
+- `tradeBudgetBlock32D4`
+- `treasuryTradeSupport32D4`
+- `marketNetworkTransfers32D4`
+
+Global Snapshot에는 위 국제교역 합계와 수역 타입별 타일 수가 추가된다.
+
+---
+
+## 8. D3 Housing Reserve 로그 압축
+
+D3 장기주행에서 `HOUSING_RESOURCE_RESERVE_BLOCK32D3`가 9천 건 이상 발생해 전체 상세 Devlog의 큰 비중을 차지했다.
+
+D4에서는:
+
+- D3 누적 `housingReserveBlocks32D3` counter는 그대로 증가
+- 개별 타일 차단 이벤트는 상세 로그에 저장하지 않음
+- 국가별 차단 횟수와 reason을 약 30 calendar-day 단위로 묶어 기록
+
+새 집계 이벤트:
+
+```text
+HOUSING_RESERVE_BLOCK_SUMMARY32D4
+```
+
+따라서 정확한 차단 횟수는 유지하면서 Devlog 직렬화·검색·저장 비용을 줄인다.
+
+---
+
+## 9. 수역 분류 수정
+
+### 9.1 `undefined → 연안` fallback 제거
+
+D3 이전 UI는 `lake/ocean/sea`가 아니면 모두 연안으로 표시했다.
+
+D4는 명시적으로 구분한다.
+
+- `lake` → 호수
+- `coast` → 연안
+- `sea` → 해양
+- `ocean` → 대양
+- 기타 → 미분류 수역
+
+### 9.2 19×19 깊이 기준 재조정
+
+외해와 연결된 수역에서 육지로부터의 4방향 수심거리 기준을 다음처럼 조정한다.
+
+- 거리 1: 연안
+- 거리 2: 해양
+- 거리 3 이상: 대양
+
+D4 attach 시 수역을 다시 분류하므로 신규 생성·D3 세이브 로드·MapData import 후에도 `waterType`을 검증한다.
+
+Snapshot global:
+
+- `waterLake32D4`
+- `waterCoast32D4`
+- `waterSea32D4`
+- `waterOcean32D4`
+- `waterUnclassified32D4`
+
+---
+
+## 10. 성능 최적화 Pass #3
+
+이번 패치에서 확인된 D3 후기 비용 중 반복성이 높은 부분부터 줄였다.
+
+### 10.1 Housing row cache
+
+`housingRowsD3()` 결과를 다음 조건으로 재사용한다.
+
+- 같은 calendar day
+- 같은 resident epoch
+- 같은 territory size
+
+실제 Person 이동 시 cache를 즉시 무효화한다.
+
+### 10.2 생활권 / 행정권 lookup cache
+
+D3 원격 주거 후보를 정렬할 때 타일마다 `urbanSummary()`와 `adminModel()`을 반복 호출하던 경로를 날짜 단위 map lookup으로 바꿨다.
+
+### 10.3 V0.29 내부 경로비 cache
+
+`routeCost29()`의 `internalPathCost()`는 Person job 탐색·국내경제·통근 계산에서 매우 자주 호출된다.
+
+D4는 짧은 15 calendar-day bucket 안에서 동일 국가·동일 타일쌍 경로비를 재사용한다.
+
+cache signature에는 현재 territory size와 technology count가 포함된다. 짧은 bucket을 사용해 도로/영토 변화에 장기간 오래된 경로가 남지 않게 한다.
+
+### 10.4 구조수요 계산 cache
+
+같은 날짜의 한 국가에 대해 Housing blocker / Expansion blocker / 구조수요를 국제 거래후보마다 다시 계산하지 않고 재사용한다.
+
+이 패치는 후기 모든 비용을 해결하는 최종 최적화는 아니다. 특히 Person daily 행동과 분기 시작 maintenance/seasonal workload는 향후 장기 데이터에서 계속 관찰한다.
+
+---
+
+## 11. 세이브 호환성
+
+- 신규 save version: `0.32D4`
+- 신규 localStorage key: `village-observer-v0-32d4`
+- fallback: D3 → D2 → D1 → D → C2 → C1 → B/A → 31 계열
+- D4는 Village별 `v32d4` 상태 저장
+- World에는 bilateral trade memory와 water audit 저장
+- D3 save를 D3 migration chain으로 불러온 뒤 D4 상태를 부착
+
+실제 D3 신규세계 save를 D4 `World.from()`으로 로드해 다음을 확인했다.
+
+- load 성공
+- D4 재직렬화 version `0.32D4`
+- 6개 국가 D4 state 생성
+- 수역 재분류 완료
+- 신규 기술 tree 유지
+
+---
+
+## 12. 구현 검증
+
+### 12.1 JavaScript / 브라우저 smoke
+
+- 전체 inline script 추출 후 `node --check` 통과
+- Chromium headless 초기화 성공
+- page error 0
+- console error 0
+- runtime badge `V0.32D4`
+- D4 save version 확인
+
+### 12.2 건축공간 최종 cap
+
+관련 선행기술 + 「도시 정비」를 모두 보유한 강제 테스트:
+
+- 평야: 28
+- 초지: 27
+- 숲: 25
+- 암지: 20
+- 산지: 16.5
+
+실제 `V017.accessiblePotential()`과 D4 UI 진단값이 일치했다.
+
+### 12.3 Market Gold 국제거래 / 보존성
+
+강제 Stone 부족국과 잉여국을 연결한 테스트:
+
+- 구매 Market: `120.00G → 111.04G`
+- 판매 Market: `5.00G → 13.96G`
+- 구매 Treasury: 변화 없음
+- 판매 Treasury: 변화 없음
+- 세계 관측 통화량 delta: `0`
+- Stone: 판매국 `-16`, 구매국 `+16`
+
+즉 일반 국제교역이 실제 Market→Market 결제로 전환되고 Gold·자원이 보존된다.
+
+### 12.4 Treasury 긴급지원
+
+구매국 Market Gold를 0으로 두고 Stone 구조수요를 높인 테스트:
+
+- Treasury가 약 5.08G를 구매 Market에 보조
+- Market이 같은 금액을 판매 Market에 결제
+- 거래 후 구매 Market은 0G
+- 구매 Treasury가 정확히 보조액만큼 감소
+
+즉 긴급 수입에서도 Treasury가 외국으로 직접 결제하지 않고 Market을 경유한다.
+
+### 12.5 반복 구매 프리미엄
+
+동일 buyer가 동일 seller에게 Stone을 연속 구매하도록 한 결정적 테스트의 제시 단가:
+
+```text
+0.499 → 0.565 → 0.588 → 0.607 G
+```
+
+반복수요 프리미엄:
+
+```text
+0.000 → 0.135 → 0.183 → 0.222
+```
+
+즉 상대국의 지속 구매를 판매국이 가격에 반영한다.
+
+### 12.6 3,600 sim-day smoke
+
+무개입 신규세계에서 3,600 sim-day를 자동 진행했다.
+
+- page error 0
+- 6개 국가 시스템 유지
+- 국제교역 V2가 실제로 발생
+- 한 random run에서 11년 시점 D4 거래 63회 / 누적 약 440 resource units 관측
+- Housing blocker / Trade Funnel / Market Gold telemetry 정상 생성
+
+이는 장기 100년 밸런스의 최종 합격판정이 아니라 **런타임/시스템 작동 smoke**다. D4의 실제 후기 밸런스와 1,500~2,000 Person 성능은 다음 장기주행 데이터로 재평가한다.
+
+---
+
+## 13. D4에서 의도적으로 하지 않은 것
+
+- 실제 전투
 - Formation 간 교전
-- 사상자·포로·점령
-- 방어시설/야전요새
-- 신규 산업 생산체인
-- 자원 생성/무료 건설
-- D2 행정권 코드 체계 재번호화
+- 사상자 / 포로 / 점령
+- 금수조치 정책 UI
+- 무기 전용 전략물자 체계
+- 새로운 군사시설
+- Person 가중치/추상인구 시스템
+- 여러 타일 = 하나의 Settlement 구조 전환
 
-이 항목들은 V0.32E 이후 군사 기능 확장과 분리한다.
+이 항목들은 D4 안정화 결과를 확인한 뒤 V0.32E 또는 이후 구조개편에서 다룬다.
