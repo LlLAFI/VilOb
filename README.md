@@ -1,17 +1,181 @@
-# Village Observer V0.32E3
+# Village Observer V0.32E4
 
-**릴리스명:** Person / Settlement Performance Pass #5 — Knowledge Leaf Fast Path · Food Reserve Index · Housing Final Gate  
-**버전:** `0.32E3`  
-**기준 버전:** `V0.32E2`  
-**세이브 키:** `village-observer-v0-32e3`
+**릴리스명:** Strategic Trade Network V1 — Route Blocker Cleanup · Persistent Trading Post Intent · Physical Build  
+**버전:** `0.32E4`  
+**기준 버전:** `V0.32E3`  
+**세이브 키:** `village-observer-v0-32e4`
 
-V0.32E3는 E2 모바일 장기주행에서 `Food Relay`와 E1 Housing resolver의 큰 병목을 제거한 뒤 남은 **`villageDaily → Person.act` 계열의 기본 비용**을 줄이는 성능 패치다.
+V0.32E4는 E1~E3의 후기 성능 안정화 이후, 기존 `TRADE` 전략을 **실제 교역 인프라 건설 행동**으로 연결하는 패치다. 국가가 단순히 교역을 선호하는 데서 끝나지 않고, 어느 Settlement에 Trading Post를 건설하면 신규 교역 상대가 열리거나 기존 route cost가 줄어드는지 저빈도로 평가하고, 유효한 목표를 persistent infrastructure intent로 유지한다.
 
-E2 Y60 모바일 데이터에서는 인구 699명, 영토 248타일에서 `SIM 696.5ms / 10일`, `villageDaily 301.13ms`, `personActEst 279.19ms`가 관측됐다. E3는 Person 시뮬레이션의 규칙을 축약하지 않고, 프로파일링에서 실제로 확인된 반복 leaf 연산만 제거한다.
-
-특히 초기 E3 프로토타입에서 Person.act 전체를 새 fast path로 재작성하는 방식은 개발 벤치에서 이득이 없고 회귀 위험이 커서 **폐기했다.** 최종 E3는 기존 누적 Person.act chain을 그대로 유지한다.
+E4는 새로운 전투·상업시설 세대·운송비 산업 회계를 추가하지 않는다. 기존 D5 국제가격/Market Gold/물리 교역 구조와 E3 Person 성능 경로를 유지하면서 교역망의 **공간적 배치 의사결정**만 추가한다.
 
 ---
+
+## E4 핵심 변경
+
+### 0. Priority 0 — tile 0 교역 endpoint 버그 및 route blocker 정리
+
+D5의 기존 코드에는 JavaScript falsy 판정 때문에 `sourceTileId === 0` 또는 `targetTileId === 0`인 정상 endpoint를 교역소가 없는 것으로 오인할 수 있는 경로가 있었다. 같은 조건 때문에 quote 생성도 생략될 수 있었다.
+
+E4는 endpoint 존재 여부를 `null / undefined` 기준으로 판정한다. 따라서 **0번 타일은 정상적인 교역 endpoint**로 처리된다.
+
+신규 route failure 분류는 다음으로 정리한다.
+
+- `NO_ROUTE_MARKET`: 실제 endpoint가 없거나 market contact 단계가 부족함
+- `NO_ROUTE_RANGE`: 유효한 물리 경로가 있지만 현재 trade range 초과
+- `NO_ROUTE_PATH`: endpoint는 있으나 유효한 경로를 찾지 못함
+
+기존 저장 데이터에 남아 있는 `NO_ROUTE` 표시는 호환을 위해 UI fallback으로 유지하지만, E4의 신규 D5 funnel 판정은 위 세 범주로 귀결되도록 수정했다.
+
+### 1. Strategic Trade Network Planner V1
+
+각 국가는 분기 단위로 교역망을 저빈도 평가한다. planner는 모든 타일을 무제한 pathfinding하지 않는다.
+
+1. `BARTER` 기술이 있는 활성 국가만 평가
+2. 실제 거주자 3명 이상이며 Trading Post가 없는 owned Settlement를 후보로 수집
+3. 인구, 기존 국내 교역소와의 거리, 외국 교역소와의 거리, 건축공간을 이용해 cheap shortlist 작성
+4. 상위 **최대 6개 후보**만 실제 route 평가
+5. 후보별로 다음 효과를 계산
+   - 신규 도달 가능 교역 상대 수
+   - 기존 land-route cost 절감량
+   - 현재 route blocker 때문에 막혀 있는 수입/수출 기회의 크기
+   - 외곽 network 확장성
+6. 충분한 이득이 있는 최상위 후보만 infrastructure intent 생성
+
+후보 route 비교는 실제 지도 terrain/road 상태를 사용하는 `tradePathCost()` 기반의 **estimated land-route**다. 국제시장 실제 체결 가능 여부는 기존 D5의 contact/range/price/budget 규칙이 계속 최종 판정한다. 즉 planner의 예상값은 건설 의사결정용이며 실제 거래를 보장하는 값이 아니다.
+
+### 2. AI 성향과 TRADE policy
+
+교역외교형 AI와 현재 `TRADE` policy 기간인 국가는 planner score에 보너스를 받는다. 그러나 인프라가 명백히 유리하면 다른 AI 성향도 Trading Post를 전략적으로 건설할 수 있다.
+
+따라서 성향은 **건설 가능/불가능의 hard gate가 아니라 우선순위**로 작동한다.
+
+### 3. Persistent Trade Network Intent
+
+한 번 선택된 목표는 다음 조건에서 즉시 버리지 않는다.
+
+- 프로젝트 슬롯 포화
+- 자재 부족
+- Gold/시장 유동성 부족
+- 같은 타일의 다른 프로젝트
+- 현재 건축공간 부족
+
+intent는 최대 **720 calendar days** 유지되며 분기마다 같은 목표를 재검사한다.
+
+현재 developed space는 부족하지만 technology가 허용하는 accessible potential이 충분하면 `V32E4_TRADE_NETWORK_SPACE` 토지정비를 먼저 시도한다. 이후 같은 intent가 Trading Post 건설로 이어진다.
+
+### 4. 실제 물리 건설
+
+전략 교역소는 기존 `startConstruction()` / `payBuild()` 체인을 그대로 사용한다.
+
+- 실제 `trading_post` 건설비 사용
+- 실제 wood / stone 소비
+- 기존 Settlement market co-finance / Treasury 규칙 사용
+- 기존 project capacity 적용
+- 실제 Person 건설노동 적용
+- 완공 전에는 route endpoint가 생기지 않음
+
+E4는 가상의 Trading Post, 즉시 완공, 무료 자원, 무료 Gold를 만들지 않는다.
+
+### 5. 전략 우선순위
+
+E4 planner는 기존 seasonal logic **직전**에 실행된다. 따라서 이미 유지 중인 strategic intent가 있고 프로젝트 슬롯이 비어 있다면 일반적인 Settlement 자동개발보다 먼저 해당 Trading Post를 시도한다.
+
+기존 D5 Housing priority, V31 산업 slot, V32 군사 slot 등 더 강한 기존 보호 규칙을 우회하지 않는다. E4의 사전 진단은 route-aware 실제 건설자재 도달 가능량을 확인하며, 그 이후 `startConstruction()` 최종 gate가 거부하면 `PAYMENT_OR_STRATEGIC_GATE`로 기록하고 다음 분기로 넘어간다.
+
+---
+
+## E4 Observer / Telemetry
+
+국가 경제 탭 하단에 **E4 전략 교역망 계획** 박스를 추가한다.
+
+- 현재 상태: `PLANNED / BLOCKED / SPACE_PREP / BUILDING / NONE`
+- 목표 Settlement tile
+- 선택 근거
+- 예상 신규 교역 상대 수
+- estimated route cost 절감
+- 현재 blocker
+- 최근 planner가 관측한 `MARKET / RANGE / PATH` blocker 수
+
+신규 global operation counter:
+
+- `tradePlannerRuns32E4`
+- `tradeCandidateEvaluations32E4`
+- `tradePlannerRouteChecks32E4`
+- `tradeNetworkIntents32E4`
+- `tradePostStrategicStarts32E4`
+- `tradeNetworkCompleted32E4`
+- `tradePartnersUnlocked32E4`
+- `tradeRouteCostSavedEst32E4`
+- `tradeIntentBlockedProject32E4`
+- `tradeIntentBlockedFinance32E4`
+- `tradeIntentBlockedMaterials32E4`
+- `tradeIntentBlockedSpace32E4`
+- `tradeIntentBlockedOther32E4`
+
+신규 per-nation snapshot fields:
+
+- `tradeIntentStatus32E4`
+- `tradeIntentBlocker32E4`
+- `tradeIntentTargetTile32E4`
+- `tradeIntentNewPartners32E4`
+- `tradeIntentRouteSaving32E4`
+- `tradeRouteMarketBlocks32E4`
+- `tradeRouteRangeBlocks32E4`
+- `tradeRoutePathBlocks32E4`
+
+계측은 정수 counter와 기존 snapshot에만 추가한다. 후보마다 `performance.now()`를 호출하는 고빈도 timer는 넣지 않았다.
+
+---
+
+## E3 실기기 성능 기준선
+
+E4 개발 직전 사용자 동시 테스트에서 E3는 서로 다른 랜덤 월드를 PC와 Galaxy Tab S7 계열 태블릿에서 동일한 현실시간 19분 13초 동안 주행했다. 월드가 다르므로 정밀 A/B가 아니라 환경별 rough baseline으로만 사용한다.
+
+- PC: 약 61년 2분기까지 진행
+- Tab: 약 60년 2분기까지 진행
+- 초기~중기 근접 상태에서 일반 SIM의 Tab/PC rough coefficient는 약 `4.2×`
+- Person-heavy 경로는 약 `5×`까지 차이
+- E2→E3 근접 상태 비교에서 전체 SIM 약 10% 감소, Person/village 핵심 경로 약 20~27% 감소 방향이 PC/Tab 양쪽에서 확인됨
+
+현재 10배속 pacing에서 Tab의 `Wall`이 약 550ms 이내이면 다음 batch 전까지 계산을 마칠 수 있으므로, SIM ms 차이가 곧바로 동일 비율의 현실시간 진행속도 차이를 뜻하지 않는다. E4는 이 기준선에 성능 회귀가 없는지를 확인한다.
+
+---
+
+## 저장 / 호환성
+
+- E4 save version: `0.32E4`
+- E4 save key: `village-observer-v0-32e4`
+- 첫 fallback: E3
+- E2 / E1 / D5 / D4 / D3 / D2 / D1 / D / C2 fallback 유지
+- E4 intent와 global planner counter는 save에 유지
+- 이전 save 로드 시 E4 state는 안전한 기본값으로 생성
+
+---
+
+## 릴리스 검증 결과
+
+최종 빌드는 다음 회귀 검증을 통과했다.
+
+- **61개 inline script** 전체 `node --check` 통과
+- fresh 19×19 Node VM **2,400 simulation-day smoke** 통과: 6개 국가 유지, E4 planner 저빈도 실행, runtime crash 없음
+- 최종 UI 갱신 이후 별도 180-day smoke 재통과
+- E3 save 호환 경로 → E4 로드 및 E4 save → reload 통과
+- **tile ID 0** endpoint에서 `NO_ROUTE_RANGE / NO_ROUTE_PATH` 분류 및 D5 quote 생성 회귀 통과
+- 강제 교역망 시나리오에서 `RESTORE_NODE intent → READY → 실제 trading_post construction start` 통과
+- 실제 착공 중 intent save/reload 유지 및 완공 감지 후 intent 정리 통과
+- `PROJECT_CAP` blocker 상태가 save/reload 후에도 유지됨을 확인
+- route-aware wood/stone 진단 전후 `adminLogisticsSavedCost32D2` 누적값이 변하지 않음을 확인
+- 최종 CSV는 **421 columns**로 header와 모든 확인 row의 column 수 일치
+- E3 operation counter가 E4 snapshot에 계속 유지됨을 확인
+
+개발용 동일 seed Node VM 900-day 단일 비교에서는 E3 약 6.66s, E4 약 6.71s로 차이가 약 **+0.7%**였다. 이는 브라우저/PC/Tab 성능값을 대표하는 벤치마크가 아니며 JIT·실행 노이즈가 있는 1회 개발검증이다. 다만 E4 planner가 이 구간에서 60회 실행, 후보 1개·route check 40회에 그쳐 **고빈도 성능 회귀 징후는 관찰되지 않았다.** 실제 평가는 사용자 PC/Tab 장기주행 데이터로 다시 확인한다.
+
+---
+
+# Inherited V0.32E3 detailed specification
+
+아래는 E4가 기반으로 유지하는 E3 상세 문서다.
 
 ## E3 핵심 변경
 
