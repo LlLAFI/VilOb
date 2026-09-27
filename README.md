@@ -1,9 +1,106 @@
-# Village Observer V0.32E5
+# Village Observer V0.32E6
 
-**릴리스명:** Strategic Trade Network Stabilization — Intent Lifecycle V2 · Soft Strategic Slot · Actual Effect  
-**버전:** `0.32E5`  
-**기준 버전:** `V0.32E4`  
-**세이브 키:** `village-observer-v0-32e5`
+
+**릴리스명:** International Transport Accounting V1 — Conserved Transport Gold · Physical Route Cost · Detailed Trade Build Blockers  
+**버전:** `0.32E6`  
+**기준 버전:** `V0.32E5`  
+**세이브 키:** `village-observer-v0-32e6`
+
+V0.32E6는 E4~E5에서 구축한 전략 교역망을 실제 경제회계와 연결한다. D5부터 도착가격에는 route 기반 운송 markup이 존재했지만, 그 Gold가 독립된 서비스 대금으로 결제되지는 않았다. E6에서는 **상품대금과 운송서비스 대금을 실제 Gold 흐름으로 분리**하며, 별도 운송업자 entity를 만들지 않고 기존 상인 Person에게 서비스 소득을 귀속한다.
+
+또한 E5 장기주행에서 `tradeIntentBlockedOther32E4`가 크게 누적된 점을 반영해 전략 교역소 착공 실패를 Housing/철산업/군사/Survival·reserve/결제/전략 gate 등으로 세분화한다.
+
+---
+
+## E6 핵심 변경
+
+### 1. International Transport Accounting V1
+
+국제거래 결제는 다음처럼 분리된다.
+
+- 구매 Settlement Market: `상품대금 + 운송서비스 대금` 차감
+- 판매 Settlement Market: **상품대금만** 수령
+- 운송서비스 대금: 기존 양국의 `상인` Person Gold로 이전
+- 한쪽에만 상인이 있으면 해당 측 상인이 전체 운송서비스 대금을 수령
+- 양쪽 모두 상인이 없으면 판매자 endpoint Market이 서비스 대금을 수령
+
+새로운 Gold를 생성하지 않으며 실제 거래마다 Treasury + Settlement Market + Person wallet 총합을 감사한다. `transportAuditMismatches32E6`가 0이어야 정상이다.
+
+### 2. 실제 교역망이 실제 Gold 비용에 영향
+
+운송단가는 기존 route cost를 기반으로 한다. 따라서 현재 pathfinder에서 도로가 route cost를 낮추면 E6의 실제 Gold 운송비도 함께 낮아진다. 해상 교역은 기존처럼 harbor endpoint가 필요하고, E6부터 양 항구의 실제 building efficiency/condition을 운송단가에 추가 반영한다.
+
+E7의 Merchant Guild/Grand Market 현대화 전까지 별도의 운송회사, 마차대, 선단 entity는 추가하지 않는다.
+
+### 3. 국제 무역수지 의미 수정
+
+D5의 최근 무역수지는 landed gross Gold를 양국에 동일하게 잡았다. E6 거래부터는 구매국 내부 상인이 받은 운송소득은 해외유출에서 제외하고, 판매국 상인이 받은 운송소득은 해외유입에 포함한다. 즉 **실제 국경을 넘은 Gold 흐름**을 기준으로 계산한다.
+
+### 4. 전략 교역소 blocker 상세화
+
+기존 E4의 `PAYMENT_OR_STRATEGIC_GATE` / `OTHER`를 E6에서 다음 원인으로 추가 관측한다.
+
+- `HOUSING_PRIORITY`
+- `IRON_PRIORITY`
+- `MILITARY_PRIORITY`
+- `SURVIVAL_PRIORITY`
+- `RESOURCE_RESERVE`
+- `PAYMENT_REJECTED`
+- `STRATEGIC_GATE`
+- invalid/site/tech 계열
+
+기존 E4 aggregate counter는 호환성을 위해 유지하고, E6 상세 counter를 별도로 추가한다.
+
+### 5. E6 telemetry
+
+세계 단위 주요 필드:
+
+- `transportTrades32E6`
+- `transportGoldPaid32E6`
+- `transportMerchantIncome32E6`
+- `transportMarketFallback32E6`
+- `transportLandGold32E6`
+- `transportSeaGold32E6`
+- `transportAvgRouteCost32E6`
+- `transportAuditChecks32E6`
+- `transportAuditMismatches32E6`
+- `transportAuditMaxAbsDelta32E6`
+- `tradeBlockHousingPriority32E6`
+- `tradeBlockIronPriority32E6`
+- `tradeBlockMilitaryPriority32E6`
+- `tradeBlockSurvivalPriority32E6`
+- `tradeBlockResourceReserve32E6`
+- `tradeBlockPayment32E6`
+- `tradeBlockStrategicGate32E6`
+- `tradeBlockOther32E6`
+
+국가 단위에는 누적 운송비 지불, 국내 운송서비스 소득, 순 운송비 부담, 운송거래 수를 기록한다. 거래 row 자체에도 `goodsCost`, `transportCost`, `transportUnit`, `transportMode`, 양측 서비스 소득, 실제 국경 Gold 유출/유입을 보존한다.
+
+### 6. 성능 정책
+
+추가 전체 통화량 감사는 **실제 국제거래 체결 시에만** 실행한다. Person daily loop, settlement daily loop, planner 후보평가에는 새 timer나 고빈도 순회를 추가하지 않는다. 따라서 이번 패치는 성능 최적화가 아니라 회계 기능 패치이며 E5 PC/Tab 기준선 대비 회귀 여부만 검사한다.
+
+### 7. E6 구현 검증
+
+릴리스 전 개발용 Node VM harness에서 다음을 확인했다.
+
+- inline script **63개 전부 syntax check 통과**
+- fresh 19×19 world **2,400 simulation-day smoke 통과**
+- 1,800-day 회계 검증 run에서 E6 운송거래가 자연 발생하고 `transportAuditMismatches32E6 = 0`, 최대 Gold audit 오차 0 확인
+- 개별 거래에서 `gross = goodsCost + transportCost` 및 실제 국경 Gold 유출 = 상대국 유입 보존 확인
+- E6 save → `World.from()` reload → 추가 진행 통과
+- E5 형식 save를 E6가 불러와 자동 업그레이드한 뒤 `0.32E6`으로 재저장 확인
+- `IRON_PRIORITY`, `MILITARY_PRIORITY` 상세 blocker 분류 강제 회귀 테스트 통과
+- Snapshot CSV header/row **466 columns 일치**
+- Dev JSON / save version `0.32E6` 확인
+
+동일 개발 VM의 1,200-day 단일 sanity run은 E5 약 **9.19s**, E6 약 **9.07s**였다. 랜덤 진행과 harness 오차가 있으므로 최적화 성과로 해석하지 않으며, **새 회계 때문에 큰 성능 회귀가 생기지 않았는지**만 확인하는 참고값이다. 실제 성능 판정은 이전과 같이 PC/Tab 자연주행 telemetry를 우선한다.
+
+---
+
+> 아래 E5 및 이전 버전 섹션은 누적 기술 문서다.
+
+## E5 누적 기술 기록
 
 V0.32E5는 E4 자연주행에서 확인된 **전략 교역소 intent의 생명주기 오류와 PROJECT_CAP 장기 정체**를 정리하는 안정화 패치다. E4의 planner·물리 건설·route blocker 체계는 유지하면서, 실제 공사가 시작된 intent가 완공까지 끊기지 않도록 project와 결합하고 가치가 높은 장기 대기 intent에만 제한적인 construction-slot 우선권을 부여한다.
 
