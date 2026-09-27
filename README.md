@@ -1,14 +1,128 @@
-# Village Observer V0.32E6
+# Village Observer V0.32E7
 
 
-**릴리스명:** International Transport Accounting V1 — Conserved Transport Gold · Physical Route Cost · Detailed Trade Build Blockers  
-**버전:** `0.32E6`  
-**기준 버전:** `V0.32E5`  
-**세이브 키:** `village-observer-v0-32e6`
+**릴리스명:** Merchant Guild / Grand Market Activation — International Service · Domestic Circulation · Conserved Commercial Investment  
+**버전:** `0.32E7`  
+**기준 버전:** `V0.32E6`  
+**세이브 키:** `village-observer-v0-32e7`
 
-V0.32E6는 E4~E5에서 구축한 전략 교역망을 실제 경제회계와 연결한다. D5부터 도착가격에는 route 기반 운송 markup이 존재했지만, 그 Gold가 독립된 서비스 대금으로 결제되지는 않았다. E6에서는 **상품대금과 운송서비스 대금을 실제 Gold 흐름으로 분리**하며, 별도 운송업자 entity를 만들지 않고 기존 상인 Person에게 서비스 소득을 귀속한다.
+V0.32E7은 V0.19부터 존재했지만 장기 자연주행에서 거의 활성화되지 않던 `merchant_guild` / `grand_market`을 현재 E6 경제체계에 다시 연결한다. 기존 전문화는 국제교역과 국내거래를 한 덩어리의 throughput으로 보았고 높은 기술 조건까지 요구해, E6 PC Y62에서도 상단 회관과 대시장이 모두 0개인 사례가 확인됐다.
 
-또한 E5 장기주행에서 `tradeIntentBlockedOther32E4`가 크게 누적된 점을 반영해 전략 교역소 착공 실패를 Housing/철산업/군사/Survival·reserve/결제/전략 gate 등으로 세분화한다.
+E7은 두 시설의 역할을 분리한다. **고대 상단 회관은 국제교역 endpoint와 E6 운송서비스 경제**, **고대 대시장은 국내거래·Settlement Market Gold·Person 소비 순환**을 담당한다. 또한 전문화 자금이 한 정착지 시장에만 묶이지 않도록, 접근 가능한 같은 국가 Settlement Market의 잉여 Gold를 실제로 이동시키는 보존형 공동투자 경로를 추가한다.
+
+E6의 육상 운송회계는 PC+탭 자연주행에서 962건의 거래와 Gold audit mismatch 0으로 완료 처리한다. 단, 자연발생 해상 거래는 두 런 모두 0건이었으므로 **해안/항구 전용 테스트 맵에서 해상 운송회계를 별도 회귀검증**하는 항목을 E7 이후에도 유지한다.
+
+---
+
+## E7 핵심 변경
+
+### 1. Commercial Specialization V2 — 역할 분리
+
+기존 V0.19 `tradeVolumeAt()` 혼합 지표를 E7 전문화 판단의 주 기준에서 제외하고 최근 1년 endpoint 실적을 두 종류로 나눈다.
+
+- 국제 endpoint: `TRADE` / `recentTrades` 기반 수량, 거래횟수, 운송서비스 Gold
+- 국내 endpoint: `DOMESTIC_TRADE29` 기반 수량, 거래횟수, 거래 Gold
+
+한 simulation day 안에서는 한 번 만든 flow cache를 6개 국가가 공유한다. 후보 평가는 seasonal tick에서만 실행하며 daily Person loop에는 새 후보 탐색을 넣지 않는다.
+
+### 2. 고대 상단 회관 — 국제교역·운송서비스 시설
+
+`trading_post → merchant_guild` 전문화는 실제 국제 endpoint 실적이 쌓인 교역소에서만 발생한다. 기술 조건만 기다리는 방식이 아니라 `MARKET`/장거리교역 기술 또는 충분한 누적 교역경험과 최근 endpoint 실적을 함께 본다.
+
+상단 회관의 역할:
+
+- 기존 V0.19 상업 처리용량 및 상인 job slot 확대 유지
+- E6 국제 운송단가의 **상업 handling 부분을 active endpoint당 최대 약 5% 절감**
+- 구매/판매 양쪽 모두 상단 회관이면 효과 합산, 총 commercial handling factor 하한 0.90
+- E6 운송서비스 대금 총액은 그대로 보존하되 상단 회관이 있는 국가 측 상인에게 서비스소득 비중을 더 배분
+- 기존 E6 `transportAuditMismatches32E6` 감사 유지
+
+상단 회관은 물리 route cost 자체를 순간이동식으로 줄이지 않는다. 도로·거리·항구가 결정한 route cost 위에서 계약·중개·조직화에 해당하는 상업 처리비만 줄인다.
+
+### 3. 고대 대시장 — 국내 소비·Market Gold 순환 시설
+
+`market → grand_market` 전문화는 국제교역량 대신 해당 Settlement의 국내 거래량, Market Gold, 인구 및 상업압력을 평가한다.
+
+대시장이 활성화된 Settlement는 30 calendar-day 주기로:
+
+- 기본 시장 유동성 reserve를 보존하고
+- reserve를 넘는 Market Gold 중 작은 일부를
+- 현지 성인 Person wallet으로 추가 환류한다.
+
+이는 `Market → Person` 이동일 뿐 새로운 Gold를 만들지 않는다. 환류된 Gold는 기존 V0.29 소비 → Market → 세금 경로에 다시 투입될 수 있다. E7은 이 추가 환류가 일어난 경우에만 전체 money stock audit를 실행한다.
+
+### 4. 보존형 상업 공동투자
+
+전문화 대상 Settlement 하나의 Market Gold만으로 Gold 비용을 감당하지 못하더라도, 동일 국가의 접근 가능한 Settlement Market에 잉여 Gold가 있으면 전문 상업시설에 공동투자할 수 있다.
+
+- donor Settlement별 최소 Market liquidity reserve 유지
+- `internalPathCost`가 유효한 시장만 donor 후보
+- 실제 donor Market Gold를 target Market으로 이동
+- 기존 `payBuild()`와 Treasury-above-reserve 규칙을 그대로 통과해야 착공
+- 최종 착공이 실패하면 이동 Gold를 원래 donor Market에 **전액 rollback**
+- 실제 성공한 공동투자만 `commercialMarketPoolGold32E7`에 누적
+
+철산업과 마찬가지로 회계 편의를 위해 Gold를 생성하지 않는다.
+
+### 5. E7 신규 관측값
+
+Global snapshot / CSV:
+
+- `merchantGuildStarts32E7`
+- `grandMarketStarts32E7`
+- `merchantGuildCompleted32E7`
+- `grandMarketCompleted32E7`
+- `guildHandledTrades32E7`
+- `guildTransportGoldCaptured32E7`
+- `guildHandlingSavings32E7`
+- `grandMarketRecycledGold32E7`
+- `grandMarketCycles32E7`
+- `commercialAuditChecks32E7`
+- `commercialAuditMismatches32E7`
+- `commercialFlowCacheBuilds32E7`
+- `commercialFinanceBlocks32E7`
+- `commercialSpaceBlocks32E7`
+- `commercialMarketPoolGold32E7`
+- `commercialMarketPoolTransfers32E7`
+
+Nation row:
+
+- `merchantGuilds32E7`
+- `grandMarkets32E7`
+- `maxIntlEndpointVolume1y32E7`
+- `maxDomesticEndpointVolume1y32E7`
+- `guildServiceIncomeNation32E7`
+- `grandMarketRecycledNation32E7`
+
+### 6. E6 해상 운송 회귀 메모
+
+E6 육상 회계는 완료 처리한다. 검증 근거는 사용자 제공 PC/탭 자연주행 합산 962건 국제 운송회계에서 Gold audit mismatch 0이었다.
+
+남은 항목:
+
+- harbor가 실제 건설된 해안국
+- `COASTAL_NAVIGATION` / `SEAFARING` 등 필요한 항해기술
+- 실제 `transportMode=sea` 국제거래 최소 1건 이상
+- 항구 condition/efficiency에 따른 운송단가 변화
+- 육상/해상 혼재 상태에서 E6 Gold audit mismatch 0
+
+이 검증은 E7 기능을 막는 release blocker로 두지 않고 E계열 공통 회귀목록에 유지한다.
+
+### 7. 구현 검증
+
+- 최종 `index.html` inline script 64개 JavaScript syntax 검사 통과
+- Node VM fresh-world 7,200 calendar-day smoke 통과
+- 21년차 이전 자연주행 smoke에서 고대 상단 회관 착공/완공 자연발생 확인
+- E6 transport Gold audit mismatch 0 유지
+- E7 Grand Market Market→Person 추가환류 Gold audit mismatch 0
+- 강제 상단 회관 endpoint 테스트에서 commercial handling factor `0.95`, 상단 보유 구매국 측 운송서비스 소득 비중 증가 확인
+- 강제 대시장 테스트에서 Market Gold 감소량 = Person Gold 증가량 확인
+- 상업 공동투자 후 착공 실패 강제 테스트에서 donor/target Market Gold 완전 rollback 및 money stock 변화 0 확인
+- E7 save/reload 및 E6→E7 로드 호환 통과
+- snapshot CSV header/row 488열 일치
+
+> 자연주행에서 대시장의 발생 시점과 후기 경제효과는 PC/탭 장기주행 데이터로 다시 평가한다.
+
 
 ---
 
@@ -1380,3 +1494,10 @@ D4 형태의 save version을 D5 `World.from()` 경로에 투입해:
 D5가 장기주행에서 위 항목을 안정적으로 통과하면 D계열 안정화 작업을 마감하고 **V0.32E 군사 확장**으로 넘어가는 것을 기본 로드맵으로 한다.
 
 V0.32E 후보에는 실제 전투 규칙, 군사 목표, 방어/공격 의사결정, Formation 충돌 등이 포함될 수 있으나 D5에는 구현하지 않는다.
+
+
+---
+
+## V0.32E7 이후 현재 로드맵 메모
+
+E7 장기주행에서 상단 회관/대시장 활성 빈도, 운송서비스 소득 편중, 대시장 환류 규모와 성능 회귀를 확인한 뒤 다음 E계열 작업으로 진행한다. E6 자연발생 해상 운송 검증은 전용 해안·항구 맵 회귀 항목으로 유지한다. 과거 README 하단의 D5 시점 다음 단계 문구는 역사적 기록이며 현재 로드맵은 E계열 경제·건설·자동주행 안정화 이후 F 군사사회 → V0.33 War V1 순서다.
