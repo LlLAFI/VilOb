@@ -1,15 +1,208 @@
-# Village Observer V0.32E2
+# Village Observer V0.32E3
 
-**릴리스명:** 모바일 후기 성능 안정화 2차 — Food Relay Shortlist · Pair Cache · Housing Churn Fix  
-**버전:** `0.32E2`  
-**기준 버전:** `V0.32E1`  
-**세이브 키:** `village-observer-v0-32e2`
+**릴리스명:** Person / Settlement Performance Pass #5 — Knowledge Leaf Fast Path · Food Reserve Index · Housing Final Gate  
+**버전:** `0.32E3`  
+**기준 버전:** `V0.32E2`  
+**세이브 키:** `village-observer-v0-32e3`
 
-V0.32E2는 E1 첫 모바일 장기주행에서 드러난 새로운 후기 병목을 바로 줄이는 성능 패치다. E1 데이터에서는 60년대, 약 700명대 인구에서도 SIM/Wall 체감 지연이 커졌고, 별도 E1 계측에서 주거보다 **National Food Relay의 donor×receiver 경로/수송능력 반복 계산**이 빠르게 증가하는 것이 확인됐다. 동시에 E1 Housing Resolver가 점유율 0.98~1.00 수준의 정상 포화 정착지까지 깨우면서 불필요한 relocation churn이 남아 있었다.
+V0.32E3는 E2 모바일 장기주행에서 `Food Relay`와 E1 Housing resolver의 큰 병목을 제거한 뒤 남은 **`villageDaily → Person.act` 계열의 기본 비용**을 줄이는 성능 패치다.
 
-E2는 국제교역 AI·가격·자원 밸런스를 바꾸지 않는다. 실제 식량은 기존과 동일하게 donor stock에서 receiver stock으로 보존 이동하며, 이번 변경은 **어느 donor를 비싼 경로계산 대상으로 볼 것인가**를 강하게 줄이는 데 초점을 둔다.
+E2 Y60 모바일 데이터에서는 인구 699명, 영토 248타일에서 `SIM 696.5ms / 10일`, `villageDaily 301.13ms`, `personActEst 279.19ms`가 관측됐다. E3는 Person 시뮬레이션의 규칙을 축약하지 않고, 프로파일링에서 실제로 확인된 반복 leaf 연산만 제거한다.
+
+특히 초기 E3 프로토타입에서 Person.act 전체를 새 fast path로 재작성하는 방식은 개발 벤치에서 이득이 없고 회귀 위험이 커서 **폐기했다.** 최종 E3는 기존 누적 Person.act chain을 그대로 유지한다.
 
 ---
+
+## E3 핵심 변경
+
+### 0. Priority 0 — Housing relocation 최종 gate
+
+E2의 periodic Housing Resolver는 실제 shortage 기준으로 정리됐지만, D3의 `buildHouse()` / Settlement Demand 및 한 resolver pass 내부의 stale candidate 경로에서는 점유율 0.90~1.00인 정착지가 `HOUSING_RELOCATION32D3`으로 이동 대상이 될 수 있었다.
+
+E3는 D3 코드 자체의 세 위치를 같은 기준으로 맞춘다.
+
+- D3 housing pulse 후보: `occupancy >= 1.12` 또는 `housingShortage >= 1`
+- D3 `buildHouse()`의 relocation 진입: 동일 기준
+- `tryHousingResolveD3()` 내부 최종 재검사: 동일 기준
+
+마지막 내부 gate가 있으므로 첫 relocation 뒤 오래된 후보 row가 남아 있어도, 실제 현재 source가 정상 상태로 내려오면 두 번째 강제이주를 실행하지 않는다.
+
+정상 점유 상태에서 주거 정책이 선택되는 것 자체는 막지 않는다. relocation gate를 통과하지 못하면 기존 V17/D2의 실제 주택 건설·주거 업그레이드·토지 정비 경로로 그대로 내려간다.
+
+개발 회귀 테스트에서는 동일 E2 save에서 600일 진행 시 새로 발생한 D3 relocation 중:
+
+- E2: 12회, 그중 source occupancy `<= 1.00`이 11회
+- E3: 2회, source occupancy `<= 1.00`은 0회
+
+E3에서 남은 relocation은 실제 shortage/과밀 조건을 충족한 경우였다.
+
+### 1. Knowledge leaf fast path
+
+프로파일링에서 가장 큰 숨은 반복 비용이 발견됐다.
+
+V0.8 계열의 기존 `Village.gainKnowledge()`는 기술이 아직 전부 완료되지 않은 동안 **Person이 Knowledge를 얻을 때마다** `ensureV08Nation()`을 호출했고, 그 안의 `syncStorageTech()`가 국가의 모든 영토 타일을 순회했다.
+
+따라서 후기에는 대략 다음 형태의 비용이 생길 수 있었다.
+
+`Person 수 × 매일 Knowledge gain × 국가 영토 타일 수`
+
+E3는 현재 연구 대상이 이미 있고, 이번 Knowledge gain으로 연구 완료가 발생하지 않는 경우에 한해서:
+
+- 기존과 동일한 Knowledge multiplier 적용
+- `totalKnowledge` 동일 증가
+- `knowledgeBySource` 동일 증가
+- `researchProgress` 동일 증가
+- 불필요한 전체 영토 `syncStorageTech()`만 생략
+
+다음 경우에는 **반드시 기존 E2 gainKnowledge 경로에 위임**한다.
+
+- 연구 대상이 없는 경우
+- 연구 target이 비정상인 경우
+- 이번 gain으로 기술 완료 경계를 넘는 경우
+- 완전 기술 포화 상태 등 기존 V28 fast path가 처리해야 하는 경우
+
+기술 완료 시에는 기존 `maybeFinishResearch()`가 그대로 실행되므로 Eureka, 완료 로그, 다음 연구 선택, URBANIZATION storage flag 동기화 규칙은 유지된다. 또한 E3 attach 시 현재 기술 상태로 `_v08UrbanStorage`를 국가당 1회 동기화해 이전 save의 호환성을 보장한다.
+
+### 2. V0.29 Food Reserve resident-index fast path
+
+기존 후기 식량 비축일은 단순 `population × 0.36` 공식이 아니라 V0.29의 연령별 소비량을 사용한다.
+
+- 0~14세: `0.30 / cycle`
+- 15세 이상: `0.42 / cycle`
+
+기존 `foodReserveDays()`는 영토를 순회하면서 `tileResidents().filter()` → `settlementReserveDays()` → 다시 `tileResidents()` → `localFoodNeed29()` 순으로 같은 주민을 반복 확인했다.
+
+E3는 V0.26의 invalidation-aware resident index에서 `byHome` 배열을 직접 읽어 같은 식을 한 번의 settlement pass로 계산한다.
+
+- `settlementReserveDays()`도 같은 resident index 사용
+- `foodReserveDays()`는 기존 population-weighted settlement reserve 평균을 그대로 유지
+- `criticalFoodReserveDays()`도 같은 age-weighted denominator 유지
+- 식량 stock이나 소비량 규칙은 변경하지 않음
+
+동일 E2 save의 각 국가에 대해 E2/E3의 `population`, `foodReserveDays`, `criticalFoodReserveDays`가 정확히 동일한 값을 내는 것을 별도 회귀 테스트로 확인했다.
+
+### 3. Population lookup fast path
+
+V0.26 resident index는 `homeTileId`와 `alive` 변화 시 epoch를 올려 자동 무효화된다. E3는 일반적인 `Village.population()` 조회에서 `residents.filter(p => p.alive)`를 반복하지 않고 이 index의 alive 배열 길이를 사용한다.
+
+단, V0.21의 `dailyTick` 안에서는 population을 하루 동안 구조적으로 고정하는 기존 `_v21DailyPerf` cache 의미가 있다. E3는 이 상태에서는 기존 population 메서드에 위임해 **기존 하루 내부 시뮬레이션 순서 의미를 유지한다.**
+
+### 4. Person.act chain은 유지
+
+E3의 중요한 비변경사항이다.
+
+- Person 생산 규칙 변경 없음
+- metabolism 변경 없음
+- job scoring 변경 없음
+- migration cadence 변경 없음
+- 군사/건설/유지보수 특수 경로 변경 없음
+- 철산업 Person 경로 변경 없음
+
+즉 E3는 Person을 덜 시뮬레이션하는 패치가 아니라, **같은 Person 행동이 호출하는 반복 leaf 계산을 덜 수행하는 패치**다.
+
+---
+
+## E3 신규 Telemetry
+
+CSV / JSON global snapshot에 다음 누적 operation counter를 추가한다.
+
+- `knowledgeFastAdds32E3`
+- `knowledgeLegacyAdds32E3`
+- `knowledgeTerritoryTilesAvoided32E3`
+- `foodReserveFastCalls32E3`
+- `foodReserveTileScans32E3`
+- `criticalFoodReserveFastCalls32E3`
+- `populationIndexCalls32E3`
+
+특히 `knowledgeTerritoryTilesAvoided32E3`는 E3가 기존 `syncStorageTech()`에서 피한 영토 타일 순회량의 근사 operation count다.
+
+기존의 다음 시간 기반 성능 지표도 그대로 유지한다.
+
+- `SIM / perfSimMs26`
+- `Wall / perfWallMs27`
+- `Render / perfRenderMs26`
+- `perfMsPerDay26`
+- `perfBreakdown26.villageDaily`
+- `perfBreakdown27.personActEst`
+
+따라서 이후 PC와 모바일에서 동일 save를 테스트할 때:
+
+1. operation counter가 같은지 확인해 수행한 코드 작업량을 비교하고
+2. 같은 작업량에서 ms가 얼마나 다른지 확인해 장치/브라우저 실행 배율을 볼 수 있다.
+
+---
+
+## 개발 프로파일 결과
+
+아래 값은 **Node VM 개발 프로파일**이므로 실제 PC/모바일 브라우저의 절대 성능값으로 사용하지 않는다. 같은 E2 save 상태에서 상대적인 hot-path 감소를 확인하기 위한 검증값이다.
+
+30일 계측 실행의 대표 샘플:
+
+| 항목 | E2 | E3 |
+|---|---:|---:|
+| `gainKnowledge` 누적 | 42.79 ms | **3.75 ms** |
+| `foodReserveDays` 누적 | 42.63 ms | **6.40 ms** |
+| `Person.act` 누적 | 151.89 ms | **90.06 ms** |
+| 계측 포함 전체 | 620.65 ms | **485.84 ms** |
+
+별도의 60일 비계측 반복 실행에서도 중앙값 기준 대략 10% 수준의 전체 실행시간 감소가 관측됐다. Node의 JIT/GC 변동폭이 있으므로 이것을 E3의 모바일 개선률로 가정하지 않는다.
+
+같은 60일 샘플에서 E3는 약 3,223회의 Knowledge fast-add로 약 11,629개의 영토 tile sync 방문을 피했다. 실제 Y60처럼 Person과 영토가 더 큰 세계에서는 이 카운터가 얼마나 증가하는지가 중요하다.
+
+---
+
+## 저장 / 호환성
+
+- E3 save version: `0.32E3`
+- E3 save key: `village-observer-v0-32e3`
+- 첫 fallback: E2
+- E1 / D5 / D4 / D3 / D2 / D1 / D / C2 fallback 유지
+- E2 save → E3 로드 검증 완료
+- E3 save → `World.from()` 재로드 → 추가 진행 검증 완료
+- E3 operation counter는 save에 유지
+- Knowledge multiplier cache 등 transient helper는 안전하게 재생성
+
+---
+
+## 릴리스 검증
+
+최종 E3 빌드에서 수행한 검증:
+
+- HTML 내 **60개 inline script** 전부 `node --check` 통과
+- fresh 19×19 world 생성 성공
+- 2,400일 runtime smoke 성공
+- E2 save → E3 load → 진행 성공
+- E3 save → reload → 추가 30일 진행 성공
+- Knowledge non-completion gain: E2와 `totalKnowledge / researchProgress / target` 동일
+- Knowledge completion gain: 완료 기술, 잔여 progress, 다음 target, source Knowledge, 완료 로그 동일
+- E2/E3 동일 save의 population / food reserve / critical food reserve 값 동일
+- Housing 600일 회귀: 정상 `sourceOccupancy <= 1.00` D3 relocation E3에서 0건
+- CSV export 실행 성공, header/data column 수 일치
+- Dev JSON version `0.32E3`, save version `0.32E3` 확인
+
+---
+
+## 다음 장기주행에서 볼 항목
+
+E3는 다음 테스트에서 **가능하면 동일 save를 모바일과 PC 양쪽에서** 확인한다. 당장 PC가 불가능하면 모바일 장기주행을 먼저 진행해도 된다.
+
+우선 확인할 항목:
+
+- Y50~65의 `SIM / Wall / personActEst / villageDaily`
+- E2 모바일 Y60 기준 `SIM 696.5ms`, `personActEst 279.19ms` 대비 개선폭
+- `knowledgeFastAdds32E3`
+- `knowledgeTerritoryTilesAvoided32E3`
+- `foodReserveFastCalls32E3`
+- Housing relocation 중 source occupancy 1.00 이하 이벤트가 다시 나타나는지
+- 인구·식량·연구속도·이주·산업 결과가 E2에서 비정상적으로 벗어나지 않는지
+
+PC/모바일 양쪽 데이터가 확보되면 **동일 operation count 대비 ms 비율**로 장치 성능 배율을 따로 추정한다.
+
+---
+
+# V0.32E2 기반 상세 사양
+
+아래 내용은 E3가 그대로 상속하는 E2 상세 사양이다. E3에서 변경된 항목은 위 E3 delta가 우선한다.
 
 ## E2 핵심 변경
 
