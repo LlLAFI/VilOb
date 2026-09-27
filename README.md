@@ -1,15 +1,103 @@
-# Village Observer V0.32E4
+# Village Observer V0.32E5
 
-**릴리스명:** Strategic Trade Network V1 — Route Blocker Cleanup · Persistent Trading Post Intent · Physical Build  
-**버전:** `0.32E4`  
-**기준 버전:** `V0.32E3`  
-**세이브 키:** `village-observer-v0-32e4`
+**릴리스명:** Strategic Trade Network Stabilization — Intent Lifecycle V2 · Soft Strategic Slot · Actual Effect  
+**버전:** `0.32E5`  
+**기준 버전:** `V0.32E4`  
+**세이브 키:** `village-observer-v0-32e5`
 
-V0.32E4는 E1~E3의 후기 성능 안정화 이후, 기존 `TRADE` 전략을 **실제 교역 인프라 건설 행동**으로 연결하는 패치다. 국가가 단순히 교역을 선호하는 데서 끝나지 않고, 어느 Settlement에 Trading Post를 건설하면 신규 교역 상대가 열리거나 기존 route cost가 줄어드는지 저빈도로 평가하고, 유효한 목표를 persistent infrastructure intent로 유지한다.
+V0.32E5는 E4 자연주행에서 확인된 **전략 교역소 intent의 생명주기 오류와 PROJECT_CAP 장기 정체**를 정리하는 안정화 패치다. E4의 planner·물리 건설·route blocker 체계는 유지하면서, 실제 공사가 시작된 intent가 완공까지 끊기지 않도록 project와 결합하고 가치가 높은 장기 대기 intent에만 제한적인 construction-slot 우선권을 부여한다.
 
-E4는 새로운 전투·상업시설 세대·운송비 산업 회계를 추가하지 않는다. 기존 D5 국제가격/Market Gold/물리 교역 구조와 E3 Person 성능 경로를 유지하면서 교역망의 **공간적 배치 의사결정**만 추가한다.
+또한 E4의 `routeCostSavedEst`와 별도로 완공 직후의 실제 reachable partner 및 route cost 변화를 기록하고, 360 calendar days 뒤 실제 국제교역 누적량을 후속 관측한다. E5는 국제 운송비 산업 회계나 Merchant Guild/Grand Market 재설계까지 확장하지 않는다.
 
 ---
+
+## E5 핵심 변경
+
+### 0. Priority 0 — 공사 중 intent TTL 만료 수정
+
+E4 자연주행에서 전략 교역소 공사가 720 calendar days보다 오래 걸리면 실제 공사는 계속되지만 infrastructure intent가 먼저 만료되는 문제가 확인되었다. E5는 **착공 전 intent에만 기존 720일 TTL을 적용**하고, 실제 `V32E4_STRATEGIC_TRADE_POST` construction project가 존재하면 TTL을 정지한다.
+
+- 공사 중 intent는 project와 `projectId`로 연결된다.
+- 완공되면 실제 Trading Post 존재를 확인한 뒤 intent를 완료한다.
+- project가 사라졌는데 건물도 없다면 취소/유실로 종료한다.
+- save/load 시 진행 중 전략 교역소 project와 intent를 재결합한다.
+- E4 세이브에서 intent가 이미 유실된 상태라도 전략 교역소 project가 남아 있으면 `RECOVERED_BUILD` intent를 복구한다.
+
+### 1. Soft Strategic Construction Priority
+
+E4 장기주행에서 전략 교역망의 가장 큰 blocker는 자금·자재가 아니라 `PROJECT_CAP`이었다. E5는 모든 교역 intent에 강제 예약슬롯을 주지 않고 다음 조건에서만 마지막 일반 construction slot을 부드럽게 보호한다.
+
+- 신규 교역 상대 예상이 있는 intent가 90일 이상 유지
+- 예상 route-cost 절감이 4 이상이고 180일 이상 유지
+- `PROJECT_CAP`에 360일 이상 막혔고 예상 route 절감이 2 이상
+
+단, 아래 시스템은 항상 E5 교역 우선권보다 높은 우선순위를 가진다.
+
+- 긴급 주거 건설
+- 식량 reserve가 낮은 farmstead / granary
+- iron mine / smelter / smithy 전략 산업 체인
+- barracks / training ground / armory 등 군사 전략시설
+- 높은 위협에서의 palisade
+
+또한 실제 공사가 완료되어 project slot이 풀리면 다음 분기까지 기다리지 않고 기존 E4 intent를 즉시 재시도한다.
+
+### 2. 실제 교역망 효과 관측
+
+E4의 `routeCostSavedEst`는 건설 전 planner 추정값이다. E5는 완공 직후 실제 세계 상태를 다시 읽어 다음을 별도로 기록한다.
+
+- 실제 reachable partner 증가 수
+- 실제 nearest route cost 절감
+- 실제 reachable partner 평균 route cost 절감
+- 완공 당시 국제 교역 누적량
+- 완공 360일 후 추가 국제 교역량 follow-up
+
+마지막 교역량 값은 다른 경제·인구 변화의 영향도 포함하므로 **교역소의 순수 인과효과로 해석하지 않고 후속 관측값**으로만 사용한다.
+
+### 3. 신규 E5 telemetry
+
+세계 단위 주요 필드:
+
+- `tradeIntentActive32E5`
+- `tradeIntentBuilding32E5`
+- `tradeIntentRecovered32E5`
+- `tradeIntentCompleted32E5`
+- `tradeIntentCancelled32E5`
+- `tradeIntentAgedPriority32E5`
+- `tradeSoftReserveBlocks32E5`
+- `tradeSoftReserveEvents32E5`
+- `tradeStrategicSlotWins32E5`
+- `tradeActualPartnerGain32E5`
+- `tradeActualRouteSaving32E5`
+- `tradeActualAvgRouteSaving32E5`
+- `tradePostFollowups32E5`
+- `tradePostTradeVolume1y32E5`
+
+국가별 snapshot에는 intent age, PROJECT_CAP 정체기간, priority/TTL pause, 연결된 project ID, 최근 실제 route 절감과 follow-up 교역량을 추가한다.
+
+### 4. 성능 정책
+
+E5는 E4 planner의 평가 주기와 최대 6개 후보 shortlist를 유지한다. 새 기능은 intent/project 상태 확인과 정수 counter 중심이며 후보별 `performance.now()` 계측을 추가하지 않는다.
+
+### 5. E5 구현 검증
+
+릴리스 전 개발용 Node VM harness에서 다음을 확인했다.
+
+- inline script **62개 전부 syntax check 통과**
+- fresh 19×19 world 1,200 step smoke 통과
+- E5 save → `World.from()` reload → 추가 30 step 통과
+- `BUILDING` intent의 기존 720일 expiry를 강제로 초과시켜도 TTL이 정지되어 유지됨
+- E4 호환 save에서 intent를 제거하고 실제 전략 교역소 project만 남겨도 E5가 `RECOVERED_BUILD` intent로 재결합
+- project 제거 + 실제 Trading Post 완공 상태에서 E5 completion/actual-effect telemetry 발화
+- 가치 높은 aged intent가 마지막 일반 슬롯을 보호하면서 Housing 예외는 차단하지 않음
+- `PROJECT_FREED` 즉시 재시도에서 전략 Trading Post가 실제 `startConstruction()` 경로로 착공되고 slot-win이 기록됨
+- Snapshot CSV header/row **442 columns 일치**
+- Dev JSON / save version `0.32E5` 확인
+
+동일 seed 1,200-step 개발용 성능 sanity 비교는 E4 약 **9.18s**, E5 약 **9.24s**였다. 약 +0.7% 수준이며 두 버전의 랜덤 진행 상태가 소폭 달라졌으므로 정밀 benchmark가 아니라 **새로운 큰 회귀가 없는지 확인하는 참고값**으로만 사용한다. 실제 성능 판정은 PC/Tab 자연주행 telemetry를 우선한다.
+
+---
+
+> 아래 E4 및 이전 버전 섹션은 누적 기술 문서다. 각 섹션의 “다음 단계” 문구는 해당 릴리스 당시의 역사적 기록이며, 현재 로드맵은 문서 최상단 E5 섹션을 우선한다.
 
 ## E4 핵심 변경
 
