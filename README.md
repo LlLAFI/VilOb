@@ -1,18 +1,138 @@
-# Village Observer V0.32E7
+# Village Observer V0.32E8
 
 
-**릴리스명:** Merchant Guild / Grand Market Activation — International Service · Domestic Circulation · Conserved Commercial Investment  
-**버전:** `0.32E7`  
-**기준 버전:** `V0.32E6`  
-**세이브 키:** `village-observer-v0-32e7`
+**릴리스명:** Commercial Stabilization + Construction Proposal V1  
+**버전:** `0.32E8`  
+**기준 버전:** `V0.32E7`  
+**세이브 키:** `village-observer-v0-32e8`
 
-V0.32E7은 V0.19부터 존재했지만 장기 자연주행에서 거의 활성화되지 않던 `merchant_guild` / `grand_market`을 현재 E6 경제체계에 다시 연결한다. 기존 전문화는 국제교역과 국내거래를 한 덩어리의 throughput으로 보았고 높은 기술 조건까지 요구해, E6 PC Y62에서도 상단 회관과 대시장이 모두 0개인 사례가 확인됐다.
+V0.32E8은 E7 자연주행에서 확인된 두 문제를 직접 수정한다. 첫째, `merchant_guild`가 과거 국제교역 hotspot의 정확한 타일에만 효과가 묶여 실제 endpoint가 옆 Settlement로 이동하면 `guildHandledTrades32E7=0`이 되던 endpoint drift를 해결한다. 둘째, `grand_market` 후보가 Market 건물 자체의 국내 endpoint 실적만 보아 Y76까지 한 번도 자연발생하지 않던 trigger 단위를 생활권/행정권 상업권으로 확장한다.
 
-E7은 두 시설의 역할을 분리한다. **고대 상단 회관은 국제교역 endpoint와 E6 운송서비스 경제**, **고대 대시장은 국내거래·Settlement Market Gold·Person 소비 순환**을 담당한다. 또한 전문화 자금이 한 정착지 시장에만 묶이지 않도록, 접근 가능한 같은 국가 Settlement Market의 잉여 Gold를 실제로 이동시키는 보존형 공동투자 경로를 추가한다.
+동시에 Construction Proposal V1을 도입한다. 이 계층은 기존의 검증된 물리 착공 시스템(`startConstruction`, `payBuild`, 실제 자재·Gold·노동)을 대체하지 않는다. 전략 교역소, 철산업, 군사시설, 고급 상업시설이 각각 별도 진단 언어를 사용하던 앞단을 `family / type / tile / priority / blocker` 공통 형식으로 관측하고 이후 건설 스케줄러 일반화의 브리지로 사용한다.
 
-E6의 육상 운송회계는 PC+탭 자연주행에서 962건의 거래와 Gold audit mismatch 0으로 완료 처리한다. 단, 자연발생 해상 거래는 두 런 모두 0건이었으므로 **해안/항구 전용 테스트 맵에서 해상 운송회계를 별도 회귀검증**하는 항목을 E7 이후에도 유지한다.
+E6 육상 운송회계 완료 판정과 **자연발생 해상 운송회계 전용 해안/항구 회귀 테스트** 메모는 그대로 유지한다.
 
 ---
+
+## E8 핵심 변경
+
+### 1. Merchant Guild Regional Commercial Sphere
+
+E7은 국제 거래의 `buyerTileId / sellerTileId`에 `merchant_guild`가 직접 존재할 때만 Guild 효과를 적용했다. E8은 각 endpoint가 이용 가능한 상단 회관을 다음 순서로 찾는다.
+
+1. 동일 endpoint 타일의 상단 회관 — strength 1.00
+2. 동일 생활권(life zone)의 상단 회관 — 최대 strength 0.85
+3. 동일 행정권의 상단 회관 — 최대 strength 0.72
+4. 지도거리 3 이하 인접 상업권 — 최대 strength 0.58
+5. 지도거리 5 이하 지역권 — 최대 strength 0.38
+
+이 strength는 E6 운송회계의 상업 handling factor와 운송서비스 소득 배분에만 사용한다. 물리 route cost, 도로, 항구, 거리 자체를 우회하지 않는다. 양쪽 상업권의 strength 합에 따라 handling factor를 계산하며 기존 하한 0.90을 유지한다. 상단 회관이 직접 거래 endpoint가 아니더라도 같은 상업권의 거래를 처리하면 `guildRegionalHandledTrades32E8`, `guildRegionalTransportGold32E8`, `guildRegionalHandlingSavings32E8`에 기록된다.
+
+상단 회관이 있는 쪽의 운송서비스 대금은 가능하면 해당 Guild 타일의 실제 상인 Person에게 분배하고, 그 타일에 상인이 없으면 기존 국가 상인 fallback을 사용한다. Gold 총량 보존은 E6 transport audit가 계속 검사한다.
+
+### 2. Grand Market Regional Trigger
+
+`market → grand_market` 후보는 더 이상 Market 타일 하나의 국내 endpoint volume만 보지 않는다. Market이 속한 생활권을 우선 사용하고, 생활권이 없으면 행정권, 둘 다 없으면 반경 3타일의 동일 국가 정착권을 임시 상업권으로 사용한다.
+
+상업권에서 집계하는 신호:
+
+- 최근 1년 `DOMESTIC_TRADE29` endpoint 수량·횟수·Gold
+- 상업권 전체 Settlement Market Gold
+- 상업권 인구
+- `v29Economy.consumption` 누적 소비 신호
+- 해당 권역 최대 `hubScore`
+- 도시집약형 AI 보정
+
+충분한 국내 유통 실적 또는 Market Gold/인구 조합이 있고 적절한 시장·도시 기술이 있으면 실제 `specializationProjects`를 통해 대시장 고도화를 시작한다. 비용·Gold 공동투자·착공 실패 rollback은 E7의 보존형 원칙을 유지한다.
+
+### 3. Construction Proposal V1
+
+E8 Proposal은 다음 전략 건설 계열을 공통 형식으로 노출한다.
+
+- `TRADE_NETWORK` — E4/E5 전략 교역소 intent
+- `IRON` — V0.31H iron mine / smelter / smithy readiness
+- `MILITARY` — V0.32C1 barracks / training ground / armory readiness
+- `COMMERCE` — Merchant Guild / Grand Market 지역 전문화
+
+공통 필드:
+
+- family
+- type
+- target tile
+- priority
+- raw blocker
+- normalized blocker
+- score
+
+공통 blocker:
+
+- `PROJECT_CAP`
+- `FINANCE`
+- `MATERIAL`
+- `SPACE`
+- `TECH`
+- `SURVIVAL`
+- `PRIORITY`
+- `OTHER`
+- `READY`
+
+V1에서는 기존 각 subsystem의 실제 실행 함수와 전략 슬롯 규칙을 바꾸지 않는다. seasonal tick에서 Proposal을 모아 우선순위와 blocker를 공통 telemetry/UI에 기록하고, 실제 전략시설이 기존 경로로 착공되면 `CONSTRUCTION_PROPOSAL_STARTED32E8`로 연결한다. E8 상업 전문화는 이 Proposal 구조를 실제 후보/착공 브리지로 사용한다.
+
+### 4. E8 신규 관측값
+
+Global snapshot / CSV:
+
+- `constructionProposalReviews32E8`
+- `constructionProposals32E8`
+- `constructionProposalReady32E8`
+- `constructionProposalStarts32E8`
+- `constructionProposalChanges32E8`
+- `constructionBlockProject32E8`
+- `constructionBlockFinance32E8`
+- `constructionBlockMaterial32E8`
+- `constructionBlockSpace32E8`
+- `constructionBlockTech32E8`
+- `constructionBlockSurvival32E8`
+- `constructionBlockPriority32E8`
+- `constructionBlockOther32E8`
+- `guildRegionalHandledTrades32E8`
+- `guildRegionalTransportGold32E8`
+- `guildRegionalHandlingSavings32E8`
+- `grandMarketStarts32E8`
+- `grandMarketCompleted32E8`
+- `grandMarketRegionalCandidates32E8`
+- `commercialMarketPoolGold32E8`
+- `commercialMarketPoolTransfers32E8`
+
+Nation row:
+
+- `constructionProposalTop32E8`
+- `constructionProposalBlocker32E8`
+- `constructionProposalPriority32E8`
+- `guildRegionalTradesNation32E8`
+- `guildRegionalIncomeNation32E8`
+- `guildRegionalSavingsNation32E8`
+- `grandMarketStartsNation32E8`
+- `grandMarketCompletedNation32E8`
+
+### 5. 성능 정책
+
+- 생활권/행정권 상업 컨텍스트는 nation/day 단위 캐시를 사용한다.
+- V0.28 urban summary는 강제 재계산하지 않고 기존 캐시를 재사용한다.
+- Proposal review는 seasonal tick에서만 실행한다.
+- Guild lookup은 E6 국제 거래 quote/settlement 경로에서만 수행하며 per-Person daily loop에는 추가하지 않는다.
+- 자연발생 해상 운송회계는 여전히 별도 전용맵 회귀 항목이다.
+
+### 6. E8 검증 체크리스트
+
+- 65개 inline script syntax 통과
+- E8 API/fresh-world VM smoke 통과
+- 강제 endpoint-drift 시나리오: Guild가 다른 타일의 endpoint를 동일 행정권에서 인식, handling factor < 1 확인
+- 위 시나리오 E6 Gold audit delta = 0
+- 강제 국내 상업권 시나리오: Market 타일 밖의 국내 endpoint 실적을 합산해 Grand Market 후보 생성
+- 충분한 실제 자재/Gold 조건에서 Grand Market specialization project 착공 확인
+- E8 serialize → reload → `0.32E8` 유지 확인
+
 
 ## E7 핵심 변경
 
