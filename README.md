@@ -1,36 +1,151 @@
-# Village Observer V0.33A
+# Village Observer V0.33B
 
-**패치명:** Post-war Withdrawal + War Observer  
-**기준 버전:** V0.33  
+**패치명:** War Visualization + Battlefield Observer  
+**기준 버전:** V0.33A  
 **날짜:** 2026-09-28
 
-V0.33A는 첫 V0.33 자연전쟁에서 확인된 **종전 후 외국 영토 Formation 고립**을 수정하고, 전쟁을 사용자가 놓치지 않도록 지도·국가·통계 관측을 강화하는 안정화 패치다.
+V0.33B는 V0.33A 자연전쟁에서 확인된 **전투·점령의 지도 가시성 부족**을 보완하는 관측/시각화 패치다. 전투 계산, 선전포고, 사상자, 후퇴, 점령 효과, War Exhaustion과 종전 규칙은 변경하지 않는다.
 
-첫 자연전쟁에서는 티아의 Field Formation이 에브 영토 깊숙이 진입한 뒤 `FIELD_FORCE_COLLAPSE`로 종전했지만, 종전 직후 V0.33 전쟁 이동기가 비활성화되고 V0.32D 평시 이동기는 자국 영토만 통과할 수 있어 Formation이 외국 영토에 영구 고립되는 문제가 확인되었다.
+V0.33A에서는 실제 전투와 점령/해방이 정상 발생했지만, 기존 V0.33 점령 overlay와 V0.33A 전선 overlay가 `renderWorld()` 계층에 연결되어 실제 지도 탭의 `renderMap()`에서 기대한 대로 표시되지 않는 구조가 확인되었다. V0.33B는 전쟁 overlay를 **지도 렌더 단계에 직접 연결**하고, 전투 이벤트를 짧게 보존하는 소형 observer cache를 추가한다.
 
-V0.33A의 핵심 흐름은 다음과 같다.
-
-```text
-전쟁 종료
-→ 외국 영토 Formation 탐지
-→ POSTWAR_WITHDRAWAL
-→ 직전 교전국 영토를 비전투 통과
-→ 15 calendar-day / 1 tile 철군
-→ 자국 영토 재진입
-→ 평시 Formation planner 복귀
-```
-
-또한 현재 및 과거 전쟁을 사용자가 직접 복기할 수 있도록 다음 관측 경로를 추가한다.
+핵심 사용자 경험은 다음과 같다.
 
 ```text
-지도: 현재 전쟁 배너 + 전선 강조 + 전쟁 Formation 링
-국가 > 군사: 현재 전쟁 + 최근 전쟁
-통계: World 전체 War History
+전쟁 발생
+→ 지도 상단 전쟁 배너
+→ 점령지: 원소유국 색 + 점령국 사선/테두리/깃발
+→ BATTLE33 발생: ⚔ + 충돌 링
+→ 패배 Formation 실제 후퇴
+→ 최근 전투 흔적 45일 유지
+→ 타일 선택 시 전투력·승자·사상자 확인
 ```
 
-승전국 보상, 배상금, 영구 영토 할양, 전쟁 목표/평화 협상은 이번 안정화 패치에 추가하지 않는다.
+점령은 여전히 임시 통제이며 `ownerId`를 바꾸지 않는다. 이번 버전은 승전 보상, 배상, 영구 영토 할양, War Goal / Peace Outcome을 추가하지 않는다.
 
 ---
+
+# 0.33B 변경사항
+
+## B.1 지도 전쟁 overlay 연결 수정
+
+V0.33/V0.33A의 전쟁 시각 요소 일부가 `renderWorld()`에 연결되어 실제 지도 탭에서 약하거나 누락될 수 있었다. V0.33B는 다음 요소를 `UI.renderMap()` 이후의 전장 overlay로 직접 연결한다.
+
+- 현재 임시 점령
+- 활성 전쟁의 국가 간 전선
+- 참전 Field Formation 강조 링
+- 최근 점령/해방 효과
+- 최근 전투 흔적
+
+따라서 줌 인/아웃, 지도 재렌더, 일반 시뮬레이션 tick에서도 같은 전쟁 표시가 유지된다.
+
+## B.2 점령지 시각화 강화
+
+점령은 영토 소유권 이전이 아니므로 원래 Nation 색을 유지한다. 그 위에 점령국 시각 요소를 겹친다.
+
+- 점령국 색 대각선 hatch
+- 어두운 외곽 backing + 점령국 색 굵은 테두리
+- 타일 우상단 점령 코너 표식 / `⚑`
+- `TILE_OCCUPIED33` 직후 20일간 점령 외곽 효과
+- `TILE_LIBERATED33` 직후 20일간 해방 외곽 효과
+
+이 방식은 `ownerId`와 `v33OccupierId`를 동시에 읽을 수 있게 한다.
+
+## B.3 Battlefield Observer
+
+`BATTLE33`가 발생할 때만 작은 observer cache를 갱신한다. 지도 렌더 시 전체 devlog를 재검색하지 않는다.
+
+최근 전투 표시는 다음 TTL을 사용한다.
+
+```text
+0~15 calendar-day   강한 ⚔ + 충돌 링
+16~30 day           중간 강도
+31~45 day           흐린 전투 흔적
+46 day+             자동 제거
+```
+
+같은 타일에서 여러 번 전투가 발생하면 지도에는 가장 최근 전투를 우선 표시한다.
+
+cache 상한:
+
+- 최근 전투 최대 24건
+- 최근 점령/해방 효과 최대 24건
+
+## B.4 타일 전투 상세
+
+최근 45일 내 전투가 있었던 타일을 선택하면 Tile Inspector 하단에 다음을 표시한다.
+
+- 교전국
+- 양측 전투력
+- 승전국
+- 전사자 합계
+- 부상자 합계
+- 전투 지형
+
+현재 점령 중인 타일이면 점령국과 원소유국도 함께 표시한다.
+
+## B.5 전쟁 배너 강화
+
+활성 전쟁 배너는 기존 교전국·경과일·전투 수에 더해 다음을 표시한다.
+
+- 공격국 현재 점령 타일 수
+- 방어국 현재 점령 타일 수
+- 최근 45일 내 가장 최근 전투 승자
+- 최근 전투가 몇 calendar-day 전인지
+
+모바일에서는 메타 정보를 다음 줄로 내려 표시한다.
+
+## B.6 저장 / 불러오기
+
+V0.33B에서 생성된 최근 전투/점령 observer는 `v33b.observer`에 저장한다.
+
+- `recentBattles[]`
+- `recentTerritoryEvents[]`
+
+V0.33B 세이브를 다시 불러오면 TTL 안의 전투 흔적이 그대로 유지된다. V0.33A 세이브도 호환되며 기존 전쟁/점령 상태는 유지된다. 다만 V0.33A에는 B 전용 최근 전투 cache가 존재하지 않으므로, 저장파일에 남아 있지 않은 과거의 짧은 전투 흔적을 새로 복원하지는 않는다. 이후 발생하는 전투부터 정상 기록한다.
+
+## B.7 Telemetry / CSV
+
+세계 snapshot에 다음 관측 필드를 추가한다.
+
+- `recentBattleMarkers33B`
+- `recentBattleSites33B`
+- `recentTerritoryEffects33B`
+
+CSV schema는 V0.33A 704열에서 **V0.33B 707열**로 확장된다.
+
+## B.8 이번 버전에서 변경하지 않는 규칙
+
+- 전투력 공식
+- 실제 Person 전사/부상 확률
+- 후퇴 규칙
+- 침공 경로 규칙
+- 점령지 생산 65% 규칙
+- 점령 보급 페널티
+- War Exhaustion
+- AI 선전포고 조건
+- 종전 조건
+- 승전 보상 / 배상 / 영토 할양
+
+즉 V0.33B는 **전쟁의 결과를 바꾸는 패치가 아니라 이미 발생하는 전쟁을 보이게 만드는 패치**다.
+
+## B.9 회귀 검증
+
+최종 배포본 기준:
+
+```text
+inline script syntax      74 / 74 PASS
+Chromium startup/runtime  error 0
+전쟁 배너                 점령 수 + 최근 승자 표시 PASS
+점령 지도 overlay         hatch/border/flag PASS
+BATTLE33 지도 marker      ⚔ + ring PASS
+Tile Inspector            전투력/승자/사상자 PASS
+B observer save/load      1 -> 1 유지 PASS
+V0.33A save import         전쟁/점령 상태 유지 PASS
+TTL cleanup               battle 46d / territory 21d 제거 PASS
+natural smoke             3년 4분기까지 runtime error 0
+CSV                        707 columns / mismatch 0
+```
+
 
 # 0.33A 변경사항
 
