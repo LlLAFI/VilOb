@@ -1,41 +1,183 @@
-# Village Observer V0.33
+# Village Observer V0.33A
 
-**패치명:** War V1  
-**기준 버전:** V0.32F  
+**패치명:** Post-war Withdrawal + War Observer  
+**기준 버전:** V0.33  
 **날짜:** 2026-09-28
 
-V0.33은 V0.32에서 완성한 **실제 Person 기반 군사사회**를 처음으로 실제 전쟁에 연결하는 버전이다.
+V0.33A는 첫 V0.33 자연전쟁에서 확인된 **종전 후 외국 영토 Formation 고립**을 수정하고, 전쟁을 사용자가 놓치지 않도록 지도·국가·통계 관측을 강화하는 안정화 패치다.
 
-V0.32F까지의 군사 흐름은 다음 단계에서 멈춰 있었다.
+첫 자연전쟁에서는 티아의 Field Formation이 에브 영토 깊숙이 진입한 뒤 `FIELD_FORCE_COLLAPSE`로 종전했지만, 종전 직후 V0.33 전쟁 이동기가 비활성화되고 V0.32D 평시 이동기는 자국 영토만 통과할 수 있어 Formation이 외국 영토에 영구 고립되는 문제가 확인되었다.
 
-```text
-Person
-→ Reserve / Active Military
-→ Garrison / Field Cohort
-→ Formation
-→ Training / Equipment / Supply / Readiness
-→ 전투 직전
-```
-
-V0.33 War V1은 여기에 다음 최소 전쟁 루프를 추가한다.
+V0.33A의 핵심 흐름은 다음과 같다.
 
 ```text
-전쟁 판단
-→ 선전포고
-→ 적 영토 Formation 이동
-→ 실제 병력 교전
-→ Person 전사 / 부상
-→ 패배 Formation 후퇴
-→ 임시 점령
-→ War Exhaustion
-→ 종전 / 점령지 반환
+전쟁 종료
+→ 외국 영토 Formation 탐지
+→ POSTWAR_WITHDRAWAL
+→ 직전 교전국 영토를 비전투 통과
+→ 15 calendar-day / 1 tile 철군
+→ 자국 영토 재진입
+→ 평시 Formation planner 복귀
 ```
 
-이번 버전의 목표는 복잡한 전략 게임을 한 번에 완성하는 것이 아니다. **기존 인구·산업·군수·물류 차이가 실제 전쟁 결과에 연결되는 최소 완성형 루프**를 만드는 것이 목적이다.
+또한 현재 및 과거 전쟁을 사용자가 직접 복기할 수 있도록 다음 관측 경로를 추가한다.
 
-V0.33에서는 영구 영토 할양, 배상금, 동맹, 참전 요청, 포로, 해전, 봉쇄, 공성전, 병종, 장군·전술, 무기 국제무역을 의도적으로 제외한다.
+```text
+지도: 현재 전쟁 배너 + 전선 강조 + 전쟁 Formation 링
+국가 > 군사: 현재 전쟁 + 최근 전쟁
+통계: World 전체 War History
+```
+
+승전국 보상, 배상금, 영구 영토 할양, 전쟁 목표/평화 협상은 이번 안정화 패치에 추가하지 않는다.
 
 ---
+
+# 0.33A 변경사항
+
+## A.1 Post-war Withdrawal
+
+종전 후 외국 영토에 남은 Field Formation은 `POSTWAR_WITHDRAWAL` 상태로 전환된다.
+
+- 철군 중에는 **자국 + 직전 교전국 영토**만 통과할 수 있다.
+- 이동 속도는 기존 Formation 기준과 동일한 **15 calendar-day / 1 tile**이다.
+- 철군 이동은 점령을 만들지 않는다.
+- 철군 Formation은 전투를 시작하지 않는다.
+- 평시 `BORDER`, `RESOURCE`, `ADMIN`, `FRONTIER` 목표가 철군 명령을 덮어쓰지 못한다.
+- 자국 영토에 들어오는 순간 철군 상태가 종료되고 기존 V0.32D 평시 Formation planner에 다시 연결된다.
+
+### 평시 외국군 invariant
+
+매 pulse에서 다음 상태를 검사한다.
+
+```text
+active war 없음
+AND Formation tile.ownerId != Nation.id
+```
+
+위 조건이면 해당 부대는 자동으로 철군 상태로 복구된다. 기존 V0.33 저장을 불러왔을 때 이미 외국 영토에 고립된 Formation도 이 경로로 복구된다.
+
+주요 이벤트:
+
+- `FOREIGN_FORMATION_RECOVERY33A`
+- `POSTWAR_WITHDRAWAL_STARTED33A`
+- `POSTWAR_WITHDRAWAL_MOVE33A`
+- `POSTWAR_WITHDRAWAL_COMPLETED33A`
+- `POSTWAR_WITHDRAWAL_BLOCKED33A`
+
+철군 중인 국가는 새 전쟁 선포 후보에서 제외된다.
+
+## A.2 저장 / 불러오기
+
+V0.32D `MilitaryFormation.from()`은 정의된 기본 필드만 복원하므로, V0.33A는 철군 상태를 별도로 `v33a.withdrawals[]`에 저장한다.
+
+따라서 철군 도중 저장한 뒤 다시 불러와도 다음 정보가 유지된다.
+
+- Formation ID
+- 직전 상대 Nation ID
+- 관련 War ID
+- 철군 시작일
+- 마지막 철군 이동일
+- 철군 source
+
+## A.3 지도 전쟁 가시성
+
+활성 전쟁이 하나라도 있으면 지도 상단에 붉은 전쟁 배너를 표시한다.
+
+표시 정보:
+
+- 교전국
+- 전쟁 경과일
+- 현재 전투 횟수
+
+지도 위에는 추가로:
+
+- 교전국 사이 실제 국경: **붉은 점선 전선**
+- 전쟁 참가 Field Formation: **붉은 링**
+- 기존 점령 타일: V0.33 사선 점령 표시 유지
+
+를 사용한다.
+
+## A.4 War History
+
+`World.v33War.wars[]`는 V0.33부터 종료된 전쟁도 삭제하지 않고 유지한다. V0.33A는 이 기록을 UI에서 직접 열람할 수 있게 한다.
+
+### 통계 탭
+
+`⚔ 전쟁 기록` 패널에서 모든 전쟁을 최신순으로 표시한다.
+
+- 공격국 / 방어국
+- 시작일 / 종료일 / 기간
+- 승전국
+- 종전 이유
+- 전투 횟수
+- 양측 전사 / 부상
+- 양측 누적 점령 타일
+- 수도 점령 여부
+
+### 국가 > 군사
+
+선택 국가가 참가한 최근 5개 전쟁을 요약해서 표시한다.
+
+- 상대국
+- 승전 / 패전 / 진행 중
+- 기간
+- 전투 수
+- 수도 점령 / 피점령 여부
+
+### 전쟁 이력 보존
+
+V0.33A부터 War record의 `history33A`에 다음을 누적한다.
+
+- 국가별 unique occupied tile IDs
+- 현재 점령 tile IDs
+- 최대 동시 점령 수
+- 수도 점령 여부
+- 수도 최초 점령 시점
+
+기존 V0.33 저장은 남아 있는 `WAR_DECLARED33`, `TILE_OCCUPIED33`, `TILE_LIBERATED33`, `WAR_ENDED33` telemetry를 이용해 가능한 범위까지 자동 보강한다. telemetry가 이미 압축되어 해당 이벤트가 없다면 기본 War record 정보만 표시한다.
+
+## A.5 Telemetry / CSV
+
+V0.33A 추가 세계 지표:
+
+- `withdrawingFormations33A`
+- `peacetimeForeignFormations33A`
+- `warHistoryCount33A`
+- `capitalOccupations33A`
+
+국가별 추가 지표:
+
+- `withdrawingFormations33A`
+- `peacetimeForeignFormations33A`
+
+정상 평시 장기주행의 핵심 invariant는 다음이다.
+
+```text
+peacetimeForeignFormations33A = 0
+```
+
+## A.6 회귀 검증
+
+최종 V0.33A 빌드에서 다음을 확인했다.
+
+- inline script 73개 syntax pass
+- Chromium startup/runtime error 0
+- 평화 외국군 fixture: 자동 탐지 → 철군 → 자국 복귀 → foreign 0
+- 3타일 철군: 15일 간격 다단계 이동 완료
+- 철군 도중 save/load 후 상태·last move 보존
+- 철군 완료 뒤 기존 평시 Formation 상태로 복귀
+- 강제 전쟁에서 지도 전쟁 배너 표시
+- 종료 전쟁이 통계 War History에 남음
+- 수도 점령 history가 save/load 후 유지
+- 3년 자연 smoke 정상
+- snapshot CSV 704열 / schema mismatch 0
+
+---
+
+# V0.33 War V1 원본 설계
+
+아래는 V0.33 본패치의 상세 기술 문서이며 V0.33A에서도 그대로 유지된다.
+
 
 # 1. War State / 선전포고
 
