@@ -1,410 +1,406 @@
-# Village Observer V0.32E9
+# Village Observer V0.32E10
 
-**패치명:** Endpoint / Formation Consistency + E8 Stabilization  
-**기준 버전:** V0.32E8  
+**패치명:** Hunger Homeostasis + Maintenance Performance  
+**기준 버전:** V0.32E9  
 **날짜:** 2026-09-28
 
-V0.32E9는 V0.32E8 PC 장기주행에서 확인된 기능적 회귀를 닫고, 104년 전후에 나타난 계절 처리 성능 급등을 다음 자연주행에서 직접 분해할 수 있도록 관측 지표를 확장하는 안정화 패치다.
+V0.32E10은 14×14 장기 자연주행에서 아렌이 1명까지 감소한 뒤, 정착지에 수백 일분의 식량을 보유하고 식량을 해외에 판매하면서도 유일한 주민의 Hunger가 60~80대에 장기간 머문 사례를 계기로 만든 생존·성능 안정화 패치다.
 
-이번 버전은 새로운 시대·콘텐츠를 추가하는 패치가 아니다. 핵심은 다음 다섯 가지다.
+이번 패치의 우선순위는 다음 세 가지다.
 
-1. 승격된 상업시설이 기존 교역 endpoint 기능을 잃는 문제 수정
-2. 군사 상세 UI가 야전군을 주둔군에도 중복 표시하는 문제 수정
-3. E8 Grand Market 지역권 후보가 실제 착공으로 이어지지 않는 경로 보강
-4. Construction Proposal의 `OTHER` 과다 분류 해체
-5. `seasonal` 성능을 하위 시스템별로 분해하는 profiler 추가
+1. 충분히 먹는 Person의 Hunger가 정상 범위로 되돌아오지 않던 장기 생존 로직 수정
+2. 분기 유지보수 finalization의 반복 donor/route 계산 최적화
+3. E9 seasonal `unattributed` 시간을 유지보수 finalize / 새 plan 작성 / 나머지 legacy 처리로 추가 분해
 
----
-
-## 1. 교역 endpoint 상속 수정
-
-### 문제
-
-E8 자연주행에서 아렌은 과거 국제교역을 수행했음에도 후기에는 모든 국가에 대해 `교역소/시장 연결 없음`으로 표시되었다. 로그상 경로 거리나 도로 탐색 실패가 아니라 `NO_ROUTE_MARKET`이 주요 원인이었고, 아렌에는 Merchant Guild가 존재했지만 기본 `trading_post` 수가 0이었다.
-
-원인은 상업시설 승격 체계와 교역 endpoint 열거 방식 사이의 불일치였다.
-
-- `trading_post -> merchant_guild`
-- `market -> grand_market`
-
-타일의 semantic `hasBuilding()` 판정은 승격시설이 하위 기능을 유지한다고 처리하고 있었지만, 국가의 `tradingPosts()`는 실제 배열에서 `trading_post` 타입만 직접 찾고 있었다. 따라서 마지막 교역소가 Merchant Guild로 승격되면 더 강한 상업시설을 보유하고도 국제교역 endpoint가 0이 될 수 있었다.
-
-### 수정
-
-E9부터 교역 endpoint는 **semantic capability**를 기준으로 열거한다.
-
-- `merchant_guild`는 `trading_post` endpoint 기능을 유지한다.
-- `grand_market`은 `market` 기능을 유지한다.
-- `Village.tradingPosts()`는 `Tile.hasBuilding('trading_post')` 기반으로 판정한다.
-- E9 attach 시 `tradeRouteCache`를 초기화하여 E8에서 이미 캐시된 잘못된 `NO_ROUTE` 결과가 세이브 로드 후 남지 않게 한다.
-
-### 신규 관측값
-
-국가별 snapshot/CSV에 다음 필드가 추가된다.
-
-- `tradeEndpointBase32E9`
-- `tradeEndpointPromoted32E9`
-- `tradeEndpointTotal32E9`
-- `marketEndpointBase32E9`
-- `marketEndpointPromoted32E9`
-- `marketEndpointTotal32E9`
-- `reachableTradeNations32E9`
-
-따라서 이후에는 `승격 교역시설은 있는데 endpointTotal=0` 같은 회귀를 바로 확인할 수 있다.
+E9에서 수정한 Merchant Guild endpoint 상속, Guild handling saving, Grand Market regional specialization, Proposal blocker 세분화, Garrison/Field roster invariant는 그대로 유지한다.
 
 ---
 
-## 2. 군사 Formation / Garrison roster 일치 수정
+## 1. Hunger Homeostasis
 
 ### 문제
 
-리오의 실제 후기 병력은 다음과 같았다.
+V0.27 이후 실제 로컬 식사 경로에서는 Person이 행동할 때 Hunger가 먼저 약 `+5~8` 증가하고, 식사에 성공하면 다시 약 `-5~8` 감소한다.
 
-- 현역 10명
-- 주둔군 5명
-- 야전군 5명
-
-지도와 Formation V1 데이터는 위 배치를 정상적으로 표시했지만, 국가 군사 상세 화면의 `리오 제1주둔대`에는 현역 전체 10명이 표시되었다. 아래 야전대 5명도 별도로 표시되므로 UI상 15명이 존재하는 것처럼 보였다.
-
-원인은 V0.32B의 summary 함수가 UI/telemetry 조회 시에도 `syncFormation32B()`를 호출하여 모든 현역을 다시 `CORE_GARRISON`에 집어넣는 **읽기 부작용**이었다. 이후 Formation V1이 실제 배치를 다시 나누더라도 이미 생성된 UI summary에는 중복 roster가 남을 수 있었다.
-
-### 수정
-
-Formation V1이 존재하는 버전에서는 V0.32B summary가 더 이상 구형 garrison sync를 수행하지 않는다.
-
-- `V032D.ensureFormations()`를 우선 사용
-- Formation V1이 없는 구형 환경에서만 기존 `syncFormation32B()` fallback 사용
-- 주둔 Cohort와 FIELD Cohort를 실제 Person ID 기준으로 검사
-
-### 신규 invariant
-
-국가별 snapshot/CSV에 다음 값이 추가된다.
-
-- `militaryGarrisonManpower32E9`
-- `militaryFieldManpower32E9`
-- `militaryRosterDuplicates32E9`
-- `militaryRosterInvariant32E9`
-
-정상 조건은 다음과 같다.
+기댓값만 보면 다음과 같다.
 
 ```text
-주둔군 + 야전군 = 현역
-중복 Person = 0
-militaryRosterInvariant32E9 = 1
+행동 Hunger 증가 평균  +6.5
+식사 Hunger 감소 평균  -6.5
+--------------------------------
+평균 순변화             약 0
 ```
 
-군사 상세 탭 하단에도 E9 검증 박스를 표시한다.
+따라서 식량을 계속 정상적으로 먹어도 이미 높아진 Hunger를 낮은 정상 범위로 되돌리는 장기적인 복원력이 없었다.
+
+초기 로직에는 식사 후 Hunger를 약 22 방향으로 조금씩 되돌리는 homeostasis 항이 존재했지만, 로컬 재고 기반 식사로 전환되는 과정에서 빠졌다.
+
+### E10 수정
+
+기존 행동/식사 변동은 그대로 유지하고, **식사 성공 후에만** 다음 항을 추가한다.
+
+```js
+hunger += (20 - hunger) * 0.05;
+```
+
+즉:
+
+- 목표 Hunger: `20`
+- 식사 1회당 목표값 방향 회복률: `5%`
+- 기존 `+5~8` 행동 증가 유지
+- 기존 `-5~8` 식사 감소 유지
+- 결식 및 부분결식 패널티 유지
+- Hunger 100의 12 calendar-day starvation grace 유지
+
+높은 Hunger에서는 빠르게 회복하고, 20에 가까워질수록 변화량이 자연스럽게 줄어든다.
+
+예시:
+
+```text
+식사 직후 Hunger 80 -> 추가 -3.0
+식사 직후 Hunger 60 -> 추가 -2.0
+식사 직후 Hunger 40 -> 추가 -1.0
+식사 직후 Hunger 25 -> 추가 -0.25
+식사 직후 Hunger 10 -> 추가 +0.5
+```
+
+따라서 식량이 충분한 주민은 장기적으로 20 부근을 중심으로 흔들리고, 실제 결식이 이어지는 경우에만 높은 Hunger가 유지·상승한다.
 
 ---
 
-## 3. Grand Market regional trigger -> 실제 specialization 연결
+## 2. 식사 telemetry
 
-### E8에서 확인된 현상
+E10은 Person hot loop에 `performance.now()`를 추가하지 않는다. 기존 식사 코드가 이미 얻는 `got` 값을 재사용하여 정수/누적값만 기록한다.
 
-E8 장기주행에서는 Grand Market 지역권 후보가 반복적으로 잡혔지만 `grandMarketStarts32E8`이 0으로 유지되었다. 일부 Grand Market은 존재했지만 이는 E7 구형 specialization 경로에서 시작된 것이었다.
+세계 및 국가별로 다음 값이 추가된다.
 
-두 경로가 동시에 존재하면서 다음 문제가 있었다.
+- `hungerMealAttempts32E10`
+- `hungerMealSuccesses32E10`
+- `hungerMealFailures32E10`
+- `hungerFoodConsumed32E10`
+- `hungerRecoveryApplied32E10`
 
-1. E7의 구형 tile-local specialization이 E8 지역권 로직보다 먼저 실행될 수 있음
-2. E8 `tryCommercial()`이 정렬된 첫 번째 후보만 실질적으로 다루면, 첫 후보가 막힌 경우 뒤의 READY 후보가 굶을 수 있음
+`hungerFoodConsumed32E10`은 기본 식사량과 V0.29에서 추가된 식량 요구량을 합산한다.
 
-### 수정
-
-E9에서는 E8 이상 환경에서 **E8 지역권 상업 specialization이 단일 소유자**가 된다.
-
-- E7 구형 specialization trigger는 `NS.V032E8`이 존재하면 실행하지 않는다.
-- E8 `tryCommercial()`은 후보 전체를 순회한다.
-- 첫 후보가 FINANCE / PRIORITY 등에 막혀도 뒤의 READY 후보를 검사한다.
-- SPACE 준비가 필요한 후보는 기존 공간 준비 경로를 유지한다.
-- Grand Market regional candidate 카운터는 UI/telemetry 조회에서 증가하지 않고 실제 계절 specialization 평가에서만 증가한다.
-
-즉 관측 함수 호출 자체가 `grandMarketRegionalCandidates32E8`을 부풀리는 부작용도 제거했다.
+이를 통해 이후에는 `Hunger가 높다`는 결과만 보지 않고 실제로 그 주민들이 **먹었는지 / 못 먹었는지**를 직접 확인할 수 있다.
 
 ---
 
-## 4. Construction Proposal blocker 세분화
+## 3. FOOD_ACCESS_PARADOX invariant
 
-### 문제
+Hunger 공식 자체를 고쳐도 이후 다른 물류·재고 회귀가 생길 수 있으므로 별도 생존 invariant를 추가한다.
 
-E8에서 Proposal V1 자체는 실제 착공으로 연결되었지만 blocker의 약 절반이 `OTHER`로 집계되었다. 대표적으로 철광 매장이 없는 국가의 `iron_mine` 제안도 기존 산업 진단에서는 `NO_DEPOSIT`으로 명확했는데 Proposal schema에서는 `OTHER`로 축약되었다.
+분기 평가 시 각 유인 정착지에 대해 다음 조건을 검사한다.
 
-### 수정
+```text
+현지 식량 비축 >= 30일
+AND
+해당 정착지 주민의 max Hunger >= 70
+```
 
-E9에서는 다음 원인을 별도로 보존한다.
+이 상태가 분기 사이에서도 이어져 약 90 calendar-day 이상 지속되면 다음 이벤트를 기록한다.
 
-- `NO_DEPOSIT`
-- `NO_SITE`
-- `SATISFIED`
+```text
+FOOD_ACCESS_PARADOX32E10
+```
 
-기존 blocker 역시 유지한다.
+로그에는 다음 내용이 포함된다.
 
-- `READY`
-- `PROJECT_CAP`
-- `FINANCE`
-- `MATERIAL`
-- `SPACE`
-- `TECH`
-- `SURVIVAL`
-- `PRIORITY`
+- 국가 / 정착지 타일
+- 주민 수
+- 현지 식량 재고
+- 현지 비축일수
+- 평균 Hunger
+- 최대 Hunger
+- 지속 calendar-day
 
-국가 UI의 상업/경제 영역에는 동시에 두 상태를 표시한다.
+국가별 snapshot/CSV에는 다음 값이 추가된다.
 
-- 현재 가장 높은 **실행 가능 Proposal**
-- 현재 가장 높은 **차단 Proposal + raw blocker**
+- `foodParadoxEvents32E10`
+- `foodParadoxActiveTiles32E10`
+- `foodParadoxMaxStreakDays32E10`
 
-이를 통해 `IRON:iron_mine / OTHER`처럼 진단 정보가 사라지는 현상을 줄였다.
-
-### 신규 세계 통계
-
-- `constructionBlockNoDeposit32E9`
-- `constructionBlockNoSite32E9`
-- `constructionBlockSatisfied32E9`
+이 진단은 식량을 생성하거나 Hunger를 직접 수정하지 않는다.
 
 ---
 
-## 5. Merchant Guild handling saving telemetry 복구
+## 4. 고 Hunger 정착지의 식량 수출 안전장치
 
-### 문제
+아렌 사례에서는 주민이 높은 Hunger 상태인데 같은 단일 정착지의 식량이 해외로 계속 판매되는 역설도 관측됐다.
 
-E8에서는 Merchant Guild가 실제 국제거래를 처리하고 운송서비스 수입도 발생했지만 `guildRegionalHandlingSavings32E8`이 계속 0이었다.
+E10은 국제 식량 거래 실행 직전에 판매 endpoint를 마지막으로 검사한다.
 
-원인은 D5 quote bridge가 최종 `transportFactor`는 전달했으나 E8이 절감액 계산에 필요로 하는 `guildHandlingFactor`를 전달하지 않았기 때문이다. 따라서 실제 운송비 계산에는 Guild 할인이 반영돼도 telemetry에서는 factor 기본값 1을 사용했다.
+다음 두 조건이 동시에 충족되면 해당 식량 수출만 거부한다.
 
-### 수정
+```text
+판매 정착지 현지 비축 >= 30일
+AND
+판매 정착지 max Hunger >= 85
+```
 
-E9는 최종 quote에 명시적 `guildHandlingFactor`가 없을 때 다음 요소에서 Guild 전용 할인 factor를 복원한다.
+이 기능은 정상적인 식량 무역을 대체하는 정책이 아니라 **생존 invariant의 마지막 안전장치**다.
 
-- 최종 `transportFactor`
-- 해상 거래라면 harbor efficiency factor
-- 육상 거래라면 harbor factor = 1
+- 다른 자원 수출에는 영향 없음
+- 다른 정상 식량 정착지에는 영향 없음
+- Gold나 식량을 생성하지 않음
+- 차단된 후보 뒤에 다른 거래 후보가 있으면 기존 autonomous trade 탐색이 계속될 수 있음
 
-복원된 Guild factor로 절감액을 계산해 E8/E7 telemetry에 반영한다.
+관측값:
 
-**중요:** 이 보정은 실제 Gold 이동을 한 번 더 할인하거나 새 Gold를 생성하지 않는다. 이미 적용된 운송비 할인 효과와 telemetry 수치가 일치하도록 **관측값만 복구**한다.
+- `foodExportGuardBlocks32E10`
+- 이벤트 `FOOD_EXPORT_GUARD32E10` — 동일 타일은 로그 스팸 방지를 위해 최소 30 calendar-day 간격
 
-추가 관측값:
-
-- `guildHandlingSavingsRecovered32E9`
-- `guildHandlingSavingsRecoveries32E9`
-
----
-
-## 6. Seasonal Profiler V1
-
-### 배경
-
-E8 PC 장기주행에서 104 -> 105년 구간은 현실시간 약 168초/게임 1년까지 악화되었다. 당시 coarse profiler에서는 `PersonAct`와 `villageDaily`보다 `seasonal` 비용의 급등이 특히 두드러졌다.
-
-E9는 이 현상을 곧바로 최적화하지 않는다. 먼저 다음 자연주행에서 정확한 하위 원인을 잡기 위해 seasonal 비용을 나눈다.
-
-### 분리 항목
-
-- `perfSeasonalIron32E9` — 철산업
-- `perfSeasonalMilitary32E9` — 군사시설
-- `perfSeasonalAdmin32E9` — 행정
-- `perfSeasonalFormation32E9` — Formation
-- `perfSeasonalHousing32E9` — 주거/확장
-- `perfSeasonalTradePlanner32E9` — 전략 교역망 planner
-- `perfSeasonalTradeLifecycle32E9` — trade intent lifecycle
-- `perfSeasonalCommerceProposal32E9` — 상업 specialization / Construction Proposal
-- `perfSeasonalUnattributed32E9` — 위 항목 이외의 seasonal 시간
-- `perfSeasonalTotal32E9` — 전체 seasonal 처리
-
-Profiler timer는 **계절 tick에서만** 동작한다. Person act / daily hot loop에는 새 timer를 넣지 않았다.
-
-이번 패치의 성능 목표는 `SIM을 줄였다`가 아니라 **다음 100년 전후 장기주행에서 병목을 분해할 수 있게 만드는 것**이다.
+Hunger homeostasis가 정상적으로 작동한다면 이 안전장치는 자연주행에서 매우 드물게 발동하는 것이 정상이다.
 
 ---
 
-## 7. UI 변경
+## 5. 유지보수 finalization donor cache
 
-### 국가 -> 교역 / 경제
+### E9 데이터에서 확인된 병목
 
-E9 검증 박스 추가:
+후기 대국의 분기 1일 처리에서 `finalizeMaintenancePlan25()`가 수 초를 차지하는 사례가 확인됐다.
 
-- 교역 endpoint: 기본 + 승격 + 총합
-- 시장 endpoint: 기본 + 승격 + 총합
-- 실제 연결국 수
-- 현재 READY Proposal
-- 상위 blocked Proposal
-- raw blocker
+기존 흐름은 건물별 유지보수 자재를 확정할 때마다 `routeWithdraw25()`가 다음 작업을 반복했다.
 
-### 국가 -> 군사
+1. 국가 영토 전체 donor 후보 열거
+2. 각 donor의 내부 물류 capacity/path cost 조회
+3. 유효 donor 정렬
+4. 실제 재고 및 route capacity 범위에서 인출
 
-E9 병력 배치 검증 박스 추가:
+한 타일에 여러 건물이 있을 경우 같은 `target settlement × resource` 조합에 대해 1~3을 반복했다.
 
-- 현역
-- 주둔군
-- 야전군
-- 중복 Person
-- 합계 invariant
+### E10 수정
 
-### 세계 -> 성능
+한 번의 quarterly finalize 안에서 다음 key로 donor 결과를 캐시한다.
 
-기존 성능 패널에 최신 seasonal 세부 시간을 한 줄로 추가한다.
+```text
+targetTileId × resource
+```
 
----
+캐시에는 donor의 정렬된 route/capacity 정보만 보존한다.
 
-## 8. Save / Export
+실제 인출 때는 매번 다시 다음을 확인한다.
 
-- 내부 버전: `0.32E9`
-- LocalStorage key: `village-observer-v0-32e9`
-- E8 이하 저장 키는 fallback load 대상으로 유지한다.
-- E9 세이브는 `World.from()`을 통해 E9 attach를 거친다.
-- E9 attach 시 교역 route cache를 초기화한다.
-- Devlog JSON version은 `0.32E9`이다.
-- CSV에 E9 endpoint / military / blocker / performance 필드가 추가된다.
+- 현재 donor stock
+- 해당 route에서 이미 사용한 capacity
+- 남은 필요량
 
-이전 버전에서 E9로 로드하는 것은 지원하지만, E9에서 저장한 데이터를 구버전으로 되돌려 읽는 backward compatibility는 보장하지 않는다.
+따라서 자원 보존과 기존 우선순위는 유지한다.
 
----
+캐시는 `finalizeMaintenancePlan25()`의 로컬 `routeUse` 객체 안에서만 존재하므로:
 
-## 9. 구현 후 회귀 테스트
+- 다음 분기로 넘어가지 않음
+- 도로/행정/기술 변화 뒤에 오래된 경로가 남지 않음
+- save/load 데이터에 캐시를 저장하지 않음
 
-패키징 전에 다음 검사를 수행했다.
+### 신규 telemetry
 
-### JavaScript syntax
-
-- HTML 내 inline script 66개 각각 `node --check`
-- syntax error: **0건**
-
-### 브라우저 smoke test
-
-Headless Chromium에서 문서 내용을 직접 로드해 검사했다.
-
-- 문서 제목: `Village Observer V0.32E9`
-- 버전 badge: `V0.32E9`
-- runtime status: E9 정상
-- `VSim.V032E9` 존재
-- 신규 world serialize version: `0.32E9`
-- console/page JavaScript error: **0건**
-
-### 승격 endpoint 회귀 테스트
-
-테스트 중 실제 `trading_post` 하나를 `merchant_guild`로 승격시킨 뒤 확인:
-
-- base endpoint: 0
-- promoted endpoint: 1
-- semantic endpoint total: 1
-- `tradingPosts()`에 해당 타일 유지
-- 타국 routeInfo에서 source endpoint로 사용 가능
-
-즉 아렌에서 확인된 `마지막 교역소 승격 -> reachable nations 0` 회귀를 직접 재현한 조건에서 수정이 작동했다.
-
-### 군사 roster 회귀 테스트
-
-현역 10명의 synthetic 상태를 만든 뒤 Formation V1 분할 후 V0.32B summary를 다시 호출했다.
-
-호출 전:
-
-- 현역 10
-- 주둔군 5
-- 야전군 5
-- 중복 0
-- invariant 정상
-
-V0.32B summary 호출 후:
-
-- 현역 10
-- 주둔군 5
-- 야전군 5
-- 중복 0
-- invariant 정상
-
-즉 UI/summary 조회가 FIELD Person을 CORE_GARRISON으로 다시 복사하지 않는다.
-
-### Guild saving bridge 테스트
-
-Guild factor 0.95, 운송서비스 Gold 10의 synthetic quote에서:
-
-- E8 원래 telemetry 절감값: 0
-- E9 복원 절감값: 약 `0.5263158`
-- recovery count: 1
-
-실제 Gold 흐름을 변경하지 않고 telemetry만 복원되는 것을 확인했다.
-
-### Seasonal profiler 테스트
-
-첫 seasonal tick 이후 다음 값이 모두 생성되는 것을 확인했다.
-
-- total
-- iron
-- military
-- admin
-- formation
-- housing
-- trade planner
-- trade lifecycle
-- commerce/proposal
-- unattributed
-
-### CSV / JSON 테스트
-
-- CSV header에 E9 endpoint/performance 필드 존재
-- Devlog JSON version `0.32E9`
-- snapshot global / nation에 E9 필드 기록
-
-### Save / Load round-trip
-
-`serialize -> JSON -> World.from -> serialize` 테스트 결과:
-
-- 저장 version: `0.32E9`
-- 로드 version: `0.32E9`
-- E9 state 유지
-- 오류 없음
+- `maintenanceDonorCacheBuilds32E10`
+- `maintenanceDonorCacheHits32E10`
+- `maintenanceRouteEvaluations32E10`
+- `maintenanceRouteEvaluationsAvoided32E10`
 
 ---
 
-## 10. 다음 자연주행에서 우선 볼 값
+## 6. Seasonal Profiler V2
 
-E9의 목적상 다음 테스트는 150년까지 무리해서 갈 필요가 없다. **100~110년 부근**에서 이미 E8의 핵심 병목 구간을 다시 확인할 수 있다.
+E9에서 전체 seasonal 비용의 대부분이 여전히 `perfSeasonalUnattributed32E9`에 남았다.
 
-특히 다음을 확인한다.
+E10은 유지보수 병목을 직접 분리한다.
 
-### 교역
+- `perfSeasonalMaintenanceFinalize32E10`
+  - 직전 분기 유지보수 노동/자재 실적 확정
+  - 건물 Condition 변화
+  - 원격 자재 인출
+- `perfSeasonalMaintenancePlan32E10`
+  - 다음 분기의 새 유지보수 order/mission plan 구성
+- `perfSeasonalLegacyOther32E10`
+  - `E9 unattributed - E10 maintenance finalize - E10 maintenance plan`
 
-- `tradeEndpointPromoted32E9 > 0`인데 `tradeEndpointTotal32E9 = 0`이 되는 국가가 없어야 한다.
-- 승격 이후 국제교역이 수십 년간 완전히 정지하는 국가가 없어야 한다.
-- `NO_ROUTE_MARKET`이 급증하면 endpoint 수와 함께 비교한다.
+Performance UI에도 이 세 값이 추가된다.
 
-### Grand Market
-
-- `grandMarketRegionalCandidates32E8` 증가 후 `grandMarketStarts32E8`가 실제로 증가하는지 확인한다.
-- 후보가 많은데 starts=0으로 장기간 고정되면 해당 시점 Proposal blocker를 본다.
-
-### Proposal
-
-- `OTHER` 비율이 E8보다 크게 낮아지는지 확인한다.
-- 철광 없는 국가는 `NO_DEPOSIT`으로 나타나는지 확인한다.
-
-### 군사
-
-- 모든 국가에서 `militaryRosterInvariant32E9 = 1`
-- `militaryRosterDuplicates32E9 = 0`
-
-### Merchant Guild
-
-- 거래가 처리되는 경우 `guildRegionalHandlingSavings32E8` / `guildHandlingSavingsRecovered32E9`가 0에 고정되지 않는지 확인한다.
-
-### 성능
-
-100년 전후에 SIM/Wall이 다시 급증하면 같은 시점의 다음 필드를 함께 비교한다.
-
-- `perfSeasonalTotal32E9`
-- 각 하위 seasonal field
-- `perfSeasonalUnattributed32E9`
-
-이 결과를 바탕으로 다음 성능 패치에서는 관측이 아니라 실제 hot path 제거/캐시/저빈도화 작업으로 넘어간다.
+이렇게 하면 다음 자연주행에서 유지보수 최적화 후에도 남은 seasonal 비용이 실제로 얼마나 되는지 즉시 확인할 수 있다.
 
 ---
 
-## 11. 아직 남아 있는 항목
+## 7. 검증
 
-V0.32E9에서 의도적으로 완료하지 않은 항목:
+### JavaScript 정적 검사
 
-- 자연 발생 해상교역을 통한 maritime transport accounting 장기 회귀 테스트
-- 100년 이후 SIM 자체의 근본 최적화
-- 전쟁/전투 활성화
-- 이후 시대 콘텐츠 확장
+`index.html`의 inline `<script>` 67개를 각각 `node --check`로 검사했다.
 
-E9는 E8의 기능 회귀와 진단 불투명성을 먼저 닫는 안정화 버전이다.
+```text
+67 scripts
+0 syntax errors
+```
+
+### Chromium smoke test
+
+로컬 Chromium에서 전체 HTML을 실행해 다음을 확인했다.
+
+- 제목 / 버전 배지: `V0.32E10`
+- `VSim.V032E10` 존재
+- serialize version: `0.32E10`
+- 최신 인게임 패치노트: `V0.32E10`
+- page error / console error: 0
+
+### Hunger 결정론 테스트
+
+조건:
+
+```text
+성인 1명
+시작 Hunger 90
+현지 식량 100
+Math.random() = 0.5 고정
+30회 metabolism
+```
+
+결과:
+
+```text
+Hunger: 90 -> 35.0247
+식량: 100 -> 87.4
+실제 소비: 12.6
+식사: 30/30 성공
+Hunger recovery: 30회 적용
+```
+
+이는 `20 + (90-20) × 0.95^30 ≈ 35.0`과 일치한다.
+
+반대 테스트:
+
+```text
+시작 Hunger 20
+현지 식량 0
+5회 metabolism
+```
+
+결과:
+
+```text
+Hunger: 20 -> 55.5
+식사 성공 0
+식사 실패 5
+```
+
+따라서 E10은 기근 자체를 약화시키는 것이 아니라 **먹었는데도 Hunger가 회복되지 않던 경로만 수정**한다.
+
+### 식량 수출 guard 테스트
+
+```text
+성인 1명
+Hunger 90
+현지 식량 100
+```
+
+조건에서 `foodExportGuard()`가 `true`를 반환하고 차단 telemetry가 1회 증가함을 확인했다.
+
+### 유지보수 결과 보존 테스트
+
+동일한 2타일 synthetic settlement에 여러 건물을 두고 E9와 E10을 비교했다.
+
+두 버전의 결과가 동일했다.
+
+```text
+건물 Condition: 전부 100
+donor wood: 498.66
+ donor stone: 499.43
+다음 분기 maintenance order의 type / laborNeed 동일
+```
+
+### 유지보수 synthetic 성능 테스트
+
+14×14 환경에서 연결된 80타일에 총 240개 유지보수 대상 건물을 둔 synthetic test를 세 번씩 실행했다.
+
+E9 finalize:
+
+```text
+약 452.1 ms
+약 388.7 ms
+약 344.9 ms
+```
+
+E10 finalize:
+
+```text
+약 172.1 ms
+약 132.4 ms
+약 123.5 ms
+```
+
+환경과 JIT warm-up의 영향을 받는 synthetic 값이므로 자연주행 성능을 그대로 의미하지는 않는다. 다만 동일 결과를 유지한 상태에서 반복 donor 계산 비용이 실제로 줄었음을 확인하는 회귀 테스트로 사용한다.
+
+---
+
+## 8. 다음 자연주행에서 볼 값
+
+E10은 100년 이상을 강제로 돌릴 필요가 없다. 작은 지도와 모바일에서는 다음 조건만 확보해도 충분하다.
+
+### Hunger
+
+특히 기근 후 회복한 국가를 관찰한다.
+
+정상 기대:
+
+```text
+식사 성공률 높음
++ 현지 food reserve 충분
+=> 평균 Hunger가 수십 년간 60~80에 고착되지 않음
+```
+
+확인 필드:
+
+- `hungerMealSuccesses32E10`
+- `hungerMealFailures32E10`
+- `hungerFoodConsumed32E10`
+- `foodParadoxEvents32E10`
+- `foodParadoxActiveTiles32E10`
+- `foodExportGuardBlocks32E10`
+
+### 유지보수 성능
+
+특히 영토 50타일 이상 / 건물 100개 이상 국가가 생긴 뒤 분기 1일을 본다.
+
+확인 필드:
+
+- `maintenanceDonorCacheBuilds32E10`
+- `maintenanceDonorCacheHits32E10`
+- `maintenanceRouteEvaluationsAvoided32E10`
+- `perfSeasonalMaintenanceFinalize32E10`
+- `perfSeasonalMaintenancePlan32E10`
+- `perfSeasonalLegacyOther32E10`
+- 기존 `perfSeasonalUnattributed32E9`
+- SIM / WALL
+
+목표는 E9처럼 한 국가의 maintenance finalize 하나가 수 초를 독점하는 현상을 크게 줄이는 것이다.
+
+---
+
+## 9. 호환성
+
+- E10은 E9 저장 형식을 상속한다.
+- E10 SaveSystem key: `village-observer-v0-32e10`
+- E9 이하 저장 키를 fallback으로 계속 탐색한다.
+- E10 export/save/devlog 파일명은 `v032E10`을 사용한다.
+- E10 save serialize version은 `0.32E10`이다.
+- E10 전용 Hunger/성능 통계가 없는 E9 이하 세이브는 0에서 시작한다.
+- 전쟁/전투는 여전히 비활성화 상태다.
+
+---
+
+## 10. E9에서 그대로 유지되는 핵심 수정
+
+E10은 다음 E9 수정사항을 되돌리지 않는다.
+
+- Merchant Guild가 Trading Post endpoint 자격을 상속
+- Grand Market이 Market capability를 상속
+- stale E8 trade route cache 초기화
+- Garrison / Field Person roster 중복 제거
+- `주둔 + 야전 = 현역`, duplicate = 0 invariant
+- E8 regional Grand Market 후보의 READY specialization 연결
+- Proposal `NO_DEPOSIT / NO_SITE / SATISFIED` 세분화
+- Guild handling saving telemetry 복구
+- E9 seasonal profiler V1
+
+V0.32E10은 새로운 콘텐츠 버전이 아니라 **Person 생존 일관성과 후기 simulation cost를 안정화하는 버전**이다.
