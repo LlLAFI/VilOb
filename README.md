@@ -1,4 +1,260 @@
-# Village Observer V0.32E11
+# Village Observer V0.32E12
+
+**패치명:** Hunger Curve V2 + Regression Observation  
+**기준 버전:** V0.32E11  
+**날짜:** 2026-09-28
+
+V0.32E12는 E11의 500명·20년 Hunger 회귀에서 확인한 **과도하게 빠른 0 수렴**을 수정하고, 같은 종류의 밸런스 문제를 앞으로 더 정확히 볼 수 있도록 Hunger 분포 telemetry와 Test Scenario V1.1, PersonAct profiler V2를 추가하는 E계열 안정화 패치다.
+
+E11의 고정식은 정상 식사마다 `-8 ~ -12`를 적용했다. 이 방식은 E10의 “식량이 충분한데 Hunger가 높은 값에 고착”되는 문제를 확실히 제거했지만, 풍족한 500명 코호트 실험에서는 H0/H20/H40/H60/H90이 1년차 이전에 사실상 0으로 사라졌다. 특히 행동 Hunger 증가가 `+5~8`, 식사 relief가 최소 `8`이었기 때문에 한 번 0에 도달한 Person은 정상 식사를 계속하는 한 거의 0에 고정되는 구조였다.
+
+E12는 명시적인 목표 Hunger를 다시 도입하지 않는다. 대신 **식사 직전 Hunger에 따라 식사의 회복 효과가 달라지는 2차 포화곡선**을 사용한다.
+
+---
+
+## 1. Hunger Curve V2
+
+정상적인 행동 Hunger 증가는 그대로 유지한다.
+
+```text
+근로 행동     +5 ~ +8
+비근로 행동   +4 ~ +6
+```
+
+기본 식사 성공 시, 식사 직전 Hunger를 `H`라고 두고:
+
+```js
+x = H / 100
+curve = 1 - (1 - x) ** 2
+
+relief = random(5.0, 6.0)
+       + random(3.0, 4.0) * curve
+
+Hunger = max(0, Hunger - relief)
+```
+
+즉:
+
+```text
+curve = 2x - x²
+```
+
+이다.
+
+### 해석
+
+- Hunger가 낮을수록 추가 회복분이 작다.
+- Hunger가 높을수록 식사의 회복 효과가 커진다.
+- 그러나 고 Hunger에서도 E11처럼 매 식사마다 고정 8~12가 빠지는 직선 회복은 아니다.
+- `target Hunger = 9` 같은 값을 직접 넣지 않는다.
+- 장기 평형은 Hunger 증가와 식사 relief가 만나는 지점에서 자연스럽게 형성된다.
+
+평균 난수값을 사용한 대략적인 relief는 다음 정도다.
+
+| 식사 직전 Hunger | 평균 relief |
+|---:|---:|
+| 0 | 5.5 |
+| 10 | 약 6.2 |
+| 20 | 약 6.8 |
+| 40 | 약 7.7 |
+| 60 | 약 8.4 |
+| 80 | 약 8.9 |
+| 100 | 약 9.0 |
+
+아사 판정은 바꾸지 않는다. Hunger 100의 기존 **12 calendar-day starvation grace**와 결식 패널티는 그대로 유지한다.
+
+---
+
+## 2. 500명 회귀 결과를 반영한 목표 동작
+
+E12의 신규 `Hunger Population Matrix · 500` fixture는 동일한 풍족 환경에 100명씩 다섯 코호트를 둔다.
+
+```text
+H0 / H20 / H40 / H60 / H90
+```
+
+60 simulation-step release smoke에서 평균 Hunger는 다음처럼 남았다.
+
+```text
+H0  → 약 7.0
+H20 → 약 12.5
+H40 → 약 19.7
+H60 → 약 28.2
+H90 → 약 45.7
+```
+
+즉 초기 Hunger 차이가 즉시 사라지지 않으며, Hunger 0인 집단도 장기간 정확히 0에 고정되지 않는다.
+
+이 결과는 최종 밸런스 확정값이 아니라 **E11보다 완만한 회복곡선이 실제 시뮬레이션에 적용됐는지 확인하는 release regression**이다. 자연주행 및 Food Deficit/Famine Recovery fixture 데이터를 추가로 보고 계수를 조정할 수 있다.
+
+---
+
+## 3. Hunger Distribution Telemetry
+
+평균 Hunger 하나만으로는 다음 상황을 구분하기 어렵다.
+
+```text
+사회 A: 모두 Hunger 12
+사회 B: 90%는 Hunger 0, 10%는 Hunger 100
+```
+
+두 사회는 평균만 보면 비슷하게 보일 수 있지만 의미는 전혀 다르다. E12는 세계와 국가 각각 Hunger를 다음 버킷으로 나눈다.
+
+```text
+H = 0
+1 ~ 10
+11 ~ 30
+31 ~ 60
+61 ~ 84
+85 ~ 94
+95 ~ 100
+```
+
+각 구간마다 `count`와 `share`를 내보내며, 추가로 다음을 기록한다.
+
+```text
+median
+p90
+max
+```
+
+대표 세계 필드:
+
+- `hunger0Count32E12`, `hunger0Share32E12`
+- `hunger1to10Count32E12`, `hunger1to10Share32E12`
+- `hunger11to30Count32E12`, `hunger11to30Share32E12`
+- `hunger31to60Count32E12`, `hunger31to60Share32E12`
+- `hunger61to84Count32E12`, `hunger61to84Share32E12`
+- `hunger85to94Count32E12`, `hunger85to94Share32E12`
+- `hunger95to100Count32E12`, `hunger95to100Share32E12`
+- `hungerMedian32E12`
+- `hungerP9032E12`
+- `hungerMax32E12`
+
+국가 단위에는 동일한 필드가 `Nation32E12` 접미사로 기록된다.
+
+Curve 자체도 다음을 누적한다.
+
+- 적용 meal 수
+- 식사 직전 평균 Hunger
+- 실제 평균 relief
+- clamp 전 요청 relief 평균
+- 평균 curve shape 값
+
+---
+
+## 4. Test Scenario V1.1
+
+파일 wrapper는 E11과 같은 `version: 1`을 유지해 기존 fixture와 호환한다. 대신 import 검증 단계가 V1.1로 강화된다.
+
+### import 순서
+
+```text
+parse
+→ World.from
+→ E12 attach
+→ Village / Person numeric validation
+→ population invariant
+→ real telemetry snapshot probe
+→ probe snapshot rollback
+→ SCENARIO_LOAD snapshot
+→ UI 적용
+```
+
+검증 대상에는 최소한 다음이 포함된다.
+
+- World/map/villages 존재
+- active Village의 유효한 core tile
+- `residents` 배열
+- Person의 age/health/hunger/energy/happiness finite 여부
+- 살아 있는 Person의 유효한 homeTileId
+- 실제 residents 생존자 수와 `world.allPeople`의 population invariant
+- 실제 telemetry snapshot이 예외 없이 생성되는지
+
+따라서 E11 개발 중 한 번 발생했던 `Cannot read properties of undefined (reading 'toFixed')` 형태의 잘못된 fixture는 UI에 붙기 전에 검출하는 것이 목표다.
+
+---
+
+## 5. E12 신규 Scenario 3종
+
+E12 배포물은 E11의 7종 fixture에 다음 3종을 추가해 총 10종을 포함한다.
+
+### Hunger Population Matrix · 500 · Curve V2
+
+- 5개 국가 × 100명
+- 시작 Hunger: 0 / 20 / 40 / 60 / 90
+- 풍족한 식량/생산 환경
+- 목적: Curve V2 수렴 형태와 0 고착 여부
+
+### Food Deficit · 500
+
+- 5개 국가 × 100명
+- 시작 Hunger 10
+- 매우 낮은 시작 Food와 제한된 생산 인력
+- 목적: 평균이 아니라 Hunger 분포가 식량 부족을 어떻게 드러내는지 관찰
+
+이 fixture는 일반 경제 밸런스 기준이 아니라 의도적으로 결식을 유발하는 stress scenario다.
+
+### Famine Recovery · 500
+
+- 5개 국가 × 100명
+- 시작 Hunger: 70 / 75 / 80 / 90 / 100
+- 즉시 충분한 식량 공급
+- 목적: 기근 종료 뒤 고 Hunger가 몇 번의 식사만으로 0이 되지 않고 완만하게 회복하는지 확인
+
+---
+
+## 6. PersonAct Profiler V2
+
+E11 500명 장기주행에서 `Person.act` 계열이 다음 성능 최적화의 핵심 후보로 남았다. E12는 동작을 바꾸기 전에 비용을 세분화한다.
+
+매 Person마다 `performance.now()`를 호출하지 않는다. 약 **1/32 Person.act**만 샘플링한 뒤 전체 비용으로 환산한다.
+
+필드:
+
+- `perfPersonActSamples32E12`
+- `perfPersonActEst32E12`
+- `perfPersonMetabolismEst32E12`
+- `perfPersonKnowledgeEst32E12`
+- `perfPersonJobReviewEst32E12`
+- `perfPersonWorkOtherEst32E12`
+- `perfDomesticEconomy32E12`
+- `perfMigrationSocial32E12`
+
+`work/other`는 sampled Person.act 전체 시간에서 metabolism, knowledge, job review를 뺀 잔여 비용이다. 산업 직업 특수 처리, 생산, 각종 wrapper 비용 등이 여기에 포함될 수 있으므로 E13 최적화 대상을 찾는 진단값으로 사용한다.
+
+국내경제와 migration/social은 Person hot loop에 억지로 타이머를 넣지 않고 기존 저빈도 호출 위치에서 직접 측정한다.
+
+---
+
+## 7. 호환성과 변경하지 않은 규칙
+
+- E11/E10 이하 save fallback 유지
+- E11 Test Scenario v1 fixture 7종을 E12 V1.1 loader에서 하위호환
+- E10 Food Access Paradox / Food Export Guard 유지
+- E10 maintenance donor cache 유지
+- E9 상업 endpoint/군사 roster 수정 유지
+- E6 transport accounting 유지
+- 전투는 여전히 비활성
+- Hunger 100 starvation grace 12 calendar days 유지
+
+---
+
+## 8. 릴리스 검증 체크리스트
+
+- 모든 inline script JavaScript syntax pass
+- Chromium startup exception 0
+- E12 새 World 생성/렌더 pass
+- E11 7종 + E12 3종, 총 10종 Test Scenario import V1.1 pass
+- E12 scenario import 후 population invariant pass
+- E12 Matrix 500: 60-step에서 H0/H90 코호트가 동일값으로 붕괴하지 않음
+- E12 Famine Recovery 500: 고 Hunger가 60-step 뒤에도 단계적으로 남음
+- E12 Food Deficit 500: 결식 시 H95~100 tail을 Hunger distribution에서 관찰 가능
+- Save serialize version `0.32E12`
+
+---
+
+## 부록 A. V0.32E11 상세 기술 문서
 
 **패치명:** Hunger Satiety + Test Scenario V1 + Maritime Regression  
 **기준 버전:** V0.32E10  
