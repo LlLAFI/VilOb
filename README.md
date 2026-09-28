@@ -1,4 +1,488 @@
-# Village Observer V0.32F
+# Village Observer V0.33
+
+**패치명:** War V1  
+**기준 버전:** V0.32F  
+**날짜:** 2026-09-28
+
+V0.33은 V0.32에서 완성한 **실제 Person 기반 군사사회**를 처음으로 실제 전쟁에 연결하는 버전이다.
+
+V0.32F까지의 군사 흐름은 다음 단계에서 멈춰 있었다.
+
+```text
+Person
+→ Reserve / Active Military
+→ Garrison / Field Cohort
+→ Formation
+→ Training / Equipment / Supply / Readiness
+→ 전투 직전
+```
+
+V0.33 War V1은 여기에 다음 최소 전쟁 루프를 추가한다.
+
+```text
+전쟁 판단
+→ 선전포고
+→ 적 영토 Formation 이동
+→ 실제 병력 교전
+→ Person 전사 / 부상
+→ 패배 Formation 후퇴
+→ 임시 점령
+→ War Exhaustion
+→ 종전 / 점령지 반환
+```
+
+이번 버전의 목표는 복잡한 전략 게임을 한 번에 완성하는 것이 아니다. **기존 인구·산업·군수·물류 차이가 실제 전쟁 결과에 연결되는 최소 완성형 루프**를 만드는 것이 목적이다.
+
+V0.33에서는 영구 영토 할양, 배상금, 동맹, 참전 요청, 포로, 해전, 봉쇄, 공성전, 병종, 장군·전술, 무기 국제무역을 의도적으로 제외한다.
+
+---
+
+# 1. War State / 선전포고
+
+## 1.1 전쟁 상태
+
+World는 `v33War`를 보유한다.
+
+주요 구조:
+
+- `wars[]`: 현재 및 과거 전쟁
+- `nextWarId`
+- `recentPeaceByPair`
+- 세계 누적 전쟁/전투/사상자/점령 통계
+
+War record에는 다음이 저장된다.
+
+- attacker / defender Nation ID
+- 시작일 / 종료일
+- 전투 횟수
+- 국가별 전사·부상
+- 국가별 전투 승/패
+- War Exhaustion
+- 점령 발생 수
+- 종전 이유 / 승자(명확한 경우만)
+
+V1에서는 **한 국가는 동시에 하나의 전쟁만 수행**한다.
+
+## 1.2 AI 전쟁 검토
+
+AI는 매일 전쟁을 판단하지 않는다. 약 **90 calendar-day 저빈도 cadence**로만 검토한다.
+
+기본 진입 조건:
+
+- 세계 연도 35년 이상
+- 양국 모두 active
+- 어느 쪽도 다른 active war 없음
+- 양국 사이 실제 국경 접촉 존재
+- 최근 같은 상대와 종전한 뒤 720일 이상
+- 공격국에 `WATCHTOWERS` 또는 `ADMINISTRATION`
+- Field Formation 실제 병력 2명 이상
+- Field Readiness 52 이상
+- 식량 비축일 28일 이상
+
+전쟁 점수에는 다음이 들어간다.
+
+- V0.32 전략적 우려
+- 양국 관계의 적대도
+- 국경 접촉 규모
+- 실제 병력 + Readiness 기반 상대전력
+- 국가 AI 성향
+- 최근 양국 교역 의존도
+
+점수가 76 미만이면 전쟁을 시작하지 않는다. 임계값을 넘은 경우에도 90일 검토마다 약 **3.5~18%** 범위의 제한된 확률을 사용해 전쟁 난발을 억제한다.
+
+전쟁 시작 시 양국 관계는 강한 적대 상태로 내려가고 bilateral trade는 기존 관계 gate에 의해 자연스럽게 중단된다.
+
+---
+
+# 2. War Formation Movement
+
+## 2.1 평시 이동과 전시 이동 분리
+
+V0.32D Formation 경로는 의도적으로 **자국 영토만 통과**한다.
+
+V0.33은 이 코드를 전역적으로 바꾸지 않는다.
+
+- 평시: 기존 V0.32D 이동 그대로
+- 전시: 해당 전쟁의 Field Formation만 V0.33 전용 이동 사용
+
+전쟁 중에는 기존 D 이동기가 같은 Formation을 자국 전략지점으로 다시 끌어당기지 않도록 공간 상태를 보호하고, V0.33 이동 결과만 실제 위치에 남긴다.
+
+## 2.2 이동 규칙
+
+전시 Field Formation은 약 **15 calendar-day마다 1타일** 이동한다.
+
+경로에 사용할 수 있는 타일:
+
+- 자국 영토
+- 현재 교전 중인 적국 영토
+
+제3국 및 미소유 타일을 전쟁 경로의 지름길로 사용하지 않는다.
+
+도로는 기존 물리 도로를 그대로 사용해 이동 경로비를 낮춘다.
+
+우선 목표:
+
+1. 적에게 점령당한 자국 타일 탈환
+2. 접근 가능한 적국 영토
+3. 수도·인구·시장·Armory·행정거점 등 전략가치가 높은 타일
+
+---
+
+# 3. Battle V1
+
+## 3.1 실제 병력
+
+전투 병력은 새 숫자로 생성하지 않는다.
+
+Field Formation의 `cohortIds → memberIds → 실제 alive Person`을 추적한다.
+
+적 수도에서는 기존 `CORE_GARRISON`도 실제 방어 병력으로 참가한다.
+
+따라서 전투 전후의 인구와 Cohort roster가 동일한 Person 집합을 공유한다.
+
+## 3.2 전투력
+
+각 전투 단위의 기본 quality는 다음 요소를 사용한다.
+
+```text
+0.42
++ Training / 250
++ Equipment / 250
++ Supply / 280
++ Morale / 400
+```
+
+이를 실제 병력 수와 곱하고, 방어측이 자기 영토에서 싸울 경우 지형·시설 보정을 적용한다.
+
+대표 방어 보정:
+
+```text
+Forest          ×1.08
+Rock            ×1.11
+Mountain        ×1.20
+Watchtower      +0.07
+Fortification   +0.12
+Barracks        +0.04
+Capital defense +0.06
+```
+
+최종 전투력에는 ±8% 수준의 제한된 전투 변동이 들어간다.
+
+V0.33의 목적은 전술 시뮬레이션이 아니라 **V0.32에서 쌓아 온 Training / Equipment / Supply / Morale 차이를 실제 승패에 연결**하는 것이다.
+
+## 3.3 사상자
+
+패배측은 대략 9~30%, 승리측은 약 2.5~12% 범위에서 사상 위험을 가진다. 전력차가 클수록 패배측 피해가 증가한다.
+
+사상자로 선택된 실제 Person은:
+
+- 약 36%: 전사
+- 나머지: 부상
+
+으로 분기한다.
+
+### 전사
+
+- 실제 `Person.alive = false`
+- 실제 Cohort member ID에서 제거
+- 실제 인구 감소
+- `WAR_DEATH33` 기록
+
+### 부상
+
+- `militaryStatus32A = wounded`
+- active Cohort에서 제거
+- 45~120 calendar-day 회복기간
+- 회복 중 민간 직업 활동 중단
+- 낮은 활동량의 식량 소비·건강 회복
+- 회복 후 조건에 따라 reserve 또는 civilian 복귀
+
+포로는 V1에서 사용하지 않는다.
+
+---
+
+# 4. Retreat V1
+
+전투에서 패배한 Field Formation은 그 자리에서 삭제되지 않는다.
+
+가능하면 인접한 자국 타일 중 본거지 방향으로 후퇴한다.
+
+적 영토 깊숙이 들어가 인접 자국 타일이 없는 경우 V1은 장거리 전멸/포로 모델 대신 **본국 핵심지점으로 강제 철수하는 aggregate fallback**을 사용한다.
+
+후퇴 Formation은 `RETREATING` 상태가 되고 다음 전시 이동부터 다시 전선을 형성한다.
+
+Telemetry:
+
+- `FORMATION_RETREAT33`
+
+---
+
+# 5. Temporary Occupation V1
+
+## 5.1 소유권과 점령권 분리
+
+점령으로 `ownerId`를 바꾸지 않는다.
+
+Tile에는 별도로 다음이 기록된다.
+
+- `v33OccupierId`
+- `v33OccupationWarId`
+- `v33OccupationSinceCal`
+
+즉 다음과 같은 상태가 가능하다.
+
+```text
+법적/원래 소유자: Nation A
+현재 군사 점령자: Nation B
+```
+
+이는 V1 전투 한 번으로 국경선이 영구 변경되는 현상을 방지한다.
+
+## 5.2 점령 효과
+
+점령 타일의 자연자원 채취량은 정상의 **65%**로 감소한다.
+
+또한 V0.32F Supply가 선택한 지원거점이 적에게 점령된 경우 해당 Cohort Supply를 추가로 **72% 수준으로 감쇠**하고 Readiness를 다시 계산한다.
+
+자국 Formation이 점령지에 재진입하면 즉시 해방된다.
+
+종전 시 해당 전쟁의 모든 점령은 자동 해제되고 원래 `ownerId`가 그대로 유지된다.
+
+이 버전에는 영구 합병이 없다.
+
+---
+
+# 6. War Exhaustion / Peace V1
+
+War Exhaustion은 대략 다음 압력을 합성한다.
+
+- 전쟁 지속기간
+- 실제 Person 전사 비율
+- 부상 비율
+- 자국 피점령 타일
+- 낮은 식량 비축
+- 낮은 Treasury Gold
+- 전투 패배 누적
+
+일반적인 전쟁은 최소 약 **180 calendar-day** 이전에는 피로도만으로 자동 종전하지 않는다.
+
+다만 전쟁 시작 후 90일 이상 지나 한쪽 야전 전력이 완전히 붕괴하면 `FIELD_FORCE_COLLAPSE`로 조기 종전할 수 있다.
+
+전쟁 피로가 충분히 높으면 월 단위 종전 검토에서 휴전 가능성이 상승한다.
+
+명확한 피로 격차가 있을 때만 winner를 기록한다. 그 외에는 승패를 강제로 선언하지 않는다.
+
+V1 종전 처리:
+
+- 전쟁 상태 종료
+- 모든 temporary occupation 반환
+- Formation 귀환 목표 설정
+- 관계를 즉시 우호화하지는 않지만 극단적 전시 적대에서 휴전 수준으로 완화
+- 영구 영토 변화 없음
+- 배상금 없음
+
+---
+
+# 7. Observer / Telemetry
+
+## 7.1 World fields
+
+- `activeWars33`
+- `warsDeclared33`
+- `warsEnded33`
+- `battles33`
+- `battleDeaths33`
+- `battleWounded33`
+- `occupiedTiles33`
+- `occupationStarts33`
+- `liberations33`
+- `retreats33`
+
+## 7.2 Nation fields
+
+- `atWar33`
+- `warId33`
+- `warOpponent33`
+- `warOpponentId33`
+- `warDays33`
+- `warExhaustion33`
+- `warBattles33`
+- `warDeaths33`
+- `warWounded33`
+- `battlesWon33`
+- `battlesLost33`
+- `occupiedEnemyTiles33`
+- `enemyOccupiedOwnTiles33`
+
+## 7.3 Events
+
+- `WAR_DECLARED33`
+- `FORMATION_INVASION_MOVE33`
+- `BATTLE33`
+- `WAR_DEATH33`
+- `WAR_WOUNDED33`
+- `WAR_WOUNDED_RECOVERED33`
+- `FORMATION_RETREAT33`
+- `TILE_OCCUPIED33`
+- `TILE_LIBERATED33`
+- `WAR_ENDED33`
+
+군사 탭은 현재 상대국, 전쟁 기간, War Exhaustion, 전투 수, 전사/부상, 점령/피점령 타일을 표시한다.
+
+지도에서는 원래 국가 소유 색을 유지한 채 점령국 색의 내부 오버레이를 덧그려 **영토 소유와 군사 점령을 분리해 표현**한다.
+
+---
+
+# 8. 저장 호환
+
+V0.33 localStorage key:
+
+```text
+village-observer-v0-33
+```
+
+V0.32F 이하 fallback load를 유지한다.
+
+저장 시:
+
+```text
+version: 0.33
+v33.war: World war state
+Tile.v33OccupierId
+Tile.v33OccupationWarId
+Tile.v33OccupationSinceCal
+Person.woundedUntilCal33
+```
+
+이 포함된다.
+
+V0.33 active war 저장 → 다시 load해도 전쟁 ID·전투 횟수·점령 상태가 유지된다.
+
+---
+
+# 9. 회귀 검증
+
+## 9.1 정적 검증
+
+- inline script **72개** 추출
+- `node --check` 전체 통과
+- syntax error 0
+
+## 9.2 Chromium startup
+
+- document title: `Village Observer V0.33`
+- version badge: `Village Observer · V0.33`
+- `VSim.V033` 등록 확인
+- startup runtime error 0
+
+## 9.3 War fixture
+
+전쟁 전용 회귀 fixture에서 확인:
+
+- 강제 선전포고 성공
+- 적 영토 Formation 이동 이벤트 발생
+- temporary occupation 발생
+- 실제 Person 부상 발생
+- 패배 Formation retreat 발생
+- 실제 Person 전사 발생
+- 전사 1명 발생 시 두 국가 합산 population 실제 -1
+- `WAR_DEATH33` event 1건 대응 확인
+
+## 9.4 Occupation save/load
+
+```text
+점령 타일 수     1
+save/load 후     1
+종전 후          0
+ownerId          변경 없음
+```
+
+## 9.5 War state save/load
+
+active war 저장 후:
+
+- war ID 유지
+- ACTIVE 상태 유지
+- 누적 battle count 유지
+
+## 9.6 자동 종전
+
+90일 이상 진행된 fixture에서 한쪽 Field Force를 0으로 만든 결과:
+
+```text
+status = ENDED
+endReason = FIELD_FORCE_COLLAPSE
+activeWars = 0
+```
+
+## 9.7 AI declaration path
+
+직접 `declareWar(force=true)`를 호출하지 않고, 국경/Readiness/전략적 우려 조건을 만족시킨 fixture에서 저빈도 AI 판단을 실행했다.
+
+결과:
+
+```text
+warsDeclared = 1
+reason = AI_STRATEGIC
+```
+
+## 9.8 CSV
+
+V0.33 신규 열 포함 회귀 fixture:
+
+```text
+columns = 698
+schema mismatch = 0
+```
+
+---
+
+# 10. 의도적으로 미룬 범위
+
+다음은 War V1에 포함하지 않는다.
+
+- 영구 영토 할양 / 합병
+- 강화조약 협상 UI
+- 전쟁 배상금
+- 동맹 / 방위조약 / 참전 요청
+- 포로 / 포로교환
+- 해전 / 상륙전
+- 항구 봉쇄
+- 공성전 전용 규칙
+- 성벽 상세 내구도
+- 병종 세분화
+- 장군 / 지휘관 / 전술
+- 무기·군수품 국제무역
+- Transit Trade
+
+특히 V0.32F 115년 자연주행에서 나타난 **하젠처럼 병력과 Supply는 충분하지만 Equipment가 없는 국가**의 문제는 이번 버전에서 임의로 해결하지 않는다. 먼저 War V1 자연주행에서 그 차이가 실제 전투 결과에 어떻게 나타나는지 관찰한다.
+
+---
+
+# 11. 다음 검증 목표
+
+V0.33 자연주행에서는 기능 존재 여부보다 다음 현상을 중점적으로 본다.
+
+1. 전쟁 빈도가 지나치게 높거나 낮지 않은가
+2. 전쟁이 영구적으로 끝나지 않는 사례가 있는가
+3. Equipment / Supply / Readiness 차이가 승패와 사상자에 실제 영향을 주는가
+4. 소국이 한 번의 전투로 무조건 삭제되지 않는가
+5. 점령선이 지나치게 빠르게 확산되지 않는가
+6. 전사·부상이 인구·노동·군사 roster를 깨뜨리지 않는가
+7. 종전 뒤 점령지가 완전히 반환되는가
+8. 전쟁 추가 연산이 후기 성능을 비선형적으로 악화시키지 않는가
+
+이 자연주행 결과를 본 뒤에야 영구 영토 변경, 강화조건, 군수무역 등 다음 전쟁 확장을 결정한다.
+
+---
+
+# 12. V0.32F 계승
+
+아래는 V0.33의 직접 기반인 V0.32F 상세 기술 문서다. 장비·Supply·Readiness·Proposal/Profiler 정합성 규칙은 별도 변경 언급이 없는 한 그대로 유지한다.
+
+---
+
+# Appendix — Village Observer V0.32F Technical Baseline
 
 **패치명:** Military Readiness & V0.32 Closure  
 **기준 버전:** V0.32E14  
