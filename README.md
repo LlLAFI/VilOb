@@ -1,8 +1,164 @@
-# Village Observer V0.33B1
+# Village Observer V0.33C
 
-**패치명:** Battlefield Readability Fix  
-**기준 버전:** V0.33B  
+**패치명:** Engagement + Tactical Tempo V1  
+**기준 버전:** V0.33B1  
 **날짜:** 2026-09-29
+
+
+V0.33B/B1은 전쟁 시각화 계열로 **C 착수 시점에 마감(CLOSED)** 한다. B1 자연주행에서는 지도 가독성 자체는 만족스러운 수준에 도달했지만, 같은 전장 특히 수도/핵심 타일에서 `CONTACT_SWEEP`가 매일 독립 `BATTLE33`을 만들며 사실상 하나의 장기 공방전을 수십 개 전투로 쪼개는 현상이 확인되었다.
+
+V0.33C는 이 현상을 제거하는 것이 아니라, 자연주행에서 재미있게 나타난 **수도 공방전·전선 고착·돌파/후퇴의 리듬을 정식 지속 교전(Engagement) 상태로 승격**한다.
+
+핵심 흐름은 다음과 같다.
+
+```text
+적군 접촉
+→ ENGAGEMENT_STARTED33C
+→ 3~5일 간격 Engagement Round
+→ 같은 전투력/사상자 공식으로 BATTLE33 기록
+→ 연속 패배 또는 최대 라운드에서 BREAK
+→ 패배 야전 Formation 후퇴
+→ 15~30일 REGROUPING
+→ 최근 패배 경로 임시 회피
+→ 승자가 실제 잔존 수비가 없을 때만 점령
+```
+
+수도/core에서는 기존 지형·시설·CORE_GARRISON 방어를 그대로 사용하면서, 일반 전장보다 **한 번 더 연속 패배해야 붕괴**하도록 하여 장기 방어가 조금 더 쉽게 발생한다. 패배한 CORE_GARRISON은 20~35일 `ROUTED` 상태로 전투에서 빠졌다가 자동 복귀한다.
+
+중요하게도 C는 다음 기존 공식을 바꾸지 않는다.
+
+- 전투력 계산식
+- 실제 Person 사상자 확률
+- 점령지 생산 65%
+- 점령 보급 페널티
+- AI 선전포고 점수
+- War Exhaustion 계산
+- 종전 조건
+
+---
+
+# 0.33C 변경사항
+
+## C.1 Persistent Engagement
+
+동일 타일에 적대 병력이 동시에 존재하면 더 이상 매일 `CONTACT_SWEEP` 전투를 바로 실행하지 않는다. 대신 War 내부에 `engagements33C[]`를 생성한다.
+
+각 Engagement는 다음 상태를 보존한다.
+
+- Engagement ID / War ID / Tile ID
+- 교전 양국
+- 시작·종료 calendar day
+- 라운드 수
+- 양측 라운드 승수
+- 연속 패배 수
+- 최근 승자 / 다음 라운드 예정일
+- 수도/core 교전 여부
+- 최종 승자·패자·종료 이유
+
+교전 중 Formation은 `ENGAGED` 상태가 되어 일반 전쟁 이동에서 제외된다.
+
+## C.2 Tactical Tempo
+
+Engagement의 전투 라운드는 **3~5 calendar-day 간격**으로 진행된다. 각 라운드는 기존 V0.33 `forcePower33`, 방어 지형 계수, 실제 Person 사상자 공식을 그대로 사용하고 `BATTLE33`로 기록한다.
+
+붕괴 기준:
+
+```text
+일반 전장: 3연속 라운드 패배 또는 최대 6라운드
+수도/core 방어: 4연속 라운드 패배 또는 최대 7라운드
+```
+
+최대 라운드까지 승부가 나지 않으면 누적 라운드 승수를 우선하고, 동률이면 현재 잔존 전투력을 비교해 전선을 정리한다.
+
+이 변경으로 기존 자연주행에서 15일 연속 매일 생성되던 수도 `CONTACT_SWEEP`가 하나의 10~30일 Engagement와 몇 개의 의미 있는 라운드로 묶인다.
+
+## C.3 Regroup
+
+Engagement 또는 기존 즉시 전투에서 패배해 후퇴한 Field Formation은 **15~30일 `REGROUPING`** 상태가 된다.
+
+- 재정비 중 전쟁 이동 금지
+- 완료 후 자동 `WAR_READY` 복귀
+- 최근 패배 타일과 패배 연속 횟수를 Formation에 기록
+- 최근 360일 내 같은 패배 타일을 다시 통과하는 전략 목표에는 임시 페널티
+- 패배가 누적될수록 경로 페널티 증가
+- 승리 시 패배 streak 일부 완화
+
+대체 경로가 없다면 기존 경로를 완전히 금지하지 않는다. 따라서 막힌 전선에서도 AI가 영구 정지하지 않는다.
+
+## C.4 Core Garrison Routed State
+
+CORE_GARRISON은 기존과 같이 수도에서 실제 Person 병력으로 Engagement에 참가한다. 야전 Formation과 달리 후퇴할 수 없으므로 수도 방어가 붕괴하면 20~35일간 `ROUTED` 상태로 전투 판정에서 제외된다.
+
+이 기간 공격군이 남아 있고 다른 실제 수비 병력이 없으면 기존 임시 점령 규칙으로 수도를 점령할 수 있다. Routed 기간이 끝나면 Garrison은 다시 정상 수비 판정에 들어온다.
+
+## C.5 Devlog / Observer
+
+신규 이벤트:
+
+- `ENGAGEMENT_STARTED33C`
+- `ENGAGEMENT_ROUND33C`
+- `ENGAGEMENT_ENDED33C`
+- `FORMATION_REGROUP_STARTED33C`
+- `FORMATION_REGROUP_COMPLETED33C`
+- `GARRISON_ROUTED33C`
+
+`BATTLE33`도 유지하며 Engagement 라운드에는 `source: ENGAGEMENT_ROUND`, `engagementId`, `engagementRound`를 추가한다. 기존 B/B1 Battlefield Observer는 그대로 `BATTLE33`을 읽으므로 시각화 호환성이 유지된다.
+
+Statistics에는 `지속 교전 기록` 패널을 추가하여 날짜, 지속일, 라운드, 승자, 수도 교전 여부를 확인할 수 있다. 지도 타일 Inspector와 전쟁 배너에서도 현재 Engagement/재정비 수를 볼 수 있다.
+
+지속 교전으로 적대 Formation이 같은 타일에 여러 날 공존할 수 있으므로 중앙 병력 표시는 합계 하나가 아니라 `⚔3↔2`처럼 **양측 현재 Field manpower를 분리해 표시**한다. B1의 병력 가독성 원칙을 C에서도 유지한다.
+
+## C.6 Save Compatibility
+
+- V0.33B1 / B / A / 0.33 저장 호환
+- Engagement 자체는 기존 `v33.war.wars[].engagements33C[]`에 저장
+- `MilitaryFormation.from()` / `MilitaryCohort.from()`이 확장 필드를 기본적으로 버리므로 C 전용 `v33c.state`에 다음을 별도 보존
+  - Formation engagement ID
+  - regroup 종료일
+  - 최근 패배 tile / 날짜 / streak
+  - CORE_GARRISON routed 종료일
+
+B1 저장을 C로 불러오면 Engagement/Regroup 상태가 없는 정상 전쟁 상태로 시작하고, 이후 접촉부터 C 규칙이 적용된다.
+
+## C.7 Telemetry / CSV
+
+세계 snapshot 신규 필드:
+
+- `activeEngagements33C`
+- `engagementsStarted33C`
+- `engagementsEnded33C`
+- `engagementRounds33C`
+- `capitalEngagements33C`
+- `regroupingFormations33C`
+
+국가 row 신규 필드:
+
+- `engagedFormations33C`
+- `regroupingFormations33C`
+
+CSV는 V0.33B1의 707열에서 **715열**로 확장된다.
+
+## C.8 회귀 검증
+
+최종 배포본 기준:
+
+```text
+inline script syntax          75 / 75 PASS
+Chromium startup/runtime      error 0
+B1 save -> C import           PASS
+Engagement start              round 1 / immediate retreat 없음 PASS
+3~5 day round cadence         4,4,4,5 day fixture PASS
+legacy CONTACT_SWEEP          fixture 0회 PASS
+3연속 패배 break              PASS
+패배 Formation regroup        PASS
+Engagement save/load          active state + formation link 유지 PASS
+core pure-garrison break      수도 점령 + routed 처리 PASS
+CSV schema                    715 columns / mismatch 0
+```
+
+장기 자연주행은 실제 전쟁이 시작되는 35년 이후 사용자 관찰 데이터로 추가 검증한다.
+
+---
 
 아래는 기준이 된 V0.33B의 상세 기술 기록이다. V0.33B는 V0.33A 자연전쟁에서 확인된 **전투·점령의 지도 가시성 부족**을 보완하는 관측/시각화 패치였다. 전투 계산, 선전포고, 사상자, 후퇴, 점령 효과, War Exhaustion과 종전 규칙은 변경하지 않는다.
 
