@@ -1,294 +1,628 @@
-# Village Observer V0.32E14
+# Village Observer V0.32F
 
-**패치명:** E13+E14 통합 · Person Performance 2 + Commercial/Infrastructure Finish  
-**기준 버전:** V0.32E12  
+**패치명:** Military Readiness & V0.32 Closure  
+**기준 버전:** V0.32E14  
 **날짜:** 2026-09-28
 
-V0.32E14는 별도 V0.32E13 릴리스를 만들지 않고, 예정되어 있던 **E13 성능·telemetry 안정화**와 **E14 상업·인프라 관측 마감**을 한 번에 적용한 통합 패치다. E12에서 확정한 Hunger Curve V2, Test Scenario V1.1, 유지보수 donor cache, 기존 국제교역 판단식은 그대로 유지한다.
+V0.32F는 V0.32 계열의 마지막 본편 패치다. V0.32A부터 구축해 온 **실제 Person 기반 군사 인구 → Garrison / Field Cohort → Formation → 군사시설 → 장비 → 보급 → 준비태세**를 하나의 전쟁 직전 시스템으로 연결하고, E14 장기주행에서 확인된 관측·계측 불일치를 함께 마감한다.
 
-이 패치의 원칙은 기능을 더 늘리는 것이 아니라 **같은 시뮬레이션 결과를 더 적은 중복 연산으로 만들고, 이미 존재하는 경제·교역·인프라 효과를 UI와 telemetry에서 해석 가능하게 만드는 것**이다.
+이번 버전에서도 **전쟁 선포, 실제 전투, 피해 판정, 전사·부상·포로, 후퇴, 점령, 영토 변경은 활성화하지 않는다.** 이 범위는 V0.33 전쟁 V1로 넘긴다.
+
+E14에서 확정한 Hunger Curve V2, 국제교역/운송 Gold 보존 회계, Merchant Guild / Grand Market, Test Scenario V1.1, Person homeTile act-cache, CSV schema validator는 그대로 유지한다.
 
 ---
 
-## 1. E13 범위 통합: Person Performance Pass 2
+## 1. V0.32F 목표
 
-### 1.1 Person.act 단일 호출 homeTile cache
+F의 목적은 새 대형 시스템을 추가하는 것이 아니라 다음 불완전 연결을 닫는 것이다.
 
-기존 Person 행동은 한 work cycle 안에서 동일한 `homeTile()`을 작업 단계와 metabolism 단계에서 다시 조회하는 경우가 많았다. `homeTile()`은 단순 참조만 하는 것이 아니라 tile ownership 확인과 `syncResources()`까지 호출하므로, 인구가 커지면 중복 호출이 누적된다.
+1. E14 장기주행에서 **Smithy와 Tools가 있어도 Armory 0 / Equipment 0**으로 남던 군사장비 파이프라인 교착 해소
+2. 기존 추상적 Supply 값을 실제 **Formation 위치·자국 정착망·도로/경로·식량 접근성**과 연결
+3. Training / Equipment / Supply / Morale을 전쟁 직전의 **Military Readiness**로 통합
+4. Construction Proposal이 `READY`인데 실제 E4 intent는 `PAYMENT_REJECTED` 등으로 막히던 observer 불일치 수정
+5. E14에서 실제 생산이 존재해도 0으로 관측되던 `perfPersonHarvestEst32E14` 계측 복구
+6. 장기 Gold 집중을 수정하지 않고, 우선 Top-1 / Top-2 점유율을 관측 가능하게 함
+7. V0.32 범위를 명시적으로 종료하고 V0.33 Combat으로 넘길 경계를 고정
 
-E14는 **한 번의 `Person.act()` 수명 안에서만** home tile을 재사용한다.
+---
 
-- 첫 조회: 기존 `homeTile()`을 그대로 실행
-- 같은 act 안의 후속 조회: 동일 `homeTileId`, 동일 Nation owner이면 cached tile 반환
-- `homeTileId`가 바뀌거나 owner가 달라지면 즉시 legacy 경로 재실행
-- act가 끝나면 cache 폐기
-- save에 cache를 기록하지 않음
+# 2. Armory / Military Equipment Pipeline
 
-따라서 여러 날에 걸친 stale cache가 생기지 않고, migration/ownership 변화도 다음 호출에서 기존 경로가 처리한다.
+## 2.1 E14에서 확인된 교착
+
+기존 V0.32C/C1의 Armory 후보 조건은 다음을 요구한다.
+
+- `IRONWORKING`
+- 실제 현역 2명 이상
+- 실제 Smithy 1개 이상
+- 국가 식량 비축일 34일 이상
+- Armory 미보유/미착공
+- 국가 철 재고 5 이상
+
+Armory 실제 건설비는 기존 물리 건설 경로를 그대로 사용한다.
+
+```text
+wood  26
+stone 18
+iron   4
+gold  10
+labor 600 adult-days
+```
+
+문제는 Armory가 없을 때도 Smithy 노동자가 들어오는 철을 계속 Tools로 소비하기 때문에, 장기주행에서 국가 철 재고가 Armory trigger인 5에 도달하기 전에 다시 소모될 수 있다는 점이었다. E14 85년 자연주행에서는 여러 국가에 Smithy와 Tools가 존재했지만 Armory와 군사장비가 끝까지 0으로 남았다.
+
+## 2.2 F의 실제 철 비축
+
+V0.32F는 Armory를 무료화하거나 철을 생성하지 않는다.
+
+다음 조건이 모두 성립하고 아직 Armory가 없을 때만:
+
+- `IRONWORKING`
+- 현역 2명 이상
+- Smithy 존재
+- 식량 비축일 34일 이상
+- Armory 미보유 / 미착공
+
+Smithy가 소비할 수 있는 국가 철 재고에 **5.25의 임시 최소 비축선**을 둔다.
+
+예:
+
+```text
+국가 철 5.10
+Smithy 요청 0.46
+→ 소비 0
+→ 철 5.10 유지
+
+국가 철 5.50
+Smithy 요청 0.46
+→ 소비 0.25
+→ 철 5.25 유지
+```
+
+이 비축은 회계상의 가상 자원이 아니다. 기존 제련소가 실제로 생산한 철 재고 중 일부를 Smithy가 잠시 소비하지 않는 방식이다.
+
+Armory가 착공되거나 이미 존재하면 비축 제한은 즉시 해제된다.
+
+## 2.3 Smithy 출력 보존 수정
+
+기존 V0.31 Smithy 경로는 요청한 철량을 바탕으로 Tools 산출량을 계산한다. F가 철 소비량만 줄일 경우 요청량과 실제 소비량 사이에 차이가 생길 수 있으므로, F는 같은 Person act 안에서 **실제로 withdraw된 철량 × 기존 수율**까지만 Tools deposit을 허용한다.
+
+따라서 Armory 비축이 Gold/iron/tools를 새로 만들지 않는다.
+
+## 2.4 Armory 착공
+
+철이 5 이상 모이면 기존 V0.32C1 readiness / site / project-cap / finance 판정으로 돌아간다.
+
+승인된 Armory는 기존 `startConstruction()` / `payBuild()` 경로를 그대로 사용한다.
+
+검증 fixture에서는:
+
+```text
+Armory 직전 iron  5.25
+Armory 착공 iron  -4.00
+착공 후 iron       1.25
+```
+
+가 확인됐다.
 
 신규 telemetry:
 
-- `homeTileCacheHits32E14`
-- `homeTileCacheMisses32E14`
-- `homeTileCacheHitShare32E14`
+- `armoryIronConsumptionDeferred32F`
+- `armoryIronReserveBlocks32F`
+- `armoryStartAttempts32F`
+- `armoryStarts32F`
+- `armoryPipeline32F`
+- `armoryIron32F`
+- `armoryIronReserveTarget32F`
 
-### 1.2 Person leaf profiler V3
-
-E12는 PersonAct를 `metabolism / knowledge / job review / work-other`로 나눴다. 첫 500명 장기주행에서 `work/other`가 가장 큰 잔여 덩어리였으므로 E14는 1/32 sampled act에서 다음 leaf를 추가로 관측한다.
-
-- `homeTile lookup`
-- `Tile.harvest`
-- `Village.depositAt`
-- E12 `work/other`에서 위 leaf를 제외한 residual
-
-필드:
-
-- `perfPersonLeafSamples32E14`
-- `perfPersonHomeTileLookupEst32E14`
-- `perfPersonHarvestEst32E14`
-- `perfPersonDepositEst32E14`
-- `perfPersonResidualWorkEst32E14`
-
-모든 Person에 `performance.now()`를 거는 방식은 사용하지 않는다. 1/32 sampling과 기존 저빈도 profiler 원칙을 유지한다.
-
-### 1.3 변경하지 않은 성능 경로
-
-- V0.32C2 stable-citizen job review fast path
-- V0.32E10 maintenance donor ordering cache
-- V0.32E2 food relay shortlist/pair cache
-- V0.32E3 Knowledge fast path / resident index
-
-E14는 위 검증된 경로를 다시 설계하지 않는다.
+`armoryStarts32F`는 C1 PRE_SEASON, PROJECT_FREED, F post-season retry 등 어느 경로에서 실제 착공되더라도 `startConstruction()` 성공 시점에서 집계한다.
 
 ---
 
-## 2. CSV / Telemetry Stabilization
+# 3. 실제 군사장비 생산 유지
 
-E12에서 신규 Hunger/Profiler 열이 CSV 마지막에 몰려 붙는 exporter regression이 실주행으로 확인됐다. 원인은 E12 wrapper가 실제 newline 대신 literal `\n` 문자열로 split/join한 것이었다.
+Armory가 완성된 뒤에는 기존 V0.32C 실물 장비 생산식을 그대로 사용한다.
 
-E14 배포본은 inherited E12 exporter를 다음처럼 수정한다.
+필요 조건:
+
+- Armory 존재
+- 실제 Smithy worker 존재
+- 군사 장비 수요 존재
+- 실제 iron / wood / tools 재고 존재
+
+장비 생산은 다음 실물 입력을 소비한다.
 
 ```text
-literal "\\n" split/join
-→ actual newline split/join
+장비 1 unit당
+iron  0.72
+wood  0.18
+tools 0.045
 ```
 
-추가로 CSV 다운로드 직전에 모든 행을 quote-aware 방식으로 검사한다.
+생산된 장비는 `v32cMilitary.equipmentStock`에 보존되며 실제 active military 수에 따라 Equipment coverage가 계산된다.
+
+F 검증 fixture에서는:
 
 ```text
-header column count = N
-row 1 column count = N
-row 2 column count = N
-...
+생산 장비       1.65
+iron 소비       1.188
+wood 소비       0.297
+tools 소비      0.07425
+Equipment       0% → 41.3%
 ```
 
-하나라도 다르면 파일을 조용히 내보내지 않고 `CSV schema mismatch` 오류를 발생시킨다.
+이 확인됐다.
 
-신규 진단:
+기존 C telemetry도 유지한다.
 
-- `csvSchemaChecks32E14`
-- `csvSchemaFailures32E14`
+- `militaryEquipmentStock32C`
+- `militaryEquipmentCoverage32C`
+- `militaryEquipmentMade32C`
+- `militaryEquipmentIronUsed32C`
+- `militaryEquipmentWoodUsed32C`
+- `militaryEquipmentToolsUsed32C`
 
 ---
 
-## 3. E14 범위: Commercial / Infrastructure Finish
+# 4. Formation Supply V1
 
-D5부터 이미 국제시장 호가판과 실제 AI quote 함수가 존재한다. 따라서 E14는 새로운 시장 시스템을 하나 더 만들지 않고, 기존 기능을 **실제 체결과 인프라 관점에서 읽기 쉽게 마감**한다.
+## 4.1 원칙
 
-### 3.1 선택 국가쌍 무역·인프라 관측 패널
+V0.32B/C의 Supply는 주로 국가 식량 비축과 시설 보너스에서 나온 추상값이었다. F에서는 Field/Garrison Cohort의 Supply를 현재 위치와 실제 자국 네트워크에 연결한다.
 
-Trade 탭에서 D5 호가판 아래에 E14 observer가 추가된다.
+병사는 이미 실제 Person이며 기존 metabolism을 통해 식량을 소비하므로, F는 별도의 군용 식량을 추가 소비시키지 않는다. **이중 식량소비는 없다.**
+
+Supply는 전쟁 전 단계에서 "현재 Formation 위치가 자국 보급망으로 얼마나 잘 지원되는가"를 나타내는 준비태세 지표다.
+
+## 4.2 보급 거점 후보
+
+자국 소유 Settlement 중 다음 조건을 만족하는 타일이 보급 후보가 된다.
+
+- 수도는 항상 후보
+- Armory
+- Barracks
+- Training Ground
+- Granary
+- Warehouse
+- Administrative Office
+- 또는 충분히 큰 실제 거주 인구
+
+보급 거점 가중치:
+
+```text
+Capital              +14
+Armory                +22
+Barracks              +15
+Training Ground        +5
+Granary                 +7
+Warehouse               +5
+Administrative Office   +6
+Population        min(8, pop × 0.55)
+```
+
+실제 후보 중 Formation까지의 자국 내부 경로를 계산하고, 단순 거리뿐 아니라 거점 기능을 함께 고려해 지원 source를 고른다.
+
+## 4.3 route / food access
+
+보급 목표의 기본형은 다음이다.
+
+```text
+raw supply = 98 - routeCost × 4.6 + supportBonus
+```
+
+여기에 국가/지역 Food reserve 접근계수를 적용한다.
+
+```text
+45일 이상  1.00
+30~44일     0.94
+18~29일     0.82
+10~17일     0.67
+10일 미만   0.48
+```
+
+도로 효과는 기존 internal path cost에 이미 포함되므로, 실제 도로망이 좋은 Formation은 같은 지도 거리에서도 더 좋은 Supply를 얻을 수 있다.
+
+자국 연결 경로가 전혀 없으면 `connected=0`이며 Supply target은 18로 낮아진다.
+
+## 4.4 급격한 출렁임 방지
+
+Supply는 15 calendar-day 저빈도 cadence로 갱신하며 기존값에서 목표값으로 완만하게 이동한다.
+
+```text
+next supply = old × 0.55 + target × 0.45
+```
+
+첫 초기화만 target 값을 즉시 사용한다.
+
+신규 Cohort 관측값:
+
+- `supply32F`
+- `supplyTarget32F`
+- `supplyRouteCost32F`
+- `supplySourceTileId32F`
+- `supplySourceLabel32F`
+- `supplyConnected32F`
+
+국가 telemetry:
+
+- `militarySupplyAvg32F`
+- `militarySupplyMaxRoute32F`
+- `militarySupplyDisconnected32F`
+- `militarySupplyDisconnectedObs32F`
+
+---
+
+# 5. Military Readiness V1
+
+각 Cohort의 전쟁 직전 준비태세를 다음 네 값으로 합성한다.
+
+```text
+Readiness =
+  Training  × 0.30
++ Equipment × 0.25
++ Supply    × 0.30
++ Morale    × 0.15
+```
+
+이 값은 F에서는 **관측 전용**이다. 공격력, 피해량, 사망률에 아직 사용하지 않는다.
+
+국가 군사 탭에 새 F 패널을 추가한다.
 
 표시 항목:
 
-- 선택 상대국
-- 현재 route mode (`LAND` / `SEA`)
-- 현재 route cost
-- 최근 1년 해당 국가쌍 실제 체결 횟수/수량
-- 최근 1년 transport service Gold
-- 선택 국가의 최근 1년 수입 순유출
-- 수출 순유입
-- 순 무역수지
-- E6 누적 운송서비스 수입
-- owned road / harbor / Merchant Guild 수
-- 최근 체결의 SEA/LAND 구성
-- 현재 transport factor
-- 해상 경로일 경우 harbor efficiency
-- E8 Merchant Guild regional handled trades / handling savings
-- 마지막 실제 체결의 자원, 수량, route cost, transport Gold
+- 전체 Readiness
+- Garrison Readiness
+- Field Readiness
+- 평균 Supply
+- 최장 보급 route
+- 보급 단절 Cohort 수
+- Equipment coverage
+- Armory 수
+- Armory pipeline 상태
+- Cohort별 실제 Person 수
+- Cohort별 Training / Equipment / Supply / Readiness
+- 보급 source와 route cost
 
-이 패널은 observer 전용이다. **새로운 일일 route scan이나 trade decision loop를 추가하지 않는다.**
+Armory pipeline 상태 예:
 
-### 3.2 기존 D5 호가판 유지
+- `TECH`
+- `NO_ACTIVE_FORCE`
+- `NO_SMITHY`
+- `FOOD_RESERVE`
+- `RESERVING_IRON`
+- `READY`
+- `BUILDING`
+- `ACTIVE`
+- 실제 C1 blocker
 
-기존 표시도 유지한다.
+신규 telemetry:
 
-- 최대 매수가
-- 판매 호가
-- 도착가
-- 반복수요 premium
-- 전략 premium
-- 관계 조정
-- 현금압박 discount
-- 운송 구성
-- 최근 Trade Funnel
-
-즉 E14는 `현재 quote`와 `실제로 체결된 결과`를 같은 Trade 탭에서 비교하게 만든다.
-
----
-
-## 4. Test Scenario populationPolicy
-
-E14부터 scenario metadata는 선택적으로 다음을 포함할 수 있다.
-
-```json
-{
-  "populationPolicy": {
-    "births": "disabled",
-    "naturalDeaths": "enabled",
-    "note": "..."
-  }
-}
-```
-
-이 필드는 **엔진 전역 출생 OFF 옵션이 아니다.** fixture가 어떤 방식으로 모집단을 통제했는지 기록하기 위한 metadata다.
-
-격리형 회귀 테스트의 권장 규칙은:
-
-- births disabled
-- natural deaths enabled
-
-이다. 따라서 질병·노화·아사 같은 실제 결과는 남고, 출생에 의한 모집단 보충만 제거할 수 있다. E12의 500명 Hunger Matrix / Food Deficit / Famine Recovery fixture에 이 정책을 명시했다.
+- `militaryReadinessAvg32F`
+- `militaryFieldReadiness32F`
+- `militaryGarrisonReadiness32F`
+- `militaryEquipmentCoverage32F`
+- `militaryReadyNations32F`
+- `militaryReadinessUpdates32F`
+- `perfMilitaryReadiness32F`
 
 ---
 
-## 5. E12에서 확정된 Hunger 상태
+# 6. Person-backed 군사 원칙 유지
 
-Hunger Curve V2는 E14에서 변경하지 않는다.
+F에서도 군인은 새 숫자로 생성하지 않는다.
 
-```js
-x = HungerBeforeMeal / 100
-curve = 1 - (1 - x) ** 2
-relief = rand(5,6) + rand(3,4) * curve
-```
+- 모든 active soldier는 기존 실제 Person
+- Garrison member ID와 Field Cohort member ID는 실제 Person ID
+- 민간 노동 제외 규칙 유지
+- Field Formation은 Field Cohort를 참조
+- E9 roster 중복 방지 유지
+- synthetic manpower 생성 금지
 
-첫 500명 Matrix 장기주행에서는 풍족 상태가 약 Hunger 9 전후의 안정 분포를 만들었고, E11의 전원 0 고착은 재발하지 않았다. Food Deficit stress run에서는 대량 아사 후 생존자 평균이 정상화되는 과정과 local food access 파동까지 관측했다. E14는 이 모델을 그대로 둔다.
+즉 F가 추가하는 Supply / Readiness는 기존 실제 Person 군사체계 위에 붙는 관측·상태값이다.
 
 ---
 
-## 6. 수동 회귀 결과 반영
+# 7. Construction Proposal 실행기 정합성
 
-### 6.1 Merchant Guild Endpoint
+E14 장기주행에서는 E8 Construction Proposal이 `TRADE_NETWORK:trading_post = READY`라고 표시하지만 실제 E4 intent는 직전 물리 착공 실패 후 다음 blocker를 유지하는 경우가 있었다.
 
-전용 fixture에서 약 70일 동안:
+대표:
+
+- `PAYMENT_REJECTED`
+- `STRATEGIC_GATE`
+- `FINANCE`
+- `TILE_BUSY`
+
+F에서는 E4 진단 함수가 현재 물리 조건만 다시 계산해 `READY`를 반환하더라도, **동일 intent가 현재 `status=BLOCKED`이고 실제 blocker를 보유한다면 그 concrete blocker를 우선 반환**한다.
+
+따라서 observer가 실제 실행 상태보다 낙관적으로 표시되는 false READY를 막는다.
+
+신규 telemetry:
+
+- `constructionProposalSyncCorrections32F`
+
+검증 fixture:
 
 ```text
-tradeEndpointBase32E9      1
-tradeEndpointPromoted32E9  1
-tradeEndpointTotal32E9     2
+동일 타일 / 동일 자원 조건
+PLANNED + NONE              → READY
+BLOCKED + PAYMENT_REJECTED  → PAYMENT_REJECTED
 ```
-
-이 유지되어 `merchant_guild`가 `trading_post` endpoint capability를 계승하는 회귀가 PASS됐다.
-
-### 6.2 Maritime Transport Accounting
-
-전용 Harbor Pair fixture를 2년 2분기까지 돌린 실사용 데이터에서는:
-
-```text
-실제 국제거래       27회
-SEA                 27 / 27
-LAND transport Gold 0
-transport audit mismatch 0
-```
-
-이 확인됐다. 따라서 E6의 transport service Gold 보존 회계와 해상 route 판정은 E14 기준 회귀 자산으로 유지한다.
 
 ---
 
-## 7. Save / Compatibility
+# 8. E14 Harvest Profiler Fix
 
-- SaveSystem key: `village-observer-v0-32e14`
-- serialize version: `0.32E14`
-- V0.32E12 이하 E계열 key fallback 유지
+E14는 `Tile.harvest()`를 1/32 sampled Person act에서 계측하도록 만들었지만, 일반 work tile에는 E14 wrapper가 기대한 `_worldRef`가 설정되지 않아 자연주행에서 `perfPersonHarvestEst32E14 = 0`이 계속 관측됐다.
+
+F에서는 Person act의 active world reference를 `Tile.harvest()` 호출 동안만 임시 전달한다.
+
+- 저장하지 않음
+- 타일에 영구 world reference를 남기지 않음
+- 호출 후 이전 값을 복원
+- simulation result를 변경하지 않음
+
+900-step fresh-world smoke에서 자동 snapshot 중:
+
+```text
+perfPersonHarvestEst32E14 non-zero snapshots  28
+max estimated harvest time                    12.8 ms
+```
+
+가 관측되어 계측 경로가 실제 수확 호출을 잡는 것을 확인했다.
+
+---
+
+# 9. Gold Concentration Observer
+
+E14 85년 자연주행에서는 상위 2개 국가가 세계 Money Supply의 약 91.6%를 보유하는 장기 집중이 관측됐다.
+
+F는 이를 즉시 재분배하지 않는다.
+
+새 정책, 세금, Gold 생성/소멸 규칙은 추가하지 않고 snapshot 시 다음 두 값만 기록한다.
+
+- `goldTop1Share32F`
+- `goldTop2Share32F`
+
+향후 중계무역 / Transit Trade와 장기 경제 밸런스를 평가할 관측 기준으로 사용한다.
+
+에브처럼 지리적으로 좋은 허브가 생산 수출국보다 약하게 수익화되는 문제는 방향성으로 유지하지만, **실제 Transit Trade 경제는 F에 넣지 않는다.**
+
+---
+
+# 10. Performance 정책
+
+F의 Supply / Readiness는 매 Person act마다 경로를 계산하지 않는다.
+
+- Nation/Cohort 수준 저빈도 갱신
+- 기본 cadence: 15 calendar days
+- seasonal tick에서는 강제 갱신
+- 기존 내부 path cost 사용
+- 새 일일 국제교역 scan 없음
+- 전투 scan 없음
+
+성능 panel에는 F readiness observer 비용을 별도로 노출한다.
+
+F의 목적은 0.33 전투 시스템을 얹기 전에 보급 계산 자체가 새로운 초선형 병목이 되지 않도록 하는 것이다.
+
+---
+
+# 11. Save / Compatibility
+
+- SaveSystem key: `village-observer-v0-32f`
+- serialize version: `0.32F`
+- V0.32E14 이하 E/D key fallback 유지
 - 일반 Save import 유지
 - MapData import 유지
-- Test Scenario wrapper version 1 유지
-- Scenario runtime validation V1.1 유지
-- 전쟁/실제 combat은 여전히 비활성
+- Test Scenario import/export 유지
+- Scenario export intended version: `0.32F`
+- Combat: `false`
+- `v32f.seriesClosed = true`
 
-별도의 `V0.32E13` 배포물은 없다. **E13 계획 범위가 E14 통합 릴리스에 포함되었기 때문**이다.
+V0.32E14 save를 F에서 불러올 때 F 상태는 기본값으로 부착한다.
+
+실제 E14 → F roundtrip 검증:
+
+```text
+E14 population  104
+F load population 104
+E14 Nation treasury sum 792.0956289319934
+F load treasury sum      792.0956289319934
+loaded serialize version 0.32F
+seriesClosed             true
+combat                    false
+page errors               0
+```
 
 ---
 
-## 8. E-series 남은 단계
+# 12. CSV / Telemetry
 
-E14 이후 계획상 남은 것은 **E15 Final Regression / E-series Close**다.
+E14의 quote-aware schema validation을 그대로 유지한다.
 
-E15에서 확인할 항목:
+F 추가 global 열:
 
-1. 19×19 장기 자연주행
-2. 500~2000 Person 후기 성능
-3. Person profiler V3 병목 확인
-4. 10개 Test Scenario 일괄 import/invariant 회귀
-5. CSV schema consistency
-6. Gold/transport accounting mismatch 0 확인
-7. Hunger 분포 / starvation / food access sanity
-8. 유지보수 donor cache와 seasonal legacy 비용
-9. 군사 Person roster invariant
-10. 장기주행에서 새 구조적 regression이 없으면 E-series 종료
+- `armoryIronConsumptionDeferred32F`
+- `armoryIronReserveBlocks32F`
+- `armoryStartAttempts32F`
+- `armoryStarts32F`
+- `militaryReadinessUpdates32F`
+- `militarySupplyDisconnectedObs32F`
+- `constructionProposalSyncCorrections32F`
+- `perfMilitaryReadiness32F`
+- `militaryReadyNations32F`
+- `goldTop1Share32F`
+- `goldTop2Share32F`
 
-E15에서 구조적 문제가 발견되지 않으면 다음 본류는 전쟁 V1 / 군사 상호작용 활성화 단계로 넘어간다.
+F 추가 nation 열:
+
+- `militaryReadinessAvg32F`
+- `militaryFieldReadiness32F`
+- `militaryGarrisonReadiness32F`
+- `militarySupplyAvg32F`
+- `militarySupplyMaxRoute32F`
+- `militarySupplyDisconnected32F`
+- `militaryEquipmentCoverage32F`
+- `armories32F`
+- `armoryPipeline32F`
+- `armoryIron32F`
+- `armoryIronReserveTarget32F`
+
+900-step fresh-world smoke:
+
+```text
+CSV columns   675
+CSV rows      372
+mismatch      0
+```
 
 ---
 
-## 9. Release validation
+# 13. Release Validation
 
-V0.32E14 배포본은 다음 회귀를 통과했다.
-
-```text
-inline scripts                 70
-JavaScript syntax errors       0
-Chromium startup page errors   0
-fresh-world serialize version  0.32E14
-Test Scenario import           10 / 10 PASS
-CSV schema smoke               653 columns / 24 rows / mismatch 0
-```
-
-### E12 → E14 결정론적 동작 보존 비교
-
-동일한 `Hunger Population Matrix 500` 상태에서 같은 deterministic RNG를 사용해 30 step을 실행한 결과, E12와 E14의 다음 값이 완전히 일치했다.
-
-- population
-- 5개 코호트 food stock
-- 5개 코호트 average Hunger
-- Nation Gold
-- telemetry event count
-
-즉 E14 homeTile act-cache는 해당 회귀에서 시뮬레이션 결과를 바꾸지 않았다.
-
-### Merchant Guild endpoint
-
-70-day runtime smoke:
+## 13.1 정적 검사
 
 ```text
-base      1
-promoted  1
-total     2
+inline scripts            71
+JavaScript syntax errors   0
 ```
 
-### Maritime accounting
+모든 inline script를 별도로 추출해 `node --check`를 통과했다.
 
-180-day runtime smoke:
+## 13.2 Chromium startup
 
 ```text
-transport trades      12
-SEA transport Gold    2.517
-LAND transport Gold   0
-transport audits      12
-mismatches            0
-max abs delta         0
-population            4
-active nations        2
+Document title              Village Observer V0.32F
+Version badge               Village Observer · V0.32F
+fresh serialize version     0.32F
+startup page errors         0
 ```
 
-E15 장기 자연주행에서는 이 기능 회귀보다 **실제 후기 인구에서의 Person residual work 비용과 전체 SIM throughput**을 중점적으로 확인한다.
+## 13.3 900-step natural smoke
+
+```text
+fresh-world advance         900 steps / game year 3
+page errors                 0
+serialize version           0.32F
+CSV                         675 columns / 372 rows
+CSV mismatch                0
+harvest profiler            non-zero confirmed
+```
+
+초기 3년에는 `IRONWORKING`과 자연 군사 조건이 아직 갖춰지지 않으므로 Armory 자연 발생을 회귀 조건으로 강제하지 않는다. Armory 파이프라인은 별도 실제-resource fixture로 검증한다.
+
+## 13.4 Armory deadlock fixture
+
+```text
+iron 5.10 + smithy consume request 0.46
+→ consumed 0
+→ iron 5.10
+
+iron 5.50 + smithy consume request 0.46
+→ consumed 0.25
+→ iron 5.25
+
+Armory pipeline
+→ READY
+
+Armory start
+→ success
+→ physical project cost includes iron 4
+→ iron 5.25 → 1.25
+
+armoryStartAttempts32F  1
+armoryStarts32F        1
+page errors             0
+```
+
+## 13.5 Equipment production fixture
+
+```text
+equipment made  1.65
+iron used       1.188
+wood used       0.297
+tools used      0.07425
+coverage        0% → 41.3%
+page errors     0
+```
+
+## 13.6 Formation supply fixture
+
+Field Formation을 수도권에서 원거리 자국 타일로 옮긴 테스트에서:
+
+```text
+Garrison supply        100
+Field route cost       3.45
+Field supply           71.4
+Field readiness        44.6
+connected              true
+page errors            0
+```
+
+즉 위치/경로 변화가 Field Supply와 Readiness에 실제로 반영된다.
+
+## 13.7 Construction Proposal fixture
+
+```text
+PLANNED / NONE               → READY
+BLOCKED / PAYMENT_REJECTED   → PAYMENT_REJECTED
+sync correction counter      +1
+page errors                  0
+```
+
+---
+
+# 14. V0.32 종료 범위
+
+V0.32F로 다음 흐름을 완성한다.
+
+```text
+실제 Person
+→ 예비군 / 현역
+→ Garrison + Field Cohort
+→ Formation
+→ 지도상 이동/배치
+→ Barracks / Training Ground / Armory
+→ 실제 철·목재·도구 기반 Equipment
+→ 위치·도로·식량 접근 기반 Supply
+→ Training / Equipment / Supply / Morale 기반 Readiness
+```
+
+여기까지가 **군사사회 / 전쟁 준비 단계**다.
+
+---
+
+# 15. V0.33으로 넘기는 범위
+
+다음은 F에 넣지 않는다.
+
+- 전쟁 선포 / 외교적 전쟁 상태
+- 적국 영토 진입 규칙
+- Formation 대 Formation 접촉
+- 실제 전투 판정
+- 공격 / 방어 / 지형 / 요새 효과
+- 전사 / 부상 / 포로
+- 장비 손실
+- 보급 고갈의 실제 전투 페널티
+- 후퇴 / 추격
+- 점령
+- 영토 소유권 변경
+- 전쟁 피로 / 강화 / 평화협정
+
+이제 V0.33 전쟁 V1은 F의 Readiness와 Formation을 입력으로 받아 **"실제 두 Formation이 만났을 때 무슨 일이 일어나는가"**에서 시작할 수 있다.
+
+---
+
+# 16. 이후 경제 방향 메모
+
+E14 장기 분석에서 에브처럼 지리적으로 유리한 국가가 높은 연결성을 갖더라도, 현재 seller→buyer 직거래 구조에서는 생산·수출력이 강한 세른이 더 큰 Gold 이익을 얻는 현상이 확인됐다.
+
+향후 교역 고도화에서는 단순 생산 보너스보다 다음 방향을 우선 검토한다.
+
+- Transit Trade / 중계무역
+- 환적·보관·중개 서비스
+- 상업 노선 허브
+- Harbor / road junction service income
+- 지리적 centrality의 경제적 수익화
+
+이 기능들은 V0.32F의 범위가 아니며, F에서는 Gold concentration observer만 남긴다.
