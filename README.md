@@ -1,4 +1,262 @@
-# Village Observer V0.33D1A
+# Village Observer V0.33D1B
+
+## Urban Construction Balance + Coalition UI Stabilization
+
+기준 버전: **V0.33D1A**  
+패치 버전: **V0.33D1B**  
+접미사: **B = Balance**  
+작성 기준일: **2026-09-30**
+
+---
+
+## 1. 패치 목적
+
+V0.33D1A PC 자연주행에서는 Formation lifecycle, Operational Reachability, Coalition military access, 고정 기술비 6,315 Knowledge가 큰 회귀 없이 동작했다. 특히 DORMANT Formation의 물리적 유령 위치는 Telemetry에서 0으로 유지되었고, 60년대 후반에는 대부분의 국가가 40개 기술을 완성하여 기술 속도 목표도 충족했다.
+
+반면 다음 두 축이 새 병목으로 확인되었다.
+
+1. **도시·건설**: 건설 프로젝트가 실제 달력 기준으로 수백~수천 일을 점유하는 경우가 많아 프로젝트 슬롯이 장기간 막혔다. 동시에 주거 용량 4/8/16은 상위 주거 몇 개만으로 수도가 많은 인구를 수용하게 해 초기 수도 집중을 쉽게 완화하지 못했다.
+2. **Coalition UI**: 실제 전투·저장 데이터는 `sideAIds / sideBIds`를 정상 보존했지만, B1의 병력 라벨과 A 계열 전쟁기록 패널 일부가 여전히 1:1 전쟁 시대 의미를 사용했다.
+
+D1B는 **건설은 더 빠르게, 주거 한 단위의 수용력은 낮게, 도로는 단순하게** 재조정하고, 합동군 및 공동전쟁 표시의 UI 소유권을 D 계열 구조와 일치시키는 Balance 패치다.
+
+---
+
+## 2. 건설 노동량과 유지보수 기준 분리
+
+### 2.1 핵심 원칙
+
+V0.25 이후 `TOTAL_LABOR25`는 실제 건설시간과 유지보수 노동량의 기준을 동시에 담당했다. 이 상태에서 건설 노동량을 절반으로 줄이면 유지보수까지 자동으로 절반이 되므로 D1B에서는 두 기준을 분리한다.
+
+- **Construction labor**: 실제 신규 건설·개축 프로젝트 진행량의 기준.
+- **Maintenance baseline labor**: 분기 유지보수 필요 노동량 산정용 기준.
+- 유지보수 노동율은 **분기 0.5%** 그대로 유지한다.
+- 목재/석재 유지비는 **연 2%** 그대로 유지한다.
+- `PUBLIC_WORKS`의 건설 노동 감소 효과는 새 Construction labor에 계속 적용한다.
+- `FORTIFICATION`의 목책 건설 노동 감소 효과도 유지한다.
+
+### 2.2 D1B 건설 노동량
+
+| 시설 | D1A 기준 | D1B 건설 노동 | 변화 |
+|---|---:|---:|---:|
+| 도로 | 260 | **130** | -50.0% |
+| 경작지 | 350 | **175** | -50.0% |
+| 고대 주택 | 430 | **220** | -48.8% |
+| 목책 | 520 | **260** | -50.0% |
+| 곡물창고 | 520 | **260** | -50.0% |
+| 전초기지 | 520 | **260** | -50.0% |
+| 창고 | 635 | **320** | -49.6% |
+| 저장고 | 635 | **320** | -49.6% |
+| 채석장 | 690 | **350** | -49.3% |
+| 교역소 | 690 | **350** | -49.3% |
+| 학당 | 780 | **390** | -50.0% |
+| 고대 시청 | 780 | **390** | -50.0% |
+| 항구 | 865 | **430** | -50.3% |
+| 시장 | 865 | **430** | -50.3% |
+| 석재가공소 | 950 | **475** | -50.0% |
+| 상인조합 | 1,040 | **520** | -50.0% |
+| 심층채석장 | 1,095 | **550** | -49.8% |
+| 대시장 | 1,210 | **605** | -50.0% |
+| 고대 연립주거 개축 | 780 | **300** | -61.5% |
+| 고대 집합주거 개축 | 1,210 | **450** | -62.8% |
+| 철광산 / 제련소 / 대장간 | 600 | **300** | -50.0% |
+| 병영 / 훈련장 / 무기고 | 600 | **300** | -50.0% |
+| 고대 행정청 | 900 | **450** | -50.0% |
+
+D1A 저장을 D1B로 불러올 때 진행 중 공사는 **완료율을 보존**하여 새 노동량 기준으로 변환한다. 예를 들어 430 중 215 노동일이 끝난 주택 공사는 50% 진행 상태를 보존하여 220 중 110으로 변환한다.
+
+### 2.3 유지보수는 현행 유지
+
+D1B의 유지보수 기준은 다음과 같이 보존된다.
+
+- 도로 260
+- 주택 430
+- 연립주거 780
+- 집합주거 1,210
+- 철·군사시설 600
+- 행정청 900
+- 그 외 기존 시설도 D1A 이전 유지보수 기준을 유지
+
+분기 필요 노동은 `maintenance baseline × 0.005`다. 즉 건설은 빨라지지만 건물 수가 늘어나면 장기 유지 부담은 그대로 축적된다.
+
+---
+
+## 3. 주거 수용량 재조정
+
+주거 한 개발 단위의 수용량을 다음과 같이 변경한다.
+
+| 주거 | D1A | D1B |
+|---|---:|---:|
+| 고대 주택 | 4 | **3** |
+| 고대 연립주거 | 8 | **5** |
+| 고대 집합주거 | 16 | **8** |
+
+목적은 상위 주거의 공간 효율은 유지하되, 한 번의 개축이 수도의 수용력을 과도하게 늘리지 않도록 하는 것이다.
+
+새 구조에서 용량 증가량은:
+
+- 주택 → 연립주거: **+2**
+- 연립주거 → 집합주거: **+3**
+
+건설·개축 노동량을 동시에 크게 줄였으므로, 도시가 성장하면 소수의 초대형 주거가 문제를 해결하기보다 **더 많은 실제 건축 활동**이 발생하는 방향을 목표로 한다.
+
+---
+
+## 4. 도로 등급 단일화
+
+기존 도로는 기술에 따라 자동으로:
+
+- Lv.1: 0.78
+- Lv.2: 0.62
+- Lv.3: 0.48
+
+의 이동계수를 사용했다. 물리적 도로 자체를 개축하지 않아도 `ENGINEERING / URBANIZATION` 연구 즉시 전국 도로가 자동 승급하는 구조였다.
+
+D1B에서는 이를 폐기한다.
+
+- 도로 없음: factor **1.00**
+- **단일 도로 Lv.1: factor 0.62**
+- `ENGINEERING`을 연구해도 road level은 1 유지
+- `URBANIZATION`을 연구해도 road level은 1 유지
+
+즉 새 도로의 성능은 **기존 Lv.2와 동일**하다. 향후 도로 등급을 다시 도입할 경우에는 기술 획득 즉시 전국 자동 승급이 아니라 실제 도로 개축 프로젝트로 설계하는 것을 원칙으로 한다.
+
+D1B에서는 도로 건설비와 프로젝트 상한은 변경하지 않는다. 건설 노동 단축 + 단일 0.62 도로가 도로망 확산과 교역/군사 이동에 미치는 영향은 다음 자연주행에서 별도 관찰한다.
+
+---
+
+## 5. 합동군 지도 표기
+
+D1A에서 국가색 1/n 원호 Formation ring을 도입했으나, B1의 중앙 병력 라벨은 같은 타일에 여러 국가가 있으면 동맹 여부와 관계없이 `⚔2↔3`처럼 표시했다.
+
+D1B에서는 병력 라벨도 Coalition-aware로 수정한다.
+
+- 같은 Side의 1개 국가: `▲3`
+- 같은 Side의 2개국: 국가색 50/50 arc + `▲2+3`
+- 같은 Side의 3개국: 국가색 120°씩 + `▲1+2+3`
+- 실제 적대 Side가 같은 타일에 존재할 때만 `⚔A↔B`
+- DORMANT / 물리적 존재가 없는 Formation은 표시하지 않음
+
+따라서 **합동군 중첩**과 **실제 전투 접촉**의 의미를 중앙 기호에서도 분리한다.
+
+---
+
+## 6. Coalition 전쟁기록 UI ownership
+
+D1A는 전쟁 데이터와 Coalition-aware 카드 함수를 추가했지만, 오래된 V0.33A `updateHistoryPanelA()`가 동일한 DOM ID를 다시 쓸 수 있어 통계창에서 중도 참전국이 사라지는 현상이 남았다.
+
+D1B에서는:
+
+- `v33aWarHistoryPanel`의 최종 소유자를 **V0.33D1B**로 고정한다.
+- legacy A writer가 호출되더라도 D1B renderer로 즉시 위임한다.
+- 표시 기준은 `sideAIds / sideBIds / winnerSide`다.
+- 중도 참전국을 최종 전쟁 기록에 포함한다.
+- 국가별 최근 전쟁에서도 중도 참전 전쟁을 포함한다.
+- 공동 승리 / 공동 패배를 Side 기준으로 판정한다.
+
+예: `키오 + 델마 ↔ 벨른`처럼 표시한다.
+
+---
+
+## 7. 기술·군사 기반 유지
+
+### 기술
+
+40개 기술 총 비용은 **6,315 Knowledge**로 동결한다. D1A 자연주행에서 60년대 후반 대부분의 국가가 40개를 완성하여 목표 범위에 들어왔으므로 추가 비용 조정은 하지 않는다.
+
+### 군사
+
+다음 D1/D1A 기반은 그대로 유지한다.
+
+- War Intent: ASSESSING / PREPARING / READY / CANCELLED / DECLARED
+- Intelligence API V0: confidence 100% proxy
+- Operational Reachability
+- Coalition military access
+- Formation ACTIVE / DORMANT lifecycle
+- Persistent Engagement
+- 단계적 후퇴·회복·사기·이동 템포
+- Multi-front / Multi-formation
+- Person-backed casualty / manpower
+
+실제 `PREPARING` 단계의 비축·추가 동원·장비 확보·전쟁용 도로·전략 집결은 **V0.33D2** 범위다. 불완전 정보, 정찰, 첩보, 은폐, 기만 역시 D1B 범위가 아니다.
+
+---
+
+## 8. D1B 관측 필드
+
+Snapshot / CSV에 다음 D1B 필드를 추가한다.
+
+- `constructionLaborSeparated33D1B`
+- `maintenanceLaborRate33D1B`
+- `roadFactor33D1B`
+- `housingHouseCap33D1B`
+- `housingRowCap33D1B`
+- `housingCollectiveCap33D1B`
+- `activeBuildProjects33D1B`
+- `coalitionHistoryUIOwner33D1B`
+
+기존 D1A의 `coalitionHistoryWars33D1A`, `operationalAccess33D1A`, `dormantPhysicalGhosts33D1A`도 그대로 유지한다.
+
+---
+
+## 9. 저장 호환성
+
+- 새 저장 버전: `0.33D1B`
+- localStorage key: `village-observer-v0-33d1b`
+- 이전 D1A/D1/D/C3 계열 저장 fallback 유지
+- D1B 저장을 다시 불러오면 주거/도로/건설 기준을 재적용한다.
+- D1A 진행 중 건설 프로젝트는 진행률 보존 방식으로 D1B 노동량에 이관한다.
+
+---
+
+## 10. 구현 후 Smoke Test
+
+D1B 구현 후 확인한 항목:
+
+- 82개 `<script>` 블록 `node --check`: **syntax error 0**
+- Chromium headless 부팅: **page error 0**
+- 문서 제목/배지: `Village Observer V0.33D1B`
+- 주거 capacity: **3 / 5 / 8**
+- 건설 노동: road 130, house 220, row 300, collective 450, iron mine 300, admin office 450 확인
+- 유지보수 baseline: road 260, house 430, row 780, collective 1210, iron mine 600, admin office 900 확인
+- 유지보수율: **0.005 / quarter** 확인
+- road factor: no road 1.00 / road Lv.1 0.62 / 기술 추가 후에도 0.62 확인
+- `ROADS → ENGINEERING → URBANIZATION` 상태에서도 road level **1 / 1 / 1** 확인
+- 기술 총비용: **6,315** 확인
+- serialize → load round trip: **0.33D1B 유지**
+- 900 simulation day short run: runtime error 0
+- Snapshot D1B 필드 생성 확인
+- CSV schema validation: **791 columns / bad rows 0**
+- synthetic Coalition history `키오 + 델마 ↔ 벨른` 렌더링 및 `winnerSide=A` 표시 확인
+- War History panel owner: **V0.33D1B** 확인
+
+장기 자연주행 밸런스는 별도 검증이 필요하다.
+
+---
+
+## 11. 다음 자연주행 체크리스트
+
+1. 초기 수도 최대 정착지 비중이 D1A보다 낮아지는가.
+2. Housing Strain이 너무 이르게 폭발하지 않는가.
+3. 주택/연립/집합주거의 실제 건물 수가 증가하는가.
+4. `BUILDING_STARTED → COMPLETED` 달력기간 중앙값이 목표대로 크게 줄어드는가.
+5. `PROJECT_CAPACITY` blocker와 AI fallback 빈도가 감소하는가.
+6. 건설이 빨라진 대신 목재·석재·Gold 또는 유지보수가 새로운 자연스러운 병목으로 작동하는가.
+7. 분기 `maintenanceShortfallShare25`가 장기적으로 과도하게 상승하지 않는가.
+8. 단일 0.62 도로가 너무 빠르게 전 세계를 연결하지 않는가.
+9. 도로망 확산으로 국제교역/국내물류/군사 이동이 과도하게 빨라지지 않는가.
+10. 같은 편 Formation 중첩이 `▲2+3`과 국가색 arc로 보이는가.
+11. 실제 적군 접촉에서만 `⚔` 표시가 나타나는가.
+12. 79년대 같은 중도 참전 합동전쟁이 통계창과 각 참전국 최근전쟁에 남는가.
+13. D1A의 `dormantPhysicalGhosts33D1A = 0`이 계속 유지되는가.
+14. War Intent / Operational Reachability / Engagement에 회귀가 없는가.
+15. 기술 총비용 6,315와 60년대 완성 속도가 유지되는가.
+
+---
+
+# 아래는 V0.33D1A 상세 기술 기록 보존본
+
+# V0.33D1A 상세 기술 기록 (이전 기준)
 
 ## Coalition + Formation Stabilization
 
