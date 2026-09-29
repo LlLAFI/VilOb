@@ -1,3 +1,282 @@
+# Village Observer V0.33C1
+
+**패치명:** Frontline Continuity + Military Mobility Foundation  
+**기준 버전:** V0.33C  
+**날짜:** 2026-09-29
+
+V0.33C 자연전쟁에서는 Persistent Engagement 자체는 의도대로 작동했다. `CONTACT_SWEEP` 일일 반복은 사라지고 하나의 전투가 3~5일 간격의 라운드로 지속되었으며, 전선이 실제로 87→88→89→90→수도처럼 이동하는 장면도 자연스럽게 나타났다.
+
+다만 장기주행에서 세 가지 전술적 문제가 확인되었다.
+
+1. 자국 점령지가 하나라도 생기면 `strategicTarget33()`이 공격 목표 후보를 버리고 점령지 회복만 선택해, 승전 직후에도 전선을 포기하고 방향을 돌리는 경우가 있었다.
+2. 패전 Formation은 한 칸 후퇴한 즉시 `REGROUPING`에 들어갔지만 승전군은 정상 이동 주기로 곧 따라붙을 수 있어, 실제 C 자연주행에서는 Regroup 시작 29회 중 21회가 재정비 종료 전에 다시 교전에 걸렸다.
+3. 전투 사기는 라운드 승리 +3 / 패배 -7을 적용하고 있었지만 Field Cohort 동기화가 Person 행복도 평균으로 `morale`을 다시 계산하여 전투 사기 효과가 지속되지 않았다.
+
+C1은 이 세 문제를 함께 정리하면서, 장차 수레·기병·철도·차량·로봇 등으로 확장할 수 있도록 **군사 이동시간을 하나의 공통 계산 프레임워크로 전환**한다.
+
+핵심 흐름은 다음과 같다.
+
+```text
+Engagement 종료
+→ 패전군 RETREATING
+→ 안전한 후방 1~2타일 단계 철수
+→ 짧은 DISENGAGEMENT
+→ REGROUPING 15~30일
+→ 전투 사기 회복
+→ WAR_READY
+
+승전군
+→ POST_BATTLE_RECOVERY 3~7일
+→ 전선 momentum 유지
+→ 점령지 회복 / 추격 / 수도 방어를 함께 점수화
+→ 다음 전략 목표 결정
+```
+
+군사 이동은 더 이상 모든 상황에서 고정 15일/타일이 아니다.
+
+```text
+실제 이동일
+= 기본 15일
+× 지형 계수
+× 도로 계수
+× 보급 계수
+× 상태 계수
+× 장비 hook
+× 기술 hook
+```
+
+C1에서는 장비·기술 hook은 **1.0**으로 유지한다. 현재 Equipment Coverage는 주로 무기/군장 의미이므로 단순히 장비가 많다는 이유로 이동속도가 빨라지지 않는다. 향후 실제 이동지원 장비와 기술을 별도로 연결할 수 있게 구조만 마련한다.
+
+---
+
+# 0.33C1 변경사항
+
+## C1.1 Retreat & Disengagement
+
+패전 야전 Formation은 더 이상 첫 후퇴 타일에서 즉시 장기 재정비를 시작하지 않는다.
+
+- 교전 붕괴 직후 안전한 후방 경로를 최대 2타일까지 계산
+- 첫 후퇴는 즉시 수행
+- 두 번째 후퇴가 가능하면 `RETREATING` 상태에서 단계적으로 이동
+- 단계 후퇴가 끝난 뒤 `REGROUPING` 시작
+- 후퇴 경로는 자국 소유·통행 가능 타일을 우선하고 적 야전군과 거리를 벌리는 방향을 선호
+- 후퇴 중/초기 재정비 중에는 `DISENGAGEMENT` 보호시간을 적용
+- 승전군이 보호 중인 패전군이 있는 다음 타일로 즉시 진입하려 하면 짧게 대기 후 다시 판단
+
+신규 관측 이벤트:
+
+- `FORMATION_RETREATING33C1`
+- `FORMATION_RETREAT_MOVE33C1`
+- `ENGAGEMENT_DEFERRED_RETREAT33C1`
+- `PURSUIT_HELD_DISENGAGEMENT33C1`
+
+기존 `FORMATION_RETREAT33`, `FORMATION_REGROUP_STARTED33C`, `FORMATION_REGROUP_COMPLETED33C`도 계속 사용한다.
+
+## C1.2 Winner Post-Battle Recovery
+
+Engagement에서 승리한 Field Formation도 바로 다음 행동으로 넘어가지 않는다.
+
+- Engagement 종료 후 3~7일 `POST_BATTLE_RECOVERY`
+- 지속 라운드가 길수록 정비시간이 조금 증가
+- 정비 중 일반 전쟁 이동 금지
+- 완료 후 `WAR_READY` 복귀
+- 최근 승리 전선 방향은 약 30일간 momentum으로 기억
+
+신규 이벤트:
+
+- `FORMATION_POST_BATTLE_RECOVERY_STARTED33C1`
+- `FORMATION_POST_BATTLE_RECOVERY_COMPLETED33C1`
+
+이 변경의 목적은 추격을 없애는 것이 아니라 `전투 → 붕괴 → 후퇴 → 승전군 정비 → 재추격`의 전술적 리듬을 만드는 것이다.
+
+## C1.3 Strategic Target Continuity
+
+기존 C까지는 자국 점령지가 하나라도 있으면 `occupiedOwn`이 전략 후보 전체를 대체했다. C1에서는 다음 후보들을 동시에 점수화한다.
+
+- 점령당한 일반 자국 영토 해방
+- 적 영토 공격
+- 적 수도/core
+- 최근 승리 축선의 momentum
+- 최근 반복 패배 경로 페널티
+- 직접 위협받는 자국 수도 방어
+
+일반 점령지는 **높은 가중치**를 받지만 절대 우선은 아니다. 따라서 승전군이 전선 돌파 직후 적군을 계속 압박하는 편이 전략적으로 더 가치가 높으면 공격축을 유지할 수 있다.
+
+예외:
+
+- 자국 수도/core가 실제 점령됨 → 즉시 최우선 해방
+- 적 야전군이 자국 수도 2타일 이내에 접근 → 수도 방어 후보에 긴급 가중치
+
+## C1.4 Military Mobility Foundation
+
+공통 이동 함수 `militaryMoveDays`를 추가하고 전쟁 이동, 평시 Formation 이동, 종전 후 철군에 연결한다.
+
+초기 지형 계수:
+
+| 지형 | 계수 |
+|---|---:|
+| 평야 | 1.00 |
+| 초지 | 1.00 |
+| 숲 | 1.15 |
+| 암지 | 1.25 |
+| 산악 | 1.50 |
+
+도로 계수:
+
+- 출발·도착 타일 모두 도로: ×0.72
+- 한쪽만 도로: ×0.84
+- 도로 없음: ×1.00
+
+보급 계수:
+
+- Supply 70 이상: ×1.00
+- 50~69: ×1.05
+- 30~49: ×1.12
+- 30 미만: ×1.22
+
+상태 계수:
+
+- 일반 전쟁/평시 이동: ×1.00
+- 종전 철군: ×0.92
+- 패전 단계 후퇴: ×0.48
+
+따라서 보급이 정상인 평지·무도로 Formation은 기존과 같은 약 **15일/타일**을 유지한다. 산악에서는 느려지고, 연속 도로망에서는 크게 빨라진다.
+
+경로 탐색도 단순 타일 수가 아니라 예상 군사 이동일을 사용한다. 따라서 향후에는 더 긴 도로 경로가 짧은 험지 경로보다 빠른 선택이 될 수 있다.
+
+장비/기술 이동계수는 현재 1.0이다. 향후 다음 요소를 별도 연결할 수 있다.
+
+- 수레/군수 운송
+- 기병/기계화
+- 철도
+- 차량
+- 가상 자동화/로봇 병력
+
+## C1.5 Persistent Battle Morale
+
+사기를 두 층으로 분리한다.
+
+```text
+Base Morale
+= 실제 소속 Person 행복도 평균
+
+Battle Morale Modifier
+= 실제 전투 승패의 지속 효과
+
+Effective Morale
+= Base Morale + Battle Morale Modifier
+```
+
+전투 결과:
+
+- 해당 라운드 승리 Formation: `+3`
+- 해당 라운드 패배 Formation: `-7`
+- 최소 -35 / 최대 +18
+- 국가 전체가 아니라 실제 교전에 참여한 Formation/Garrison에만 적용
+
+회복:
+
+- `REGROUPING` / `RETREATING`: 하루 약 0.45씩 0 방향으로 회복
+- 그 밖의 전쟁 상태: 하루 약 0.06씩 천천히 0 방향으로 회복
+
+Field Formation 동기화는 이제 Person 행복도 평균을 **Base Morale**로만 갱신하고 Battle Morale Modifier를 보존한다. 따라서 연패한 패잔병은 실제 다음 교전 Readiness에서 불리하고, 재정비 시간이 전투력 회복에도 의미를 가진다.
+
+## C1.6 Observer / Telemetry
+
+`FORMATION_INVASION_MOVE33`에 다음 C1 정보가 추가된다.
+
+- `moveDays33C1`
+- `nextMoveCal33C1`
+- `targetKind33C1`
+- 지형/도로/보급/상태 이동계수
+
+별도 `FORMATION_MOBILITY33C1` 이벤트도 기록한다.
+
+군사 UI에는 Formation별로 다음을 표시한다.
+
+- 현재 상태
+- 다음 이동까지 남은 일수
+- 기본 사기
+- 전투 사기 modifier
+- 유효 사기
+- 최근 이동일수와 지형/도로/보급 계수
+
+Snapshot/CSV 추가 필드:
+
+Global:
+
+- `retreatMoves33C1`
+- `postBattleRecoveries33C1`
+- `militaryMoveSamples33C1`
+- `avgMilitaryMoveDays33C1`
+
+Nation:
+
+- `retreatingFormations33C1`
+- `postBattleRecoveryFormations33C1`
+- `fieldBattleMoraleModifier33C1`
+- `fieldBaseMorale33C1`
+- `fieldEffectiveMorale33C1`
+- `nextMilitaryMoveDays33C1`
+
+V0.33C의 715열에서 **725열**로 확장된다.
+
+## C1.7 Save Compatibility
+
+- V0.33C / B1 / B / A / 0.33 저장 호환
+- 저장 버전: `0.33C1`
+- 신규 저장 키: `village-observer-v0-33c1`
+- 기존 C `v33c.state`에 C1 Formation/Garrison 확장 상태도 함께 보존
+
+추가 보존 대상:
+
+- 단계 후퇴 경로 / 다음 후퇴 시각
+- disengagement 종료일
+- regroup 기간
+- post-battle recovery 종료일
+- Battle Morale Modifier / 마지막 회복일
+- momentum 종료일 / 최근 승리 전장
+- 다음 Formation 이동 가능일
+- 최근 이동 modifier 정보
+
+## C1.8 범위 유지
+
+C1에서 바꾸지 않는 것:
+
+- Engagement 3~5일 라운드 구조
+- 기존 `forcePower33`의 기본 Training/Equipment/Supply/Morale 구성
+- Person 사상자 확률
+- 임시 점령 생산 65%
+- 점령 보급 페널티
+- 선전포고 점수
+- War Exhaustion 공식
+- 종전 조건
+- War Goal / 배상 / 영구 영토 할양
+- 장비 생산 밸런스
+- 외교 기억
+
+단, Battle Morale Modifier가 이제 실제로 지속되므로 **동일 전투력 공식 안에서 Morale 입력값의 역사성이 생긴다.** 따라서 장기 자연주행에서 연승 snowball 강도는 별도 관측 대상이다.
+
+## C1.9 Regression Verification
+
+구현 후 확인:
+
+- inline JavaScript **76/76 syntax PASS**
+- Chromium startup/runtime error 0
+- V0.33C 저장 → C1 import PASS
+- C1 serialize/load 후 retreat path, disengagement, post-battle recovery, battle morale, next move state 유지 PASS
+- 평지/산악/연속도로 이동일 차등 동작 확인
+- fixture 기준 3연승 시 승전 Formation `Battle Morale +9`, 패전 Formation `-21` 지속 확인
+- Engagement 붕괴 후 패전 Formation 단계 후퇴/Regroup 및 승전 Formation Post-Battle Recovery 확인
+- 일반 점령지 존재 시 공격 목표 후보가 완전히 제거되지 않음 확인
+- 자국 core 점령 시 core 즉시 최우선 확인
+- CSV **725 columns / mismatch 0**
+- fresh-world 1000 advance call smoke: runtime error 0
+
+35년 이후 장기 자연전쟁은 사용자 자연주행 로그로 추가 검증한다.
+
+---
+
 # Village Observer V0.33C
 
 **패치명:** Engagement + Tactical Tempo V1  
