@@ -1,3 +1,368 @@
+# Village Observer V0.33C3
+
+**패치명:** Operational Targeting & Recovery  
+**기준 버전:** V0.33C2  
+**날짜:** 2026-09-29
+
+V0.33C3는 C2 자연전쟁에서 드러난 **수도 반복 돌격**, **중손실 부대의 얕은 재정비 후 재돌입**, **광역국가의 도로 건설 starvation**을 정리하고, 다음 V0.33D의 복수 Formation·다중전선·다중전쟁을 받을 수 있도록 작전 수준 판단 기반을 추가하는 패치다.
+
+이번 버전은 전투력·사상자·War Exhaustion·점령 효과의 핵심 공식을 다시 밸런싱하지 않는다. 또한 C2의 40-tech Knowledge 비용 총합 **7,605**도 변경하지 않는다. C2 장기주행에 사용된 세이브는 상당 기간을 구 기술비로 진행했기 때문에, 기술 완료 시점은 이후 더 이른 C2/C3 시작 세계에서 별도로 평가한다.
+
+C3의 핵심 범위는 다음 네 축이다.
+
+1. 수도를 포함한 작전 목표 다변화와 수도 공격 feasibility
+2. 중손실 Formation의 `DEEP_RECOVERY`와 실제 Recovery Anchor
+3. 광역국가에서도 도로가 영구 후순위가 되지 않는 전략 도로망
+4. 성향별 기본 국가명 고정 + 이름/성향 독립 구조 유지
+
+다중전쟁, 제3국 참전, 복수 야전군, Formation별 독립 전선 배정은 C3 범위가 아니며 V0.33D로 유지한다.
+
+---
+
+# 0.33C3 변경사항
+
+## C3.1 Operational Targeting V1
+
+C2까지의 전쟁 AI는 상대 수도에 높은 전략가치를 부여하고 최근 패배 경로에 페널티를 적용했지만, 수도의 실제 방어력을 공격 전력과 비교하지 않았다. 그 결과 같은 수도에서 여러 번 패배해도 `수도 → 후퇴 → Regroup → 수도`를 반복할 수 있었다.
+
+C3는 적 영토를 다음 작전 목표 종류로 분류한다.
+
+```text
+CAPITAL          적 수도
+FIELD_ARMY       적 야전 Formation
+MILITARY_HUB     병영 / 훈련장 / Armory / 감시탑 / 요새
+ADMIN_CENTER     행정사무소가 있는 행정 중심지
+LOGISTICS_HUB    시장 / 대시장 / 교역소 / Merchant Guild / 창고 / 항구
+INDUSTRIAL_HUB   철광산 / 제련소 / 대장간 / 채석장 / 석재가공소
+TERRITORY        일반 적 영토
+LIBERATE         적에게 점령된 자국 영토
+DEFEND_CORE      자국 수도 긴급 방어
+```
+
+각 후보는 다음 요소를 합산해 평가한다.
+
+- 목표 자체의 전략가치
+- 해당 타일 인구 및 중요 시설
+- 예상 이동시간
+- 현재 공격 momentum
+- 최근 패배 경로 페널티
+- 수도라면 예상 공격력 / 예상 수도 방어력
+
+목표 선택은 더 이상 상대 수도를 무조건 최종 목적지로 고정하지 않는다. 수도가 현재 전력으로 비현실적이면 군사거점·행정중심·물류거점·산업거점·일반 영토 등이 선택될 수 있다.
+
+### 수도 공격 feasibility
+
+수도 후보는 현재 Formation과 수도의 실제 수비 병력을 사용해 대략적인 전력을 추정한다.
+
+```text
+raw ratio = estimated attack power / estimated capital defense power
+
+required modifier
+= 1.00
++ Supply < 50      → +0.15
++ Battle Morale<-10→ +0.15
+
+effective ratio = raw ratio / required modifier
+```
+
+유효전력비를 기준으로:
+
+```text
+< 0.80       수도 직접공격 보류
+0.80~1.00    강한 목표점수 페널티
+1.00~1.20    상황에 따라 공격 가능
+>= 1.20      수도 공격 적극 고려
+```
+
+이는 전투 결과를 미리 확정하는 규칙이 아니다. 실제 Engagement는 기존 전투 계산을 그대로 사용한다. C3 판단은 **현재 관측 가능한 병력·훈련·장비·보급·사기·지형·방어시설을 이용해 공격 전에 위험도를 추정**하는 작전 AI다.
+
+관측 이벤트:
+
+```text
+FORMATION_TARGET_SELECTED33C3
+CAPITAL_ASSAULT_REJECTED33C3
+CAPITAL_ASSAULT_APPROVED33C3
+```
+
+`FORMATION_TARGET_SELECTED33C3`에는 target kind, target tile, 작전점수, 이동비용, 수도 평가 시 공격/방어 추정값과 전력비를 기록한다.
+
+## C3.2 Capital Assault Failure Memory
+
+수도 공격 실패는 일반적인 최근 패배와 별도로 Formation에 기억된다.
+
+```text
+1회 실패    60 calendar-day 재공격 cooldown
+2회 실패   120 calendar-day
+3회 이상   180 calendar-day
+```
+
+- 동일 수도에 대한 최근 실패 횟수는 Formation별로 저장한다.
+- 최근 실패 기억은 장기간 영구 낙인이 되지 않도록 약 720일 범위에서 판단한다.
+- 2회 이상 실패한 경우 단순히 시간을 기다리는 것만으로는 부족하다.
+- 마지막 수도 실패 이후 **비수도 적 영토 점령 또는 비수도 Engagement 승리** 같은 `operational progress`가 있어야 수도를 다시 검토할 수 있다.
+- 수도를 실제로 돌파하면 해당 수도 공격 실패 누적을 초기화한다.
+
+이 구조의 목적은 `수도 돌격 → 패배 → 같은 수도 돌격` 루프를 끊고, 주변 영토와 거점을 먼저 확보하는 우회 작전을 자연스럽게 만들기 위함이다.
+
+## C3.3 Deep Recovery
+
+C1의 1~2타일 전술 후퇴는 유지한다. 단, 패전 상태가 심각한 Formation은 더 이상 가까운 타일에서 짧게 Regroup한 뒤 바로 전선으로 복귀하지 않는다.
+
+C3는 패전 시 다음 신호를 합쳐 `recoverySeverity`를 계산한다.
+
+```text
+전투 시작 대비 병력 손실률
+현재 잔존 manpower
+Battle Morale
+같은 전선의 연속 패배 횟수
+현재 Formation Supply
+```
+
+대표 severity 가중치:
+
+- 손실률 25% 이상: +1 / 40% 이상: +2
+- 잔존병력 2명 이하: +1 / 1명 이하: +2
+- Battle Morale -8 이하: +1 / -15 이하: +2
+- 2연패: +1 / 3연패 이상: +2
+- Supply 45 미만: +1 / 30 미만: +2
+
+severity가 임계값에 도달하면 `DEEP_RECOVERY`를 시작한다.
+
+### Recovery Anchor
+
+실제 자국 영토의 다음 시설을 후방 재편 후보로 평가한다.
+
+```text
+병영
+훈련장
+Armory
+행정사무소
+감시탑
+수도
+```
+
+단순 시설 우선순위가 아니라 다음 요소를 함께 본다.
+
+- 시설 가치
+- 적 Formation과의 안전거리
+- 도로 유무
+- 해당 정착지 인구
+- 실제 이동비용
+- 적 점령 여부
+
+선택 후 Formation은 실제 타일 경로를 따라 거점까지 다단계 철수한다. 도착 후 **30~60 calendar-day** Regroup을 수행한다.
+
+```text
+패배
+→ 전술 이탈
+→ 여러 타일 후방 철수
+→ Recovery Anchor 도착
+→ 30~60일 재편
+→ WAR_READY 복귀
+```
+
+신규 이벤트:
+
+```text
+RECOVERY_ANCHOR_SELECTED33C3
+DEEP_RECOVERY_STARTED33C3
+DEEP_RECOVERY_ARRIVED33C3
+DEEP_RECOVERY_COMPLETED33C3
+```
+
+C3는 후방 거점에서 synthetic soldier나 synthetic equipment를 생성하지 않는다. 병력·장비·Readiness 갱신은 기존 Person-backed 군사 및 Equipment 파이프라인을 유지한다.
+
+## C3.4 Strategic Road Network
+
+기존 `autoInfrastructure()`는 대체로 농경지 → 저장/시장/채석 → 도로 순으로 첫 실행 가능한 건물을 고르고 종료했다. 영토가 넓은 국가는 항상 새 농경지 후보가 남아 있어 도로가 오랫동안 실행 기회를 얻지 못할 수 있었다.
+
+C3는 기존 인프라 AI 앞에 저빈도 **전략 도로 proposal**을 추가한다.
+
+중요 거점 후보:
+
+```text
+수도
+행정 중심지
+군사시설 거점
+상업 거점
+산업 거점
+고인구 정착지
+외국과 접한 국경 거점
+```
+
+수도에서 해당 거점까지의 실제 자국 경로를 계산하고 다음을 이용해 도로 연결가치를 평가한다.
+
+- 거점 종류와 가치
+- 경로 길이
+- 경로에서 빠진 도로 수
+- 현재 국가 전체 road share
+
+도로 proposal이 기존 인프라 긴급도보다 충분히 높거나, 광역국가인데 road share가 매우 낮으면 기존 farm-first 순서를 선점할 수 있다.
+
+단, **Food Crisis는 hard override**다. 식량 비축이 심각한 수준이면 전략도로가 생존 인프라를 선점하지 않는다.
+
+도로는 `startConstruction()`을 그대로 사용하므로 실제 목재·석재·노동·project capacity가 필요하다.
+
+신규 이벤트:
+
+```text
+ROAD_NETWORK_PROPOSAL33C3
+BUILDING_STARTED reason=C3_STRATEGIC_ROAD_NETWORK
+```
+
+## C3.5 Nation Name Preset
+
+새 세계의 기본 국가명은 성향별로 고정한다.
+
+| AI 성향 | 기본 국가명 |
+|---|---|
+| 생존안정형 (`survival`) | 키오 |
+| 교역외교형 (`diplomatic`) | 델마 |
+| 영토확장형 (`expansionist`) | 벨른 |
+| 균형형 (`balanced`) | 라엔 |
+| 도시집약형 (`urbanist`) | 티아 |
+| 자원개척형 (`resource_seeker`) | 에브 |
+
+이름과 성향은 하드코딩으로 동일시하지 않는다. 내부적으로 별개 속성을 유지한다.
+
+지원 모드:
+
+```text
+DISPOSITION_FIXED   성향별 기본 이름
+SHUFFLE             여섯 기본 이름을 무작위 배치
+RANDOM              기존 이름 풀에서 고유 이름 무작위 선택
+CUSTOM              swap API 등으로 사용자 변경
+```
+
+API:
+
+```text
+VSim.V033C3.setNameMode(mode)
+VSim.V033C3.applyNationNames(world, mode)
+VSim.V033C3.swapNationNames(world, nationIdA, nationIdB)
+```
+
+- 기존 저장파일은 저장된 국가명을 그대로 보존한다 (`LEGACY_PRESERVE`).
+- 새 자연 세계는 기본적으로 `DISPOSITION_FIXED`를 사용한다.
+- 새 MapData 세계도 기본 성향 프리셋을 적용한다.
+
+## C3.6 UI / Observer
+
+기존 B1/C/C1 전쟁 시각화는 유지한다.
+
+국가-군사 탭에 작은 `C3 작전 판단` 블록을 추가한다.
+
+표시:
+
+- 현재 후방 재편 Formation 수
+- 국가 도로 수 / 영토 수
+- 최근 작전 목표 종류
+- 수도 평가가 있었으면 최근 예상 전력비
+
+상단 runtime status에는 누적 수도 공격 보류, Deep Recovery 시작, 전략도로 착공 수를 간단히 표시한다.
+
+Snapshot/CSV 신규 필드:
+
+```text
+Global
+capitalAssaultRejected33C3
+capitalAssaultApproved33C3
+deepRecoveryStarted33C3
+deepRecoveryCompleted33C3
+roadProposals33C3
+roadStarts33C3
+targetSelections33C3
+
+Nation
+deepRecoveringFormations33C3
+maxDefeatStreak33C3
+roadTiles33C3
+roadShare33C3
+nationNameMode33C3
+```
+
+C2 735열에서 C3는 **747열**이 된다.
+
+## C3.7 Save / Compatibility
+
+저장 버전:
+
+```text
+0.33C3
+```
+
+새 저장 상태에는 다음 Formation-level C3 정보가 포함된다.
+
+- Deep Recovery 여부 / anchor / severity / 원인
+- 마지막 operational progress 시점
+- 같은 수도 공격 실패 횟수
+- 마지막 수도 공격 실패 시점 / 타일
+- 최근 작전 목표 진단
+
+지원 fallback:
+
+```text
+0.33C2
+0.33C1
+0.33C
+0.33B1
+0.33B
+0.33A
+0.33
+0.32F
+```
+
+C2 및 이전 저장파일에는 C3 필드가 없으므로 기본값으로 초기화한다. 기존 국가명은 변경하지 않는다.
+
+---
+
+# 검증
+
+구현 후 다음 회귀검사를 수행했다.
+
+- Inline JavaScript **78/78 syntax PASS**
+- Headless Chromium exact HTML runtime exception **0**
+- V0.33C2 save → C3 import PASS
+- C2 저장 국가명 보존 / `LEGACY_PRESERVE` PASS
+- 새 세계 성향별 고정 이름 6/6 PASS
+- SHUFFLE / RANDOM / 국가명 swap API PASS
+- C2 Knowledge 비용 총합 **7,605 유지** 확인
+- 약한 공격군의 수도 후보: `CAPITAL_ASSAULT_REJECTED33C3(POWER)` 후 비수도 목표 선택 PASS
+- 강한 공격군의 수도 후보: `CAPITAL_ASSAULT_APPROVED33C3` PASS
+- Supply/Battle Morale을 반영한 effective power ratio 계산 PASS
+- 동일 수도 2회 실패 기억 → `NEEDS_PROGRESS` 차단 PASS
+- 수도 실패 횟수 save/load 보존 PASS
+- 심각 패전 fixture: Deep Recovery 판정 + 실제 Recovery Anchor + 다단계 후퇴 PASS
+- Deep Recovery 상태/후퇴경로 save/load PASS
+- Deep Recovery Regroup 완료 → `DEEP_RECOVERY_COMPLETED33C3` 및 상태 해제 PASS
+- 광역·저도로 국가의 전략도로 proposal 및 실제 `BUILDING_STARTED` PASS
+- Food Crisis에서 전략도로 preemption 차단 PASS
+- CSV **747 columns / schema mismatch 0**
+- Fresh-world smoke runtime error 0
+
+아직 C3의 핵심 작전 AI는 **사용자의 장기 자연전쟁 데이터로 최종 검증해야 한다.** fixture 검증만으로 수도 우회·후방재편 빈도와 실제 전쟁의 재미를 확정하지 않는다.
+
+---
+
+# 다음 단계
+
+C3 자연주행에서 확인할 핵심은 다음이다.
+
+1. 압도적으로 불리한 동일 수도 공격이 반복되지 않는가
+2. 수도를 못 치는 군대가 주변 영토·군사/행정/물류 거점을 실제로 선택하는가
+3. 중손실 Formation이 전선에서 충분히 이탈해 Recovery Anchor까지 이동하는가
+4. Deep Recovery 이후 재돌입이 너무 느리거나 너무 빠르지 않은가
+5. 벨른처럼 광역국가도 생존위기를 해치지 않으면서 실제 도로망을 확장하는가
+6. 기존 Engagement/후퇴/War Exhaustion/점령/Person casualty가 회귀하지 않는가
+
+이 검증이 끝나면 V0.33D에서 **복수 Formation + Formation별 전선 배정 + 다중전쟁 + 제3국 참전**으로 확장한다.
+
+---
+
+# 이전 버전 상세 문서
+
+아래는 V0.33C2까지의 누적 기술 문서다.
+
 # Village Observer V0.33C2
 
 **패치명:** Stabilization, Pace & UI Consolidation  
