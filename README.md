@@ -1,20 +1,222 @@
-# Village Observer V0.33C3F
+# Village Observer V0.33D
 
-**패치명:** Operational Fixes  
-**기준 버전:** V0.33C3  
+**패치명:** Multi-front Warfare V1  
+**기준 버전:** V0.33C3F  
 **날짜:** 2026-09-29
 
-V0.33C3F는 C3 자연전쟁 검증에서 발견된 세 가지 correctness 문제를 고치는 마감 Fix다. **작전 목표 평가·전투력·사상자·War Exhaustion·기술 비용은 변경하지 않는다.** C3에서 확인된 수도 외 목표 선택, Deep Recovery, 전략 도로망의 방향은 유지하고, 그 판단을 실제 이동·점령 단계가 어기던 경로만 수정한다.
+V0.33D는 C 계열에서 완성한 단일 Formation 전쟁을 **국가 단위 다중전선 지휘**로 확장한다. 핵심은 한 국가가 복수 전쟁에 참여하고, 실제 Person 병력을 여러 Field Formation으로 나누어 전쟁·전선·임무를 별도로 배정하는 것이다. C3F의 수도 우회, Deep Recovery, 패퇴 중 점령 금지, 전략도로 fallback은 그대로 유지한다.
 
-## C3F 핵심 수정
+## D 핵심 범위
 
-1. `RETREATING / DEEP_RECOVERY / REGROUPING / POST_BATTLE_RECOVERY / WITHDRAWING / POSTWAR_WITHDRAWAL` Formation은 영토를 점령하거나 해방하지 않는다.
-2. 수도 공격이 현재 `REJECTED`이면 비수도 목표 경로에서 적 수도를 통과할 수 없다. 우회로가 없으면 다른 작전 목표를 선택한다.
-3. 전략도로 경로의 첫 후보 타일이 착공 거부되면 같은 경로의 다음 missing-road 타일을 최대 6개까지 순차 시도하며 blocker를 기록한다.
+1. 한 국가는 D V1에서 **최대 2개 활성 전쟁**에 동시에 참여할 수 있다. 제한값은 `MAX_WARS_D` 하나로 분리되어 이후 확장 가능하다.
+2. 전쟁은 `sideAIds[] / sideBIds[] / participantIds[]`를 가지며 제3국이 기존 전쟁의 공동교전국으로 참전할 수 있다. 정식 동맹·call-to-arms는 아직 아니다.
+3. 실제 현역 Person 수와 전선 수가 충분하면 최대 3개 Field Formation을 구성한다. 각 Formation은 `assignedWarId / assignedFrontId / mission`을 가진다.
+4. 수도 위협 시 무조건 전군 귀환하지 않고 `INTERCEPT / SCREEN / HOLD_CORE` 중 하나를 선택하며, 복수 Formation이면 방어 임무와 기존 공세를 동시에 수행할 수 있다.
+5. 같은 타일에 여러 국가·여러 Formation이 모이면 하나의 Coalition Engagement에 합류하며 기존 3~5일 라운드, 실제 Person 전사/부상, 사기·후퇴·Deep Recovery를 유지한다.
+6. 활성 전쟁이 2개 이상이면 지도 상단 전쟁 현황을 드롭다운으로 전환한다. 국가 군사 탭에는 Formation별 전쟁/임무/목표/Readiness/사기/Supply를 표시한다.
+7. 건물 신축·도로·업그레이드·전문화·토지정비는 지도 타일 하단에 실제 진행률 Progress Bar를 표시한다. 같은 타일에 여러 공사가 있으면 대표 bar + `×N`으로 표시한다.
 
-점령에 실제 시간이 소요되는 `Occupation Progress`는 이번 Fix에 넣지 않고 후속 전쟁/점령 고도화 범위로 남긴다. 다음 큰 구조 버전은 **V0.33D — Multi-front Warfare V1**이다.
+## D.1 다중전쟁과 공동교전국
+
+기존 V0.33은 사실상 한 국가가 한 War 객체에만 참여하도록 설계되어 있었다. D는 각 War를 다음처럼 확장한다.
+
+```text
+war.attackerId / defenderId   최초 전쟁 발발 주체 기록(호환성 유지)
+war.sideAIds[]                A측 현재 참전국
+war.sideBIds[]                B측 현재 참전국
+war.participantIds[]          전체 참전국
+war.d33Type                   INDEPENDENT / COALITION
+war.exhaustion[nationId]      참전국별 전쟁피로
+war.casualties[nationId]      참전국별 전사
+war.wounded[nationId]         참전국별 부상
+war.wins/losses[nationId]     참전국별 라운드 승패
+```
+
+지원되는 구조:
+
+```text
+A vs B
+A vs B + A vs C
+A+C vs B
+A vs B+C
+```
+
+동일 두 국가가 이미 같은 War 객체에 함께 들어가 있다면 같은 편/적대 여부와 무관하게 별도 전쟁을 새로 만들지 않는다. 또한 이미 다른 War에서 서로 관계가 얽힌 국가가 동일 기존 전쟁에 중복 참전하여 모순된 편 관계를 만들지 않도록 차단한다.
+
+AI는 90 calendar-day 저빈도 pulse에서 참전 또는 새 전쟁을 검토한다. 관계, 국경 접촉, 전력, Readiness, Food reserve와 기존 전쟁 수를 사용한다. 한 국가의 V1 동시전쟁 상한은 2이며 공격자와 피공격자 모두 같은 상한을 적용한다.
+
+## D.2 복수 Field Formation
+
+D는 합성 병사를 만들지 않는다. `militaryStatus32A === active`인 실제 Person을 Core Garrison과 Field Cohort들에 다시 배정한다. 전쟁 수와 현역 수에 따라 Field manpower 목표를 높이고, 실제 임무 수요가 생길 때 분할한다.
+
+기본 상한은 3개 Formation이며 각 Field Formation은 최소 약 2명 이상이 되도록 분할 수를 제한한다. 전쟁 2개와 현역 5~6명 수준부터 제1/제2야전대가 동시에 생길 수 있다.
+
+각 Formation의 핵심 상태:
+
+```text
+v33dAssignedWarId
+v33dAssignedFrontId
+v33dMission
+v33dEngagementId
+v33dFieldIndex
+```
+
+Formation은 한 시점에 하나의 War에만 배정되므로 같은 날 두 전쟁 loop에서 중복 이동하지 않는다.
+
+## D.3 Mission과 수도방어 태세
+
+D의 Mission은 작전 목표보다 한 단계 위의 임무다.
+
+```text
+OFFENSIVE   적 영토/거점 공격
+INTERCEPT   접근 중인 적 Field Formation을 야전에서 요격
+SCREEN      수도 인접 접근로에서 차단
+HOLD_CORE   수도 타일 최종방어
+LIBERATE    점령된 자국 영토 회복
+RECOVERY    Deep Recovery / 후방 재편
+RESERVE     즉시 전선에 투입하지 않는 예비 상태
+```
+
+적 Field Formation이 수도 2타일 이내에 들어오면 전력을 비교한다. 대략 우리 Formation이 확실히 우세하면 `INTERCEPT`, 비슷하면 `SCREEN`, 현저히 불리하거나 수도가 이미 점령되면 `HOLD_CORE`를 선택한다. 복수 Formation이면 같은 전쟁에서 방어 Mission은 우선 한 Formation만 담당하고 나머지는 공세를 유지할 수 있다.
+
+C3의 작전 목표 종류(`CAPITAL / FIELD_ARMY / MILITARY_HUB / ADMIN_CENTER / LOGISTICS_HUB / INDUSTRIAL_HUB / TERRITORY / LIBERATE`)는 그대로 사용하며 Formation Mission 안에서 목표를 고른다.
+
+## D.4 Coalition Engagement
+
+D Engagement는 동일 War의 A/B side를 기준으로 한다. 같은 편의 다른 국가 Formation이 이미 전투 중인 타일에 도착하면 새 전투를 만들지 않고 기존 Engagement의 다음 라운드부터 증원으로 참가한다.
+
+- 3~5 calendar-day 라운드 유지
+- 실제 Person roster에서 전사/부상 처리
+- Formation별 Battle Morale 유지
+- 패배 side의 각 Formation에 기존 Retreat/Deep Recovery 적용
+- 수도 Garrison도 실제 수비 병력으로 포함
+- 승전 side는 3~7일 Post-battle Recovery
+
+점령자는 해당 타일을 실제로 장악한 승전 Formation의 소속국 중 병력이 가장 큰 국가로 결정한다. 소유권 `ownerId`는 유지되고 임시 `v33OccupierId`만 변경된다.
+
+## D.5 전쟁 종료와 개별 상태
+
+War Exhaustion은 `war.exhaustion[nationId]`로 참전국별 계산한다. D V1의 평화 판정은 side 평균과 최고 피로도를 이용해 전쟁 전체를 종료한다. 개별 강화나 개별 참전국 탈퇴는 데이터 구조상 분리 가능하게 만들었지만 실제 협상 기능은 후속 범위다.
+
+한 War가 끝나더라도 그 국가가 다른 War에 참가 중이면 다른 전쟁은 유지되고 Formation을 재배정한다. 종전 시 외국 영토에 남은 Formation은 비전투 `POSTWAR_WITHDRAWAL_D` corridor로 자국 영토까지 귀환한다.
+
+## D.6 D가 Daily War Pulse를 소유
+
+V0.33의 `advanceOneDay()`에는 lexical legacy `warPulse33()` 호출이 이미 고정되어 있다. D가 그 위에 단순히 또 pulse를 추가하면 구 전쟁 로직과 D 로직이 하루에 함께 실행될 수 있다.
+
+D는 매 calendar-day 시작 전에 legacy root의 `lastPulseCal`을 다음 날로 pre-arm하여 inherited V0.33 war pulse를 no-op으로 만들고, 기존 일일 시뮬레이션이 끝난 뒤 **`warPulseD()`를 정확히 1회** 실행한다. 이 invariant는 복수 Formation 중복 이동과 legacy 단일전쟁 AI 재개입을 막는 핵심 회귀 조건이다.
+
+## D.7 다중전쟁 UI
+
+- 전쟁 1개: 기존 compact banner 유지
+- 전쟁 2개 이상: `⚔ 진행 중인 전쟁 N개` + selector
+- selector를 바꾸면 해당 전쟁의 전선/Formation ring을 강하게 표시
+- 다른 전쟁은 약한 전선으로 함께 표시
+- 군사 탭에는 각 Formation의 인원, Mission, 배정 War, 목표, Readiness, Battle Morale, Supply 표시
+
+## D.8 건설 Progress Bar
+
+지도 하단 bar는 시뮬레이션 시간을 새로 만들지 않는다. 기존 실제 프로젝트 값을 읽기만 한다.
+
+```text
+progress = laborProgress25 / totalLabor25
+fallback = progress / duration
+```
+
+표시 대상:
+
+- 일반 건물 신축(도로 포함)
+- 주거/건물 upgrade
+- specialization project
+- 토지 정비
+
+한 타일에 여러 프로젝트가 있으면 각 bar를 겹쳐 그리지 않고 평균 진행률의 대표 bar와 `×N`만 표시하며, 기존 Tile Inspector의 개별 프로젝트 상세는 유지한다.
+
+## D.9 저장/관측
+
+저장 키: `village-observer-v0-33d`
+
+Fallback:
+
+```text
+0.33C3F → C3 → C2 → C1 → C → B1 → B → A → 0.33 → 0.32F
+```
+
+추가 telemetry 예시:
+
+```text
+WAR_DECLARED33D
+WAR_JOINED33D
+FORMATION_CREATED33D
+FIELD_COHORT_FORMED33D
+FORMATION_ASSIGNED33D
+ENGAGEMENT_STARTED33D
+ENGAGEMENT_REINFORCED33D
+ENGAGEMENT_ROUND33D
+ENGAGEMENT_ENDED33D
+POSTWAR_WITHDRAWAL_MOVE33D
+WAR_ENDED33D
+```
+
+Snapshot/CSV 추가 필드:
+
+```text
+multiWarNations33D
+coalitionWars33D
+maxConcurrentWarsNation33D
+interventions33D
+independentConcurrentDeclarations33D
+activeEngagements33D
+engagementRounds33D
+fieldFormations33D
+assignedFormations33D
+constructionProgressTiles33D
+activeWarCount33D
+fieldFormationCount33D
+assignedFormationCount33D
+defenseMissions33D
+offenseMissions33D
+```
+
+## D.10 회귀 검증
+
+재시도 빌드에서 다음을 확인했다.
+
+```text
+inline scripts syntax                  79 / 79 PASS
+headless startup (document injection) runtime exception 0
+fresh smoke                           900 calendar advances / runtime exception 0
+C3F real serializer output → D load   PASS
+A-B + A-C concurrent wars             PASS
+A의 2개 Formation → 서로 다른 War     PASS
+one-day dual-front move               각 Formation 정확히 1회 이동
+A+C vs B coalition join               PASS
+모순된 중복 참전 guard                PASS
+coalition engagement                  첫 라운드 + 증원 side 인식 PASS
+capital defense split                 SCREEN + OFFENSIVE 동시 배정 PASS
+coalition participant telemetry       atWar33 / activeWarCount 정상
+mid-war D save/load                   War + Formation assignment 유지
+2-war banner dropdown                 2 options PASS
+construction progress observer        진행 타일 감지 PASS
+CSV schema                            764 columns / mismatch 0
+```
+
+브라우저 환경의 로컬 URL 접근 정책 때문에 `file://` 직접 자동화 대신 같은 Chromium 엔진의 `Page.setDocumentContent` 방식으로 실제 DOM/Canvas/JavaScript runtime을 실행해 검증했다.
+
+## D 범위 밖
+
+- 점령에 걸리는 실제 시간 / 인구·도시 규모별 Occupation Progress
+- 성벽·공성전
+- 정식 동맹·방위조약·강제 call-to-arms
+- 배상·영구 영토 할양
+- 포로
+- 해전/봉쇄
+- 병과·장군·전술
+- 수레·기병·차량 등 mobility equipment
 
 ---
+
+# 이전 C3F 이하 기술 문서
 
 # V0.33C3 기준 기능
 
