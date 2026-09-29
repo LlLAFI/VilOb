@@ -1,616 +1,544 @@
-# Village Observer V0.33D1
+# Village Observer V0.33D1A
 
-## War Intent + Intelligence Foundation
+## Coalition + Formation Stabilization
 
-기준 버전: **V0.33D**  
-패치 버전: **V0.33D1**  
-패치 성격: **Adjustment / Foundation**  
+기준 버전: **V0.33D1**  
+패치 버전: **V0.33D1A**  
+접미사: **A = Adjustment / 종합 보완**  
 작성 기준일: **2026-09-29**
 
 ---
 
 ## 1. 패치 목적
 
-V0.33D 자연주행에서 Multi-front Warfare V1 자체는 실제로 작동했지만, 다음과 같은 구조적 문제가 확인되었다.
+V0.33D1 새 월드 자연주행에서는 War Intent + Intelligence Foundation 자체는 정상적으로 작동했다. 공격 의도가 바로 선전포고로 이어지지 않고 검토·준비·취소되는 흐름이 실제로 나타났고, Formation 객체도 manpower 0 시 삭제/재생성되는 대신 ACTIVE/DORMANT lifecycle을 사용하기 시작했다.
 
-1. 실제 현역 인원이 0명이 된 Formation의 빨간 원형 표시가 지도에 남는 **유령 Formation 링** 현상.
-2. Field manpower가 일시적으로 0명이 되면 기존 Formation 객체가 사라졌다가 동일 ID로 다시 생성되면서 `FORMATION_CREATED33D`가 반복 기록되는 **Formation lifecycle 불연속**.
-3. 전략 AI가 상대 국가의 실제 군사력과 실제 Formation 위치를 직접 읽는 **완전정보 구조**.
-4. 선전포고 AI가 90일 주기로 공격 후보를 평가한 뒤 곧바로 확률 판정을 수행하여, 공격 검토·준비·포기라는 중간 역사 없이 전쟁이 갑자기 시작되는 구조.
+동시에 D 이전의 1:1 전쟁 시대 코드가 D/D1의 다자전 구조와 충돌하는 세 지점이 확인되었다.
 
-V0.33D1은 첩보 시스템 자체를 구현하는 패치가 아니다. 대신 향후 정찰·외교·무역·첩보·기만·정보 노후화를 추가할 수 있도록 **World Truth와 Strategic AI 사이에 Intelligence Layer를 삽입**하고, 전쟁 개시 전에 지속되는 **War Intent 상태**를 만든다.
+1. **전장 시각화**: B1의 구형 현재-Formation 빨간 링이 D1에서도 남아, DORMANT Formation의 과거 위치를 다시 그렸다.
+2. **전쟁 기록**: A 계열 War History가 `attackerId / defenderId`만 참전국으로 인식해 중도 참전 공동교전국의 이력을 누락했다.
+3. **작전 경로**: D의 실제 이동기는 공동교전국 영토를 통과할 수 있으나, C3 legacy 전략 목표 탐색은 자국+적국만 경로로 인정하여 우군 영토를 통한 공격 목표를 찾지 못했다.
 
-D1의 핵심 원칙은 다음과 같다.
+또한 직접적인 육상 작전 경로가 없는 국가끼리 전쟁이 성립할 경우 장기간 전투·이동 없이 War Exhaustion만 누적되는 사례가 확인되었다.
 
-> **World Truth → Intelligence API → Strategic Decision**
-
-현재 D1에서는 Intelligence API가 세계의 실제 값을 **100% 정확하게 반환**한다. 따라서 아직 실제 정보전·안개전쟁 효과는 없으며, 이번 패치는 미래 확장을 위한 인터페이스와 관측 구조를 먼저 구축한다.
+V0.33D1A는 이 네 문제를 안정화하고, 기술 진행 속도를 새 고정 기준으로 확정한다.
 
 ---
 
-## 2. V0.33D1 핵심 변경사항
+## 2. 기술 Knowledge 기준값 재설정
 
-### 2.1 Formation 렌더링 단일화
+### 2.1 기존 누적 스케일러 폐기
 
-V0.33B/B1에서 도입된 전장 시각화에는 현재 참전 Formation을 빨간 원형 링으로 표시하는 코드가 남아 있었다. V0.33D는 별도로 Multi-front 전용 Formation 링을 다시 그리므로, 두 렌더러가 동시에 존재하는 상태였다.
-
-B1 렌더러는 Formation의 실제 manpower를 확인하지 않고 `cohortIds` 존재만 확인했기 때문에, 실제 병사가 모두 부상하거나 Field cohort가 비활성화되어도 빨간 원이 남을 수 있었다.
-
-V0.33D1에서는:
-
-- V0.33B1의 **현재 Formation 빨간 링 렌더링을 D1 실행 중 억제**한다.
-- 최근 전투 흔적(`⚔`, 최근 전투 링)은 그대로 유지한다.
-- 현재 야전 Formation 위치 표시는 V0.33D의 `drawMultiFrontD()` 계열만 담당한다.
-- D 렌더러는 실제 manpower가 1명 이상인 Formation만 표시하므로 0명 유령 링이 제거된다.
-
-즉 지도 전장 표시의 역할은 다음처럼 분리된다.
-
-- 최근 전투: B/B1 Observer cache
-- 점령/해방 효과: B/B1 전장 시각화
-- 현재 Field Formation 위치: D/D1 Multi-front 렌더러
-- 건설 진행률: D 건설 Progress Bar
-
----
-
-## 3. Formation Lifecycle V1
-
-### 3.1 기존 문제
-
-V0.33D의 `ensureFormationsD()`는 현재 활성 Field cohort와 연결되지 않은 Formation을 배열에서 제거했다.
-
-특히 제1야전대는 `frm32d1-{nationId}-field1` 형식을 사용하기 때문에, manpower가 일시적으로 0명이 된 뒤 Field cohort가 다시 생성되면 동일 Formation ID가 새 객체로 다시 만들어질 수 있었다.
-
-자연주행에서는 같은 Formation ID에 대해 `FORMATION_CREATED33D`가 반복 발생하는 현상으로 관측되었다.
-
-### 3.2 D1 상태
-
-D1부터 Person-backed Field Formation 객체는 다음 lifecycle을 갖는다.
-
-- `ACTIVE`
-  - 현재 Field cohort와 연결됨.
-  - 실제 active manpower가 배치될 수 있음.
-
-- `DORMANT`
-  - 현재 활성 Field cohort가 없거나 Field 조직 대상에서 빠짐.
-  - 객체 자체는 삭제하지 않음.
-  - Formation ID, 과거 위치, 사기 및 기타 객체 상태를 보존함.
-  - 현재 전쟁 배정, 전선 배정, Engagement 연결은 해제함.
-
-### 3.3 상태 전환
-
-`ACTIVE → DORMANT`
-
-- 현재 Field cohort 연결이 사라질 때 발생.
-- `FORMATION_DORMANT33D1` 기록.
-
-`DORMANT → ACTIVE`
-
-- 동일 Formation 슬롯에 Field cohort가 다시 배정될 때 발생.
-- 기존 Formation 객체를 재사용.
-- `FORMATION_REACTIVATED33D1` 기록.
-- 동일 ID에 대한 불필요한 `FORMATION_CREATED33D` 반복 생성을 방지.
-
-### 3.4 이번 버전에서 하지 않는 것
-
-DORMANT는 아직 장기적인 부대 전통·지휘관·부대명·경험치 시스템을 의미하지 않는다.
-
-다만 객체 수명이 보존되므로 향후 다음 항목을 Formation에 누적할 수 있다.
-
-- 전투 경험
-- 패전/승전 이력
-- 장군 또는 지휘관
-- 부대 숙련도
-- 전선 기억
-- 부대 별칭
-- 장비 전통
-
----
-
-## 4. Intelligence API V0
-
-### 4.1 목적
-
-V0.33D 이전의 군사 AI는 다음 정보를 직접 읽었다.
-
-- 상대 국가의 실제 Field/Garrison manpower
-- 실제 readiness
-- 실제 Formation 위치
-- 실제 경제·식량 상태
-- 실제 외교 관계
-
-이 구조에서는 나중에 정보 오차를 넣으려면 전쟁 AI 전체를 다시 수정해야 한다.
-
-V0.33D1은 전략 판단에 사용되는 일부 핵심 조회를 Intelligence API로 우회시킨다.
-
-### 4.2 정보 범주
-
-D1의 Intel record는 다음 범주를 분리한다.
-
-- `military`
-  - Field manpower
-  - Garrison manpower
-  - Total manpower
-  - readiness
-  - estimated power
-  - known Formation 목록
-
-- `position`
-  - Formation별 마지막 관측 위치
-
-- `economy`
-  - 인구
-  - 식량 비축 일수
-  - Gold
-
-- `diplomacy`
-  - 관측국이 대상국에 대해 가진 관계값
-
-- `logistics`
-  - 현재는 영토 규모를 기본 정보로 저장
-
-### 4.3 신뢰도
-
-V0.33D1의 모든 정보 신뢰도는:
-
-- military: `1.0`
-- position: `1.0`
-- economy: `1.0`
-- diplomacy: `1.0`
-- logistics: `1.0`
-
-즉 **100% 정확한 World Truth proxy**다.
-
-아직 랜덤 오차나 정보 지연은 발생하지 않는다.
-
-### 4.4 저장 구조
-
-국가 A가 국가 B를 관측한 정보는 `observerId:targetId` pair 단위의 Intel Book에 기록된다.
-
-예시 개념:
+V0.33C2부터 사용하던 `scaledTechCost33C2()`는 원래 기술 비용에 구간별 배율을 곱하는 방식이었다.
 
 ```text
-벨른 → 티아
-updatedCal: 28120
-military confidence: 1.0
-position confidence: 1.0
-field manpower: 5
-readiness: 61.3
-known formations:
-  - field1 tile 164 manpower 3
-  - field2 tile 165 manpower 2
+기존 개념
+base cost
+→ <=200 ×0.85
+→ <=400 ×0.60
+→ <=600 ×0.45
+→ 그 이상 ×0.35
+→ 5 Knowledge 단위 반올림
 ```
 
-D1에서는 조회할 때마다 최신 실제 상태로 갱신되지만, 향후에는 이 `updatedCal`과 category confidence를 이용하여 정보가 낡도록 변경할 수 있다.
+이 방식은 당시 빠른 밸런스 조정에는 유용했지만, 버전이 누적되면서 "현재 비용의 기준값이 무엇인가"를 읽기 어렵게 만들었다.
+
+D1A부터는 이 방식으로 기술 비용을 다시 계산하지 않는다.
+
+- `scaledTechCost33C2()`는 역사적 호환을 위한 no-op 이름만 남긴다.
+- `applyTechPace33C2()`는 기술 비용을 변경하지 않는다.
+- **D1A의 40개 기술 비용표 자체가 새로운 기준값이다.**
+- 로드/새 세계/Telemetry 호출 시에도 아래 고정값을 다시 적용하므로 반복 곱셈으로 비용이 계속 내려가지 않는다.
+
+### 2.2 총 요구량
+
+| 기준 | 40개 기술 총 Knowledge |
+|---|---:|
+| V0.33D1 | 7,605 |
+| **V0.33D1A** | **6,315** |
+| 변화 | **-1,290 (-17.0%)** |
+
+목표는 **60년대에 대부분의 국가가 40개 기술을 완성**하도록 후기 기술 정체를 줄이되, Knowledge 생산력이 낮은 국가가 여전히 늦을 수 있는 국가별 차이는 유지하는 것이다.
+
+### 2.3 단계별 압축
+
+| 기술 깊이 | 성격 | D1 합계 | D1A 합계 | 변화 |
+|---|---|---:|---:|---:|
+| 0단계 | 시작 기술 | 370 | 345 | -6.8% |
+| 1단계 | 초기 확장 | 2,270 | 2,040 | -10.1% |
+| 2단계 | 중기 핵심 | 2,335 | 1,955 | -16.3% |
+| 3단계 | 후기 진입 | 1,590 | 1,245 | -21.7% |
+| 4단계 | 최후반 | 720 | 520 | -27.8% |
+| 5단계 | 기술트리 종점 | 320 | 210 | -34.4% |
+| **전체** | **40개** | **7,605** | **6,315** | **-17.0%** |
+
+초반은 거의 유지하고, 후반으로 갈수록 감축폭을 키운다.
+
+### 2.4 기술별 고정 비용
+
+| 분야 | 기술 | D1 | D1A |
+|---|---|---:|---:|
+| 생산 | 농경 | 70 | **65** |
+| 생산 | 목공 | 70 | **65** |
+| 생산 | 석공 | 75 | **70** |
+| 생산 | 관개 | 135 | **120** |
+| 생산 | 곡물 저장 | 130 | **115** |
+| 생산 | 채석장 | 145 | **130** |
+| 생산 | 윤작 | 180 | **160** |
+| 생산 | 임업 | 185 | **165** |
+| 생산 | 식량 보존 | 215 | **180** |
+| 생산 | 철광 채굴 | 235 | **195** |
+| 생산 | 제련 | 235 | **185** |
+| 생산 | 철공 | 215 | **155** |
+| 교역 | 교역 관습 | 65 | **60** |
+| 교역 | 수레 | 150 | **135** |
+| 교역 | 시장 | 155 | **140** |
+| 교역 | 도량형 | 215 | **195** |
+| 교역 | 사절단 | 235 | **210** |
+| 교역 | 연안 항해 | 195 | **165** |
+| 교역 | 화폐제도 | 205 | **170** |
+| 교역 | 도로 | 150 | **125** |
+| 교역 | 장거리 상단 | 210 | **175** |
+| 교역 | 항해술 | 215 | **170** |
+| 교역 | 상법 | 215 | **170** |
+| 교역 | 원양 항해 | 250 | **180** |
+| 지식 | 기록법 | 90 | **85** |
+| 지식 | 학술 전통 | 175 | **160** |
+| 지식 | 학당 | 250 | **210** |
+| 지식 | 학당 교육 | 230 | **180** |
+| 개척·행정 | 측량 | 140 | **125** |
+| 개척·행정 | 개척 보급술 | 190 | **160** |
+| 개척·행정 | 행정제도 | 225 | **190** |
+| 개척·행정 | 봉수와 파수 | 225 | **175** |
+| 도시 | 정착지 계획 | 210 | **190** |
+| 도시 | 건축술 | 215 | **195** |
+| 도시 | 축성술 | 225 | **190** |
+| 도시 | 우물과 배수 | 235 | **195** |
+| 도시 | 토목술 | 240 | **185** |
+| 도시 | 공공사업 | 230 | **180** |
+| 도시 | 도시 발달 | 255 | **185** |
+| 도시 | 도시 정비 | 320 | **210** |
 
 ---
 
-## 5. Intelligence API를 실제로 사용하는 군사 판단
+## 3. Formation 링 시각화 안정화
 
-### 5.1 선전포고 전력 평가
+### 3.1 구형 B1 현재-Formation 링 제거
 
-기존 V0.33의 `declarationScore33()`는 상대의 실제 `forcePotential33()` 값을 직접 사용했다.
+V0.33B/B1의 `drawFrontB()`는 전쟁 참가국 Formation 객체에 `cohortIds`가 존재하면 실제 manpower와 관계없이 빨간 원을 그렸다.
 
-D1부터는 D1 Intelligence hook이 활성화되어 있으면 선전포고 평가가 Intel API를 통해 상대 전력을 읽는다.
-
-현재 정확도 100%이므로 수치적으로는 기존 완전정보 결과와 최대한 동일하게 유지된다.
-
-기존 선전포고 점수의 핵심 요소는 유지된다.
-
-- 전략적 경계/concern
-- 관계 악화
-- 국경 접촉
-- 전력비
-- AI 성향 보너스
-- 최근 양국 교역에 따른 전쟁 억제 페널티
-
-### 5.2 적 Formation 위치
-
-V0.33D의 `nearestEnemyFormationD()`도 D1 Intelligence hook을 사용할 수 있게 변경했다.
-
-현재는 Intel API가 실제 적 Formation 위치를 정확히 반환한다.
-
-향후에는 같은 함수 호출을 유지하면서 다음과 같이 바꿀 수 있다.
+D1에서는 Formation 객체를 DORMANT로 보존하기 때문에 이 구조가 다음 현상을 만들었다.
 
 ```text
-실제 위치: (12,8)
-마지막 관측: (10,8), 27일 전
-위치 신뢰도: 42%
+병력 0
+→ Formation DORMANT
+→ 객체와 과거 tileId는 보존
+→ B1 렌더러가 객체만 보고 빨간 원 표시
+→ ▲ manpower 라벨은 0명이므로 표시되지 않음
+→ 빈 빨간 원만 남음
 ```
 
-그러면 D의 수도방어 `INTERCEPT / SCREEN / HOLD_CORE` 판단도 자연스럽게 정보 오차의 영향을 받을 수 있다.
+더 나아가 전쟁 종료 시에는 활성 전쟁이 없어 원이 사라졌다가, 같은 국가가 새 전쟁에 들어가면 B1이 같은 DORMANT 객체를 다시 읽어 과거 위치에 원을 재생성했다.
+
+D1A에서는 B1의 **현재 Formation 원 그리기 자체를 제거**한다.
+
+B1은 다음만 담당한다.
+
+- 전쟁 전선
+- 점령/해방 시각화
+- 최근 전투 마커
+
+현재 Field Formation 링은 D multi-front renderer만 담당한다.
+
+### 3.2 국가색 Formation 링
+
+현재 야전군 링은 더 이상 공통 빨간색이 아니다.
+
+- 1개 국가: 해당 국가 고유색 전체 원
+- 2개 동맹국이 같은 타일: 180° + 180°
+- 3개국: 120°씩
+- N개국: **1/N 원호**
+
+색을 RGB로 섞지 않고 원호를 분할하는 이유는 국가 정체성을 그대로 유지하기 위해서다.
+
+빨강 계열은 계속 다음 의미에 사용한다.
+
+- 적대 전선
+- 전쟁 상태 강조
+- 위험/교전 계열 표현
+
+국가색 원은 **"누구의 야전군이 여기 있는가"**만 표현한다.
 
 ---
 
-## 6. War Intent V1
+## 4. Formation lifecycle: 역사와 물리적 존재 분리
 
-### 6.1 목적
+D1의 ACTIVE / DORMANT 객체 보존은 유지한다.
 
-기존 D의 독립전쟁 AI는 90일마다 후보를 평가하고, 조건을 통과하면 즉시 확률 판정으로 전쟁을 선언했다.
+다만 D1A부터 DORMANT는 다음처럼 해석한다.
 
-D1부터 독립 선전포고는 persistent War Intent를 거친다.
+### ACTIVE
 
-기본 흐름:
+- 실제 active Person manpower 존재
+- 지도상 물리적 야전군 존재
+- `v33d1HasPhysicalPresence = true`
 
-```text
-공격 후보 발견
-    ↓
-ASSESSING
-    ↓
-┌───────────────┬──────────────┐
-PREPARING      READY          CANCELLED
-    ↓             ↓
-재평가         확률적 개전
-                  ↓
-               DECLARED
-```
+### DORMANT
 
-### 6.2 ASSESSING
+- Formation의 ID와 이력은 보존
+- 전투 사기 등 장기 Formation 정체성 보존 가능
+- 마지막 실제 작전 위치를 `v33d1LastOperationalTileId`에 기록
+- **현재 지도상 군대는 존재하지 않음**
+- `v33d1HasPhysicalPresence = false`
 
-공격 욕구가 일정 수준 이상인 국가를 발견하면 즉시 선전포고하지 않고 공격 검토 기록을 만든다.
+### 재활성화
 
-현재 Intent 생성 기준:
+DORMANT Formation이 다시 manpower를 얻으면 과거 전장에서 갑자기 부활하지 않는다.
 
-- 국경 접촉 가능
-- 전쟁 참가 수 제한 내
-- 최근 종전 cooldown 위반 아님
-- Watchtowers 또는 Administration 기반 전략 판단 조건 충족
-- 기존 공격평가 점수 약 `68+`
+재집결 지점 후보:
 
-생성 시:
+1. 자국 군사시설(병영/훈련장/무기고/파수/축성)
+2. 행정청
+3. 도로 연결
+4. 수도
 
-`WAR_INTENT_CREATED33D1`
+후보에 점수를 주어 자국의 실제 거점에서 다시 ACTIVE가 된다. 적합한 거점이 없으면 수도를 사용한다.
 
-이벤트가 기록된다.
+재활성화 시 최근 이동 trail도 초기화한다.
 
-### 6.3 PREPARING
+---
 
-공격 명분/욕구 점수는 충분하지만 현재 준비상태가 부족하면 PREPARING으로 이동한다.
+## 5. Coalition 군사통행권
 
-D1의 준비 부족 판단 예시:
+### 5.1 기본 원칙
 
-- Field manpower 부족
-- readiness 부족
-- 식량 비축 부족
-- 추정 전력비가 지나치게 낮음
-
-중요:
-
-**D1은 아직 실제 준비 행동을 강제하지 않는다.**
-
-즉 PREPARING 상태에서 국가가 의도적으로 병력을 더 뽑거나, 식량을 비축하거나, 전략도로를 건설하는 기능은 다음 단계인 D2 범위다.
-
-D1에서는 “이 국가는 지금 공격 의도가 있지만 준비가 부족하다고 판단했다”는 상태를 보존하는 것이 목적이다.
-
-### 6.4 READY
-
-현재 평가가 개전 조건을 만족하면 READY가 된다.
-
-READY에서는 기존 D의 확률적 전쟁 개시 성격을 유지한 확률 판정을 수행한다.
-
-선전포고가 성공하면:
-
-- War Intent → `DECLARED`
-- `WAR_INTENT_DECLARED33D1`
-- 기존 `WAR_DECLARED33` / `WAR_DECLARED33D`
-
-가 이어진다.
-
-### 6.5 CANCELLED
-
-정보 재평가 결과 공격 가치가 충분하지 않으면 공격 계획을 포기한다.
+같은 전쟁에서 같은 Side에 속한 국가는 서로의 영토를 **그 전쟁 동안만** 군사 작전용 통행 지역으로 취급한다.
 
 예:
 
-- 공격 평가 점수가 크게 하락
-- 대상국이 더 이상 유효한 전쟁 대상이 아님
-- 대상국 또는 자국의 동시전쟁 상태 변화
-- 평가 후에도 공격 명분이 개전 기준에 도달하지 않음
+```text
+키오 + 라엔  vs  티아
 
-기록:
+키오 영토 → 라엔 영토 → 티아 영토
+           ↑
+      전쟁 한정 우군 통행 가능
+```
 
-- `WAR_INTENT_PHASE_CHANGED33D1`
-- `WAR_INTENT_CANCELLED33D1`
+이 통행은 평시 일반 외교 통행권으로 저장되지 않는다.
 
-이를 통해 장기적으로 다음 역사를 관찰할 수 있다.
+우군 영토를 통과해도 점령 이벤트는 발생하지 않는다.
 
-> 벨른은 티아 공격을 검토했으나 정보 평가 후 포기했다.
+### 5.2 목표 탐색과 실제 이동의 경로 규칙 통일
 
----
+D의 실제 `pathD()`는 이미 같은 Side의 모든 국가 영토를 통과할 수 있었다.
 
-## 7. 기존 Coalition / Intervention 유지
+문제는 앞단의 C3 legacy 전략 목표 탐색이었다. 기존 `strategicTarget33()`은 자국+한 적국만 경로로 인정했기 때문에, 우군 영토를 거쳐야 하는 목표를 `WAR_HOLD` 또는 도달 불가로 판단할 수 있었다.
 
-D1은 독립 선전포고를 War Intent 구조로 변경하지만, V0.33D의 공동교전국/제3국 참전 기능을 제거하지 않는다.
+D1A에서는:
 
-기존과 같이:
+1. C3 legacy target 결과가 정상적으로 도달 가능하면 기존 결과를 유지한다.
+2. legacy가 `WAR_HOLD`, 자기 타일, 도달 불가, 잘못된 DEFEND_CORE fallback을 반환하면
+3. D의 coalition-aware `pathD()`를 사용해 적국의 실제 도달 가능한 목표를 다시 탐색한다.
 
-- 제3국이 기존 전쟁의 A/B 어느 한 편을 평가함.
-- 관계 차이와 국경 조건을 검사함.
-- 조건이 충족되면 `AI_INTERVENTION`으로 참전 가능.
-- 최대 동시전쟁 수 제한을 유지함.
+즉 다음 세 단계가 같은 통행권 모델을 공유한다.
 
-D1에서는 이 외교 관계 조회도 Intelligence API의 diplomacy 경로를 이용하므로, 향후 외교정보의 신뢰도가 낮아질 때 intervention 판단도 같은 확장 경로를 사용할 수 있다.
-
----
-
-## 8. Devlog 이벤트 추가
-
-### Formation lifecycle
-
-- `FORMATION_DORMANT33D1`
-- `FORMATION_REACTIVATED33D1`
-
-### War Intent
-
-- `WAR_INTENT_CREATED33D1`
-- `WAR_INTENT_REVIEWED33D1`
-- `WAR_INTENT_PHASE_CHANGED33D1`
-- `WAR_INTENT_CANCELLED33D1`
-- `WAR_INTENT_DECLARED33D1`
-
-War Intent 이벤트에는 가능한 경우 다음 값이 포함된다.
-
-- `intentId`
-- `village / villageId`
-- `target / targetId`
-- `phase`
-- `reason`
-- `score`
-- `estimatedAdvantage`
-- `intelConfidence`
-- readiness
-- food
-- field manpower
+```text
+전략 목표 선택
+→ 경로 가능성 확인
+→ 실제 이동
+```
 
 ---
 
-## 9. Snapshot / CSV 추가 계측
+## 6. Operational Reachability V1
 
-### Global
+War Intent가 전력과 관계만 보고 실제로 만날 수 없는 상대와 전쟁을 시작하는 문제를 막기 위한 기반이다.
 
-- `activeWarIntents33D1`
-- `preparingWarIntents33D1`
-- `readyWarIntents33D1`
-- `intelAssessments33D1`
-- `formationDormancies33D1`
-- `formationReactivations33D1`
-- `dormantFormations33D1`
+### 상태
 
-### Nation
+#### `DIRECT_ACCESS`
 
-- `warIntentPhase33D1`
-- `warIntentTarget33D1`
-- `warIntentTargetId33D1`
-- `warIntentScore33D1`
-- `warIntentConfidence33D1`
-- `warIntentAdvantage33D1`
-- `dormantFormationCount33D1`
+현재 자국+대상국 영토만으로 육상 군사 경로가 존재한다.
 
-이 계측은 다음 자연주행에서 특히 중요하다.
+#### `WAITING_ACCESS`
 
-다음 분석에서는 단순히 전쟁 횟수만 보는 것이 아니라:
+직접 경로는 없지만 우호적인 제3국 영토를 통하면 물리적 경로가 존재한다.
 
-- 공격 검토가 몇 번 발생했는가
-- 몇 번 포기했는가
-- PREPARING에서 얼마나 오래 머무르는가
-- 어떤 점수와 전력비에서 READY가 되는가
-- 반복 패전 국가가 계속 Intent를 만드는가
-- 두 번째 전쟁 Intent가 어떤 조건에서 형성되는가
+D1A에서는 **통행을 얻기 위한 실제 외교 행동은 아직 없다.** 따라서 최대 720일 동안 PREPARING 상태로 기다린 뒤 접근권을 얻지 못하면 Intent를 취소한다.
 
-를 확인할 수 있다.
+#### `NO_OPERATIONAL_ROUTE`
 
----
+현재 구현된 육상 군사체계로는 작전 경로가 없다.
 
-## 10. 저장 / 호환성
+공격 의도가 충분히 높아 Intent가 생성될 수는 있으나, 재평가 후 `NO_OPERATIONAL_ROUTE` 사유로 취소된다. 실제 선전포고로 넘어가지 않는다.
 
-새 save version:
+#### `ALLY_ACCESS`
 
-`0.33D1`
+이미 시작된 공동전쟁에서 같은 Side의 우군 영토를 통하여 적국에 도달할 수 있다.
 
-LocalStorage key:
+### 미래 확장
 
-`village-observer-v0-33d1`
+이 인터페이스는 이후 다음을 추가할 수 있도록 분리했다.
 
-fallback:
-
-- `village-observer-v0-33d`
-- `village-observer-v0-33c3f`
-- `village-observer-v0-33c3`
-- `village-observer-v0-33c2`
-- `village-observer-v0-33c1`
-- `village-observer-v0-33c`
-
-D1 save에는 다음이 추가 저장된다.
-
-- War Intent 목록
-- Intent next ID
-- D1 decision pulse 시각
-- Intel Book
-- D1 stats
-- perfect-information foundation flag
-
-기존 V0.33D save를 불러오면 D1 상태가 새로 붙는다.
+- 평시 군사통행권 외교
+- 동맹/보호국
+- 해상 수송
+- 상륙전
+- 봉쇄
+- 정보 부족으로 인한 잘못된 경로 판단
 
 ---
 
-## 11. 인게임 UI
+## 7. 작전 경로 관측 로그
 
-### 버전
+추가 이벤트:
 
-- 브라우저 title: `Village Observer V0.33D1`
-- 버전 badge: `V0.33D1`
+### `MILITARY_ACCESS_OPENED33D1A`
 
-### Runtime status
+제3국이 공동교전국으로 들어와 같은 Side 국가 사이 전쟁 한정 군사통행권이 생겼을 때 기록한다.
 
-현재 활성 War Intent 수와 PREPARING 수를 표시한다.
+### `OPERATIONAL_ROUTE_AVAILABLE33D1A`
 
-### 군사 탭
+이전에는 적국에 도달할 수 없던 참전국에게 실제 작전 경로가 열렸을 때 기록한다.
 
-선택 국가에 D1 패널을 추가한다.
+### `OPERATIONAL_ROUTE_LOST33D1A`
 
-활성 Intent가 있으면:
+기존 작전 경로가 사라졌을 때 기록한다.
 
-- 대상 국가
-- 현재 phase
-- 공격 평가 점수
-- 추정 전력비
-- 정보 신뢰도
-- 검토 횟수
-- 현재 판단 이유
-
-를 표시한다.
-
-활성 Intent가 없으면 D1 Intelligence Foundation이 활성화되어 있고 현재 정보 신뢰도가 100% proxy임을 표시한다.
+작전 경로 감시는 30 calendar-day 간격의 저빈도 audit로 수행한다.
 
 ---
 
-## 12. 이번 버전에서 의도적으로 제외한 기능
+## 8. Coalition-aware War History
 
-V0.33D1에서는 다음을 구현하지 않는다.
+기존 A 계열 국가 최근 전쟁 UI는 다음만 검사했다.
 
-- 첩보원 Person 또는 Spy 직업
-- 정찰대
-- 국경 정찰 명령
-- 정보 수집 비용
-- 외교사절의 정보 수집
-- 무역량에 따른 정보 정확도 변화
-- 정보 노후화
-- 잘못된 병력 추정
-- Formation 위치 오차
-- 병력 은폐
-- 허위 병력 정보
-- 기만 작전
-- Counter-intelligence
-- 매복
-- 정찰 실패
-- 정보 우위에 따른 직접 전투력 보너스
+```text
+attackerId == nationId
+또는
+defenderId == nationId
+```
 
-이 항목들은 모두 D1 Intelligence API 위에 후속 구현할 수 있다.
+따라서 전쟁 중간에 `WAR_JOINED33D`로 참가한 국가의 전쟁이 그 국가의 최근 전쟁 목록에 나오지 않았다.
 
----
+D1A의 전쟁 기록은 다음을 기준으로 한다.
 
-## 13. 향후 권장 흐름
+```text
+sideAIds[]
+sideBIds[]
+winnerSide
+```
 
-### V0.33D2 — Strategic War Preparation
+### 표시 예
 
-War Intent의 `PREPARING`을 실제 국가 행동과 연결하는 단계.
+```text
+티아+델마 ↔ 라엔
+티아 ↔ 키오+라엔
+```
 
-후보:
+중도 참전국 역시 최근 전쟁 목록에 나타난다.
 
-- 전시 동원 확대
-- 병기·도구 확보
-- 식량 비축 목표 상승
-- Treasury reserve 확대
-- 전선 접근 도로 건설
-- Formation readiness 목표 상승
-- 두 번째 전쟁 전 추가 준비 부담
-- 과거 패전 기억
-- 상대 동원 잠재력 추정
+### 결과 판정
 
-### V0.33E — Intelligence & Reconnaissance V1
+- 단독 Side 승리: `승리`
+- 복수국 Side 승리: `공동 승리`
+- 복수국 Side 패배: `공동 패배`
+- winnerSide 없음: `무승부/종전`
 
-D1의 100% 정확 Intel API를 실제 불완전정보 시스템으로 전환.
-
-후보:
-
-- category별 정보 정확도
-- 마지막 관측 시각
-- 정보 decay
-- 국경 정찰
-- 무역 정보
-- 외교 정보
-- 전투를 통한 적 전력 학습
-- Formation 위치 sighting
-- 정보 범위/오차
-
-### 이후
-
-- 첩보
-- 기만
-- 방첩
-- 허위 Formation 정보
-- 전략적 은폐
-- 정보 우위 기반 우회/회피/기습
-
-최종적으로는 **전력 열세 국가가 정보 우위와 기동 우위로 정면 교전을 회피하며 전략적 승리를 노릴 수 있는 구조**를 목표로 한다.
+전사·부상·누적 점령도 Side 소속 국가 값을 합산/통합해 표시한다.
 
 ---
 
-## 14. V0.33D1 Smoke Test
+## 9. War Intent + Intelligence Foundation 유지
 
-패치 후 다음 검증을 수행했다.
+D1의 핵심 설계는 그대로 유지한다.
+
+```text
+World Truth
+   ↓
+Intelligence API
+   ↓
+War Intent / Strategic AI
+```
+
+D1A에서도 Intelligence confidence는 계속 **100%**다.
+
+이번 버전에서 추가된 것은 정보 오차가 아니라 **작전 가능성이라는 새로운 전략 판단 항목**이다.
+
+Intent UI에 현재 Operational Access 상태도 표시한다.
+
+실제 첩보·정찰·기만·정보 decay는 아직 도입하지 않는다.
+
+---
+
+## 10. 저장 호환성
+
+현재 저장 버전:
+
+```text
+0.33D1A
+```
+
+fallback 순서:
+
+```text
+0.33D1
+→ 0.33D
+→ 0.33C3F
+→ 0.33C3
+→ 0.33C2
+```
+
+D1A save에는 다음이 추가된다.
+
+- `v33d1a.revision`
+- 고정 기술비 총량
+- 최근 operational route audit 시각
+- 전쟁/국가별 route state
+
+기존 D1의 War Intent / Intel Book / Formation lifecycle 상태는 그대로 보존한다.
+
+---
+
+## 11. Telemetry / CSV 추가
+
+Global:
+
+- `techCostTotal33D1A`
+- `coalitionHistoryWars33D1A`
+- `operationalRouteAudits33D1A`
+
+Nation:
+
+- `operationalAccess33D1A`
+- `dormantPhysicalGhosts33D1A`
+
+`dormantPhysicalGhosts33D1A`의 기대값은 항상 **0**이다. DORMANT인데 physical presence가 남는 회귀를 바로 찾기 위한 invariant 관측값이다.
+
+---
+
+## 12. V0.33D1A 검증
 
 ### JavaScript syntax
 
-HTML 내 전체 `<script>` 블록을 분리해 Node.js syntax check 수행.
+전체 inline `<script>` 블록을 분리하여 Node.js `--check` 수행.
 
 결과:
 
 - syntax error: **0**
 
-### Headless browser startup
+### Browser runtime smoke test
 
-Chromium 환경에서 전체 HTML을 로드하여 확인.
+Chromium DevTools Runtime에 전체 HTML을 주입하여 실제 브라우저 환경에서 startup을 검증했다.
 
 확인 결과:
 
-- document title: `Village Observer V0.33D1`
-- version badge: `Village Observer · V0.33D1`
-- runtime status 정상 출력
-- `VSim.V033D1` API 존재
-- `revision = war-intent-intelligence-foundation`
-- perfect-information flag 정상
-- startup page error: **0**
+- document title: `Village Observer V0.33D1A`
+- version badge: `Village Observer · V0.33D1A`
+- `VSim.V033D1A.revision`: 정상
+- 고정 기술 수: **40개**
+- 기술비 총합: **6,315 Knowledge**
+- serialize version: `0.33D1A`
+- startup runtime exception: **0**
 
 ### Save / load
 
-새 세계를 serialize 후 즉시 `World.from()`으로 재로딩.
+현재 세계를 serialize 후 `World.from()`으로 즉시 복원.
 
-확인 결과:
+결과:
 
-- serialized version: `0.33D1`
-- `v33d1` state 포함
-- reload 후 D1 revision 복원
-- load error: **0**
+- version: `0.33D1A`
+- D1A revision 복원
+- 기술비 총합 6,315 유지
 
-### Intel API 기본 호출
+### CSV
 
-초기 세계에서 국가 pair를 대상으로 Intel Picture 호출.
+Snapshot 생성 후 CSV header 검사.
 
-확인 결과:
+확인:
 
-- military / position / economy / diplomacy / logistics confidence = 1.0
-- Intel Book pair 생성
-- runtime error: **0**
+- `techCostTotal33D1A` 존재
+- `operationalAccess33D1A` 존재
+- `dormantPhysicalGhosts33D1A` 존재
+
+### Operational corridor synthetic test
+
+3개 국가가 다음처럼 배치된 최소 테스트를 사용했다.
+
+```text
+A ─ C ─ B
+```
+
+A와 B는 직접 접경하지 않고 C 영토를 통해서만 연결된다.
+
+평시:
+
+```text
+A → B = WAITING_ACCESS
+via C
+```
+
+C가 A와 같은 전쟁 Side가 된 뒤:
+
+```text
+A → B = ALLY_ACCESS
+via C
+```
+
+동일 물리 지형에서 Coalition 참전에 따라 작전 경로가 열리는 상태 전환이 정상적으로 확인되었다.
 
 ---
 
-## 15. 자연주행에서 우선 확인할 항목
+## 13. 자연주행에서 우선 확인할 항목
 
-다음 장기주행에서는 특히 아래를 확인한다.
-
-1. 0 manpower Formation의 빈 빨간 링이 더 이상 남지 않는가.
-2. 동일 Formation ID에 `FORMATION_CREATED33D`가 반복 발생하지 않는가.
-3. `FORMATION_DORMANT33D1 → FORMATION_REACTIVATED33D1` 전환이 정상적인가.
-4. 전쟁 발생 전에 `WAR_INTENT_CREATED33D1`이 먼저 기록되는가.
-5. ASSESSING 이후 실제로 CANCELLED 사례가 발생하는가.
-6. PREPARING 상태가 지나치게 장기 고착되지 않는가.
-7. READY에서 전쟁 개시 빈도가 지나치게 낮거나 높지 않은가.
-8. 벨른 같은 공격적 AI가 패전 후에도 동일 상대를 반복적으로 검토하는 패턴이 어떻게 나타나는가.
-9. 두 번째 동시전쟁 Intent가 형성되는 조건이 합리적인가.
-10. Coalition Intervention이 D1에서도 계속 발생 가능한가.
-11. `intelAssessments33D1` 증가가 성능에 유의미한 부담을 만들지 않는가.
-12. 기존 Engagement / Retreat / Occupation / War Exhaustion에 회귀가 없는가.
+1. DORMANT Formation의 빈 원이 전쟁 중 남는가.
+2. 전쟁 종료 후 사라진 과거 원이 새 전쟁 때 같은 위치에 재등장하는가.
+3. Formation 링이 국가색으로 표시되는가.
+4. 두 동맹국 Formation이 같은 타일에 있으면 1/2 arc가 정상 표시되는가.
+5. 세 국가 이상이면 1/N arc가 정상 표시되는가.
+6. DORMANT → ACTIVE 재활성화가 과거 전장이 아닌 자국 집결지에서 일어나는가.
+7. 중도 참전국의 전쟁이 국가 최근 전쟁에 남는가.
+8. 공동전쟁 승패가 winnerSide 기준으로 정상 표시되는가.
+9. 우군 영토를 통과한 Formation이 우군 타일을 잘못 점령하지 않는가.
+10. 키오→라엔→티아 형태의 우군 corridor를 실제로 이용하는가.
+11. 접근 불가능한 두 국가가 전투 0회 장기전으로 들어가는 현상이 사라지는가.
+12. `WAITING_ACCESS`가 720일 이상 무한 고착하지 않는가.
+13. `OPERATIONAL_ROUTE_AVAILABLE33D1A`가 제3국 참전 후 정상 기록되는가.
+14. 60년, 65년, 69년 국가별 기술 수가 새 목표에 가까워지는가.
+15. 40개 기술 총비용이 어떤 save/load 후에도 6,315를 유지하는가.
+16. Engagement 3~5일 라운드, Retreat, Occupation, War Exhaustion에 회귀가 없는가.
 
 ---
 
-## 16. 요약
+## 14. 다음 단계
 
-V0.33D1은 정보전 자체를 구현한 버전이 아니라 **정보전이 들어갈 자리를 만든 버전**이다.
+D1A 검증이 끝나면 **V0.33D2 — Strategic War Preparation**으로 넘어갈 수 있다.
 
-핵심 변화는 세 가지다.
+D2의 핵심 후보:
 
-1. 현재 Formation 표시와 Formation 객체 수명을 정리한다.
-2. 전쟁 개시를 순간적인 확률 이벤트에서 persistent War Intent로 바꾼다.
-3. 전략 AI와 World Truth 사이에 Intelligence API 경계를 만든다.
+- PREPARING 중 실제 추가 동원
+- 전쟁 전 식량/군수 비축
+- 장비 확보
+- Formation 집결
+- 전쟁용 전략도로
+- 두 번째 전쟁을 위한 추가 준비 부담
+- 패전 경험을 준비 목표에 반영
+- 상대의 잠재 동원력 평가
+- `WAITING_ACCESS` 상태에서 실제 외교 통행권 요청으로 확장할 준비
 
-현재 Intel은 완전히 정확하지만, 이 구조를 유지하면 향후에는 AI가 “실제 세계”가 아니라 **자신이 알고 있다고 믿는 세계**를 기준으로 행동하게 만들 수 있다.
+그 이후 Intelligence & Reconnaissance 계열에서 D1의 100% 정확 정보 경계를 실제 불완전정보로 전환한다.
+
+---
+
+## 15. 요약
+
+V0.33D1A는 새 군사 콘텐츠를 크게 추가하는 버전이 아니라, **다자전 시대에 맞게 옛 1:1 전쟁 코드의 경계를 정리하는 안정화 패치**다.
+
+핵심은 다음 다섯 가지다.
+
+1. **DORMANT Formation 유령 원 완전 제거 + 국가색 1/N Formation 링**
+2. **Formation 역사적 정체성과 현재 물리적 존재 분리**
+3. **공동교전국 군사통행권과 전략 목표 경로 통일**
+4. **War Intent에 실제 작전 접근 가능성 추가 + Coalition-aware 전쟁 기록**
+5. **40개 기술 비용을 반복 계산이 아닌 고정 6,315 Knowledge 기준값으로 확정**
+
