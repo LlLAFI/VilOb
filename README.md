@@ -1,3 +1,306 @@
+# Village Observer V0.33C2
+
+**패치명:** Stabilization, Pace & UI Consolidation  
+**기준 버전:** V0.33C1  
+**날짜:** 2026-09-29
+
+V0.33C2는 C/C1에서 구축한 지속 교전·단계 후퇴·Regroup·전투 사기·군사 기동 기반을 유지하면서, C1 자연주행에서 확인된 장기 사기 잔류 버그와 전체 게임 페이스/UI 문제를 정리하는 안정화 패치다.
+
+C2의 범위는 다음 여섯 가지다.
+
+1. 종전 후 멈추던 Battle Morale 회복 수정
+2. 군사 기본 이동시간 15 → 10 calendar-day
+3. 현재 40개 기술의 Knowledge 비용을 60년대 완료 목표에 맞게 압축
+4. 국가별 1~3년 지속 중기 전략 프로그램 도입
+5. 국가-경제 탭의 개발용 진단 블록 정리
+6. V0.29/V0.30 경제 표현을 하나의 「국가 경제 요약」으로 통합
+
+다중 전쟁, 제3국 참전, 복수 야전군, Formation별 전선 배정, 비수도 전략목표의 본격 확장은 C2 범위가 아니며 다음 V0.33D 계열로 넘긴다.
+
+---
+
+# 0.33C2 변경사항
+
+## C2.1 Peace-time Battle Morale Recovery Fix
+
+C1에서는 전투 사기 자체는 Formation 단위로 정상 저장되었으나 회복 함수가 활성 전쟁의 `warPulse33()` 안에서만 호출되어 종전 후 회복이 중단되는 문제가 있었다.
+
+C2에서는 평시 Formation/Garrison 사기 회복을 전쟁 루프에서 분리한다.
+
+```text
+전시 일반 상태      0.06 / calendar-day   (C1 유지)
+RETREAT/REGROUP     0.45 / calendar-day   (C1 유지)
+평시                0.10 / calendar-day   (C2)
+```
+
+- 종전 즉시 0으로 초기화하지 않는다.
+- 과거 전쟁의 사기 충격은 약 1년 안팎에 걸쳐 자연스럽게 0으로 회복한다.
+- C1 세이브에서 수년간 고착된 사기도 C2 로드시 마지막 사기 갱신시점과 현재 calendar-day 차이를 이용해 정상 회복한다.
+- 실제 교전 Formation/Garrison별 modifier 구조는 유지한다.
+- `BATTLE_MORALE_RECOVERED33C2`는 평시 회복으로 modifier가 0에 도달한 시점만 저빈도로 기록한다.
+
+## C2.2 Military Mobility Pace
+
+C1의 군사 이동 계산식은 유지하고 base만 변경한다.
+
+```text
+실제 이동일
+= 기본 10일
+× 지형 계수
+× 도로 계수
+× Supply 계수
+× 상태 계수
+× 장비 hook
+× 기술 hook
+```
+
+초기 계수:
+
+```text
+평지 / 초지       ×1.00
+숲                ×1.15
+암지              ×1.25
+산악              ×1.50
+도로 한쪽         ×0.84
+도로 양쪽         ×0.72
+```
+
+- 기존 15일 base → 10일 base
+- 정상 평지 Formation은 대략 10일 수준
+- 숲은 약 12일, 암지는 약 13일, 산악은 약 15일 수준
+- 연속 도로 평지는 약 7~8일 수준까지 단축 가능
+- Supply가 나쁘면 다시 증가
+- RETREAT와 POSTWAR WITHDRAWAL도 같은 공통 이동 계산을 사용
+- Equipment/Technology mobility hook은 C2에서도 1.0으로 유지한다.
+
+## C2.3 Technology Pace Rebalance
+
+C1 최종 40-tech 비용 총합은 16,080 Knowledge였다. C2는 이를 **7,605 Knowledge**로 낮춘다.
+
+비용 압축 규칙은 C1 최종 비용을 기준으로 다음과 같다.
+
+```text
+200 이하        ×0.85
+201~400         ×0.60
+401~600         ×0.45
+601 이상        ×0.35
+```
+
+5 Knowledge 단위로 반올림하며 최소 비용은 40이다.
+
+목표는 모든 국가가 정확히 60년에 동시에 완료하는 것이 아니라:
+
+```text
+60년대 초반   대부분 중후반 기술 진입
+60년대 중후반 선도국 40/40 도달 가능
+69년 전후     다수 국가가 35~40/40에 접근
+```
+
+하는 흐름이다. Eureka, prerequisite, 국가별 연구우선순위 차이는 그대로 유지한다.
+
+세이브 호환 시 기존 `researchProgress`와 완료 기술은 보존하며 새 비용만 적용한다.
+
+## C2.4 Persistent Strategic Program V1
+
+기존 AI는 forecast·top-3 goals·reserve를 보유했으나 거의 매 계절 다시 계산되어 국가의 중기 방향성이 약했다.
+
+C2는 그 위에 국가별 **Persistent Strategic Program**을 추가한다.
+
+프로그램 후보:
+
+- 식량 자립
+- 영토 개척
+- 도시 집중
+- 교역 허브
+- 철산업 육성
+- 연구·교육
+- 군비 확장
+- 재정 축적
+- 전후 복구
+
+작동 규칙:
+
+- 기본 지속기간 540 / 720 / 900 / 1080 calendar-day 중 하나
+- 1년에 한 번 재평가
+- 현재 프로그램보다 다른 후보 점수가 충분히 높을 때만 중도 전환
+- 심각한 식량위기·Recovery·Survival Mode는 기존 emergency logic이 프로그램보다 우선
+- AI disposition이 프로그램 선택점수에 강하게 반영됨
+- 프로그램은 seasonal action score와 연구 우선순위에 영향을 준다.
+- 기존 `aiPlan.reserves`도 프로그램에 맞게 보정한다.
+- 새로운 daily AI scan은 추가하지 않는다.
+
+관측 이벤트:
+
+```text
+AI_STRATEGIC_PROGRAM33C2
+```
+
+Snapshot/CSV에는 현재 프로그램, 프로그램 나이, 남은 기간을 기록한다.
+
+## C2.5 국가 경제 UI 정리
+
+다음 블록은 **국가-경제 탭에서만 표시를 제거**한다.
+
+- 행정권 V1.1
+- 상위시설 진단
+- 유지보수 자재 진단
+- 정착지별 식량 비축
+- Gold 순환
+- E4 전략 교역망 계획
+- E5 교역망 안정화
+- E6 국제 운송 회계
+- E7 상업 전문화
+- E8 Construction Proposal V1
+- E9 상업 endpoint/Proposal 검증
+- E10 생존 불변조건
+
+중요:
+
+- 관련 시뮬레이션 기능은 삭제하지 않는다.
+- devlog와 telemetry도 삭제하지 않는다.
+- CSV 필드도 유지한다.
+- 향후 별도 「경제 상세」/「개발자 진단」 UI로 다시 노출할 수 있다.
+- E6~E10 등 다른 탭에서 사용되는 관측 UI는 해당 탭의 기존 목적을 유지한다.
+
+## C2.6 국가 경제 요약
+
+V0.29 국내 Gold 순환과 V0.30 행정·도시경제의 사용자 표시를 하나의 블록으로 통합한다.
+
+표시 항목:
+
+```text
+국고 Gold
+Settlement Market Gold
+Person Gold
+총 국내 통화량
+누적 임금
+누적 소비
+누적 세금
+공공지출
+국내 거래 횟수
+국내 거래량
+국내 거래 Gold
+행정 중심지 수
+누적 행정세
+누적 지역 공공지출
+```
+
+내부 회계모델은 기존 V0.29/V0.30을 그대로 사용한다.
+
+---
+
+# C2 Telemetry
+
+C1의 725-column snapshot CSV에 C2 필드를 추가한다.
+
+Global:
+
+```text
+techCostTotal33C2
+strategicProgramChanges33C2
+peaceMoraleTicks33C2
+peaceMoraleCompleted33C2
+```
+
+Nation:
+
+```text
+strategicProgram33C2
+strategicProgramLabel33C2
+strategicProgramAgeDays33C2
+strategicProgramRemainingDays33C2
+peaceBattleMoraleMagnitude33C2
+techCompletionShare33C2
+```
+
+C2 CSV는 총 **735 columns**다.
+
+---
+
+# C2 저장 호환성
+
+저장 키:
+
+```text
+village-observer-v0-33c2
+```
+
+fallback:
+
+```text
+0.33C1
+0.33C
+0.33B1
+0.33B
+0.33A
+0.33
+0.32F
+```
+
+C1의 다음 상태는 그대로 이어받는다.
+
+- Engagement
+- staged retreat path
+- Regroup
+- post-battle recovery
+- Battle Morale modifier
+- 다음 군사 이동시각
+- 최근 패배 경로
+- Post-war withdrawal
+
+C2에서 추가되는 Persistent Strategic Program도 C2 save/load에서 보존한다.
+
+---
+
+# C2 검증 기준
+
+정적/fixture 기준:
+
+```text
+inline JavaScript syntax        77/77 PASS
+Chromium startup/runtime        error 0 (fresh smoke)
+기술 수                          40
+기술 비용 총합                   7,605
+군사 이동 base                  10 calendar-day
+평시 Battle Morale recovery     PASS
+C1 save → C2 import             PASS
+국가 경제 UI 진단블록 제거        PASS
+국가 경제 요약                   PASS
+CSV schema                       735 columns / mismatch 0
+```
+
+자연주행에서 추가로 확인할 항목:
+
+- 종전 후 ±Battle Morale이 실제로 0 방향으로 회복하는가
+- 10일 base에서 전선 속도가 지나치게 빨라지지 않는가
+- 도로/지형/Supply 차이가 여전히 눈에 보이는가
+- 60년대 기술 완료 목표에 얼마나 접근하는가
+- AI strategic program이 국가별로 실제 장기행동 차이를 만드는가
+- FOOD physical action 비중이 C1의 약 2/3 수준에서 의미 있게 낮아지는가
+- 전쟁/경제/인구의 기존 안정성이 유지되는가
+
+---
+
+# 다음 단계: V0.33D
+
+C2에서는 다음을 구현하지 않는다.
+
+- 한 국가의 복수 동시 전쟁
+- 제3국 참전 / A+C vs B
+- 서로 독립된 A-B, A-C 전쟁의 동시 진행
+- 복수 Field Formation의 전략적 생성
+- Formation별 전쟁/전선 배정
+- 수도 외 전략목표의 본격적 다양화
+- 다중 전쟁 UI 드롭다운
+
+이들은 서로 강하게 연결되어 있으므로 **V0.33D — Multi-front Warfare V1**에서 하나의 구조 개편으로 다룬다.
+
+---
+
+# 이전 버전 상세 문서
+
+아래에는 V0.33C1 이하의 상세 구현·회귀 기록을 그대로 보존한다.
+
 # Village Observer V0.33C1
 
 **패치명:** Frontline Continuity + Military Mobility Foundation  
