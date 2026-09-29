@@ -1,8 +1,22 @@
-# Village Observer V0.33C3
+# Village Observer V0.33C3F
 
-**패치명:** Operational Targeting & Recovery  
-**기준 버전:** V0.33C2  
+**패치명:** Operational Fixes  
+**기준 버전:** V0.33C3  
 **날짜:** 2026-09-29
+
+V0.33C3F는 C3 자연전쟁 검증에서 발견된 세 가지 correctness 문제를 고치는 마감 Fix다. **작전 목표 평가·전투력·사상자·War Exhaustion·기술 비용은 변경하지 않는다.** C3에서 확인된 수도 외 목표 선택, Deep Recovery, 전략 도로망의 방향은 유지하고, 그 판단을 실제 이동·점령 단계가 어기던 경로만 수정한다.
+
+## C3F 핵심 수정
+
+1. `RETREATING / DEEP_RECOVERY / REGROUPING / POST_BATTLE_RECOVERY / WITHDRAWING / POSTWAR_WITHDRAWAL` Formation은 영토를 점령하거나 해방하지 않는다.
+2. 수도 공격이 현재 `REJECTED`이면 비수도 목표 경로에서 적 수도를 통과할 수 없다. 우회로가 없으면 다른 작전 목표를 선택한다.
+3. 전략도로 경로의 첫 후보 타일이 착공 거부되면 같은 경로의 다음 missing-road 타일을 최대 6개까지 순차 시도하며 blocker를 기록한다.
+
+점령에 실제 시간이 소요되는 `Occupation Progress`는 이번 Fix에 넣지 않고 후속 전쟁/점령 고도화 범위로 남긴다. 다음 큰 구조 버전은 **V0.33D — Multi-front Warfare V1**이다.
+
+---
+
+# V0.33C3 기준 기능
 
 V0.33C3는 C2 자연전쟁에서 드러난 **수도 반복 돌격**, **중손실 부대의 얕은 재정비 후 재돌입**, **광역국가의 도로 건설 starvation**을 정리하고, 다음 V0.33D의 복수 Formation·다중전선·다중전쟁을 받을 수 있도록 작전 수준 판단 기반을 추가하는 패치다.
 
@@ -2511,3 +2525,61 @@ E14 장기 분석에서 에브처럼 지리적으로 유리한 국가가 높은 
 - 지리적 centrality의 경제적 수익화
 
 이 기능들은 V0.32F의 범위가 아니며, F에서는 Gold concentration observer만 남긴다.
+
+
+---
+
+# 0.33C3F 추가 기술 메모
+
+## 패퇴 중 점령/해방 불변조건
+
+C3까지 `occupationSweep33()`는 전쟁 당사국 Field Formation이 적 영토에 존재하고 수비대가 없으면 Formation 상태와 무관하게 점령을 적용했다. 따라서 Deep Recovery 중 후방으로 이동하는 패전군도 지나간 적 영토를 점령할 수 있었다. C3F는 occupation sweep 전에 비점령 상태를 검사한다.
+
+```text
+RETREATING
+REGROUPING
+POST_BATTLE_RECOVERY
+WITHDRAWING
+POSTWAR_WITHDRAWAL
+v33c3DeepRecovery = true
+v33aWithdrawal active
+```
+
+위 상태에서는 점령과 해방을 모두 건너뛴다. 정상 공격 Formation의 `FORMATION_INVASION_MOVE33 -> occupy33()` 경로는 유지된다.
+
+## 수도 Transit Avoidance
+
+C3는 수도 자체를 공격할지 여부는 판단했지만, 수도 뒤편의 물류/군사 목표까지 가는 최단경로가 수도를 통과하면 의도하지 않은 수도전이 발생할 수 있었다. C3F는 수도 feasibility가 거부된 동안 Formation에 `v33c3AvoidCapitalTransitUntilCal`과 수도 타일을 저장한다.
+
+비수도 목표의 `pathWar33()`는 이 기간에 적 수도를 passable node에서 제외한다. 수도 자체가 목표일 때는 이 제한을 적용하지 않는다. 현재 전력으로 수도 공격이 다시 허용되면 제한은 즉시 해제된다.
+
+## 전략도로 Candidate Fallback
+
+C3의 `roadProposal33C3()`는 전략 경로의 첫 missing-road 타일 하나만 반환했다. 그 타일이 공간·공사 조건 등으로 거부되면 다음 분기에도 같은 타일을 반복 시도할 수 있었다. C3F는 경로상의 건설 가능한 missing-road 후보 목록을 유지하고, preempt가 승인된 경우 최대 6개 후보를 순차 시도한다.
+
+관측 이벤트:
+
+- `ROAD_NETWORK_CANDIDATE_REJECTED33C3F`
+- `ROAD_NETWORK_FALLBACK_STARTED33C3F`
+
+Snapshot/CSV 추가 전역 필드:
+
+- `roadCandidateRejects33C3F`
+- `roadFallbackStarts33C3F`
+
+## 저장 호환성
+
+- V0.33C3F 저장 키: `village-observer-v0-33c3f`
+- V0.33C3 → C3F 직접 로드 지원
+- 기존 C3 Formation의 수도 실패/Deep Recovery 상태 유지
+- C3F는 수도 transit avoidance 상태도 저장/복원
+
+## 범위 밖
+
+- 점령 진행시간/점령 인력 요구량
+- 다국가 참전
+- 한 국가의 복수 동시전쟁
+- 복수 Field Formation 및 전선 배정
+- 전쟁 목표/배상/영구 영토 할양
+
+위 항목은 C3F 이후 별도 버전에서 다룬다.
