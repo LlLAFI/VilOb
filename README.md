@@ -1,9 +1,28 @@
-# Village Observer V0.33E
+# Village Observer V0.33EF
 
-## Intelligence & Reconnaissance V1
+## War History Renderer Ownership Hotfix
 
-기준 버전: **V0.33D2A — War Finance + Preparation Stabilization**  
+기능 기준: **V0.33E — Intelligence & Reconnaissance V1**
+
+핫픽스 기준 버전: **V0.33E — Intelligence & Reconnaissance V1**  
 패치 일자: **2026-09-30**
+
+
+### V0.33EF 핫픽스 요약
+
+V0.33E 장기주행에서 전쟁 기록 패널이 처음에는 `A측 · ... ↔ B측 · ...` 형식으로 보이지만 이후 다시 D1B 시절의 `국가 ↔ 국가`, `전사 4 / 2` 형식으로 돌아가는 UI 회귀가 확인됐다. 데이터의 `sideAIds / sideBIds / winnerSide`는 끝까지 정상 보존되었고, 원인은 V0.33A의 `renderHeader()` 경로가 `updateHistoryPanelA()`를 통해 공개된 D1B renderer를 다시 호출하는 렌더 소유권 충돌이었다.
+
+V0.33EF는 전쟁·정보·전투 계산을 변경하지 않는 **렌더러 소유권 전용 Fix**다. EF가 활성화된 뒤 V0.33A/D1A/D1B/D1C의 구형 War History writer는 최신 EF renderer로 위임되며, `renderHeader()`, `renderStats()`, 전체 `render()`가 끝날 때 실제 DOM owner를 다시 확인한다.
+
+추가 검증 필드:
+
+- `warHistoryUIOwner33EF` — 실제 `#v33aWarHistoryPanel`의 `data-owner`가 `V0.33EF`인지 여부
+- `warHistoryUIOwnerLabel33EF` — 실제 DOM owner 문자열
+- `warHistoryLegacyRedirects33EF` — 구형 renderer 호출이 EF로 우회된 누적 횟수
+- `warHistoryLegacyTakeovers33EF` — 실제 구형 owner가 발견되어 복구된 누적 횟수
+- `warHistoryOwnerClaims33EF` — E의 정상 카드 결과를 EF owner로 인계한 누적 횟수
+
+패널은 최종적으로 `data-owner="V0.33EF"`와 `data-owner-guard="LATEST_ONLY"`를 가진다.
 
 V0.33E는 V0.33D 계열에서 완성한 다중전선·War Intent·실전 준비·War Chest 위에 **불완전 정보 체계**를 올리는 첫 버전이다. 핵심 목표는 AI가 전략 판단을 할 때 상대 국가의 현재 World Truth를 매번 직접 읽는 구조를 끝내고, 관측 당시 얻은 정보와 시간이 지난 뒤의 불확실성을 통해 전쟁을 판단하도록 만드는 것이다.
 
@@ -378,14 +397,15 @@ Routine query는 기록하지 않는다.
 
 현재 save version:
 
-`0.33E`
+`0.33EF`
 
 로컬 저장 key:
 
-`village-observer-v0-33e`
+`village-observer-v0-33ef`
 
 Fallback:
 
+- 0.33E
 - 0.33D2A
 - 0.33D2
 - 0.33D1C
@@ -396,7 +416,7 @@ Fallback:
 
 V0.33D2A save를 불러오면 기존 전쟁·War Intent·Preparation·War Chest를 유지하고 V0.33E Intelligence state를 새로 부착한다.
 
-시나리오 export의 `intendedVersion`은 `0.33E`이다.
+시나리오 export의 `intendedVersion`은 `0.33EF`이다.
 
 ---
 
@@ -413,9 +433,19 @@ V0.33D2A save를 불러오면 기존 전쟁·War Intent·Preparation·War Chest�
 - V0.33E CSV schema validator 통과
 - V0.33E save → load round-trip 정상
 - V0.33D2A 형식 save → V0.33E migration 정상
-- War History 최종 DOM owner `V0.33E` 확인
+- V0.33E 기준 War History 최종 DOM owner `V0.33E` 확인
 - 합성 합동전쟁 카드에서 `A측/B측`, 실제 승리국, 전사/부상/점령/참전국 A/B 명시 확인
 - 브라우저 smoke test 중 uncaught JS error 없음
+
+V0.33EF 추가 검증:
+
+- 전체 87개 inline script JavaScript syntax 검사 통과
+- 격리 테스트에서 `V0.33D1B` owner를 강제로 주입한 뒤 `renderHeader()`가 `V0.33EF`로 회수
+- 같은 강제 주입 뒤 전체 `render()`가 `V0.33EF`로 회수
+- 공개 `V033D1B.renderCoalitionHistory()` 호출이 EF renderer로 redirect
+- `world.serialize().version === '0.33EF'`
+- 실제 owner telemetry가 `warHistoryUIOwner33EF=1`, `warHistoryUIOwnerLabel33EF=V0.33EF`로 기록
+- EF CSV 추가 열을 포함한 열 수 일치 검사 통과
 
 ---
 
@@ -446,7 +476,7 @@ V0.33E는 최소 40~60년 이상의 자연주행에서 다음을 확인하는 �
 
 ### War History UI
 
-- 장기주행 후에도 패널 설명이 `V0.33E 단일 최종 렌더러`로 유지되는가
+- 장기주행 후에도 패널 설명이 `V0.33EF 최종 렌더러`로 유지되는가
 - 모든 카드 제목에 `A측 · ... ↔ B측 · ...`가 보이는가
 - 합동전쟁 승리국 이름과 Side가 맞는가
 - 전사/부상/점령/참전국 수가 A/B와 뒤집히지 않는가
@@ -474,6 +504,41 @@ V0.33E는 Intelligence V1이며 다음은 아직 구현하지 않았다.
 
 ## 17. 파일
 
-- `index.html` — V0.33E 실행 파일
+- `index.html` — V0.33EF 실행 파일
 - `README.md` — 현재 문서
+
+---
+
+## 18. V0.33EF 구현 상세
+
+### 18.1 구형 writer 직접 가드
+
+다음 구형 함수는 EF가 활성화되어 있으면 자체 DOM 쓰기를 수행하지 않고 `NS.V033EF.renderWarHistory()`로 위임한다.
+
+- V0.33A `updateHistoryPanelA()`
+- V0.33D1A `renderCoalitionHistoryA()`
+- V0.33D1B `renderCoalitionHistoryB()`
+- V0.33D1C `renderWarHistoryC()`
+
+따라서 최신 UI에서 과거 renderer가 렌더 체인의 중간 writer가 되더라도 전쟁 기록 패널을 구형 카드로 교체하지 않는다.
+
+### 18.2 공개 API redirect
+
+V0.33A가 역사적으로 `NS.V033D1B.renderCoalitionHistory`를 호출하는 경로가 남아 있으므로, EF는 이 공개 API도 최신 renderer로 redirect한다. D1C의 공개 War History renderer도 동일하게 redirect된다.
+
+### 18.3 최종 owner check
+
+EF는 `renderHeader`, `renderStats`, `render` 각각의 최종 단계에서 War History owner를 검사한다.
+
+- 이미 `V0.33EF`이면 아무 작업도 하지 않는다.
+- 직전 V0.33E renderer가 정상 카드를 그린 상태라면 DOM을 다시 만들지 않고 owner만 EF로 인계한다.
+- D1B/D1C 등 구형 owner가 실제로 발견되면 V0.33E의 정상 A/B renderer를 다시 실행한 뒤 EF owner로 회수한다.
+
+이 구조는 매 tick마다 불필요하게 War History 전체를 두 번 만드는 것을 피하면서도, 문제가 발생했던 header-only refresh 경로를 차단한다.
+
+### 18.4 다음 자연주행 판정 기준
+
+정상이라면 CSV에서 `warHistoryUIOwner33EF`가 1로 유지되고 `warHistoryUIOwnerLabel33EF`가 `V0.33EF`로 유지되어야 한다. `warHistoryLegacyRedirects33EF`는 구형 호출 경로가 존재하므로 증가할 수 있지만, 이것 자체는 오류가 아니다. 반면 `warHistoryLegacyTakeovers33EF`가 계속 증가한다면 아직 EF guard 밖에서 직접 DOM을 쓰는 새로운 경로가 있다는 뜻이다.
+
+V0.33EF는 Hotfix이므로 Intelligence confidence, War Intent, D2 Preparation, War Chest, Engagement, casualty, occupation, peace balance는 V0.33E와 동일하다.
 
