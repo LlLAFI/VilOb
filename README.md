@@ -1,544 +1,692 @@
-# Village Observer V0.33EF
+# Village Observer V0.33E1
 
-## War History Renderer Ownership Hotfix
+## Era Pace + Formation Command V1
 
-기능 기준: **V0.33E — Intelligence & Reconnaissance V1**
+기준 버전: **V0.33EF — War History Renderer Ownership Hotfix**  
+패치 일자: **2026-10-01**
 
-핫픽스 기준 버전: **V0.33E — Intelligence & Reconnaissance V1**  
-패치 일자: **2026-09-30**
+V0.33E1은 V0.33E의 Intelligence & Reconnaissance V1과 V0.33D2A의 전쟁 준비·War Chest 구조를 유지하면서, 다음 세 가지를 정식으로 정리하는 패치다.
 
-
-### V0.33EF 핫픽스 요약
-
-V0.33E 장기주행에서 전쟁 기록 패널이 처음에는 `A측 · ... ↔ B측 · ...` 형식으로 보이지만 이후 다시 D1B 시절의 `국가 ↔ 국가`, `전사 4 / 2` 형식으로 돌아가는 UI 회귀가 확인됐다. 데이터의 `sideAIds / sideBIds / winnerSide`는 끝까지 정상 보존되었고, 원인은 V0.33A의 `renderHeader()` 경로가 `updateHistoryPanelA()`를 통해 공개된 D1B renderer를 다시 호출하는 렌더 소유권 충돌이었다.
-
-V0.33EF는 전쟁·정보·전투 계산을 변경하지 않는 **렌더러 소유권 전용 Fix**다. EF가 활성화된 뒤 V0.33A/D1A/D1B/D1C의 구형 War History writer는 최신 EF renderer로 위임되며, `renderHeader()`, `renderStats()`, 전체 `render()`가 끝날 때 실제 DOM owner를 다시 확인한다.
-
-추가 검증 필드:
-
-- `warHistoryUIOwner33EF` — 실제 `#v33aWarHistoryPanel`의 `data-owner`가 `V0.33EF`인지 여부
-- `warHistoryUIOwnerLabel33EF` — 실제 DOM owner 문자열
-- `warHistoryLegacyRedirects33EF` — 구형 renderer 호출이 EF로 우회된 누적 횟수
-- `warHistoryLegacyTakeovers33EF` — 실제 구형 owner가 발견되어 복구된 누적 횟수
-- `warHistoryOwnerClaims33EF` — E의 정상 카드 결과를 EF owner로 인계한 누적 횟수
-
-패널은 최종적으로 `data-owner="V0.33EF"`와 `data-owner-guard="LATEST_ONLY"`를 가진다.
-
-V0.33E는 V0.33D 계열에서 완성한 다중전선·War Intent·실전 준비·War Chest 위에 **불완전 정보 체계**를 올리는 첫 버전이다. 핵심 목표는 AI가 전략 판단을 할 때 상대 국가의 현재 World Truth를 매번 직접 읽는 구조를 끝내고, 관측 당시 얻은 정보와 시간이 지난 뒤의 불확실성을 통해 전쟁을 판단하도록 만드는 것이다.
-
-동시에 V0.33D2A 장기주행에서 확인된 두 가지 후속 문제도 정리한다.
-
-- 전쟁 기록 패널이 실제 `sideAIds / sideBIds / winnerSide` 데이터를 가지고 있으면서도 D1B 형식으로 다시 렌더링되어 A/B 국가 구성이 명확히 보이지 않던 문제
-- PREPARING 상태에서 실제 rally target이 존재하지만 일부 Formation lock이 누락될 가능성
+1. EF에서 임시로 막아 두었던 구형 War History renderer 충돌을 **redirect가 아니라 소스 호출 구조 자체를 제거**하는 방식으로 마감한다.
+2. 기술 트리를 40개에서 32개로 통폐합해 20~60년대에 주요 시스템이 더 빨리 등장하게 한다. **Knowledge 생산량은 변경하지 않는다.**
+3. Person-backed Formation에 실제 Person 지휘관을 도입하고, 1~4인 소규모 Formation에서 한 명의 부상·사망이 연속 라운드에 과도하게 증폭되는 현상을 완화한다.
 
 ---
 
-## 1. 버전 범위
+## 1. 이번 버전에서 변경되는 범위
 
-### 새로 구현된 범위
+### 구현
 
-1. Observation → Intelligence Picture → Strategic Decision 구조
-2. 정보원별 신뢰도와 갱신주기
-3. 군사·위치·경제·물류 정보의 시간 노후화
-4. 적 야전병력·동원 가능 인구·Readiness 추정오차
-5. Formation last-seen 위치 정보
-6. D1 War Intent의 불완전 정보 연결
-7. D2 동원잠재력의 완전정보 우회 제거
-8. 국가 군사 탭 Intelligence UI
-9. V0.33E 단일 War History 최종 렌더러
-10. D2A Formation preparation-lock 보수적 복구
-11. CSV 기반 정보 정확도/노후화 검증 필드
+- War History legacy writer/runtime redirect 완전 정리
+- 선택 타일 좌표 + 고유 `tileId` 표시
+- 기술 40개 → 32개 통폐합
+- 기존 40-tech 총 연구비 6,315 → 32-tech 총 연구비 4,815 Knowledge
+- 기존 Knowledge 생산 공식 **×1.00 유지**
+- 실제 Person 기반 Formation Commander V1
+- Commander 전투·사기·regroup 효과
+- Commander 부상·사망·공석·후임 처리
+- 1~4인 Formation casualty smoothing
+- E1 전용 telemetry / CSV 검증 필드
+- V0.33EF 세이브 → V0.33E1 기술 migration
 
 ### 이번 버전에서 변경하지 않는 범위
 
-- 최대 동시전쟁 수: 2
-- Engagement 전투 구조
-- Person 기반 실제 사상자
-- 전투력·사상자 기본 공식
-- 점령·해방·War Exhaustion·평화 공식
+- Knowledge 기본 생산량 및 `knowledgeMultiplier()`
+- RECORD_KEEPING / SCHOLARSHIP / EDUCATION 기존 Knowledge 배율
+- Eureka 기본 규칙
+- 남아 있는 32개 기술의 개별 D1A 고정 비용
+- 전쟁 가능 연도 gate(35년)
+- War Intent 공격성 및 선전포고 점수
+- Intelligence V1 confidence/observation 구조
+- 최대 동시전쟁 수 2
 - War Chest 보존 회계
-- READY hysteresis
-- 15~45 calendar-day Final Commitment
-- D1C Recovery Escape
-- 고대 주거 수용량 3 / 5 / 8
-- 단일 도로 이동계수 ×0.62
-- 유지보수 노동 분기 0.5%
-- 40개 기술 총비용 6,315 Knowledge
+- READY hysteresis / Final Commitment
+- Engagement 연속패배·최대라운드 규칙
+- 점령 / 해방 / War Exhaustion / 평화 공식
+- Person 1명 = 실제 Person 1명의 원칙
+- synthetic soldier / weighted Person 도입 없음
 
 ---
 
-## 2. Intelligence V1 구조
+## 2. War History 구조 정리
 
-V0.33E의 전략 정보 흐름은 다음과 같다.
+### 2.1 EF에서 확인된 상태
 
-`World Truth → Observation → Intelligence Record → 시간 노후화 → Intelligence Picture → War Intent / D2 Preparation`
+V0.33EF 자연주행에서는 최종 DOM takeover는 0회였지만, 구형 renderer 호출을 EF renderer로 돌려보내는 `legacyRedirects`가 2만 회 이상 누적됐다.
 
-D1까지의 Intelligence API는 구조만 존재했고 모든 범주가 `confidence = 1.0`이었다. 따라서 API를 통과하더라도 실제로는 상대의 현재 병력·위치·경제를 매번 정확히 읽는 완전정보 모델이었다.
+EF는 기능상 문제를 해결했지만 다음 구조가 남아 있었다.
 
-V0.33E부터는 국가 A가 국가 B를 볼 때 `A:B` 방향의 별도 정보 레코드를 가진다. B가 A를 보는 정보와는 독립적이다.
+`구형 renderer 호출 → EF redirect → 최신 renderer/owner 확인`
 
-정보 레코드의 주요 범주는 다음과 같다.
+V0.33E1에서는 이 구조를 폐기한다.
 
-- `military`: 야전병력, 주둔병, 총병력, 동원 가능 인구, Readiness, 추정 전력
-- `position`: 관측한 Formation의 last-seen 위치
-- `economy`: 인구, 식량 비축일, Gold
-- `diplomacy`: 해당 국가가 가지고 있는 상대 관계값
-- `logistics`: 영토 규모 등 전략 물류에 필요한 기초 정보
+### 2.2 제거한 구형 writer
 
-각 레코드는 다음 메타데이터를 가진다.
-
-- 관측 시점 `observedCal`
-- 정보원 `source`
-- 범주별 최초 신뢰도 `baseConfidence`
-- 정보원별 재관측 주기
-- 현재 시점에서 계산한 노후화된 신뢰도
-
----
-
-## 3. 정보원과 기본 신뢰도
-
-정보원은 현재 상황에 따라 자동 결정된다.
-
-### BATTLE_CONTACT
-
-실제 적대 Formation이 같은 타일에서 접촉한 경우.
-
-- 군사 약 98%
-- 위치 약 99%
-- 경제 약 55%
-- 물류 약 72%
-- 갱신 간격 약 12 calendar-day
-
-가장 강한 직접 관측이다.
-
-### WAR_CONTACT
-
-동일 전쟁의 적대국이지만 현재 같은 타일에서 직접 교전 중은 아닌 경우.
-
-- 군사 약 90%
-- 위치 약 92%
-- 경제 약 48%
-- 물류 약 70%
-- 갱신 간격 약 30 calendar-day
-
-전쟁 중에도 매 순간 상대의 현재 World Truth를 읽지는 않는다.
-
-### BORDER_PATROL
-
-두 국가의 영토가 직접 접하는 경우.
-
-- 군사 약 70%
-- 위치 약 78%
-- 경제 약 38%
-- 물류 약 58%
-- 갱신 간격 약 60 calendar-day
-
-### TRADE_NETWORK
-
-최근 교역 관계를 통해 상대 상황을 파악하는 경우.
-
-- 군사 약 46%
-- 위치 약 24%
-- 경제 약 84%
-- 물류 약 78%
-- 갱신 간격 약 90 calendar-day
-
-교역은 병력 위치보다 경제·물류 파악에 강하다.
-
-### CONTACT_REPORT
-
-Contact Network가 존재하지만 국경·전쟁·최근 교역 같은 직접 정보원이 없는 경우.
-
-- 군사 약 34~40%
-- 위치 약 16~20%
-- 경제 약 42~50%
-- 물류 약 40~48%
-- 갱신 간격 약 150~210 calendar-day
-
-### PUBLIC_ESTIMATE
-
-위 정보원이 없는 최소 공개 추정 상태.
-
-- 군사 약 24%
-- 위치 약 8%
-- 경제 약 32%
-- 물류 약 30%
-- 갱신 간격 약 360 calendar-day
-
-일반적인 passive scan에서는 불필요한 모든 PUBLIC_ESTIMATE 쌍을 매번 생성하지 않는다. 실제 전략질의가 있거나 기존 정보가 있을 때만 사용한다.
-
----
-
-## 4. 정보 노후화
-
-관측값은 관측 순간의 추정치로 저장된다. 이후 대상국의 World Truth가 변해도 자동으로 따라가지 않는다.
-
-현재 범주별 노후화 시간상수는 대략 다음과 같다.
-
-- 위치: 270 calendar-day
-- 군사: 720 calendar-day
-- 경제: 900 calendar-day
-- 물류: 1,080 calendar-day
-- 외교: 1,440 calendar-day
-
-위치는 가장 빨리 낡고, 경제·물류는 상대적으로 오래 유지된다.
-
-현재 신뢰도는 기본 신뢰도에 시간 감쇠를 적용해 계산한다. 따라서 같은 관측 레코드라도 시간이 지나면 `HIGH → MEDIUM → LOW` 수준으로 자연스럽게 내려간다.
-
----
-
-## 5. 추정오차
-
-관측 시점의 실제 값을 그대로 저장하지 않는다.
-
-군사·경제 수치는 정보원 신뢰도가 낮을수록 더 넓은 오차를 가진 추정값으로 변환된다. 같은 관측 레코드는 저장 후 안정적으로 유지되며, 매 UI 렌더나 매 AI 쿼리마다 랜덤하게 출렁이지 않는다.
-
-예시:
-
-- 실제 야전병력 8명
-- 낮은 신뢰도의 Contact Report
-- AI가 가진 정보: 약 6명, 추정범위 4~8명
-
-다음 관측 때 새로운 상황과 정보원에 따라 추정치가 다시 갱신된다.
-
-이 정보오차는 **직접적인 전투력 보너스/패널티가 아니다.** 전투 계산은 계속 실제 Person과 실제 장비·Readiness를 사용한다. 정보는 어디까지나 전략적 의사결정 입력에만 영향을 준다.
-
----
-
-## 6. Formation 위치 정보
-
-Formation 위치는 관측 당시의 실제 타일을 `last-seen` 형태로 저장한다.
-
-낮은 위치 신뢰도에서는 상대의 모든 Formation을 관측하지 못할 수 있다. 이후 Formation이 이동해도 재관측 전까지 저장된 위치는 자동 갱신되지 않는다.
-
-따라서 V0.33E부터는 다음 상황이 가능하다.
-
-- 적군이 이미 이동했지만 구 위치를 향해 방어계획을 세움
-- 일부 적 Formation을 보지 못함
-- 국경접촉이나 전투 후 갑자기 위치정보가 크게 갱신됨
-
-V1에서는 가짜 Formation이나 허위 위치를 생성하지 않는다. 잘못된 정보는 주로 **노후화와 미관측**에서 나온다.
-
----
-
-## 7. War Intent 연결
-
-D1의 War Intent 단계는 유지된다.
-
-`ASSESSING → PREPARING → READY → DECLARED / CANCELLED`
-
-하지만 다음 상대국 정보는 이제 V0.33E Intelligence Picture를 사용한다.
-
-- 상대 야전병력
-- 상대 총병력
-- 상대 동원가능 인구 추정
-- 상대 Readiness
-- 추정 상대 전력
-
-공격국 자신의 병력·식량·Readiness는 자국 정보이므로 실제값을 사용한다.
-
-War Intent의 `estimatedAdvantage`는 이제
-
-`자국 실제 전력 / 상대 추정 전력`
-
-개념이 된다.
-
-따라서 상대를 과소평가하거나 과대평가할 수 있다.
-
----
-
-## 8. D2 Preparation 연결
-
-V0.33D2에는 상대 동원잠재력을 계산할 때 `target.residents`에서 적격 Person을 직접 세는 완전정보 우회가 남아 있었다.
-
-V0.33E에서는 `goals2()`가 Intelligence Picture의 `military.eligible` 추정치를 우선 사용하도록 수정했다.
-
-따라서 다음 D2 목표가 불완전 정보의 영향을 받을 수 있다.
-
-- `enemyPotential`
-- `fieldGoal`
-- `requiredActive`
-- `activeGoal`
-- `advantageGoal` 충족 여부
-
-War Chest·식량·자국 Readiness 등의 물리적 준비 자체는 여전히 실제 자원을 사용한다.
-
----
-
-## 9. 정보 UI
-
-국가 → 군사 탭 상단에 **V0.33E 정보 상황** 패널을 추가했다.
-
-각 상대국마다 다음을 확인할 수 있다.
-
-- 상대국 이름
-- 추정 야전병력
-- 추정 병력 범위
-- 현재 군사 신뢰도
-- 마지막 관측 후 경과 calendar-day
-- 정보원
-- FRESH / STALE 상태
-
-현재 War Intent 대상은 목록 상단에 우선 배치된다.
-
-활성 War Intent가 있을 경우 다음도 같이 표시한다.
-
-- 현재 phase
-- 평가 score
-- 추정 전력비
-- 정보 신뢰도
-- 정보 age
-- 정보 source
-- 작전 접근상태
-
-관찰자인 플레이어의 세계지도 자체에는 Fog of War를 적용하지 않는다. **AI가 무엇을 알고 있는지**를 별도 UI로 보여주는 구조다.
-
----
-
-## 10. War History 렌더링 안정화
-
-D1B와 D1C에 전쟁 기록 렌더러가 누적되어 있었고, V0.33D2A 장기주행 화면에서는 실제로 D1B 형식이 최종 표시되는 회귀가 확인됐다.
-
-V0.33E는 통계 전쟁 기록 패널의 최종 렌더를 다시 소유한다.
-
-전쟁 제목:
-
-`A측 · 티아 ↔ B측 · 벨른 + 델마`
-
-결과:
-
-`티아 승리 (A측)`
-
-양측 수치:
-
-- `전사 A 4 / B 2`
-- `부상 A 6 / B 4`
-- `누적 점령 A 12 / B 0`
-- `최대 동시 점령 A n / B n`
-- `참전국 A 1 / B 2`
-
-즉 `/` 왼쪽과 오른쪽이 어느 Side인지 더 이상 암묵적으로 해석할 필요가 없다.
-
-패널 DOM에는 `data-owner="V0.33E"`가 설정된다.
-
----
-
-## 11. Formation preparation-lock 안정화
-
-D2A 장기주행 CSV에서 PREPARING인데 `preparationLockedFormations33D2A = 0`인 일부 시점이 관측됐다.
-
-모든 0이 오류는 아니다. 특히 두 번째 동시전쟁 준비는 D2 설계상 기존 전쟁 Formation을 다시 사전집결시키지 않기 때문에 rally goal이 0일 수 있다.
-
-V0.33E의 복구 규칙은 다음 경우에만 작동한다.
-
-1. Intent가 PREPARING 또는 READY
-2. 첫 번째 전쟁 준비 상태
-3. 해당 preparation에 실제 `rallyTargets`가 존재
-4. 대상 Formation에 실제 manpower가 존재
-5. D2A preparation lock이 빠졌거나 다른 intent를 가리킴
-
-이 경우에만 lock을 재설정한다.
-
-복구 이벤트:
-
-`WAR_PREPARATION_LOCK_REPAIRED33E`
-
-CSV 누적값:
-
-`preparationLockRepairs33E`
-
----
-
-## 12. Telemetry 정책
-
-V0.33E에서는 JSON 크기 폭증을 피하기 위해 Intelligence query를 매번 이벤트화하지 않는다.
-
-`INTEL_OBSERVATION33E`은 주로 다음 경우에만 기록된다.
-
-- 최초 관측
-- 정보원 변경
-- 신뢰도 등급 변경
-- 추정 야전병력이 크게 변함
-- War Intent 관련 중요 관측
-
-Routine query는 기록하지 않는다.
-
-### World CSV 필드
-
-- `intelPairs33E`
-- `intelFreshPairs33E`
-- `intelStalePairs33E`
-- `intelUnknownPairs33E`
-- `intelMeanMilitaryConfidence33E`
-- `intelObservations33E`
-- `intelLoggedObservations33E`
-- `preparationLockRepairs33E`
-- `warHistoryUIOwner33E`
-
-### Nation CSV 필드
-
-- `intelKnownTargets33E`
-- `intelFreshTargets33E`
-- `intelStaleTargets33E`
-- `intelUnknownTargets33E`
-- `intelMeanMilitaryConfidence33E`
-- `warIntentIntelAgeDays33E`
-- `warIntentIntelSource33E`
-- `warIntentIntelConfidence33E`
-- `warIntentEstimatedEnemyField33E`
-- `warIntentActualEnemyField33E`
-- `warIntentEnemyFieldError33E`
-
-`warIntentActualEnemyField33E`은 **observer/debug telemetry 전용**이다. AI 전략 판단에는 사용하지 않는다. 장기주행 후 추정오차를 CSV만으로 검증하기 위한 필드다.
-
----
-
-## 13. 저장 호환성
-
-현재 save version:
-
-`0.33EF`
-
-로컬 저장 key:
-
-`village-observer-v0-33ef`
-
-Fallback:
-
-- 0.33E
-- 0.33D2A
-- 0.33D2
-- 0.33D1C
-- 0.33D1B
-- 0.33D1A
-- 0.33D1
-- 0.33D
-
-V0.33D2A save를 불러오면 기존 전쟁·War Intent·Preparation·War Chest를 유지하고 V0.33E Intelligence state를 새로 부착한다.
-
-시나리오 export의 `intendedVersion`은 `0.33EF`이다.
-
----
-
-## 14. 검증 완료 항목
-
-개발 단계에서 다음 smoke test를 수행했다.
-
-- 전체 86개 inline script의 JavaScript syntax 검사 통과
-- 새 세계 로딩 후 버전 badge/title `V0.33E` 확인
-- `world.serialize().version === '0.33E'`
-- `V033D1.perfectInformation === false`
-- `V033D2.perfectInformation === false`
-- Intelligence pair 생성 및 시간 경과 후 snapshot 정상
-- V0.33E CSV schema validator 통과
-- V0.33E save → load round-trip 정상
-- V0.33D2A 형식 save → V0.33E migration 정상
-- V0.33E 기준 War History 최종 DOM owner `V0.33E` 확인
-- 합성 합동전쟁 카드에서 `A측/B측`, 실제 승리국, 전사/부상/점령/참전국 A/B 명시 확인
-- 브라우저 smoke test 중 uncaught JS error 없음
-
-V0.33EF 추가 검증:
-
-- 전체 87개 inline script JavaScript syntax 검사 통과
-- 격리 테스트에서 `V0.33D1B` owner를 강제로 주입한 뒤 `renderHeader()`가 `V0.33EF`로 회수
-- 같은 강제 주입 뒤 전체 `render()`가 `V0.33EF`로 회수
-- 공개 `V033D1B.renderCoalitionHistory()` 호출이 EF renderer로 redirect
-- `world.serialize().version === '0.33EF'`
-- 실제 owner telemetry가 `warHistoryUIOwner33EF=1`, `warHistoryUIOwnerLabel33EF=V0.33EF`로 기록
-- EF CSV 추가 열을 포함한 열 수 일치 검사 통과
-
----
-
-## 15. 다음 자연주행에서 우선 볼 지표
-
-V0.33E는 최소 40~60년 이상의 자연주행에서 다음을 확인하는 것이 좋다.
-
-### 정보 시스템
-
-- 평균 군사 신뢰도가 계속 100%에 고정되지 않는가
-- 국경국·전쟁국이 비접촉국보다 높은 신뢰도를 가지는가
-- 전쟁이 끝난 뒤 정보가 자연스럽게 stale해지는가
-- `warIntentEstimatedEnemyField33E`와 실제값 사이에 의미 있는 오차가 생기는가
-- 오차가 너무 커서 모든 공격이 무작위화되거나, 너무 작아서 완전정보와 다를 바 없어지지 않는가
-
-### 전쟁 빈도·준비
-
-- D2A 대비 전쟁 빈도가 지나치게 급락하지 않는가
-- 과소평가로 준비가 부족한 전쟁과 과대평가로 지연되는 전쟁이 둘 다 나타나는가
-- War Chest 회계 보존이 계속 유지되는가
-- READY/Final Commitment가 정보 갱신 때문에 매일 진동하지 않는가
-
-### Formation
-
-- 첫 전쟁 준비에서 rally target이 있는데 lock이 0인 상태가 재발하는가
-- `preparationLockRepairs33E`가 비정상적으로 계속 증가하지 않는가
-- 두 번째 동시전쟁의 의도적인 0-lock 상태를 잘못 복구하지 않는가
-
-### War History UI
-
-- 장기주행 후에도 패널 설명이 `V0.33EF 최종 렌더러`로 유지되는가
-- 모든 카드 제목에 `A측 · ... ↔ B측 · ...`가 보이는가
-- 합동전쟁 승리국 이름과 Side가 맞는가
-- 전사/부상/점령/참전국 수가 A/B와 뒤집히지 않는가
-
----
-
-## 16. 알려진 V1 한계
-
-V0.33E는 Intelligence V1이며 다음은 아직 구현하지 않았다.
-
-- 실제 Spy Person / 첩보원 직업
-- 정보기관 건물
-- 능동 첩보 임무
-- 기만·허위정보
-- 적 정보망 파괴
-- 암호·통신
-- 동맹국 간 공식 정보공유 체계
-- 해상 정찰 별도 모델
-- 지도 자체의 플레이어 Fog of War
-- 관측된 적 Formation에 대한 완전한 tactical uncertainty
-
-특히 전술 AI의 일부 기존 경로는 여전히 현재 전장 객체를 활용한다. V0.33E의 주된 경계는 **전쟁 의도와 전략 준비의 완전정보 제거**이며, 전술·전투 전체를 Fog of War로 전환하는 버전은 아니다.
-
----
-
-## 17. 파일
-
-- `index.html` — V0.33EF 실행 파일
-- `README.md` — 현재 문서
-
----
-
-## 18. V0.33EF 구현 상세
-
-### 18.1 구형 writer 직접 가드
-
-다음 구형 함수는 EF가 활성화되어 있으면 자체 DOM 쓰기를 수행하지 않고 `NS.V033EF.renderWarHistory()`로 위임한다.
+다음 War History writer는 더 이상 함수로 존재하지 않는다.
 
 - V0.33A `updateHistoryPanelA()`
 - V0.33D1A `renderCoalitionHistoryA()`
 - V0.33D1B `renderCoalitionHistoryB()`
 - V0.33D1C `renderWarHistoryC()`
 
-따라서 최신 UI에서 과거 renderer가 렌더 체인의 중간 writer가 되더라도 전쟁 기록 패널을 구형 카드로 교체하지 않는다.
+또한 D1B/D1C 공개 namespace에서도 다음 API를 제거했다.
 
-### 18.2 공개 API redirect
+- `NS.V033D1B.renderCoalitionHistory`
+- `NS.V033D1C.renderWarHistory`
 
-V0.33A가 역사적으로 `NS.V033D1B.renderCoalitionHistory`를 호출하는 경로가 남아 있으므로, EF는 이 공개 API도 최신 renderer로 redirect한다. D1C의 공개 War History renderer도 동일하게 redirect된다.
+V0.33A/D1A/D1B/D1C의 `renderStats()` / `render()` 체인 역시 더 이상 War History DOM을 쓰지 않는다.
 
-### 18.3 최종 owner check
+### 2.3 EF hotfix runtime 제거
 
-EF는 `renderHeader`, `renderStats`, `render` 각각의 최종 단계에서 War History owner를 검사한다.
+다음 EF runtime 메커니즘은 삭제됐다.
 
-- 이미 `V0.33EF`이면 아무 작업도 하지 않는다.
-- 직전 V0.33E renderer가 정상 카드를 그린 상태라면 DOM을 다시 만들지 않고 owner만 EF로 인계한다.
-- D1B/D1C 등 구형 owner가 실제로 발견되면 V0.33E의 정상 A/B renderer를 다시 실행한 뒤 EF owner로 회수한다.
+- legacy public API redirect
+- `renderHeader()` 최종 owner reassert
+- `renderStats()` owner reassert
+- 전체 `render()` owner reassert
+- legacy takeover 자동 복구
+- redirect/owner-claim 누적 runtime
 
-이 구조는 매 tick마다 불필요하게 War History 전체를 두 번 만드는 것을 피하면서도, 문제가 발생했던 header-only refresh 경로를 차단한다.
+`NS.V033EF` namespace는 과거 버전 진단을 위한 deprecated marker만 남는다.
 
-### 18.4 다음 자연주행 판정 기준
+### 2.4 단일 writer
 
-정상이라면 CSV에서 `warHistoryUIOwner33EF`가 1로 유지되고 `warHistoryUIOwnerLabel33EF`가 `V0.33EF`로 유지되어야 한다. `warHistoryLegacyRedirects33EF`는 구형 호출 경로가 존재하므로 증가할 수 있지만, 이것 자체는 오류가 아니다. 반면 `warHistoryLegacyTakeovers33EF`가 계속 증가한다면 아직 EF guard 밖에서 직접 DOM을 쓰는 새로운 경로가 있다는 뜻이다.
+현재 War History를 실제로 쓰는 renderer는 V0.33E에서 만든 A/B renderer 하나뿐이며 V0.33E1 owner로 동작한다.
 
-V0.33EF는 Hotfix이므로 Intelligence confidence, War Intent, D2 Preparation, War Chest, Engagement, casualty, occupation, peace balance는 V0.33E와 동일하다.
+정상 DOM:
 
+```text
+data-owner="V0.33E1"
+```
+
+정상 카드 예:
+
+```text
+A측 · 에브 ↔ B측 · 델마 + 라엔
+에브 승리 (A측)
+전사 A 0 / B 1
+부상 A 0 / B 4
+누적 점령 A ... / B ...
+참전국 A 1 / B 2
+```
+
+E1 telemetry의 `warHistoryLegacyWriterCalls33E1`은 구조 회귀 감시용 필드이며 정상값은 **항상 0**이다.
+
+---
+
+## 3. 선택 타일 식별 UI
+
+기존에는 inspector 상단에 좌표만 표시됐다.
+
+V0.33E1:
+
+```text
+✓ 선택한 타일    (4,9) · ID 175
+평야 · 국가 라엔
+```
+
+- `선택한 타일`과 좌표 사이에 별도 gap을 둔다.
+- `ID`는 devlog의 `tileId`와 동일한 정수다.
+- 국가 소유 타일, 중립 타일, 수역 모두 같은 식별 형식을 사용한다.
+- 이후 devlog 분석에서 `tile 292` 같은 값을 게임 화면에서 직접 대조할 수 있다.
+
+---
+
+## 4. 32-tech 시대 진행 압축
+
+### 4.1 원칙
+
+E1은 **Knowledge 생산량을 올리지 않는다.**
+
+시대 진행 가속은 오직 기술 노드 통폐합에서 발생한다.
+
+```text
+Knowledge 생산 multiplier = ×1.00
+```
+
+남아 있는 기술의 D1A 고정 cost도 변경하지 않는다.
+
+기존 총비용:
+
+```text
+40 tech = 6,315 Knowledge
+```
+
+통폐합 후:
+
+```text
+32 tech = 4,815 Knowledge
+```
+
+삭제되는 8개 기술의 기존 고정비 합계는 정확히 1,500 Knowledge다.
+
+---
+
+## 5. 기술 통폐합표
+
+| 제거되는 기술 | 흡수되는 기술 | E1 표시명 |
+|---|---|---|
+| `CROP_ROTATION` 윤작 | `IRRIGATION` 관개 | 관개·윤작 |
+| `FOOD_PRESERVATION` 식량 보존 | `GRANARY` 곡물 저장 | 곡물 저장·보존 |
+| `STANDARD_WEIGHTS` 도량형 | `CURRENCY` 화폐 | 화폐·도량형 |
+| `ENVOYS` 사절단 | `COMMERCIAL_LAW` 상법 | 상법·사절 |
+| `SEAFARING` 항해술 | `COASTAL_NAVIGATION` 연안 항해 | 항해술 |
+| `ARCHITECTURE` 건축술 | `ENGINEERING` 공학 | 건축·토목공학 |
+| `PUBLIC_WORKS` 공공사업 | `ENGINEERING` 공학 | 건축·토목공학 |
+| `URBAN_REDEVELOPMENT` 도시 정비 | `URBANIZATION` 도시화 | 도시화·재개발 |
+
+기존 시스템에서 `hasTech()`로 제거 기술을 조회하면 자동으로 통합 대상 기술을 조회한다. 따라서 과거 시스템의 효과를 삭제하는 것이 아니라 대표 기술에 흡수한다.
+
+예:
+
+```text
+hasTech('CROP_ROTATION') → IRRIGATION 보유 여부
+hasTech('PUBLIC_WORKS') → ENGINEERING 보유 여부
+hasTech('URBAN_REDEVELOPMENT') → URBANIZATION 보유 여부
+```
+
+---
+
+## 6. 최종 32개 기술
+
+### 생산 / 산업 10
+
+1. AGRICULTURE
+2. CARPENTRY
+3. MASONRY
+4. IRRIGATION — 관개·윤작
+5. GRANARY — 곡물 저장·보존
+6. QUARRY
+7. FORESTRY
+8. IRON_MINING
+9. SMELTING
+10. IRONWORKING
+
+### 교역 / 항해 9
+
+11. BARTER
+12. CART
+13. MARKET
+14. CURRENCY — 화폐·도량형
+15. COASTAL_NAVIGATION — 항해술
+16. ROADS
+17. LONG_DISTANCE_TRADE
+18. COMMERCIAL_LAW — 상법·사절
+19. OCEAN_NAVIGATION
+
+### 지식 4
+
+20. RECORD_KEEPING
+21. SCHOLARSHIP
+22. ACADEMY
+23. EDUCATION
+
+### 개척 / 행정 4
+
+24. SURVEYING
+25. FRONTIER_LOGISTICS
+26. ADMINISTRATION
+27. WATCHTOWERS
+
+### 도시 / 군사시설 5
+
+28. URBAN_PLANNING
+29. FORTIFICATION
+30. SANITATION
+31. ENGINEERING — 건축·토목공학
+32. URBANIZATION — 도시화·재개발
+
+---
+
+## 7. 주요 prerequisite 재연결
+
+제거 기술을 prerequisite로 사용하던 기술은 canonical tech로 재연결한다.
+
+특히 다음 후기 기술은 E1에서 명시적으로 재정의한다.
+
+### 상법·사절
+
+```text
+CURRENCY + RECORD_KEEPING
+```
+
+### 원양 항해
+
+```text
+COASTAL_NAVIGATION + LONG_DISTANCE_TRADE + SCHOLARSHIP
+```
+
+### 건축·토목공학
+
+```text
+CARPENTRY + MASONRY + ROADS + ADMINISTRATION
+```
+
+### 도시화·재개발
+
+```text
+URBAN_PLANNING + ENGINEERING + SANITATION
+```
+
+기타 prerequisite도 제거 기술 ID를 canonical ID로 자동 변환하고 자기 자신을 prerequisite로 만들게 되는 항목은 제거한다.
+
+---
+
+## 8. 기존 세이브 기술 migration
+
+V0.33EF 세이브를 불러오면 각 Nation의 기술 Set을 E1 기준으로 변환한다.
+
+예:
+
+```text
+보유: IRRIGATION + CROP_ROTATION
+→ 보유: IRRIGATION
+```
+
+```text
+보유: ARCHITECTURE + PUBLIC_WORKS
+→ 보유: ENGINEERING
+```
+
+현재 연구 중인 기술이 제거 대상이라면 연구 대상도 canonical 기술로 변경한다.
+
+예:
+
+```text
+researchTarget = SEAFARING
+→ COASTAL_NAVIGATION
+```
+
+연구 진행도는 대상 기술이 아직 미완료라면 그대로 유지한다. 이미 통합 대상 기술을 보유한 경우 제거 기술의 별도 진행도는 폐기하고 다음 연구를 선택한다.
+
+Eureka bank와 기술 확산 누적값도 canonical ID로 합친다.
+
+---
+
+## 9. Formation Commander V1
+
+### 9.1 기본 원칙
+
+지휘관은 별도 synthetic character가 아니다.
+
+**Formation 내부의 실제 Person 1명**이다.
+
+Formation은 다음 두 상태를 모두 허용한다.
+
+```text
+지휘관 있음
+지휘관 없음
+```
+
+후보가 부족하면 억지로 지휘관을 생성하지 않는다.
+
+### 9.2 Formation 필드
+
+지휘관이 임명되면 Formation 객체에 다음 값이 저장된다.
+
+- `commanderPersonId`
+- `commanderSinceCal`
+- `commanderScoreAtAppointment`
+- `commanderAppointmentReason`
+- `v33e1CommanderVacantUntilCal`
+
+Formation serializer가 기존처럼 object property를 보존하므로 지휘관도 세이브에 함께 저장된다.
+
+---
+
+## 10. Command Score
+
+후보 조건:
+
+- alive
+- `militaryStatus32A === 'active'`
+- 해당 Formation Cohort에 실제로 소속
+- 18세 이상
+- wounded 상태 아님
+
+점수:
+
+```text
+Command Score =
+  combat skill      × 45%
++ military service × 20%
++ social skill      × 15%
++ health            × 10%
++ happiness         × 10%
+```
+
+복무 경험은 720 calendar-day를 100점 기준으로 정규화한다.
+
+최소 임명 기준:
+
+```text
+Command Score >= 45
+```
+
+Formation 내부 후보 중 가장 높은 점수의 Person을 임명한다.
+
+---
+
+## 11. 지휘관 효과
+
+지휘관 품질은 Command Score 45~100을 0~1 구간으로 정규화한다.
+
+### 전투력
+
+```text
+최소 +3%
+최대 +8%
+```
+
+기존 training/equipment/supply/morale 기반 `unitPowerD()` 계산 뒤에 곱한다.
+
+지휘관은 병력을 생성하지 않으며 manpower는 그대로다.
+
+### 패전 사기 손실 완화
+
+패전으로 발생하는 Formation battle morale 감소량을 다음 범위에서 완화한다.
+
+```text
+5% ~ 15%
+```
+
+승리 사기 보너스는 변경하지 않는다.
+
+### Regroup 단축
+
+패퇴 후 기존 regroup 기간을 다음 범위에서 감소시킨다.
+
+```text
+3% ~ 10%
+```
+
+보급, 도로, terrain, 병력 수를 생성하거나 수정하지 않는다.
+
+---
+
+## 12. 지휘관 부상·사망·공석
+
+지휘관도 일반 전투 casualty 대상에 포함된다.
+
+지휘관이:
+
+- 사망하거나
+- wounded 상태가 되거나
+- Formation에서 이탈하거나
+- 현역 military 상태가 아니게 되면
+
+즉시 전투 보너스를 잃는다.
+
+부상/사망 확인 후 Formation은 30 calendar-day 동안 지휘관 공석 상태를 유지하고 이후 후임을 검토한다.
+
+Commander 검토는 모든 Person을 매일 전역 검색하지 않는다. World 수준에서 10 calendar-day 간격으로 활성 Formation만 확인하고, 실제 공석일 때 해당 Formation 병력만 후보 평가한다.
+
+---
+
+## 13. Commander UI
+
+국가 `군사` 탭에 `Formation Command V1` 패널을 추가한다.
+
+표시 항목:
+
+- Formation 이름
+- 실제 Person 지휘관 이름
+- manpower
+- Command Score
+- 현재 전투력 보너스
+- 패전 사기손실 완화율
+
+지휘관이 없으면:
+
+```text
+지휘관 없음
+Command Score 45 이상 후보 없음/공석
+```
+
+타일 inspector에서도 해당 타일에 Formation이 있으면 지휘관 이름과 Command Score를 함께 표시한다.
+
+---
+
+## 14. 소규모 Formation casualty smoothing
+
+### 14.1 문제
+
+현재 Person 1명은 실제 병력 1명이다.
+
+따라서:
+
+- 4명 Formation의 1 casualty = 전력 25%
+- 3명 Formation의 1 casualty = 전력 33%
+- 2명 Formation의 1 casualty = 전력 50%
+
+V0.33EF의 에브–라엔 전쟁에서는 라엔이 초기 라운드를 이기고도 승리한 라운드에서 부상이 연속 발생해 4→3→2인 수준으로 급격히 약화했고, 이후 3연패가 발생했다.
+
+Person 실체 원칙은 유지하되 이 연속 변동만 약하게 완화한다.
+
+### 14.2 기본 casualty rate multiplier
+
+side에 존재하는 실제 active Person 수가 1~4명일 때만 적용한다.
+
+| 전투 가능한 Person | rate multiplier |
+|---:|---:|
+| 1 | ×0.85 |
+| 2 | ×0.88 |
+| 3 | ×0.91 |
+| 4 | ×0.95 |
+| 5+ | ×1.00 |
+
+기존 승자/패자의 casualty rate 공식 자체는 유지하고 위 multiplier만 마지막에 적용한다.
+
+### 14.3 anti-streak guard
+
+같은 전쟁의 같은 Side가 **6 calendar-day 이내** 직전 라운드에서 이미 casualty를 냈다면 다음 casualty rate를 추가로:
+
+```text
+×0.75
+```
+
+한다.
+
+즉 소규모 부대에서 한 명이 다친 직후 다음 3~5일 라운드에서 또 한 명이 즉시 빠지는 연쇄 현상을 줄인다.
+
+이 규칙은 casualty를 무효화하지 않는다.
+
+- 사망자는 실제 Person death
+- 부상자는 실제 wounded Person
+- cohort/Formation manpower 감소
+- War Exhaustion casualty 반영
+
+은 모두 기존과 동일하다.
+
+---
+
+## 15. Telemetry
+
+### World / global CSV
+
+추가 필드:
+
+- `techCount33E1`
+- `techCostTotal33E1`
+- `knowledgeProductionMultiplier33E1`
+- `activeFormations33E1`
+- `commandedFormations33E1`
+- `avgCommanderScore33E1`
+- `commanderAppointments33E1`
+- `commanderLosses33E1`
+- `smallUnitRounds33E1`
+- `smallUnitGuardedRounds33E1`
+- `smallUnitCasualties33E1`
+- `warHistoryUIOwner33E1`
+- `warHistoryLegacyWriterCalls33E1`
+
+### Nation CSV
+
+- `commandedFormations33E1`
+- `avgCommanderScore33E1`
+
+### 주요 devlog event
+
+- `TECH_RESEARCH_MIGRATED33E1`
+- `FORMATION_COMMANDER_APPOINTED33E1`
+- `FORMATION_COMMANDER_LOST33E1`
+- `SMALL_UNIT_CASUALTY_GUARD33E1`
+
+Routine commander validity check는 devlog event로 남기지 않는다.
+
+---
+
+## 16. E1 정상 판정 기준
+
+### War History
+
+- 장기주행에서 `warHistoryUIOwner33E1 = 1`
+- `warHistoryLegacyWriterCalls33E1 = 0`
+- `NS.V033D1B.renderCoalitionHistory`가 존재하지 않음
+- `NS.V033D1C.renderWarHistory`가 존재하지 않음
+- A/B 카드가 장기주행 중 구형 형식으로 돌아가지 않음
+
+### Tech
+
+- `techCount33E1 = 32`
+- `techCostTotal33E1 = 4815`
+- `knowledgeProductionMultiplier33E1 = 1`
+- 제거 기술이 `technologies` Set에 다시 나타나지 않음
+- 기존 EF save migration 후 연구가 중단되지 않음
+- 20~30년의 철·도로·행정·군사시설 등장시점이 얼마나 앞당겨지는지 확인
+- 약 60년 시점에 대부분의 관찰 가능한 시스템이 등장하는지 확인
+
+### Commander
+
+- 모든 Formation에 강제로 지휘관이 생기지 않음
+- 후보가 있을 때 실제 Formation Person이 지휘관으로 선택됨
+- Command Score <45인 후보는 임명되지 않음
+- 지휘관 사망/부상 뒤 bonus가 즉시 사라짐
+- 후임이 실제 Person으로 재임명됨
+- 전투 +8%를 초과하지 않음
+
+### Small-unit battle
+
+- 1~4인 전투 casualty가 완전히 사라지지 않음
+- 연속 라운드 casualty guard가 실제로 발화함
+- 5명 이상에서는 기존 casualty rate가 그대로 유지됨
+- casualty Person / wounded / War Exhaustion 회계가 기존과 일치함
+
+---
+
+## 17. Save compatibility
+
+새 저장 key:
+
+```text
+village-observer-v0-33e1
+```
+
+fallback 순서에는 다음을 포함한다.
+
+- V0.33EF
+- V0.33E
+- V0.33D2A 이하 D 계열
+
+V0.33EF save를 읽을 때 내부적으로 V0.33E 저장 구조를 복원한 뒤 E1 기술 migration과 Commander attach를 적용한다.
+
+Export 이름:
+
+- `village-observer-v033E1-save-...json`
+- `village-observer-v033E1-devlog-...json`
+- `village-observer-v033E1-snapshots-...csv`
+- `village-observer-v033E1-scenario-...json`
+
+---
+
+## 18. 구현 검증
+
+패치 작성 후 수행한 기본 회귀 검사:
+
+- inline JavaScript **88개 전부 `node --check` 통과**
+- Chromium `set_content` 초기 실행 uncaught error 0
+- document title / version badge `V0.33E1` 확인
+- `TECH_ORDER.length = 32` 확인
+- 32-tech 비용 합계 `4815` 확인
+- `knowledgeProductionMultiplier = 1` 확인
+- War History `data-owner = V0.33E1` 확인
+- D1B/D1C legacy public War History API `undefined` 확인
+- 90 calendar-day UI/simulation smoke run error 0
+- 3년 자연 smoke run error 0
+- CSV schema validator 통과
+- E1 serialize version `0.33E1` 확인
+- 인위적 EF save migration에서 제거 기술 canonicalization 확인
+- `SEAFARING` 연구중 EF save → `COASTAL_NAVIGATION` migration 확인
+- 인위적 active Formation에서 실제 Person commander 임명과 bonus 범위 확인
+- 2인 Formation casualty rate `0.20 → 0.176`, 직전 casualty guard 시 `0.132`로 완화되는 것 확인
+
+이 검사는 장기 밸런스 검증을 대신하지 않는다. 자연주행 데이터에서 시대 진행과 전투 결과 분포를 다시 확인해야 한다.
+
+---
+
+## 19. V0.33E에서 그대로 상속되는 핵심 구조
+
+### Intelligence V1
+
+`World Truth → Observation → Intelligence Picture → Strategic Decision`
+
+- Battle Contact
+- War Contact
+- Border Patrol
+- Trade Network
+- Contact Report
+
+관측원마다 군사/위치/경제 confidence가 다르고 시간이 지나면서 노후화된다.
+
+War Intent와 D2 Preparation은 상대의 현재 World Truth 대신 Intelligence Picture를 사용한다.
+
+E1에서는 이 confidence/error 모델을 재조정하지 않는다.
+
+### D2 / D2A
+
+- ASSESSING / PREPARING / READY
+- 실제 Person 동원
+- 식량 준비목표
+- War Chest
+- Formation rally lock
+- READY hysteresis
+- Final Commitment 15~45일
+
+모두 유지한다.
+
+### War / Engagement
+
+- same-tile hostile contact → persistent Engagement
+- 3~5 calendar-day 라운드
+- 일반 전장 3연속 패배 붕괴
+- 수도/core 방어 4연속 패배
+- 최대 6/7라운드
+- real Person casualty
+- retreat / deep recovery / regroup
+- occupation / liberation
+- War Exhaustion peace
+
+E1에서 바뀌는 전투 요소는 **Commander bonus와 1~4인 casualty smoothing뿐**이다.
+
+---
+
+## 20. 알려진 E1 한계
+
+- 상위 지휘체계(대대/연대/군단/전구사령부) 없음
+- Commander personality 기반 전술성향 없음
+- 지휘관 포로/해임/정치적 영향 없음
+- 지휘관 경험치 전용 시스템 없음; 현재는 Person combat skill + military service를 사용
+- Intelligence V2 능동정찰/기만은 아직 없음
+- 전쟁 목표/영토 할양/배상/동맹 평화조건 없음
+- 35년 이전 전쟁 gate는 유지
+- 32-tech 압축 후 국가별 완료시점 편차는 자연주행으로 재검증 필요
+- 1~4인 Formation 자체가 장기적으로 적절한 군사 스케일인지 별도 검토 필요
+
+다음 후보 패치는 **V0.33E2 — Intelligence Uncertainty & Reconnaissance V2**이며, E1 자연주행 결과에 따라 시대 진행 Balance/Fix를 먼저 둘 수 있다.
+
+---
+
+## 21. 파일
+
+- `index.html` — Village Observer V0.33E1 실행 파일
+- `README.md` — V0.33E1 상세 기술 문서
