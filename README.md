@@ -1,3 +1,385 @@
+# Village Observer V0.33D2
+
+## Strategic War Preparation V1
+
+기준 버전: **V0.33D1C**  
+패치 버전: **V0.33D2**  
+작성 기준일: **2026-09-30**
+
+---
+
+## 1. 패치 목적
+
+V0.33D1까지의 War Intent는 `ASSESSING → PREPARING → READY → DECLARED/CANCELLED` 상태를 만들었지만, `PREPARING`은 실제 행동을 거의 하지 않는 대기 단계였다. D1A~D1C는 작전 접근성, Coalition access, Formation lifecycle, 전쟁 관측, Recovery deadlock 등을 안정화했다.
+
+V0.33D2는 **PREPARING을 실제 전략준비 단계로 승격**한다. 공격을 검토하는 국가는 단순히 수치가 자연스럽게 좋아지기를 기다리지 않고, 기존 경제·군사·건설 시스템을 사용해 실제로 조건을 개선한다.
+
+핵심 원칙은 다음과 같다.
+
+- 합성 병력 생성 금지: 추가 동원은 실제 Person만 사용한다.
+- 합성 비축 생성 금지: 식량/Gold는 기존 실제 국가 재고를 사용한다.
+- 전투력 직접 보너스 금지: D2는 준비 행동만 추가하고 기존 Readiness/Equipment/Supply/Combat 계산을 유지한다.
+- 선전포고 전 적 영토 진입 금지: Formation 사전 집결은 자국 영토에서만 수행한다.
+- Intelligence 정확도는 아직 100% proxy를 유지한다.
+- D1의 90 calendar-day 전략 검토 주기와 기존 개전 확률을 유지한다.
+
+---
+
+## 2. Strategic War Preparation 상태
+
+D2는 D1의 활성 Intent 중 `PREPARING` 또는 `READY` 상태에 대응해 `v33d2.preparations[]`를 생성한다.
+
+각 Preparation은 다음을 보존한다.
+
+- intentId / nationId / targetId
+- 시작/종료 calendar day
+- 추가 동원한 실제 Person ID
+- Formation별 사전 집결 목표
+- 전쟁 준비용 도로 착공 수
+- 군사시설 착공 수
+- 최근 준비도와 주요 blocker
+- READY 도달 시각
+- 최종 DECLARED / CANCELLED / ENDED 상태
+
+준비가 취소되고 다른 전쟁이 없다면 D2가 추가 동원했던 Person은 예비역으로 단계 해산한다. 이미 실제 전쟁 중이라면 기존 전쟁 군사시스템의 인력 운용을 침범하지 않는다.
+
+---
+
+## 3. 준비 목표 계산
+
+D2 준비목표는 고정된 하나의 숫자가 아니라 국가 상황에 따라 계산한다.
+
+### 3.1 상대 동원 잠재력
+
+D2는 완전정보 Intel V0를 사용해 상대의 현재 병력뿐 아니라 실제 동원 적격 Person 수를 계산한다.
+
+- 적격 기준: 생존, 18~50세, 건강 45 이상, 부상/포로 제외, 비군사 개척자 제외
+- 상대 잠재 동원 규모의 기초값: 적격 인구의 약 20%
+- 현재 실제 현역 규모가 더 크면 현재 규모를 우선
+
+이 수치는 합성 병력을 생성하지 않고 **준비 목표 산정에만 사용**한다.
+
+### 3.2 추가 동원 상한
+
+첫 전쟁 준비는 적격 인구의 약 **30%**까지를 준비상한으로 사용한다.
+
+- 이미 다른 전쟁 수행 중: +4%p
+- 최근 같은 상대에게 패배: +2%p
+- 최대 약 38%
+
+실제 목표는 평시 목표, 최소 야전병력, 상대 동원 잠재력에 따른 필요량 중 높은 값을 취하되 위 상한을 넘지 않는다.
+
+### 3.3 기본 준비 목표
+
+첫 전쟁 기준:
+
+| 항목 | 기본 목표 |
+|---|---:|
+| 식량 비축 | **45일** |
+| Field Readiness | **62** |
+| 전력비 | **0.90** |
+| Gold | **8** |
+| 야전 병력 | 최소 **2명**, 상대 야전병력/동원잠재력에 따라 상향 |
+| Formation 집결 | 준비 대상 야전대 전부 |
+| 작전 접근 | `DIRECT_ACCESS` 또는 `ALLY_ACCESS` |
+
+이미 한 전쟁을 수행하면서 두 번째 전쟁을 준비하면:
+
+- 식량 +10일
+- Readiness +6
+- 전력비 목표 +0.08
+- Gold +4
+- 현역 동원 상한 +4%p
+
+최근 1440 calendar-day 이내 같은 상대에게 패배했다면:
+
+- 식량 +5일
+- Readiness +4
+- 전력비 목표 +0.07
+- Gold +2
+- 현역 동원 상한 +2%p
+- 야전병력 목표 추가 상향 가능
+
+---
+
+## 4. 실제 Person 추가 동원
+
+D2는 준비 중 필요한 현역이 부족하면 30 calendar-day 준비 pulse마다 최대 2명의 실제 Person을 추가 동원한다.
+
+동원 시 기존 V0.32B 군사 Person 규칙을 따른다.
+
+- 기존 직업/assignment를 보존
+- 현역 복무 상태로 전환
+- 민간 직장 슬롯 해제
+- Cohort/Formation은 기존 D 군사계층이 실제 Person을 재배치
+- DORMANT Formation도 기존 D1 lifecycle 규칙에 따라 동일 객체/ID로 재활성화 가능
+
+전쟁 준비가 취소되고 다른 전쟁이 없다면 D2 추가 동원자는 예비역으로 해산되고 기존 평시 군사계획이 다시 적용된다.
+
+---
+
+## 5. 식량·Gold 전쟁 비축
+
+D2는 별도의 가상 `warFood` 또는 `warGold` 자원을 만들지 않는다.
+
+기존 실제 국가 자원의 목표를 높인다.
+
+### 5.1 식량
+
+- AI `FOOD` 점수에 준비 부족분에 따른 추가 우선순위 부여
+- `updateStrategicPlan()`의 Food reserve 목표를 `population × 0.36 × 목표 비축일` 이상으로 강화
+- 기존 농업 생산, 국내 물류, 국제교역, 소비 시스템을 그대로 사용
+
+따라서 비축이 늘려면 실제 생산 또는 교역이 필요하다.
+
+### 5.2 Gold
+
+- 기존 Gold를 그대로 사용
+- 목표 이하이면 `TRADE` 우선순위를 소폭 강화
+- 전략계획의 Gold reserve를 D2 목표 이상으로 유지
+
+Gold가 지나치게 낮으면 READY를 충족하지 못해 개전이 지연된다.
+
+---
+
+## 6. Readiness·장비·군사시설 준비
+
+D2는 기존 V0.32F `militaryFieldReadiness32F`를 그대로 사용한다.
+
+Readiness가 목표보다 낮으면:
+
+- AI `SECURITY` 우선순위 강화
+- `MAINTAIN` 우선순위 소폭 강화
+- 180 calendar-day 이하 빈도로 부족한 핵심 군사시설을 실제 착공 시도
+
+시설 우선순위:
+
+1. 병영 `barracks`
+2. 훈련장 `training_ground`
+3. 철공 기술이 있을 경우 무기고 `armory`
+
+실제 착공 가능 여부, 재료, Gold, 공간, 동시공사 한도, 기술 Gate는 기존 `startConstruction()` 규칙을 그대로 사용한다.
+
+D2 자체는 Equipment/Readiness 숫자를 직접 증가시키지 않는다.
+
+---
+
+## 7. Formation 사전 집결
+
+첫 전쟁 준비에서는 실제 야전 Formation을 예상 전선 방향의 **자국 소유 타일**로 이동시킨다.
+
+집결 후보는 다음 순서로 평가한다.
+
+- 목표국과 직접 접한 자국 국경
+- `WAITING_ACCESS`라면 예상 통과국과 접한 자국 국경
+- 적절한 접경지가 없으면 목표 수도와 가까운 자국 타일
+
+후보 평가에는 다음 요소가 반영된다.
+
+- 도로
+- 병영/훈련장/무기고/감시탑/축성 등 군사시설
+- 행정청
+- 지역 인구
+- 수도에서의 거리
+
+Formation은 기존 평시 이동시간, 지형, 도로, Supply 규칙으로 한 칸씩 이동한다. 적국 영토에는 선전포고 전 진입하지 않는다.
+
+이미 다른 전쟁 중인 국가가 두 번째 전쟁을 준비하는 경우 기존 전쟁 Formation assignment를 강제로 빼앗지 않는다. 이 경우 D2는 더 높은 병력·식량·Readiness·전력비·Gold 목표로 추가 부담을 표현한다.
+
+---
+
+## 8. 전쟁 준비용 도로
+
+ROADS 기술이 있고 첫 집결지까지의 자국 경로에 도로가 빠져 있으면 D2는 90 calendar-day 이하 빈도로 한 타일씩 실제 도로 착공을 시도한다.
+
+- reason: `D2_WAR_PREPARATION_ROAD`
+- 수도 → 집결지 자국 경로만 대상
+- 적국/제3국 영토에는 건설하지 않음
+- 기존 프로젝트 한도·재료·공간 Gate 유지
+- 도로 성능은 D1B 기준 단일 **factor 0.62** 유지
+
+---
+
+## 9. READY와 선전포고 Gate
+
+D1의 전략검토 주기는 그대로 90 calendar-day다.
+
+하지만 D1이 기존 기준만으로 `READY`를 판정하더라도 D2 물리 준비가 부족하면 즉시 다시 `PREPARING`으로 정규화된다.
+
+D2 개전 필수조건:
+
+- 실제 야전병력 목표 충족
+- 실제 Food reserve-day 목표 충족
+- 실제 Field Readiness 목표 충족
+- 전력비 목표 충족
+- 실제 Gold 목표 충족
+- 첫 전쟁이면 Formation 집결 완료
+- 작전 접근성 확보
+- Survival/Recovery 상태가 아님
+
+D1이 `AI_STRATEGIC_INTENT` 선전포고를 시도할 때 D2 Gate가 동기적으로 다시 검사한다. 하나라도 부족하면 `WAR_PREPARATION_DECLARATION_BLOCKED33D2`를 기록하고 선전포고를 취소한다.
+
+모든 목표를 만족한 뒤에는 기존 D1의 개전 확률과 90일 검토주기를 그대로 사용한다. D2가 별도 개전 주사위를 추가하지 않는다.
+
+---
+
+## 10. 주요 Devlog 이벤트
+
+- `WAR_PREPARATION_STARTED33D2`
+- `WAR_PREPARATION_MOBILIZATION33D2`
+- `WAR_PREPARATION_STOCKPILE33D2`
+- `WAR_PREPARATION_RALLY33D2`
+- `WAR_PREPARATION_RALLY_READY33D2`
+- `WAR_PREPARATION_ROAD33D2`
+- `WAR_PREPARATION_FACILITY33D2`
+- `WAR_PREPARATION_READY33D2`
+- `WAR_PREPARATION_DECLARATION_BLOCKED33D2`
+- `WAR_PREPARATION_DECLARED33D2`
+- `WAR_PREPARATION_DEMOBILIZATION33D2`
+- `WAR_PREPARATION_ENDED33D2`
+
+---
+
+## 11. Snapshot / CSV 추가 필드
+
+World:
+
+- `activeWarPreparations33D2`
+- `readyWarPreparations33D2`
+- `warPreparationStarts33D2`
+- `warPreparationMobilized33D2`
+- `warPreparationRoads33D2`
+- `warPreparationFacilities33D2`
+- `warPreparationDeclarationBlocks33D2`
+- `warPreparationDeclarations33D2`
+
+Nation:
+
+- `warPreparationStatus33D2`
+- `warPreparationTarget33D2`
+- `warPreparationPct33D2`
+- `warPreparationBlocker33D2`
+- `warPreparationField33D2`
+- `warPreparationFieldGoal33D2`
+- `warPreparationFoodGoal33D2`
+- `warPreparationReadinessGoal33D2`
+- `warPreparationRally33D2`
+
+---
+
+## 12. 저장 호환성
+
+새 저장 버전:
+
+- `0.33D2`
+
+localStorage key:
+
+- `village-observer-v0-33d2`
+
+fallback:
+
+- D1C
+- D1B
+- D1A
+- D1
+- D
+- C3F
+- C3
+
+D2는 `v33d2`에 Preparation 상태와 통계를 저장한다. D1C의 `v33d1cRecovery`, War History, 점령 보강 상태는 그대로 계승한다.
+
+---
+
+## 13. D2에서 변경하지 않는 기준
+
+- 주거 수용량: **3 / 5 / 8**
+- 도로: 단일 Lv.1, **factor 0.62**
+- 유지보수 노동: **분기 0.5%**
+- 기술 40개 총비용: **6,315 Knowledge**
+- D1B Construction Labor / Maintenance Baseline 분리
+- D1C Recovery Expansion Escape
+- D1C 단독전쟁/합동전쟁 UI와 누적점령 보강
+- Persistent Engagement
+- Person-backed casualties
+- 임시 점령
+- War Exhaustion
+- Coalition military access
+- Formation ACTIVE/DORMANT lifecycle
+
+---
+
+## 14. 구현 Smoke Test
+
+- 총 **84개** `<script>` 블록 `node --check`: syntax error **0**
+- Chromium headless `page.set_content()` 부팅: page error **0**, console error **0**
+- 문서 제목: `Village Observer V0.33D2`
+- 버전 배지: `V0.33D2`
+- `VSim.V033D2.revision = strategic-war-preparation-v1`
+- serialize version: `0.33D2`
+- save → `World.from()` → 재serialize: `0.33D2` 유지
+- 기술 총비용: **6315** 유지
+- 단일 도로 factor: **0.62** 유지
+- 주거 cap: **3 / 5 / 8** 유지
+- 합성 PREPARING Intent에서 D2 Preparation 생성 및 실제 Person 추가 동원 확인
+- Formation rally target 지정 및 집결 완료 telemetry 확인
+- D2 Snapshot/CSV 신규 필드 생성 확인
+- CSV schema validation: **OK**, 818 columns, mismatch 0
+
+---
+
+## 15. 다음 자연주행 검증 체크리스트
+
+사용자 요청에 따라 D1C 로그 검증도 이번 D2 자연주행과 함께 수행한다.
+
+### D1C carry-over
+
+1. 전쟁 결과 A/B Side와 실제 국가명이 계속 정확히 보이는가?
+2. 현재 점령 0이어도 누적 점령 이력이 남는가?
+3. 단독전쟁/합동전쟁 분류가 정상인가?
+4. Recovery 장기고착 국가가 Escape를 통해 빠져나오는가?
+
+### D2
+
+5. PREPARING 진입 후 실제 Person 추가 동원이 일어나는가?
+6. 추가 동원이 민간 노동을 지나치게 붕괴시키지 않는가?
+7. Food reserve 목표 때문에 FOOD 행동/비축이 실제로 증가하는가?
+8. 낮은 Readiness 국가가 SECURITY·군사시설 준비를 수행하는가?
+9. Formation이 선전포고 전 실제 자국 국경으로 집결하는가?
+10. 집결 중 적 영토에 진입하지 않는가?
+11. 준비용 도로가 실제 예상 경로에만 생기는가?
+12. D2 준비 미완료 상태에서 D1 선전포고가 차단되는가?
+13. READY 이후 기존 D1 개전 cadence가 유지되는가?
+14. 두 번째 전쟁은 첫 전쟁보다 실제 준비 부담이 높은가?
+15. 최근 패전 상대에 대한 재도전 준비가 더 무거워지는가?
+16. 취소된 Intent의 D2 추가 동원자가 평시로 정상 복귀하는가?
+17. 기존 Engagement/점령/War Exhaustion에 회귀가 없는가?
+18. 성능 증가가 허용 가능한 수준인가?
+
+---
+
+## 16. 다음 단계
+
+D2 자연주행에서 실제 준비 행동이 안정적으로 작동하면 다음 큰 단계는 **V0.33E — Intelligence & Reconnaissance V1**이다.
+
+예정 범위:
+
+- military / position / economy / diplomacy / logistics별 정보 신뢰도
+- 관측 시각과 정보 노후화
+- 국경 정찰
+- 교역·외교 기반 정보 획득
+- 전투를 통한 정보 갱신
+- Formation sighting
+- 전력 추정 범위/오차
+
+첩보·방첩·기만·가짜 Formation 정보는 그 이후 단계로 확장한다.
+
+---
+
+# Appendix A. V0.33D1C 기준 문서
+
+아래는 D2가 직접 계승한 D1C 상세 기술 문서다.
+
 # Village Observer V0.33D1C
 
 ## War Observer + Recovery Escape Stabilization
