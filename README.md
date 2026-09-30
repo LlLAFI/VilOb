@@ -1,4 +1,381 @@
-# Village Observer V0.33D2
+# Village Observer V0.33D2A
+
+## War Finance + Preparation Stabilization
+
+기준 버전: **V0.33D2**  
+패치 버전: **V0.33D2A**  
+작성 기준일: **2026-09-30**
+
+---
+
+## D2A-1. 패치 목적
+
+V0.33D2 자연주행에서는 Strategic War Preparation 자체는 작동했다. 실제 Person 추가 동원, 식량 목표, Formation 집결, 준비도 계산은 정상적으로 발생했고 한 War Intent는 실제로 **준비도 100%**까지 도달했다.
+
+그러나 실제 전쟁은 0회였다. 로그상 반복적인 병목은 다음 두 가지였다.
+
+- `GOLD_RESERVE`: 준비 순간 Nation Treasury가 목표를 넘더라도 일반 경제 지출로 다시 감소했다.
+- `FORMATION_RALLY`: 전쟁 준비용으로 국경에 모은 Formation이 평시 배치 planner의 목표 재설정과 충돌했다.
+
+특히 한 사례에서는 84년대에 병력, 식량, Readiness, 전력비, 집결을 모두 충족하고 Gold도 8G를 넘겨 준비도 100%를 기록했지만, 불과 며칠 뒤 국고가 다시 8G 아래로 내려가 PREPARING으로 복귀했다.
+
+D2A의 목표는 **전쟁을 결심해 실제 준비를 완료한 국가가 그 준비를 보존하고 짧은 최종 결정기간을 거쳐 실제 선전포고까지 이어지도록 하는 것**이다.
+
+행정세율 자체는 이번 패치에서 변경하지 않는다. D2 로그상 핵심 문제는 세율보다 **전쟁 준비 Gold의 소유권·잠금·지출 보호가 없었던 것**으로 판단했기 때문이다.
+
+---
+
+## D2A-2. War Chest V1
+
+### 2.1 개념
+
+D2의 Gold 목표는 더 이상 단순히 `현재 Nation.gold >= 목표`인지 확인하는 순간 조건이 아니다.
+
+D2A는 각 Preparation에 실제 보존형 전쟁 준비금을 둔다.
+
+- `warChestGold33D2A`: 현재 잠긴 준비금
+- `warChestGoal33D2A`: 준비 목표
+- `warChestAllocated33D2A`: 해당 Preparation의 누적 적립량
+- `warChestReleased33D2A`: 해제 완료 여부
+
+War Chest는 새로운 Gold를 생성하지 않는다. 실제 `Nation.gold`에서 준비금 계정으로 이동한 Gold다.
+
+예:
+
+- 준비 전 Nation Treasury: 12G
+- War Chest 적립: 8G
+- 일반 시스템이 사용할 수 있는 가용 국고: 4G
+- 국가 전체 Treasury 자산: 12G
+
+즉 일반 시스템에서는 `v.gold`가 **가용 국고** 역할을 하고, War Chest는 별도 잠금 계정으로 보존된다.
+
+### 2.2 적립 규칙
+
+War Chest는 활성 PREPARING/READY Preparation에 대해 낮은 빈도로 적립한다.
+
+- 평가 주기: 약 **30 calendar-day**
+- 첫 전쟁은 소액 운영 국고를 약 2.5~4G 남김
+- 이미 다른 전쟁 중인 두 번째 전선 준비는 약 4~6G 운영 국고를 남김
+- 남는 Gold 중 일부를 War Chest로 이동
+- 한 번의 적립량은 과도하게 크지 않도록 제한
+- 목표액에 도달하면 추가 이동 중단
+
+국고가 충분히 크고 운영 floor를 남겨도 목표를 한 번에 채울 수 있으면 즉시 부족분을 전액 잠글 수 있다.
+
+### 2.3 준비금 보호
+
+War Chest Gold는 다음 일반 지출 경로에서 보이지 않는다.
+
+- 일반 건설
+- 토지정비
+- 시장 유동성 지원
+- 임금 bridge
+- 지역 공공지출
+- 기타 `Nation.gold`를 직접 사용하는 경제행동
+
+따라서 D2에서 발생했던
+
+`8.1G 도달 → READY → 일반 지출 → 7.0G → PREPARING`
+
+패턴을 구조적으로 차단한다.
+
+### 2.4 취소·종전 처리
+
+- War Intent 취소: War Chest 전액을 가용 국고로 반환
+- Recovery emergency: 잠금 해제, Preparation은 재정적으로 일시 정지
+- 실제 Survival Mode: War Intent를 취소하고 War Chest 해제
+- 선전포고: War Chest는 전쟁 중 잠금 상태 유지
+- 해당 전쟁 종료: War Chest 전액 반환
+
+현재 D2A에는 별도의 전쟁 유지비 소모가 아직 없다. War Chest는 향후 군수비·전쟁비용 시스템이 연결될 수 있도록 실제 전쟁 동안 보존한다.
+
+---
+
+## D2A-3. Gold 보존 회계
+
+War Chest는 내부 계정 이동이므로 Gold source/sink가 아니다.
+
+기존 V0.30 money-supply audit는 Nation Treasury, Settlement Market, Person wallet만 합산한다. D2A에서 Gold를 `v.gold` 밖으로 잠그면 그대로 둘 경우 가짜 Gold sink가 발생한다.
+
+이를 방지하기 위해 D2A는 다음을 수행한다.
+
+1. War Chest 적립 시 `v30Audit.lastSupply`를 같은 금액만큼 감소시켜 내부 이동을 sink로 기록하지 않는다.
+2. War Chest 반환 시 `lastSupply`를 같은 금액만큼 증가시켜 source로 기록하지 않는다.
+3. Snapshot에서 Treasury와 Money Supply를 계산할 때 War Chest를 다시 포함한다.
+4. 별도 필드 `treasurySpendable33D2A`로 실제 가용 국고를 노출한다.
+
+따라서 UI/Telemetry에서:
+
+- `treasuryGold30` = 가용 국고 + War Chest
+- `warChestGold33D2A` = 잠긴 준비금
+- `treasurySpendable33D2A` = 일반 시스템이 실제로 쓸 수 있는 Gold
+
+가 된다.
+
+---
+
+## D2A-4. Formation Rally Lock
+
+D2 자연주행에서는 War Preparation이 Formation을 집결시켜도 V0.32D 평시 Formation planner가 이후 다른 BORDER/RESOURCE/ADMIN 목표를 선택할 수 있었다.
+
+D2A는 준비용 Formation에 다음 상태를 부여한다.
+
+- `v33d2aPreparationLock`
+- `v33d2aPreparationIntentId`
+- `v33d2aStagingTileId`
+
+평시 `planFormations32D()`는 이 lock이 있는 Formation의 목표를 재설정하지 않는다.
+
+Lock 중에도 실제 이동시간은 기존 시스템을 그대로 사용한다.
+
+- 지형
+- 도로
+- Supply
+- 기존 military mobility
+
+을 그대로 따른다.
+
+Lock 해제 조건:
+
+- 선전포고
+- War Intent 취소
+- Preparation 종료
+- Recovery/Survival emergency
+- 전쟁 종료 정리
+
+실제 전쟁이 시작되면 D multi-front 전쟁 planner가 Formation을 다시 제어한다.
+
+---
+
+## D2A-5. READY Hysteresis
+
+READY 진입 조건은 D2와 동일하다. 즉 READY에 처음 들어가기 위한 기준은 완화하지 않는다.
+
+첫 전쟁 기본 목표의 예:
+
+- Field manpower 목표 충족
+- Food 45일
+- Readiness 62
+- Force ratio 0.90
+- War Chest 8G
+- Formation rally 완료
+- 작전 접근 가능
+- Survival/Recovery가 아닌 안전 상태
+
+다만 READY가 된 뒤 하루 단위의 작은 변동으로 즉시 PREPARING으로 돌아가는 현상을 막기 위해 **유지 조건**에만 작은 허용폭을 둔다.
+
+- Food: 목표 대비 **-5일**
+- Readiness: 목표 대비 **-4**
+- Force ratio: 목표 대비 **-0.05**
+
+다음 조건은 READY 유지에서도 완화하지 않는다.
+
+- Field manpower
+- War Chest
+- Formation rally
+- Operational route
+- Survival/Recovery safety
+
+즉 실제 전력붕괴·병력손실·작전경로 상실은 즉시 준비 실패로 간주한다.
+
+---
+
+## D2A-6. Final Commitment
+
+D1의 원래 선전포고는 90 calendar-day 전략 검토 + 확률 판정을 사용한다. D2에서 국가가 이미 Person을 추가 동원하고, 식량과 Gold를 모으고, Formation을 국경에 집결시킨 뒤에도 다시 낮은 확률을 오래 기다리는 것은 중복된 불확실성이었다.
+
+D2A는 READY 이후 **15~45 calendar-day Final Commitment**를 둔다.
+
+기간은 Intent ID에 기반한 deterministic 값으로 정해져 save/load나 재렌더링 때문에 임의로 바뀌지 않는다.
+
+흐름:
+
+`War Intent → PREPARING → READY → Final Commitment 15~45일 → 선전포고`
+
+Final Commitment 중 준비조건이 유지되지 않으면:
+
+- Commitment 취소
+- PREPARING 복귀
+- 다시 READY에 진입하면 새 Commitment 시작
+
+D1의 90일 확률 검토가 Final Commitment 기간을 우회해 조기 선전포고하지 못하도록 동기식 gate를 추가한다.
+
+반대로 Commitment 기간이 끝났고 D2A 준비조건이 유지되면 D1의 다음 90일 검토를 기다리지 않고 `AI_STRATEGIC_INTENT` 선전포고를 직접 요청한다.
+
+---
+
+## D2A-7. 행정세 정책
+
+V0.30A의 행정세율은 그대로 유지한다.
+
+현재 기준:
+
+- Settlement Market Gold 중 유동성 reserve 초과분
+- 30 calendar-day 단위 약 0.38%
+- 행정 등급에 따라 수금 효율 보정
+
+D2 자연주행에서는 일부 국가는 Market Gold가 매우 많았지만 국고가 낮았고, 다른 국가는 Market Gold 자체가 거의 없어 행정세를 더 높여도 세수 기반이 작았다.
+
+따라서 이번 버전에서는 세율을 일괄 인상하지 않는다.
+
+향후 D2A 자연주행에서도 War Chest를 전혀 채우지 못하는 국가가 지속적으로 많다면 그때 별도 경제 패치에서:
+
+- 행정세율
+- 시장 유동성 reserve
+- Treasury 유입 구조
+- 국제수지로 인한 국가별 Gold 고갈
+
+을 독립적으로 재검토한다.
+
+---
+
+## D2A-8. 신규 Devlog 이벤트
+
+- `WAR_CHEST_FUNDED33D2A`
+  - 실제 Treasury → War Chest 이동
+- `WAR_CHEST_RELEASED33D2A`
+  - 취소/Recovery/종전 등으로 준비금 반환
+- `WAR_PREPARATION_RALLY_LOCKED33D2A`
+  - Formation preparation lock 설정
+- `WAR_PREPARATION_RALLY_RELEASED33D2A`
+  - lock 해제
+- `WAR_FINAL_COMMITMENT_STARTED33D2A`
+  - READY 안정화 후 최종 결정기간 시작
+- `WAR_FINAL_COMMITMENT_CANCELLED33D2A`
+  - 준비조건 상실로 Commitment 취소
+- `WAR_PREPARATION_DECLARATION_BLOCKED33D2A`
+  - D1 확률 개전이 Final Commitment를 조기 우회하려는 경우 차단
+- `WAR_PREPARATION_DECLARED33D2A`
+  - D2A 안정화 경로를 거친 실제 선전포고
+
+기존 D2 이벤트는 그대로 유지한다.
+
+---
+
+## D2A-9. Snapshot / CSV 신규 필드
+
+World scope:
+
+- `warChestGold33D2A`
+- `warChestFundEvents33D2A`
+- `warChestAllocated33D2A`
+- `warChestReleased33D2A`
+- `preparationLockedFormations33D2A`
+- `activeFinalCommitments33D2A`
+- `warPreparationDeclarations33D2A`
+- `finalCommitmentBlocks33D2A`
+
+Nation scope:
+
+- `warChestGold33D2A`
+- `warChestGoal33D2A`
+- `treasurySpendable33D2A`
+- `warChestAllocated33D2A`
+- `preparationLockedFormations33D2A`
+- `readyStableDays33D2A`
+- `finalCommitmentDays33D2A`
+
+기존 `treasuryGold30`과 `moneySupply30`은 War Chest를 포함한 보존형 총액으로 보정된다.
+
+---
+
+## D2A-10. 저장 호환성
+
+새 저장 버전:
+
+- `0.33D2A`
+
+localStorage key:
+
+- `village-observer-v0-33d2a`
+
+fallback:
+
+- D2
+- D1C
+- D1B
+- D1A
+- D1
+- D
+- C3F
+- C3
+
+D2 Preparation 내부의 War Chest/Commitment 필드는 `v33d2.preparations[]`에 그대로 저장된다.
+
+World-level D2A 통계는 `v33d2a`에 저장한다.
+
+---
+
+## D2A-11. 구현 후 Smoke Test
+
+구현 후 확인한 항목:
+
+- 총 **85개** `<script>` 블록 `node --check`: syntax error **0**
+- Chromium `document.write(full HTML)` 부팅 성공
+- 문서 제목: `Village Observer V0.33D2A`
+- `VSim.V033D2A.revision = war-finance-preparation-stabilization`
+- 저장 버전: `0.33D2A`
+- 기술 총비용: **6315** 유지
+- 합성 War Chest 검증:
+  - 시작 Treasury 20G
+  - War Chest 8G 잠금
+  - 가용 국고 12G
+  - Treasury 총액 20G 유지
+  - 해제 후 Treasury 20G / War Chest 0G 복원
+- Save → `World.from()` → Save 후 `0.33D2A` 유지
+- War Chest 8G save/load 보존
+- Snapshot에서 `treasuryGold30 = spendable + War Chest` 확인
+- CSV validation: **833 columns / bad row 0**
+- 합성 Final Commitment 검증:
+  - READY 진입 후 deterministic **16일** window 생성 사례 확인
+  - window 종료 전 D1 확률 선전포고 시도 차단 확인
+
+자연주행에서 실제 준비→Final Commitment→선전포고 전체 체인은 다음 데이터에서 검증한다.
+
+---
+
+## D2A-12. 다음 자연주행 검증 체크리스트
+
+1. PREPARING 국가가 War Chest를 실제 Gold로 점진 적립하는가?
+2. War Chest가 증가할 때 가용 국고는 감소하고 총 통화량은 변하지 않는가?
+3. 일반 건설·시장지원·공공지출이 War Chest를 소비하지 않는가?
+4. Intent 취소 시 War Chest가 정확히 Treasury로 반환되는가?
+5. 실제 Survival Mode 진입 시 공격 준비가 취소되고 준비금이 해제되는가?
+6. Recovery 중에는 준비금이 경제 회복을 방해하지 않는가?
+7. 전쟁 준비 Formation이 평시 BORDER/RESOURCE 목표로 다시 빠져나가지 않는가?
+8. READY가 단기 식량/Readiness 변동 때문에 하루 단위로 출렁이지 않는가?
+9. READY 상태가 15~45일 유지되면 실제 선전포고로 연결되는가?
+10. Final Commitment 중 큰 준비조건 붕괴가 발생하면 개전이 취소되는가?
+11. 첫 전쟁 War Chest 8G와 두 번째 전쟁 추가 부담이 적절히 작동하는가?
+12. 행정세 0.38%를 유지한 상태에서도 최소 일부 국가가 준비금을 완성할 수 있는가?
+13. 전쟁 종료 후 War Chest가 반환되는가?
+14. D1C 누적 점령 기록이 실제 전쟁 발생 후 정상 누적되는가?
+15. D1C Recovery Escape, D1B 주거 3/5/8, 도로 0.62, 유지보수 0.5%, Tech 6315에 회귀가 없는가?
+
+---
+
+## D2A-13. 다음 단계
+
+D2A 자연주행에서 준비→개전 체인이 안정적으로 완성되면 V0.33D2 계열을 마감할 수 있다.
+
+그 다음 주요 단계는 Intelligence V1 계열이다.
+
+예정 범위:
+
+- 정보 노후화
+- 정찰에 따른 갱신
+- 병력 추정 오차
+- 위치정보 불확실성
+- 첩보/방첩의 기초
+- 정보 신뢰도에 따른 War Intent 판단 차이
+
+전투력·사상자·Engagement 자체의 추가 밸런스는 D2A 자연주행 결과를 본 뒤 별도로 판단한다.
+
+---
+
+# 이전 기준 문서
+
+아래는 V0.33D2와 D1C의 상세 구현 문서이며 D2A에서 변경되지 않은 기반 규칙을 확인하기 위해 유지한다.
 
 ## Strategic War Preparation V1
 
