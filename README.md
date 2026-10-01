@@ -1,9 +1,40 @@
-# Village Observer V0.33E5
-## Occupation Operations + Military Movement Stabilization
+# Village Observer V0.33E5F
+## Occupation Progress Fix
 
-기준 버전: **V0.33E4A — War Pipeline Observation + Culture Stabilization**  
-릴리스 성격: **Feature + Fix / 군사 작전 기반 완성**  
+기준 버전: **V0.33E5 — Occupation Operations + Military Movement Stabilization**  
+릴리스 성격: **Fix / E5 점령 작전 회귀 안정화**  
 작성일: 2026-10-01
+
+---
+
+## E5F 수정 요약
+
+E5 마지막 `Occupation Operations` 회귀에서 **패주한 수도 주둔군이 전투에서는 제외되면서도 점령 defender 판정에는 계속 남아 점령 진척을 영구적으로 0%에 묶는 문제**가 확인되었다. E5F는 이 불일치를 제거하고 회귀 fixture가 일반 생존·평시 군사 리뷰에 의해 붕괴하지 않도록 안정화한다.
+
+핵심 수정은 다음과 같다.
+
+- `CORE_GARRISON`은 기존 전투 로직과 동일하게 `v33cRoutedUntilCal`이 끝나기 전까지 점령 defender에서 제외한다.
+- 패주 중에는 `SECURING` 진척과 방어 화력 노출이 정상 진행되고, 주둔군이 회복하면 현재 진척을 유지한 채 Engagement가 우선된다.
+- 활성 점령작전 타일은 신규 일반 건설·토지 정비·주거 개축을 시작하지 못한다.
+- 이미 진행 중인 일반 건설·토지 정비·주거 개축은 점령작전 동안 일시정지하고 작전 종료 후 재개한다.
+- `e5-*` 회귀 시나리오에서는 legacy V0.32B 분기 평시 군사 리뷰를 건너뛰어 강제로 배치한 Person-backed Formation이 테스트 중 해산되지 않는다.
+- Occupation fixture에는 **테스트 전용** 식량 안정과 감시탑 1개를 추가한다. 자연주행 밸런스 값은 바꾸지 않으며, 방어 화력에 의한 실제 Person 소모와 25/50/75% milestone을 재현 가능하게 관찰하기 위한 조치다.
+
+### E5F 회귀 검증 결과
+
+Headless Chromium 기준 Occupation fixture에서 다음 흐름을 확인했다.
+
+```text
+주둔군/수비 병력과 선행 Engagement
+→ OCCUPATION_OPERATION_STARTED
+→ 25%
+→ 50%
+→ 방어 화력에 의한 실제 Person 부상
+→ 75%
+→ OCCUPATION_OPERATION_COMPLETED
+```
+
+대표 검증 주행에서는 requirement 약 37.9, resistance 19.5, defensive firepower 0.367 상태에서 약 46 calendar-day 후 점령이 완료되었고, 점령 중 신규 목표 타일 건설과 분기 강제해산은 발생하지 않았다. CSV schema는 기존 **972 columns / mismatch 0**을 유지한다.
 
 ---
 
@@ -1505,4 +1536,4 @@ E3 Concentration에서 문제가 재현되면 같은 자연주행 데이터를 �
 E4 이후에는 영토가 넘어갈 때 단순히 `ownerId`만 바뀌는 것이 아니라, **실제 주민·가문·문화가 존재하는 지역이 다른 정치체제에 편입되는 구조**를 만들 수 있다.
 
 ### Scenario import compatibility fix
-E5 regression scenario packages use the canonical Test Scenario V1 numeric `version: 1`. The E5 importer also normalizes the accidentally emitted legacy string `village-observer-scenario-v1`, so both corrected files and the earlier broken E5 scenario files can be imported.
+E5/E5F regression scenario packages use the canonical Test Scenario V1 numeric `version: 1`. The E5 importer normalizes the accidentally emitted legacy string `village-observer-scenario-v1`, and E5F delegates scenario import to that compatibility layer. 따라서 수정된 파일과 이전 E5 시나리오 파일을 모두 불러올 수 있다.
