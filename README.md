@@ -1,9 +1,28 @@
-# Village Observer V0.33E2
-## Intelligence Uncertainty & Reconnaissance V2
+# Village Observer V0.33E2F
+## Intel Renderer Ownership Hotfix
 
-기준 버전: **V0.33E1 — Era Pace + Formation Command V1**  
-릴리스 성격: **전략정보/정찰 계층 확장 패치**  
+기준 버전: **V0.33E2 — Intelligence Uncertainty & Reconnaissance V2**  
+릴리스 성격: **렌더러 소유권 회귀 핫픽스**  
 작성일: 2026-10-01
+
+---
+
+## 0. E2F 핫픽스 요약
+
+V0.33E2 자연주행 중 군사 탭에서 `V0.33E2 정보·정찰 V2 / INTEL V2` 패널이 정상 표시된 뒤, 다음 렌더 주기에 구형 `V0.33E 정보 상황 / INTEL V1` 패널로 다시 덮어써지는 UI 회귀가 확인되었다.
+
+원인은 V0.33E에서 남아 있던 `renderIntelE()`가 E2 이후에도 `renderVillageContent()`와 전체 `render()` 후처리에서 실행되던 것이다. E2 renderer가 먼저 V2 패널을 작성해도 구형 E writer가 같은 DOM 영역을 다시 쓰면서 V1이 최종 화면을 소유할 수 있었다.
+
+E2F에서는 다음과 같이 구조적으로 정리한다.
+
+- `NS.V033E2`가 활성화된 이후 구형 `renderIntelE()`는 즉시 no-op 처리
+- 구형 E `renderVillageContent()` 후처리에서 E2 활성 시 V1 writer 호출 금지
+- 구형 E 전체 `render()` 후처리에서도 E2 활성 시 V1 writer 호출 금지
+- 군사 탭 Intelligence panel의 최종 writer를 E2 `renderIntel()` 하나로 단일화
+- D2 STANDBY runtime 문구를 원본부터 `Intelligence E2 추정범위 사용`으로 수정
+- D2 active runtime 문구도 `World Truth → Intelligence E2 추정범위 → War Intent → 실제 준비`로 고정
+
+**Intelligence 추정범위, RECON, War Intent/D2 planning, Commander, 기술, 경제, 전투, 점령, War Exhaustion 규칙은 V0.33E2에서 변경하지 않는다.**
 
 ---
 
@@ -454,17 +473,18 @@ actual 계열은 debug/observer telemetry일 뿐 AI 입력이 아니다.
 세이브 버전:
 
 ```text
-0.33E2
+0.33E2F
 ```
 
 localStorage key:
 
 ```text
-village-observer-v0-33e2
+village-observer-v0-33e2f
 ```
 
 fallback:
 
+- 0.33E2
 - 0.33E1
 - 0.33EF
 - 0.33E
@@ -506,19 +526,20 @@ E2는 다음을 포함하지 않는다.
 - `node --check`: **89/89 통과**
 - syntax failure: **0**
 
-### Browser smoke
+### E2F renderer ownership regression 검사
 
-초기화 확인:
+정적/구조 검사에서 다음을 확인했다.
 
 ```text
-Title: Village Observer V0.33E2
-serialize().version: 0.33E2
-TECH_ORDER: 32
-techCostTotal: 4815
-Knowledge multiplier: 1.00
-D1 perfectInformation: false
-D2 perfectInformation: false
+legacy renderIntelE: E2 활성 시 즉시 return
+legacy E renderVillageContent: E2 활성 시 renderIntelE 호출 안 함
+legacy E render: E2 활성 시 renderIntelE 호출 안 함
+D2 STANDBY runtime text: Intelligence E2 추정범위 사용
+D2 active runtime text: Intelligence E2 추정범위 기반
+version badge/title: V0.33E2F
 ```
+
+E2의 시뮬레이션 로직은 변경하지 않았으므로 기존 E2 range/recon/D2 integration 검증 기준을 그대로 유지한다.
 
 ### Intelligence range
 
@@ -579,8 +600,8 @@ D2 goals.enemyEligible = 16
 ### Save / Load
 
 ```text
-save version = 0.33E2
-load version = 0.33E2
+save version = 0.33E2F
+load version = 0.33E2F
 v33e2 restored = true
 ```
 
@@ -589,7 +610,7 @@ v33e2 restored = true
 0.33E1 형태의 save payload에서:
 
 ```text
-loaded version = 0.33E2
+loaded version = 0.33E2F
 v33e1 retained = true
 v33e2 created = true
 tech count = 32
@@ -597,6 +618,10 @@ Knowledge multiplier = 1.00
 ```
 
 확인 완료.
+
+### E2 migration
+
+0.33E2 save payload는 E2F에서 직접 로드되며 `v33e2` 추정치·RECON 상태·개전 정보 snapshot을 그대로 유지한다. E2F는 UI ownership hotfix이므로 Intelligence state migration이나 재계산을 수행하지 않는다.
 
 ---
 
