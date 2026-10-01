@@ -1,4 +1,305 @@
-# Village Observer V0.33E4
+# Village Observer V0.33E4A
+## War Pipeline Observation + Culture Stabilization
+
+기준 버전: **V0.33E4 — Culture & Identity Foundation V1**  
+릴리스 성격: **Adjustment / 관찰 강화 / E3 회귀 시나리오**  
+작성일: 2026-10-01
+
+---
+
+## 0. E4A 패치 목적
+
+V0.33E4A는 전쟁 밸런스를 다시 조정하는 버전이 아니다. V0.33E3와 E4의 장기 자연주행에서 **War Intent와 전쟁 준비가 발생했지만 실제 선전포고가 나오지 않아 E3 Formation Concentration을 자연적으로 검증하지 못한 문제**를 관찰 가능성의 문제로 먼저 다룬다.
+
+E4A의 목표는 다음 두 가지다.
+
+1. devlog가 없어도 Snapshot/CSV 하나만으로 `후보 탐색 → War Intent → Preparation → Final Commitment → Declaration` 중 어디에서 전쟁이 멈췄는지 복원한다.
+2. 자연전쟁을 기다리지 않고 E3 Formation Concentration의 핵심 경로와 긴급방어 예외를 재현할 수 있는 **Test Scenario 2개**를 제공한다.
+
+이번 버전은 **전쟁 점수 68 기준, D2 준비 목표, D2A Final Commitment 기간, 선언 확률, E2 정보 오차, E3 집결 판단식, E4 문화 생산 마찰**을 변경하지 않는다.
+
+---
+
+## 1. War Pipeline Observer V1
+
+### 1.1 관찰 단계
+
+각 Nation의 현재 전쟁 파이프라인을 다음 단계로 요약한다.
+
+```text
+SCAN
+  ↓
+INTENT
+  ↓
+PREPARING
+  ↓
+READY
+  ↓
+FINAL_COMMITMENT
+  ↓
+WAR_ACTIVE
+```
+
+이 값은 별도의 AI 결정을 다시 계산하지 않는다. 기존 D1/D2/D2A가 이미 생성한 intent/preparation/war 상태를 읽어 Snapshot과 UI에 표시한다.
+
+### 1.2 이벤트 기반 누적 카운터
+
+`Telemetry.record()`에 저비용 observer를 연결해 기존 이벤트가 발생할 때만 카운터를 증가시킨다. 새로운 daily map scan이나 Person scan은 추가하지 않는다.
+
+관찰 대상 이벤트:
+
+- `WAR_INTENT_CREATED33D1`
+- `WAR_INTENT_CANCELLED33D1`
+- `WAR_PREPARATION_STARTED33D2`
+- `WAR_PREPARATION_READY33D2`
+- `WAR_PREPARATION_ENDED33D2`
+- `WAR_PREPARATION_MOBILIZATION33D2`
+- `WAR_PREPARATION_STOCKPILE33D2`
+- `WAR_CHEST_FUNDED33D2A`
+- `WAR_FINAL_COMMITMENT_STARTED33D2A`
+- `WAR_FINAL_COMMITMENT_CANCELLED33D2A`
+- `WAR_PREPARATION_DECLARATION_BLOCKED33D2A`
+- `WAR_DECLARED33D`
+
+E4 세이브를 E4A로 처음 불러오는 경우 현재 세션에 남아 있는 기존 telemetry entries를 한 번 backfill하고, 이후에는 실시간 이벤트만 집계한다. E4A 세이브에서는 `backfilled` 상태를 저장해 재로드 시 이중 집계를 방지한다.
+
+### 1.3 취소 사유 분류
+
+원문 `reason`은 그대로 보존하고 장기 CSV 집계를 위해 아래 범주로 추가 정규화한다.
+
+```text
+SCORE
+INTEL
+ROUTE
+FIELD_POWER
+READINESS
+FOOD
+FINANCE
+FORMATION
+DIPLOMACY
+TIMEOUT
+TARGET_INVALID
+OTHER
+```
+
+예를 들어 `ASSESSMENT_TOO_WEAK`은 `SCORE`, `READINESS_LOST`는 `READINESS`로 누적된다. 마지막 실패는 `stage / raw reason / normalized class`를 모두 저장한다.
+
+---
+
+## 2. 신규 Snapshot / CSV telemetry
+
+### 2.1 World scope
+
+- `warPipelineIntentCreated33E4A`
+- `warPipelineIntentCancelled33E4A`
+- `warPipelinePreparationStarted33E4A`
+- `warPipelinePreparationCancelled33E4A`
+- `warPipelineFinalStarted33E4A`
+- `warPipelineFinalCancelled33E4A`
+- `warPipelineDeclarationBlocks33E4A`
+- `warPipelineDeclarations33E4A`
+- `warPipelineObserver33E4A`
+
+### 2.2 Nation scope — 현재 상태
+
+- `warPipelineStage33E4A`
+- `warPipelineTarget33E4A`
+- `warPipelineIntentId33E4A`
+- `warPipelineIntentAgeDays33E4A`
+- `warPipelinePreparednessPct33E4A`
+- `warPipelineBlocker33E4A`
+- `warPipelineWarChest33E4A`
+- `warPipelineWarChestGoal33E4A`
+- `warPipelineReadyStableDays33E4A`
+- `warPipelineCommitmentRemainingDays33E4A`
+
+### 2.3 Nation scope — 누적 흐름
+
+- `warPipelineIntentCreated33E4A`
+- `warPipelineIntentCancelled33E4A`
+- `warPipelinePreparationStarted33E4A`
+- `warPipelinePreparationCancelled33E4A`
+- `warPipelineFinalStarted33E4A`
+- `warPipelineFinalCancelled33E4A`
+- `warPipelineDeclarationBlocks33E4A`
+- `warPipelineDeclarations33E4A`
+- `warPipelineLastFailureStage33E4A`
+- `warPipelineLastFailureReason33E4A`
+- `warPipelineLastFailureClass33E4A`
+- `warPipelineIntentCancelReasons33E4A`
+- `warPipelineFinalCancelReasons33E4A`
+
+사유별 누적은 예를 들어 `SCORE:3|ROUTE:1`처럼 compact string으로 저장한다. 따라서 devlog를 보관하지 못한 100년급 자연주행에서도 전쟁 파이프라인 병목을 역추적할 수 있다.
+
+---
+
+## 3. Culture Stabilization Observation
+
+E4 문화 규칙은 수정하지 않는다.
+
+- 6개 기초문화 유지
+- Person `cultureMix` 최대 3성분 유지
+- 부모 평균 문화 상속 유지
+- 수도 문화 프로필 기준 최대 -8% 생산 마찰 유지
+- 문화별 1~5글자 이름풀 유지
+- 자동 융합문화 생성 OFF 유지
+
+대신 혼합문화가 얼마나 강하게 섞여 있는지를 Snapshot에서 읽기 위해 Nation telemetry를 추가한다.
+
+- `meanSecondaryCultureShare33E4A`: 혼합 Person에게서 주류문화 이외 성분이 차지하는 평균 비율
+- `maxForeignCultureShare33E4A`: 수도 주류문화가 아닌 단일 문화 성분의 관측 최대치
+- `capitalVsNationCultureDistance33E4A`: 수도 문화 프로필과 전국 문화 프로필 사이의 total-variation distance
+
+예를 들어 `mixedCultureShare`가 높아도 `meanSecondaryCultureShare`가 낮다면, 많은 Person이 소량의 타문화 흔적만 보존하고 있다는 뜻으로 해석할 수 있다.
+
+---
+
+## 4. Military UI
+
+기존 E3 통합 군사 UI의 소유권과 순서는 그대로 유지한다.
+
+```text
+E4A 전쟁 파이프라인 관찰
+D2 전략 전쟁 준비
+E2 정보·정찰 V2
+D 다중전선 지휘 · Formation Command
+V0.33 전쟁 상태
+```
+
+E4A 카드는 선택 Nation의 현재 pipeline stage, target, Intent/Preparation/Final 누적 시작·취소 수, 실제 선언 수, 마지막 실패 단계와 원문 사유를 표시한다.
+
+C3 standalone operation card와 legacy Formation/Commander card는 다시 활성화하지 않는다.
+
+---
+
+## 5. Regression Scenario 1 — Formation Concentration Rendezvous
+
+파일:
+
+```text
+village-observer-v033E4A-scenario-e4a-concentration-rendezvous.json
+```
+
+목적은 E3의 실제 Person-backed Formation 집결 경로를 자연전쟁 없이 재현하는 것이다.
+
+fixture는 두 공격 야전 Formation을 인접 타일에 배치하고, 각각 단독 공격은 불리하지만 합산하면 E3 concentration 판단을 통과하도록 전력 조건을 만든다. 방어 Formation은 실제 Person을 사용한다. synthetic soldier는 생성하지 않는다.
+
+기대 흐름:
+
+```text
+FORMATION_CONCENTRATION_STARTED33E3
+→ FORMATION_RENDEZVOUS_REACHED33E3
+→ FORMATION_JOINT_ADVANCE33E3
+→ FORMATION_JOINT_ENGAGEMENT33E3
+```
+
+성공 기준:
+
+- `concentrationStarts33E3 >= 1`
+- `rendezvousReached33E3 >= 1`
+- `jointAdvances33E3 >= 1`
+- `jointEngagements33E3 >= 1`
+- 두 공격 Formation의 `v33dEngagementId`가 동일
+
+회귀 fixture는 일반 시뮬레이션의 정착지 포기 로직 때문에 테스트용 전선 corridor가 사라지지 않도록 **해당 Test Scenario가 활성화된 동안에만** corridor 소유권과 방어 Formation의 대기 위치를 유지한다. 이 보조 장치는 E3 전술 판단식이나 일반 자연주행에는 적용되지 않는다.
+
+내부 회귀 테스트에서는 `start 1 → rendezvous 1 → joint advance 3 → joint engagement 1`을 확인했다.
+
+---
+
+## 6. Regression Scenario 2 — Emergency Defense Bypass
+
+파일:
+
+```text
+village-observer-v033E4A-scenario-e4a-concentration-emergency.json
+```
+
+먼저 정상적인 concentration group을 생성한 뒤 적 Formation을 공격국 수도 인근에 배치한다. E3의 emergency rule은 수도/core 위협 시 집결 대기를 중단하고 기존 긴급방어 지휘로 복귀해야 한다.
+
+기대 이벤트:
+
+```text
+FORMATION_CONCENTRATION_STARTED33E3
+→ FORMATION_CONCENTRATION_CANCELLED33E3
+   reason = EMERGENCY_DEFENSE
+```
+
+성공 기준:
+
+- `concentrationEmergencyBypasses33E3 >= 1`
+- `concentrationCancels33E3 >= 1`
+- 취소 reason = `EMERGENCY_DEFENSE`
+
+내부 회귀 테스트에서는 `emergencyBypasses 1 / cancellations 1`을 확인했다.
+
+---
+
+## 7. 시나리오 사용법
+
+게임의 기존 **테스트 시나리오 V1** 패널에서 JSON 파일을 불러온다. 두 시나리오는 import 직후 E4A fixture가 자동 적용된다.
+
+1. 원하는 시나리오 JSON을 `시나리오 파일`로 불러온다.
+2. 상단 TEST 배지와 시나리오 제목을 확인한다.
+3. 일시정지 상태에서 `1일 진행`을 반복하거나 낮은 배속으로 실행한다.
+4. 군사 탭의 Formation 상태와 Snapshot/Devlog의 E3 카운터를 확인한다.
+
+시나리오용 fixture는 Test Scenario ID가 `e4a-...`인 경우에만 활성화된다. 일반 새 세계, 일반 세이브, 자연주행에는 적용되지 않는다.
+
+---
+
+## 8. Save / migration / compatibility
+
+- E4A Save version: `0.33E4A`
+- localStorage key: `village-observer-v0-33e4a`
+- E4/E3/E2F/E2/E1 fallback load 유지
+- E4 세이브는 E4A로 migration 시 Culture data를 그대로 보존하고 `v33e4a` observer state만 추가한다.
+- E4A `v33e4a`에는 world counter, Nation counter, backfill flag, 활성 fixture metadata가 저장된다.
+- E3 `v33e3` Concentration state와 E4 `cultureMix`는 그대로 serialize된다.
+
+전쟁 및 문화 밸런스 로직을 변경하지 않았기 때문에 E4A는 **관찰/검증 Adjustment**로 취급한다.
+
+---
+
+## 9. 구현 회귀 검증
+
+최종 배포본 기준 자동 검증:
+
+- inline `<script>`: **92개 / 92개 Node syntax pass**
+- Chromium `page.set_content` fresh-world smoke: page error **0**
+- Fresh world 12 simulation-step 진행: 정상
+- Save serialize version: **0.33E4A**
+- E4-like payload → E4A migration: 성공
+- 문화 초기 migration: `LUEN / TER / KAREN / SERIA / MAELA / NOREA` 유지
+- Culture registry: **6개**
+- Name registry: **가문 103 / 개인명 241**
+- Snapshot synthetic pipeline regression: `SCORE:1`, `READINESS:1` reason counter 정상
+- CSV validation: **954 columns / schema mismatch 0**
+- 군사 UI: E4A observer + D2 + E2 + E3 통합 D + War 순서 확인
+- legacy C3 standalone card: 0
+- legacy Formation card: 0
+- Rendezvous scenario import/runtime: page error 0, joint Engagement 성공
+- Emergency scenario import/runtime: page error 0, `EMERGENCY_DEFENSE` bypass 성공
+
+---
+
+## 10. E4A 이후 판단 기준
+
+다음 자연주행에서 실제 선언이 발생하면 E2 정보 오차, D2/D2A 준비, E3 concentration까지 통합 검증한다.
+
+전쟁이 다시 0이어도 이번에는 아래 수치로 원인을 구분할 수 있다.
+
+- 후보 score 자체가 68 아래였는가
+- Intent가 생성되었으나 취소되었는가
+- Preparation이 시작되었으나 종료되었는가
+- Final Commitment가 시작되었으나 readiness/food/finance/formation 등의 이유로 취소되었는가
+- Final Commitment는 유지됐지만 Declaration gate에서 반복 차단되었는가
+
+Final Commitment에 구조적인 과잉 병목이 확인될 때만 **V0.33E4B Balance**를 검토한다. 그렇지 않다면 다음 기능 버전은 **V0.33F — War Goal & Peace Settlement V2**로 진행한다.
+
+---
+
+# Appendix A — V0.33E4 Baseline
 ## Culture & Identity Foundation V1
 
 기준 버전: **V0.33E3 — Formation Concentration + Military UI Consolidation**  
