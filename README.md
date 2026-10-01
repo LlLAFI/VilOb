@@ -1,5 +1,294 @@
-# Village Observer V0.33E2F
-## Intel Renderer Ownership Hotfix
+# Village Observer V0.33E3
+## Formation Concentration + Military UI Consolidation
+
+기준 버전: **V0.33E2F — Intel Renderer Ownership Hotfix**  
+릴리스 성격: **작전 집중 V1 + 군사 UI 구조 통합**  
+작성일: 2026-10-01
+
+---
+
+## 0. E3 패치 요약
+
+V0.33E2F 자연주행에서 복수 야전 Formation이 같은 전쟁·같은 방향으로 움직이면서도 서로의 도착 시점을 고려하지 않아, **4명 선행대가 먼저 패퇴하고 약 11일 뒤 3명 후속대가 같은 적에게 다시 단독 투입되는 축차투입**이 확인되었다. 이후 두 Formation이 실제로 같은 타일에 도달했을 때 Engagement 전력은 정상적으로 합산되었으므로, 문제는 전투 집계가 아니라 **전투 이전의 작전적 집중 판단 부재**였다.
+
+V0.33E3은 이를 다음처럼 해결한다.
+
+- 같은 전선의 OFFENSIVE Formation 2개가 가까이 있고, 각자 싸우면 위험하지만 합산 추정전력은 충분할 때 `CONCENTRATE / RENDEZVOUS`를 시작한다.
+- 선행 Formation은 집결지에서 기다리고 후속 Formation은 해당 타일로 이동한다.
+- 두 Formation이 같은 타일에 모이면 다음 이동 가능 시각을 동기화하고 `JOINT_ADVANCE`로 동일 목표를 향해 진입한다.
+- Formation 객체는 영구 합병하지 않는다. Person·Commander·사기·전투 이력·Formation ID는 그대로 유지한다.
+- 수도 점령/수도 근접 위협 같은 긴급 상황에서는 집결 대기를 취소하고 기존 방어·차단 판단을 우선한다.
+- 군사 탭을 **D2 전략 전쟁 준비 → E2 정보·정찰 → D 다중전선 지휘/Formation Command → V0.33 전쟁 상태** 순서로 고정한다.
+- 기존 주둔대/야전대 목록과 별도 Formation Command를 `D 다중전선 지휘`에 통합한다.
+- C3 작전 판단의 별도 카드만 숨기고 C3의 수도 공격 판단, 우회, 후퇴, Deep Recovery, 전략도로, devlog 로직은 그대로 유지한다.
+- 실제 Commander가 있는 야전대 이름 옆에 작은 `★`를 표시한다. 현재는 존재 여부를 뜻하는 1개 별만 사용하지만 UI 구조는 최대 5개까지 확장 가능하다.
+
+이번 패치는 **Intelligence E2 수치, War Intent 개전 문턱, Coalition exhaustion, War Goal/종전 규칙, 기술 32개, Knowledge ×1.00**을 변경하지 않는다.
+
+---
+
+## 1. Formation Concentration V1
+
+### 1.1 적용 대상
+
+집결은 다음 조건을 모두 만족하는 실제 Person-backed 야전 Formation 두 개에 대해서만 검토한다.
+
+- 같은 국가
+- 같은 활성 전쟁에 배정됨
+- `OFFENSIVE` 임무
+- 두 Formation 사이 거리 **2타일 이내**
+- 실제 field cohort가 존재하고 병력이 1명 이상
+- `RETREATING / REGROUPING / POST_BATTLE_RECOVERY / POSTWAR_WITHDRAWAL / DORMANT`가 아님
+- 현재 Engagement 중이 아님
+- Deep Recovery 중이 아님
+- 이미 다른 E3 concentration group에 속하지 않음
+
+### 1.2 집중 판정
+
+각 Formation의 현재 Person 수, 훈련, 장비, 보급, 사기, Commander 전투 보정을 이용해 자기 전력을 계산하고, 적 전력은 기존 E2 Intelligence 경계를 통과한 D1/D2 proxy를 사용한다.
+
+집결은 다음 의미의 조건을 만족할 때 시작한다.
+
+1. 가장 강한 단일 Formation도 적 추정전력 대비 충분히 우세하지 않다.
+2. 두 Formation의 합산전력은 적 추정전력 대비 충분히 우세하다.
+3. 합산으로 얻는 전력 이득이 단순한 미세 증가가 아니라 실질적인 집중 효과가 있다.
+
+현재 V1 수치는 다음과 같다.
+
+- 단독 최강 전력 `< 적 × 1.12`
+- 합산 전력 `>= 적 × 1.12`
+- 합산 전력 `>= 단독 최강 × 1.30`
+- Formation 간 거리 `<= 2`
+
+E2F 회귀 기준값 `4.66 + 4.47 vs 5.96, 거리 1`은 **집결 대상**, `7 + 3 vs 5`처럼 이미 한 Formation이 단독으로 충분히 우세한 경우는 **집결 비대상**이다.
+
+### 1.3 GATHER 단계
+
+집결이 시작되면 더 강한 Formation을 선행대 `LEAD`, 다른 Formation을 후속대 `JOIN`으로 둔다.
+
+- LEAD: `CONCENTRATE`
+- JOIN: `RENDEZVOUS`
+- rendezvous tile: LEAD의 현재 실제 타일
+- joint target: 집결 직전 D의 기존 작전 목표 선택 결과를 보존하여 설정
+- group timeout: 최대 180 calendar-day
+
+LEAD와 JOIN은 별개의 Formation 객체로 계속 존재한다.
+
+### 1.4 ADVANCE 단계
+
+두 Formation이 같은 타일에 도달하면:
+
+- `FORMATION_RENDEZVOUS_REACHED33E3` 기록
+- 양 Formation의 다음 이동 가능 시각을 더 늦은 쪽으로 동기화
+- 양측 모두 `JOINT_ADVANCE`
+- 동일한 joint target을 향해 이동
+
+같은 적 타일에서 기존 D Engagement가 생성되면 전투 시스템은 원래부터 구현되어 있던 방식대로 두 Formation의 실전 전력을 한 Side에 합산한다. E3은 새로운 가상 병력이나 별도 전투 합산 공식을 만들지 않는다.
+
+### 1.5 긴급 우회
+
+다음 경우 concentration waiting을 취소하고 기존 D/C3 작전판단에 제어를 돌려준다.
+
+- 자국 core가 적에게 점령됨
+- Intelligence가 파악한 적 야전 Formation이 수도 2타일 이내에 있음
+
+이때 `concentrationEmergencyBypasses33E3`를 증가시키고 concentration group을 해제한다.
+
+---
+
+## 2. Permanent Merge를 하지 않는 이유
+
+V0.33E3은 `Formation A + Formation B = Formation C` 식의 조직적 영구 합병을 구현하지 않는다.
+
+영구 합병을 하면 Commander 우선권, Formation 역사, 전투사기, 부상/사망, multi-front 재분할, 전후 복귀를 동시에 재정의해야 한다. 현재 단계에서는 **조직은 둘, 작전은 하나**가 적절하다.
+
+따라서 E3의 집중은 일시적 작전 coordination이며, Person 실체 유지 원칙도 그대로 보존한다.
+
+---
+
+## 3. Commander 별 UI
+
+실제 Commander가 유효한 야전 Formation에는 이름 옆에 작은 별을 표시한다.
+
+예시:
+
+```text
+★ 에브 제1야전대 · 4명
+지휘관 칼 로안 · Command 76
+```
+
+현재 `★`는 **Commander 존재 여부**만 뜻하며 Command Score를 별 개수로 환산하지 않는다.
+
+DOM은 다음 확장을 염두에 둔다.
+
+```text
+data-stars="1"
+data-max-stars="5"
+```
+
+후속 Commander 능력/계급 시스템이 생기면 1~5개 별을 같은 UI에서 표현할 수 있다.
+
+---
+
+## 4. 군사 탭 Renderer Consolidation
+
+V0.33E2F까지 군사 탭은 여러 버전 wrapper가 각자 panel을 append/prepend하면서 순서가 렌더 경로에 따라 바뀌는 문제가 남아 있었다.
+
+E3에서는 최신 renderer가 패널 **내용뿐 아니라 배치 순서까지** 최종 소유한다.
+
+고정 순서:
+
+1. `D2 전략 전쟁 준비`
+2. `E2 정보·정찰 V2`
+3. `D 다중전선 지휘` + Formation Command 통합
+4. `V0.33 전쟁 상태`
+5. 이후 기존 군사시설/기타 UI
+
+전체 `render()`와 `renderVillageContent()` 어느 쪽으로 갱신되더라도 같은 순서를 다시 보장한다.
+
+### 제거되는 중복 시각 패널
+
+- 구형 V0.32D standalone Formation 목록
+- V0.33E1 standalone Formation Command
+- 구형 D standalone multi-front panel
+- C3 standalone 작전 판단 카드
+- 구형 V0.32B cohort/garrison 중복 목록
+
+C3와 이전 군사 시스템의 **simulation / decision / devlog 코드는 제거하지 않는다.** UI 중복만 제거한다.
+
+---
+
+## 5. 통합 D 다중전선 지휘 패널
+
+한 패널에서 다음을 함께 본다.
+
+- 주둔대(Garrison)
+- 모든 활성 Field Formation
+- 실제 Person 병력
+- Commander 이름/Command Score
+- Commander `★`
+- 현재 좌표/타일 ID
+- 목표 좌표/타일 ID
+- 배정된 전쟁/전선
+- mission
+- 보급·사기·훈련·장비 기반 상태
+- E3 concentration group
+- `CONCENTRATE / RENDEZVOUS / JOINT_ADVANCE`
+
+따라서 사용자는 별도 Formation Command 카드로 내려갈 필요 없이 다중전선 패널 하나에서 현재 군사 배치를 읽을 수 있다.
+
+---
+
+## 6. Intelligence 경계
+
+E3 concentration은 E2의 Fog-of-War를 우회하지 않는다.
+
+적 Formation을 평가할 때 가능한 경우 E2 `v33e2IntelProxy / v33e2EstimatedPower`를 사용한다. 즉 실제 World Truth 병력을 concentration trigger가 몰래 직접 읽어 작전 결정을 내리는 구조를 추가하지 않는다.
+
+Intelligence E2 tuning 자체는 이번 패치에서 변경하지 않는다.
+
+---
+
+## 7. Telemetry / Devlog
+
+신규 이벤트:
+
+- `FORMATION_CONCENTRATION_STARTED33E3`
+- `FORMATION_RENDEZVOUS_REACHED33E3`
+- `FORMATION_JOINT_ADVANCE33E3`
+- `FORMATION_JOINT_ENGAGEMENT33E3`
+- `FORMATION_CONCENTRATION_CANCELLED33E3`
+
+Global Snapshot/CSV:
+
+- `activeConcentrationGroups33E3`
+- `concentrationStarts33E3`
+- `rendezvousReached33E3`
+- `jointAdvances33E3`
+- `jointEngagements33E3`
+- `concentrationCancels33E3`
+- `piecemealPrevented33E3`
+- `concentrationEmergencyBypasses33E3`
+- `militaryUIRenderer33E3`
+
+Nation Snapshot/CSV:
+
+- `activeConcentrationGroups33E3`
+- `concentratingFormations33E3`
+
+다음 자연주행에서는 `concentrationStarts → rendezvousReached → jointEngagements` 전환율과 취소 이유를 우선 분석한다.
+
+---
+
+## 8. Save / Migration
+
+- save version: `0.33E3`
+- localStorage key: `village-observer-v0-33e3`
+- E2F / E2 / E1 / EF / E save fallback 유지
+- E2F save에 `v33e3`가 없어도 로드 후 E3 기본 state를 생성
+- Formation에 불완전 concentration state가 들어 있으면 attach 시 정리
+
+기술 32개, 기존 E1 Knowledge 생산 배율 `×1.00`, E2 Intelligence state는 그대로 유지한다.
+
+---
+
+## 9. 검증
+
+배포 전 다음 검증을 수행했다.
+
+- inline script **90/90 Node syntax check 통과**
+- headless Chromium runtime error **0**
+- 반복 `renderVillageContent()` / 전체 `render()` 이후에도 군사 패널 순서 고정 확인
+- 최종 DOM 순서:
+  - `v33d2-panel`
+  - `v33e2-intel-panel`
+  - `v33e3-command-panel`
+  - `v33-war`
+- standalone C3 / old Formation / old Commander panel **0개** 확인
+- E2F 회귀 판정 `4.66 + 4.47 vs 5.96, distance=1` → concentration **true**
+- 이미 단독 우세한 `7 + 3 vs 5` → concentration **false**
+- GATHER target override → `RENDEZVOUS` 확인
+- Snapshot CSV **899 columns / schema mismatch 0**
+- E2F payload → E3 load/serialize migration 확인
+- fresh-world 장기 smoke test에서 simulation 진행 및 E3 state 유지 확인
+
+자연주행에서 실제 concentration 빈도와 작전 효과는 다음 데이터 검증 대상으로 남긴다.
+
+---
+
+## 10. 자연주행 검증 포인트
+
+1. **축차투입 감소**: 10~20일 이내 합류 가능한 Formation들이 따로 공격하는 사례가 줄었는가.
+2. **집결 성공률**: `STARTED → RENDEZVOUS_REACHED → JOINT_ENGAGEMENT`가 실제로 연결되는가.
+3. **대기 교착**: 서로 기다리기만 하거나 180일 timeout이 반복되지 않는가.
+4. **긴급방어 우회**: 수도 위험 상황에서 concentration이 방어를 방해하지 않는가.
+5. **Fog-of-War 보존**: concentration 판단이 실제 적 병력을 직접 읽지 않는가.
+6. **Commander UI**: Commander가 있는 Formation에만 별이 정확히 나타나는가.
+7. **군사 UI 순서**: pause/resume, 전체 render, 부분 render 후에도 D2 → E2 → D → War 순서를 유지하는가.
+
+---
+
+## 11. 의도적으로 미룬 범위
+
+E3에서는 다음을 구현하지 않는다.
+
+- Formation 영구 합병/분할 재편성
+- 군단/사단/상급 지휘부
+- Commander 2~5성 실제 능력 체계
+- Intelligence E2 재밸런싱
+- Coalition exhaustion 재설계
+- War Goal / 영토 할양 / 배상 / 종전협상
+
+이 항목들은 E3 자연주행 결과를 본 뒤 별도 버전에서 다룬다.
+
+---
+
+# 이전 버전 기술 기록
+
+아래에는 E3의 기반이 된 V0.33E2F/E2 기술 기록을 그대로 보존한다.
+
+## Village Observer V0.33E2F
+### Intel Renderer Ownership Hotfix
 
 기준 버전: **V0.33E2 — Intelligence Uncertainty & Reconnaissance V2**  
 릴리스 성격: **렌더러 소유권 회귀 핫픽스**  
