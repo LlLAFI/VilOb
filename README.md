@@ -1,3 +1,470 @@
+# Village Observer V0.33E5
+## Occupation Operations + Military Movement Stabilization
+
+기준 버전: **V0.33E4A — War Pipeline Observation + Culture Stabilization**  
+릴리스 성격: **Feature + Fix / 군사 작전 기반 완성**  
+작성일: 2026-10-01
+
+---
+
+## 0. E5 패치 목적
+
+V0.33E5는 V0.33E3~E4A 회귀 테스트에서 발견된 Formation 실행 단계의 잔여 결함을 정리하면서, V0.33F의 전쟁 목표·강화협상·영구 영토 이전에 앞서 **"적 타일 진입"과 "실제 점령"을 분리**한다.
+
+핵심 흐름은 다음과 같다.
+
+```text
+군사 이동
+  → 적 접촉
+  → 실제 Person 전투
+  → 방어군 제거/철수
+  → 점령 작전(SECURING)
+  → 점령 완료
+  → 기존 temporary occupation(v33OccupierId)
+```
+
+E5에서는 전쟁 선포 기준, D2/D2A 준비 문턱, E2 정보 오차, 전쟁피로·평화 확률, 문화 -8% 마찰을 변경하지 않는다. 즉 이번 버전의 목적은 **전쟁이 일어난 뒤의 작전 실행을 더 일관되고 관찰 가능하게 만드는 것**이다.
+
+---
+
+## 1. Formation Concentration 마감 수정
+
+### 1.1 첫 라운드 축차투입 제거
+
+E4A `Formation Concentration Rendezvous` 회귀에서 두 Formation이 같은 날 같은 적 타일로 이동했음에도 첫 Formation의 이동 처리 중 Engagement가 즉시 생성되어 Round 1을 혼자 치르는 문제가 확인되었다.
+
+E5에서는 `v33e3Concentration.phase === ADVANCE`인 Formation이 적군과 접촉할 경우 이동 함수 안에서 즉시 Engagement를 열지 않는다. 같은 날 예정된 동행 Formation 이동을 모두 처리한 뒤 D의 post-movement contact sweep이 Engagement를 생성한다.
+
+따라서 정상적인 joint advance는:
+
+```text
+Formation A 이동 commit
+Formation B 이동 commit
+→ 양쪽 위치 확정
+→ Contact Sweep
+→ Engagement 생성
+→ Round 1에 A+B 모두 참가
+```
+
+순서가 된다.
+
+### 1.2 Concentration 성공/실패 구분
+
+E4A에서는 실제 Joint Engagement에 성공한 뒤에도 Formation 상태가 바뀌면서 `FORMATION_STATE` cancellation으로 집계될 수 있었다.
+
+E5에서는 성공한 그룹을 `FORMATION_CONCENTRATION_COMPLETED33E5`로 종료한다.
+
+- `starts`: 집결 작전 시작
+- `completed`: 실제 합동 교전 달성
+- `cancelled`: timeout / emergency / formation loss 등 진짜 실패
+- `emergencyBypasses`: 수도 긴급방어 때문에 집결을 포기한 경우
+
+### 1.3 piecemeal telemetry 의미 수정
+
+`piecemealPrevented`는 집결을 시작했다는 이유로 증가하지 않는다. **첫 Engagement Round에 같은 Concentration 그룹의 Formation 2개 이상이 실제로 동시에 존재할 때만** 증가한다.
+
+반대로 첫 Round에 하나만 들어오면 E5의 `piecemealFirstRounds33E5`가 증가한다.
+
+---
+
+## 2. Emergency Defense 실행 보강
+
+E4A Emergency Defense 회귀에서는 `EMERGENCY_DEFENSE` 감지와 Concentration 취소 자체는 정상 작동했지만, `HOLD_CORE` Formation이 중간의 미점유 타일을 경로로 사용하지 못해 수도 방향으로 실제 이동하지 못했다.
+
+E5에서는 긴급방어 임무의 target이 현재 위치와 다른데도 경로가 없을 경우 `EMERGENCY_DEFENSE_UNREACHABLE33E5`를 기록한다. 동일 Formation에 대해 15일 이내 중복 경고는 억제한다.
+
+정상 경로가 존재하면 `HOLD_CORE / INTERCEPT / SCREEN` Formation은 실제 이동 로직을 그대로 사용해 방어 방향으로 이동한다.
+
+---
+
+## 3. 미점유 중립 육상 군사통행
+
+### 3.1 통행 규칙
+
+군사 육상 경로는 다음과 같이 정리한다.
+
+| 타일 상태 | 통행 | 비고 |
+|---|---|---|
+| 자국 | 허용 | 정상 군사 이동 |
+| 같은 전쟁 동일 진영 | 허용 | 기존 coalition access |
+| 적국 | 허용 | 침공 대상 |
+| **미점유 passable 육상** | **허용** | 소유권·정착지 변화 없음 |
+| 비참전 제3국 | 차단 | 군사통행권 없는 상태 유지 |
+| 물 | 기존 규칙 | E5에서 해상 작전 규칙을 확장하지 않음 |
+
+이 규칙은 D 전쟁 경로뿐 아니라 D1A operational reachability, C1 retreat/deep-recovery fallback, 전후 return corridor에도 반영한다.
+
+### 3.2 중립지 작전비용
+
+미점유 육상으로 진입하는 이동에는:
+
+```text
+neutralFactor = 1.15
+```
+
+를 적용한다.
+
+기존 이동식의 지형·도로·보급·상태 배율과 곱해지며, pathfinder도 같은 이동일수 비용을 사용한다. 따라서 중립지는 통과할 수 있지만 자국/우군의 정상적인 관리·도로·보급권역보다 약간 불리하다.
+
+중립 타일을 통과해도 `ownerId=null`은 유지되며 다음 동작은 발생하지 않는다.
+
+- 영토 획득
+- Settlement 생성
+- temporary occupation 생성
+
+### 3.3 전후 귀환
+
+전쟁 종료 시 Formation이 적국뿐 아니라 **미점유 중립지에 있어도** `POSTWAR_WITHDRAWAL_D` return state를 생성한다. 귀환 경로는 자국·전쟁 참가국의 기존 허용 영토와 미점유 육지를 사용할 수 있다.
+
+---
+
+## 4. Occupation Operations V1
+
+### 4.1 즉시 점령 폐지
+
+E4A까지 적 타일에 유효한 적군이 없으면 Formation 이동 당일 `occupyD()`가 호출되어 `v33OccupierId`가 즉시 설정되었다.
+
+E5에서는 적 타일 진입과 temporary occupation 사이에 `v33OccupationOperation`을 둔다.
+
+점령 작전 중에는:
+
+```text
+ownerId            = 원 소유국 유지
+v33OccupierId       = null
+v33OccupationOperation.status = SECURING / CONTESTED
+```
+
+이며, 요구량을 모두 확보한 날에만 기존 temporary occupation으로 전환한다.
+
+### 4.2 방어군이 항상 먼저
+
+적 타일의 유효한 야전 Formation 또는 수도 주둔군이 존재하면 기존 Engagement가 우선한다.
+
+- 적군 존재 → Engagement
+- 공격측 승리/적군 이탈 → 점령 작전 시작 또는 재개
+- 구원군 도착 → `CONTESTED`, 진척 정지
+- 공격군이 사라짐 → `ATTACKER_LEFT`로 작전 취소, V1에서는 진척 초기화
+
+즉 가상의 수비 병력을 만들지 않고 모든 군사전투는 기존 실제 Person 전투 체계를 사용한다.
+
+---
+
+## 5. 타일 방어 능력 3축 분리
+
+E5부터 방어 개념을 다음 세 축으로 명시적으로 분리한다.
+
+### 5.1 전투 방어력 (Combat Defense)
+
+기존 `defenseFactor33()`을 유지한다. 실제 주둔군/야전군이 해당 타일에서 싸울 때 지형·군사시설·수도 여부에 따라 전투력이 보정된다.
+
+### 5.2 점령 저항도 (Occupation Resistance)
+
+적군을 직접 죽이지 않고 **지역을 완전히 제압하는 데 필요한 시간**을 늘린다.
+
+현재 E5 V1 값:
+
+- 숲: +1.5
+- 암석: +2.5
+- 산악: +4.0
+- 방책(palisade): +4.0 / 개
+- `FORTIFICATION` 기술 보유 시 방책 저항 ×1.25
+- 수도: +3.0 저항
+
+현재 실제 방어시설의 주 적용 대상은 방책이며, `watchtower / fortification` building id가 존재하는 시나리오·향후 확장을 위한 hook도 유지한다.
+
+### 5.3 방어 화력 (Defensive Firepower)
+
+점령 작전 중 공격군을 소모시키는 별도 값이다. 사용자가 제안한 임시 명칭 "타일 공격력"을 E5에서는 **방어 화력**으로 정식 구분한다.
+
+현재 V1:
+
+- 방책: 0.06 / 개
+- `FORTIFICATION` 기술 시 방책 화력 ×1.15
+- watchtower hook: 0.16
+- fortification building hook: 0.12
+
+방어 화력은 가상의 군사 Person을 만들지 않으며, 피해가 발생하면 점령 중인 실제 Formation Person에게 적용된다.
+
+---
+
+## 6. 점령 필요량과 수행력
+
+### 6.1 기본 점령 필요량
+
+현재 식:
+
+```text
+baseRequirement
+  = 3
+  + residentPopulation × 0.35
+  + buildingCount × 0.80
+  + max(0, developedBuildSpace - 8) × 0.15
+  + capitalBonus(8)
+
+occupationRequirement
+  = baseRequirement + occupationResistance
+```
+
+따라서 같은 방어시설이라도 인구·건물·도시 규모가 큰 타일일수록 제압 시간이 길어진다.
+
+### 6.2 점령 수행력 (Occupation Capacity)
+
+공격측의 값을 "공격력"이라고 부르지 않고 **점령 수행력**으로 정의한다.
+
+```text
+rawCapacity = 0.61 + 0.24 × sqrt(manpower)
+capacity    = rawCapacity × supplyModifier
+```
+
+보급 modifier:
+
+- Supply ≥ 70: ×1.00
+- 50~69: ×0.92
+- 30~49: ×0.82
+- 30 미만: ×0.70
+
+병력이 많을수록 빠르지만 `sqrt(manpower)`를 사용해 병력 2배가 점령시간을 정확히 절반으로 만들지 않는다.
+
+같은 진영의 Person-backed field formations가 같은 타일에 있으면 실제 manpower를 합산한다.
+
+---
+
+## 7. 점령 중 방어 화력 소모
+
+방어 화력은 매일 즉사 판정을 하지 않는다. **3 calendar-day cadence**로 노출을 누적한다.
+
+현재 pressure는 방어 화력, 점령 저항, 공격측 manpower를 이용하며 소수 Formation 보호를 위해 병력수의 제곱근으로 완화한다.
+
+점령 진척에 따라 유효 방어 화력은 선형적으로 약해져:
+
+```text
+0% progress   → 100%
+100% progress → 35%
+```
+
+가 된다. 이는 사격 위치·방책·교차로 등을 공격군이 점차 제압하는 것을 추상화한다.
+
+실제 피해가 발생할 때는:
+
+- 약 76%: 부상
+- 약 24%: 사망
+
+으로 시작하며, 대상은 반드시 실제 군사 Person이다. synthetic casualty는 없다.
+
+이 값은 V1 밸런스이며 자연전쟁 데이터에 따라 후속 Balance에서 조정할 수 있다.
+
+---
+
+## 8. 점령 중 경제
+
+`v33OccupationOperation`이 활성화된 타일의 Person 기반 산출은:
+
+```text
+× 0.50
+```
+
+으로 감소한다.
+
+현재 E4 문화 output multiplier와 함께 기존 harvest/deposit 경로에서 곱해진다. 점령이 완료되면 이 securing penalty는 사라지고 기존 temporary occupation의 65% 점령지원/생산 모델로 넘어간다.
+
+---
+
+## 9. 지도 시각화
+
+점령 완료 전에는 **타일의 원 소유국 색을 유지**한다. 점령 진척도가 정치적 소유권처럼 보이지 않도록 타일 전체를 공격국 색으로 채우지 않는다.
+
+대신 활성 점령작전 타일에는 공격국 색의 **내부 perimeter progress**를 그린다.
+
+- 25%: 사각형 둘레 1/4
+- 50%: 둘레 절반
+- 75%: 둘레 3/4
+- 100%: 완료 후 기존 점령 해칭으로 전환
+
+cell size가 충분히 큰 경우 타일 내부에 `%` 숫자를 함께 표시한다.
+
+### 9.1 Tile Inspector
+
+선택 타일에는 다음 정보를 표시한다.
+
+- 공격국 → 원 소유국
+- 현재 progress %
+- 예상 잔여일
+- 점령 필요량 / 확보량
+- 현재 점령 수행력
+- 실제 점령 manpower
+- 점령 저항도
+- 방어 화력
+- 점령작전 누적 부상 / 전사
+- `SECURING` 또는 `CONTESTED`
+
+구원군과 Engagement가 발생하면 progress border는 그대로 남고 진척만 정지한다. 공격군이 패배·철수하면 V1 규칙에 따라 작전이 취소되고 progress border가 사라진다.
+
+---
+
+## 10. Occupation telemetry
+
+### World scope
+
+- `activeOccupationOperations33E5`
+- `occupationOperationsStarted33E5`
+- `occupationOperationsCompleted33E5`
+- `occupationOperationsCancelled33E5`
+- `occupationOperationDaysAvg33E5`
+- `occupationOperationDaysMax33E5`
+- `occupationAttritionWounded33E5`
+- `occupationAttritionDeaths33E5`
+- `occupationResistanceEncountered33E5`
+- `defensiveFirepowerEncountered33E5`
+- `neutralMilitaryMoves33E5`
+- `neutralMilitaryMoveDays33E5`
+- `concentrationCompleted33E5`
+- `piecemealFirstRounds33E5`
+- `emergencyDefenseUnreachable33E5`
+
+### Nation scope
+
+- `occupationOperationsOffensive33E5`
+- `occupationOperationsDefensive33E5`
+- `occupationProgressMax33E5`
+
+점령 진행 로그는 매일 남기지 않고 `STARTED`, 25/50/75% milestone, `COMPLETED/CANCELLED`, 실제 attrition 사건만 기록한다.
+
+동일 war/tile/occupier의 `TILE_OCCUPIED33`가 상태 변화 없이 반복되는 경우 E5 telemetry guard가 중복 기록을 억제한다.
+
+---
+
+## 11. Regression Scenario 3종
+
+### 11.1 E5 · Formation Concentration
+
+파일:
+
+```text
+village-observer-v033E5-scenario-e5-concentration.json
+```
+
+검증 목표:
+
+- concentration start ≥ 1
+- rendezvous ≥ 1
+- joint advance ≥ 1
+- joint engagement ≥ 1
+- E5 concentration completed ≥ 1
+- 첫 Battle Round에 두 Formation 동시 존재
+- `piecemealFirstRounds33E5 = 0`
+
+### 11.2 E5 · Emergency Defense + Neutral Corridor
+
+파일:
+
+```text
+village-observer-v033E5-scenario-e5-neutral-emergency.json
+```
+
+검증 목표:
+
+- `EMERGENCY_DEFENSE` cancellation
+- `emergencyBypasses ≥ 1`
+- HOLD_CORE Formation이 실제 수도 방향 이동
+- 미점유 육상 진입
+- neutral tile `ownerId=null` 유지
+- `neutralFactor = 1.15`
+- 비참전 제3국 무단통행 없음
+
+### 11.3 E5 · Occupation Operations
+
+파일:
+
+```text
+village-observer-v033E5-scenario-e5-occupation-operations.json
+```
+
+고의로 방책이 있는 델마 수도와 실제 core garrison을 배치한다.
+
+검증 목표:
+
+```text
+주둔군 Engagement
+→ 공격측 승리
+→ OCCUPATION_OPERATION_STARTED33E5
+→ 25 / 50 / 75 milestone
+→ OCCUPATION_OPERATION_COMPLETED33E5
+→ v33OccupierId 설정
+```
+
+방책의 점령 저항과 방어 화력이 모두 non-zero인지도 함께 확인한다. 방어 화력의 실제 인명피해 발생 시점은 누적 pressure와 전투 후 남은 manpower에 따라 달라질 수 있으므로 "매 실행마다 반드시 1명 피해"를 시나리오 합격 조건으로 강제하지 않는다.
+
+---
+
+## 12. Persistence / Migration
+
+저장 버전:
+
+```text
+0.33E5
+```
+
+localStorage key:
+
+```text
+village-observer-v0-33e5
+```
+
+fallback은 E4A → E4 → E3 → E2F 순으로 유지한다.
+
+- E4A save/scenario는 로드 시 E5 state를 자동 attach한다.
+- 진행 중 `v33OccupationOperation`은 Tile serialization에 포함되어 저장/복원된다.
+- 기존 E4 문화, 이름, 전쟁 파이프라인 telemetry는 보존한다.
+
+---
+
+## 13. 구현 회귀검증 결과
+
+최종 자동 검증 기준:
+
+- inline script Node syntax: **93 / 93 PASS**
+- 브라우저 runtime page error: **0**
+- Formation scenario: start 1 / rendezvous 1 / joint advance 3 / joint engagement 1 / completed 1 / piecemeal first round 0
+- 첫 공격 접촉일에 두 Formation이 같은 calendar day에 목적 타일에 진입한 뒤 Round 1 생성 확인
+- Emergency scenario: bypass 1, 실제 HOLD_CORE 이동 확인, 중립 군사이동 telemetry 확인
+- 중립 corridor의 `ownerId=null` 유지 확인
+- 임의 제3국 타일을 경로에 삽입했을 때 D path가 해당 타일을 통과하지 않음 확인
+- D1A prewar reachability가 `자국 → 중립 → 중립 → 적국` 경로를 `DIRECT_ACCESS`로 판정하는 별도 검사 PASS
+- Occupation scenario: 주둔군 전투가 점령 시작보다 먼저 발생, 25/50/75% milestone 후 점령 완료 확인
+- 점령 중 지도/Inspector progress UI 렌더링 error 0
+- 동일 점령 상태의 duplicate `TILE_OCCUPIED33` 0
+- CSV: **972 columns / schema mismatch 0**
+- serialize / reload: E5 유지
+- E4A → E5 migration PASS
+- fresh 300-day smoke: runtime error 0
+- neutral tile에서 전쟁이 종료된 Formation에 post-war return state가 생성되고 귀환 이동이 수행됨 확인
+
+---
+
+## 14. 의도적으로 남긴 범위
+
+E5에서 다음은 구현하지 않는다.
+
+- 영구 영토 할양
+- 전쟁 목표에 따른 강화조건
+- 배상금 / 속국 / 동맹 / 포로
+- 문화 반란 / 저항운동
+- 점령 진척의 장기 잔존(V1은 공격군 이탈 시 초기화)
+- 공성무기 전용 시스템
+- 방어시설 실제 파괴/내구도 감소
+- 해상 상륙
+- 비참전국 외교적 군사통행권
+
+이 항목들은 E5의 `전투 → 점령작전 → temporary occupation` 기반 위에서 후속 버전으로 확장한다.
+
+다음 큰 기능 단계는 계획대로 **V0.33F — War Goal & Peace Settlement V2**를 후보로 둔다.
+
+---
+
+# Historical Documentation — V0.33E4A and Earlier
+
+아래는 E5의 기준선이 된 V0.33E4A 문서를 보존한 것이다.
+
 # Village Observer V0.33E4A
 ## War Pipeline Observation + Culture Stabilization
 
