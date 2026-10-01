@@ -1,3 +1,197 @@
+# Village Observer V0.33E5F1
+## Occupied Tile Control Fix
+
+기준 버전: **V0.33E5F — Occupation Progress Fix**  
+릴리스 성격: **Fix / 완료 점령지 통제 상태 안정화**  
+작성일: 2026-10-01
+
+---
+
+## F1 수정 요약
+
+V0.33E5F 회귀 실행에서 Occupation Operations 자체는 정상 완료되었지만, `v33OccupationOperation`이 끝나고 `v33OccupierId`가 설정된 **완료 점령지**를 민간 건설과 CORE_GARRISON 재편성 로직이 다시 정상 소유지처럼 취급하는 문제가 확인되었다.
+
+실제 회귀 로그에서는 비수도 타일 점령 완료 다음 날 기존 주택 공사가 재개되고, 이후 원 소유국이 완전 점령된 수도에서 신규 `LOCAL_HOUSING` 공사를 시작할 수 있었다. 또한 D Formation reconciliation과 legacy V0.32B 군사 review 경로는 수도의 `ownerId`만 보고 CORE_GARRISON을 다시 채울 수 있었다.
+
+F1은 **SECURING과 완료 temporary occupation을 서로 다른 군사 상태로 유지하면서도, 민간 통제 제약은 둘 다에 연속 적용**한다.
+
+핵심 수정은 다음과 같다.
+
+- `v33OccupationOperation` 활성 타일뿐 아니라 `v33OccupierId != null`인 완료 점령지도 일반 개발 금지 상태로 취급한다.
+- 완료 점령지에서는 신규 일반 건설, 토지 정비, 주거 개축, 상업/산업 고도화를 시작할 수 없다.
+- 이미 진행 중인 일반 건설·토지 정비·주거 개축·전문화 프로젝트는 SECURING부터 완료 점령 상태까지 계속 정지한다.
+- 해방되어 `v33OccupierId`가 해제된 뒤에만 기존 프로젝트가 다시 진행 가능 상태로 돌아온다.
+- 수도가 적대 세력에게 완료 점령된 경우 원 소유국의 `CORE_GARRISON` Cohort와 Garrison 물리 객체를 제거한다.
+- D Formation 재조정에서 야전 Formation 배치를 먼저 확정한 뒤, 수도 주둔으로 남으려던 실제 Person은 예비 상태로 되돌린다.
+- **SECURING 중 패주 주둔군의 회복 → Engagement 재개**는 E5F 규칙 그대로 유지한다. 즉 주둔군 차단은 `v33OccupierId`가 설정된 **점령 완료 이후**에만 적용한다.
+
+---
+
+## 1. 완료 점령지 개발 통제
+
+E5F의 건설 차단 predicate는 다음 상태만 보았다.
+
+```text
+v33OccupationOperation != null
+```
+
+따라서 작전 완료 시 `v33OccupationOperation`이 제거되고 `v33OccupierId`가 설정되면 기존 공사를 다시 재개했다. F1의 통제 predicate는 다음 두 상태를 모두 포함한다.
+
+```text
+SECURING:  v33OccupationOperation != null
+OCCUPIED:  v33OccupierId != null
+
+blocked = SECURING || OCCUPIED
+```
+
+이 predicate는 다음 경로에 적용한다.
+
+- `startConstruction()`
+- `startLandDevelopment()`
+- `startHousingUpgrade()`
+- `payBuild()` 기반 직접 건설/전문화 시작
+- 기존 `constructionProjects` 진행
+- 기존 `landDevelopmentProjects` 진행
+- 기존 `buildingUpgradeProjects` 진행
+- 기존 `specializationProjects` 진행
+
+`payBuild()`에도 동일한 tile-control gate를 둔 이유는 Merchant Guild / Grand Market 등 일부 전문화 경로가 일반 `startConstruction()`을 거치지 않고 직접 프로젝트를 생성하기 때문이다.
+
+### 프로젝트 재개 규칙
+
+```text
+정상 소유지
+  → SECURING 시작: pause
+  → 점령 완료: 계속 pause
+  → temporary occupation 유지: 계속 pause
+  → 해방 / v33OccupierId 해제: resume 가능
+```
+
+점령 완료 자체는 더 이상 `BUILDING_RESUMED` 조건이 아니다.
+
+---
+
+## 2. 점령 수도 CORE_GARRISON 차단
+
+기존 D `ensureFormations()`는 현역 Person을 야전 Formation에 배치한 뒤 남은 인원을 `CORE_GARRISON`에 넣는다. legacy V0.32B `syncFormation()` 역시 현역 Person이 있으면 수도 Cohort/Garrison을 생성 또는 활성화한다.
+
+F1에서는 다음 조건을 완료 점령 수도로 정의한다.
+
+```text
+coreTile.v33OccupierId != null
+&& coreTile.v33OccupierId != nation.id
+```
+
+이 상태에서는:
+
+1. D Formation reconciliation을 먼저 실행해 실제 야전 Formation 인원을 확정한다.
+2. 남은 `CORE_GARRISON` Cohort 구성원을 예비 상태로 되돌린다.
+3. 해당 CORE_GARRISON Cohort를 군사 상태에서 제거한다.
+4. 수도 타일의 Garrison 객체를 제거한다.
+5. 이후 군사 review가 다시 호출되어도 같은 reconciliation 후 suppression이 반복 적용된다.
+
+따라서 점령 수도에서 **주둔군이 자연 재생성되어 공격군과 다시 싸우는 경로**가 사라진다.
+
+중요하게도 SECURING 중에는 이 suppression을 적용하지 않는다. E5F에서 의도한 것처럼 ROUTED 주둔군은 `v33cRoutedUntilCal` 종료 후 회복하여 기존 점령 진척을 유지한 채 다시 Engagement를 열 수 있다.
+
+---
+
+## 3. 신규 Telemetry
+
+### World scope
+
+- `occupiedControlledTiles33E5F1`
+- `occupiedCoreGarrisons33E5F1`
+- `occupiedTileBuildProjects33E5F1`
+
+### Nation scope
+
+- `coreOccupied33E5F1`
+- `coreGarrisonSuppressed33E5F1`
+- `coreGarrisonSuppressions33E5F1`
+- `constructionControlBlocks33E5F1`
+
+`occupiedCoreGarrisons33E5F1`은 정상 실행에서 **0 유지**가 회귀 기준이다. `occupiedTileBuildProjects33E5F1`은 기존 프로젝트가 삭제되었다는 뜻이 아니라, 점령지에 남아 pause 상태인 프로젝트 수도 포함할 수 있다.
+
+신규 주요 이벤트:
+
+- `CORE_GARRISON_SUPPRESSED_OCCUPATION33E5F1`
+- `BUILDING_PAUSED_CONTROL33E5F1`
+- `BUILDING_RESUMED_AFTER_CONTROL33E5F1`
+
+---
+
+## 4. Save / migration
+
+저장 버전:
+
+```text
+0.33E5F1
+```
+
+localStorage key:
+
+```text
+village-observer-v0-33e5f1
+```
+
+fallback:
+
+```text
+E5F → E5 → E4A
+```
+
+- E5F save/scenario는 F1 load 시 기존 Occupation state를 유지한 채 F1 state를 attach한다.
+- F1 round-trip serialize/load에서 Person 수와 Occupation state를 보존한다.
+- 기존 E5F 회귀 시나리오 import compatibility는 그대로 유지한다.
+
+---
+
+## 5. 구현 회귀 검증 결과
+
+최종 배포본 기준 확인 결과:
+
+- inline `<script>`: **95 / 95 Node syntax PASS**
+- Headless Chromium runtime page error: **0**
+- Version badge / document title: **V0.33E5F1**
+- Save serialize version: **0.33E5F1**
+- F1 round-trip load: **PASS**
+- E5F-like payload → F1 migration: **PASS**
+- E5 Occupation fixture 재실행: **점령 완료 PASS**
+- 점령 완료 직후 defender 수도 `CORE_GARRISON` Cohort: **0**
+- 점령 완료 직후 defender 수도 Garrison 객체: **0**
+- 완료 점령지 `startConstruction()`: **false**
+- 완료 점령지 `payBuild()`: **false**
+- 회귀용 기존 주택 project progress: **7.0 → 7.0 유지**
+- 점령 완료 후 추가 6일 진행에서도 project progress 변화: **0**
+- CSV validation: **979 columns / mismatch 0**
+
+별도 해방 predicate 검사에서는 점령 control flag가 해제된 뒤 pause marker가 정상적으로 해제되고 `BUILDING_RESUMED_AFTER_CONTROL33E5F1` 경로가 열리는 것도 확인했다.
+
+---
+
+## 6. 범위 유지
+
+F1은 다음을 변경하지 않는다.
+
+- E5 점령 필요량 공식
+- 점령 수행력 공식
+- 방어 화력과 attrition 공식
+- ROUTED 주둔군의 SECURING 중 회복/재교전
+- Formation Concentration
+- Emergency Defense
+- 중립 육상 통행 ×1.15
+- 전쟁 선포/War Intent/D2/D2A/E2 판단식
+- E4 문화 생산 마찰
+- temporary occupation의 65% 기존 생산/지원 모델
+- 영구 영토 이전
+
+따라서 F1은 **점령 완료 후 통제 상태의 누락만 닫는 Fix**다. 다음 큰 기능 단계 후보는 여전히 **V0.33F — War Goal & Peace Settlement V2**다.
+
+---
+
+# Historical Documentation — V0.33E5F and Earlier
+
 # Village Observer V0.33E5F
 ## Occupation Progress Fix
 
