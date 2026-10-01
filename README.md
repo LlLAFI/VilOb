@@ -1,980 +1,737 @@
-# Village Observer V0.33E3
-## Formation Concentration + Military UI Consolidation
+# Village Observer V0.33E4
+## Culture & Identity Foundation V1
 
-기준 버전: **V0.33E2F — Intel Renderer Ownership Hotfix**  
-릴리스 성격: **작전 집중 V1 + 군사 UI 구조 통합**  
+기준 버전: **V0.33E3 — Formation Concentration + Military UI Consolidation**  
+릴리스 성격: **문화·정체성 기반 V1 + 문화 이름풀 개편 + 문화 지도/Telemetry**  
 작성일: 2026-10-01
 
 ---
 
-## 0. E3 패치 요약
+## 0. E4 패치 요약
 
-V0.33E2F 자연주행에서 복수 야전 Formation이 같은 전쟁·같은 방향으로 움직이면서도 서로의 도착 시점을 고려하지 않아, **4명 선행대가 먼저 패퇴하고 약 11일 뒤 3명 후속대가 같은 적에게 다시 단독 투입되는 축차투입**이 확인되었다. 이후 두 Formation이 실제로 같은 타일에 도달했을 때 Engagement 전력은 정상적으로 합산되었으므로, 문제는 전투 집계가 아니라 **전투 이전의 작전적 집중 판단 부재**였다.
+V0.33E4는 향후 **영토 할양·정복 이후 사회·이민·동화·융합문화**를 구현하기 전에 문화의 실체를 먼저 Person 계층에 추가하는 기반 패치다.
 
-V0.33E3은 이를 다음처럼 해결한다.
+핵심 원칙은 다음과 같다.
 
-- 같은 전선의 OFFENSIVE Formation 2개가 가까이 있고, 각자 싸우면 위험하지만 합산 추정전력은 충분할 때 `CONCENTRATE / RENDEZVOUS`를 시작한다.
-- 선행 Formation은 집결지에서 기다리고 후속 Formation은 해당 타일로 이동한다.
-- 두 Formation이 같은 타일에 모이면 다음 이동 가능 시각을 동기화하고 `JOINT_ADVANCE`로 동일 목표를 향해 진입한다.
-- Formation 객체는 영구 합병하지 않는다. Person·Commander·사기·전투 이력·Formation ID는 그대로 유지한다.
-- 수도 점령/수도 근접 위협 같은 긴급 상황에서는 집결 대기를 취소하고 기존 방어·차단 판단을 우선한다.
-- 군사 탭을 **D2 전략 전쟁 준비 → E2 정보·정찰 → D 다중전선 지휘/Formation Command → V0.33 전쟁 상태** 순서로 고정한다.
-- 기존 주둔대/야전대 목록과 별도 Formation Command를 `D 다중전선 지휘`에 통합한다.
-- C3 작전 판단의 별도 카드만 숨기고 C3의 수도 공격 판단, 우회, 후퇴, Deep Recovery, 전략도로, devlog 로직은 그대로 유지한다.
-- 실제 Commander가 있는 야전대 이름 옆에 작은 `★`를 표시한다. 현재는 존재 여부를 뜻하는 1개 별만 사용하지만 UI 구조는 최대 5개까지 확장 가능하다.
+- **Culture ≠ Nation**: 문화는 국가와 별도 registry entity이며 국가가 사라져도 문화는 존속할 수 있다.
+- **Culture는 Person에 귀속**: Settlement/Nation 문화는 별도 가상값이 아니라 실제 거주 Person의 문화를 집계한다.
+- **Person은 문화 비율을 가진다**: 한 Person은 최대 3개 문화 성분을 sparse `cultureMix`로 보유할 수 있다.
+- **수도 문화가 국가 기준**: 수도 거주민의 실제 문화 프로필을 국가의 기준 문화로 사용한다.
+- **문화 차이의 V1 효과는 완만한 경제 마찰**: 수도 문화와의 불일치는 Person 생산 산출에 최대 -8%만 적용한다.
+- **문화별 이름 체계**: 가문명/개인명은 문화별 이름풀에서 생성되며 일부 이름은 여러 문화가 공유한다.
+- **1~5글자 이름 지원**: 기존 2글자 편중을 완화하기 위해 3~5글자 이름을 대폭 추가했다.
+- **융합문화는 schema만 준비**: 자동 생성은 하지 않지만 `derived`, `parentCultureIds`, `originCal`, `nameSourceCultureWeights`를 처음부터 지원한다.
+- **E3 Formation Concentration은 그대로 유지**: 이전 평화 자연주행에서 미검증된 집결전술을 E4 자연주행에서 함께 검증한다.
 
-이번 패치는 **Intelligence E2 수치, War Intent 개전 문턱, Coalition exhaustion, War Goal/종전 규칙, 기술 32개, Knowledge ×1.00**을 변경하지 않는다.
-
----
-
-## 1. Formation Concentration V1
-
-### 1.1 적용 대상
-
-집결은 다음 조건을 모두 만족하는 실제 Person-backed 야전 Formation 두 개에 대해서만 검토한다.
-
-- 같은 국가
-- 같은 활성 전쟁에 배정됨
-- `OFFENSIVE` 임무
-- 두 Formation 사이 거리 **2타일 이내**
-- 실제 field cohort가 존재하고 병력이 1명 이상
-- `RETREATING / REGROUPING / POST_BATTLE_RECOVERY / POSTWAR_WITHDRAWAL / DORMANT`가 아님
-- 현재 Engagement 중이 아님
-- Deep Recovery 중이 아님
-- 이미 다른 E3 concentration group에 속하지 않음
-
-### 1.2 집중 판정
-
-각 Formation의 현재 Person 수, 훈련, 장비, 보급, 사기, Commander 전투 보정을 이용해 자기 전력을 계산하고, 적 전력은 기존 E2 Intelligence 경계를 통과한 D1/D2 proxy를 사용한다.
-
-집결은 다음 의미의 조건을 만족할 때 시작한다.
-
-1. 가장 강한 단일 Formation도 적 추정전력 대비 충분히 우세하지 않다.
-2. 두 Formation의 합산전력은 적 추정전력 대비 충분히 우세하다.
-3. 합산으로 얻는 전력 이득이 단순한 미세 증가가 아니라 실질적인 집중 효과가 있다.
-
-현재 V1 수치는 다음과 같다.
-
-- 단독 최강 전력 `< 적 × 1.12`
-- 합산 전력 `>= 적 × 1.12`
-- 합산 전력 `>= 단독 최강 × 1.30`
-- Formation 간 거리 `<= 2`
-
-E2F 회귀 기준값 `4.66 + 4.47 vs 5.96, 거리 1`은 **집결 대상**, `7 + 3 vs 5`처럼 이미 한 Formation이 단독으로 충분히 우세한 경우는 **집결 비대상**이다.
-
-### 1.3 GATHER 단계
-
-집결이 시작되면 더 강한 Formation을 선행대 `LEAD`, 다른 Formation을 후속대 `JOIN`으로 둔다.
-
-- LEAD: `CONCENTRATE`
-- JOIN: `RENDEZVOUS`
-- rendezvous tile: LEAD의 현재 실제 타일
-- joint target: 집결 직전 D의 기존 작전 목표 선택 결과를 보존하여 설정
-- group timeout: 최대 180 calendar-day
-
-LEAD와 JOIN은 별개의 Formation 객체로 계속 존재한다.
-
-### 1.4 ADVANCE 단계
-
-두 Formation이 같은 타일에 도달하면:
-
-- `FORMATION_RENDEZVOUS_REACHED33E3` 기록
-- 양 Formation의 다음 이동 가능 시각을 더 늦은 쪽으로 동기화
-- 양측 모두 `JOINT_ADVANCE`
-- 동일한 joint target을 향해 이동
-
-같은 적 타일에서 기존 D Engagement가 생성되면 전투 시스템은 원래부터 구현되어 있던 방식대로 두 Formation의 실전 전력을 한 Side에 합산한다. E3은 새로운 가상 병력이나 별도 전투 합산 공식을 만들지 않는다.
-
-### 1.5 긴급 우회
-
-다음 경우 concentration waiting을 취소하고 기존 D/C3 작전판단에 제어를 돌려준다.
-
-- 자국 core가 적에게 점령됨
-- Intelligence가 파악한 적 야전 Formation이 수도 2타일 이내에 있음
-
-이때 `concentrationEmergencyBypasses33E3`를 증가시키고 concentration group을 해제한다.
+이번 패치는 **War Goal, 영구 영토 이전, 문화 반란, 종교, 언어, 강제동화 정책, 문화별 고유 능력 보너스**를 구현하지 않는다.
 
 ---
 
-## 2. Permanent Merge를 하지 않는 이유
+## 1. 기초문화 6개
 
-V0.33E3은 `Formation A + Formation B = Formation C` 식의 조직적 영구 합병을 구현하지 않는다.
+E4의 기본 Culture registry는 다음 6개 기초문화를 가진다.
 
-영구 합병을 하면 Commander 우선권, Formation 역사, 전투사기, 부상/사망, multi-front 재분할, 전후 복귀를 동시에 재정의해야 한다. 현재 단계에서는 **조직은 둘, 작전은 하나**가 적절하다.
+| ID | 문화명 | 신규 월드 초기 Nation ID | 기본 프리셋 국가 | 이름 경향 |
+|---|---|---:|---|---|
+| `TER` | 테르 | 1 | 델마 | 짧고 단단한 자음형, 2~3글자 중심 |
+| `LUEN` | 루엔 | 0 | 키오 | 유음·모음이 많은 부드러운 형태 |
+| `SERIA` | 세리아 | 3 | 라엔 | 세/시/엘 계열, 3~5글자 비중 높음 |
+| `KAREN` | 카르엔 | 2 | 벨른 | 카/키/브/르 계열, 단단한 형태 |
+| `NOREA` | 노레아 | 5 | 에브 | 노/네/메/하 계열, 완만한 형태 |
+| `MAELA` | 마엘라 | 4 | 티아 | 아/에/마/엘 계열, 긴 이름 비중 높음 |
 
-따라서 E3의 집중은 일시적 작전 coordination이며, Person 실체 유지 원칙도 그대로 보존한다.
+이 매핑은 **신규 월드의 초기 프리셋**일 뿐이다.
+
+Culture는 Nation ID나 Nation 이름의 하위 속성이 아니다. 예를 들어 델마가 멸망해도 `TER` 문화는 삭제되지 않으며, 향후 한 Nation 안에 여러 Culture가 존재하거나 같은 Culture를 여러 Nation이 공유할 수 있다.
 
 ---
 
-## 3. Commander 별 UI
+## 2. Culture registry schema
 
-실제 Commander가 유효한 야전 Formation에는 이름 옆에 작은 별을 표시한다.
-
-예시:
+각 Culture entity는 최소 다음 구조를 지원한다.
 
 ```text
-★ 에브 제1야전대 · 4명
-지휘관 칼 로안 · Command 76
+id
+name
+color
+derived
+parentCultureIds[]
+originCal
+nameSourceCultureWeights
 ```
 
-현재 `★`는 **Commander 존재 여부**만 뜻하며 Command Score를 별 개수로 환산하지 않는다.
-
-DOM은 다음 확장을 염두에 둔다.
+E4 기초문화는 모두:
 
 ```text
-data-stars="1"
-data-max-stars="5"
+derived = false
+parentCultureIds = []
+originCal = 0
 ```
 
-후속 Commander 능력/계급 시스템이 생기면 1~5개 별을 같은 UI에서 표현할 수 있다.
+이다.
 
----
-
-## 4. 군사 탭 Renderer Consolidation
-
-V0.33E2F까지 군사 탭은 여러 버전 wrapper가 각자 panel을 append/prepend하면서 순서가 렌더 경로에 따라 바뀌는 문제가 남아 있었다.
-
-E3에서는 최신 renderer가 패널 **내용뿐 아니라 배치 순서까지** 최종 소유한다.
-
-고정 순서:
-
-1. `D2 전략 전쟁 준비`
-2. `E2 정보·정찰 V2`
-3. `D 다중전선 지휘` + Formation Command 통합
-4. `V0.33 전쟁 상태`
-5. 이후 기존 군사시설/기타 UI
-
-전체 `render()`와 `renderVillageContent()` 어느 쪽으로 갱신되더라도 같은 순서를 다시 보장한다.
-
-### 제거되는 중복 시각 패널
-
-- 구형 V0.32D standalone Formation 목록
-- V0.33E1 standalone Formation Command
-- 구형 D standalone multi-front panel
-- C3 standalone 작전 판단 카드
-- 구형 V0.32B cohort/garrison 중복 목록
-
-C3와 이전 군사 시스템의 **simulation / decision / devlog 코드는 제거하지 않는다.** UI 중복만 제거한다.
-
----
-
-## 5. 통합 D 다중전선 지휘 패널
-
-한 패널에서 다음을 함께 본다.
-
-- 주둔대(Garrison)
-- 모든 활성 Field Formation
-- 실제 Person 병력
-- Commander 이름/Command Score
-- Commander `★`
-- 현재 좌표/타일 ID
-- 목표 좌표/타일 ID
-- 배정된 전쟁/전선
-- mission
-- 보급·사기·훈련·장비 기반 상태
-- E3 concentration group
-- `CONCENTRATE / RENDEZVOUS / JOINT_ADVANCE`
-
-따라서 사용자는 별도 Formation Command 카드로 내려갈 필요 없이 다중전선 패널 하나에서 현재 군사 배치를 읽을 수 있다.
-
----
-
-## 6. Intelligence 경계
-
-E3 concentration은 E2의 Fog-of-War를 우회하지 않는다.
-
-적 Formation을 평가할 때 가능한 경우 E2 `v33e2IntelProxy / v33e2EstimatedPower`를 사용한다. 즉 실제 World Truth 병력을 concentration trigger가 몰래 직접 읽어 작전 결정을 내리는 구조를 추가하지 않는다.
-
-Intelligence E2 tuning 자체는 이번 패치에서 변경하지 않는다.
-
----
-
-## 7. Telemetry / Devlog
-
-신규 이벤트:
-
-- `FORMATION_CONCENTRATION_STARTED33E3`
-- `FORMATION_RENDEZVOUS_REACHED33E3`
-- `FORMATION_JOINT_ADVANCE33E3`
-- `FORMATION_JOINT_ENGAGEMENT33E3`
-- `FORMATION_CONCENTRATION_CANCELLED33E3`
-
-Global Snapshot/CSV:
-
-- `activeConcentrationGroups33E3`
-- `concentrationStarts33E3`
-- `rendezvousReached33E3`
-- `jointAdvances33E3`
-- `jointEngagements33E3`
-- `concentrationCancels33E3`
-- `piecemealPrevented33E3`
-- `concentrationEmergencyBypasses33E3`
-- `militaryUIRenderer33E3`
-
-Nation Snapshot/CSV:
-
-- `activeConcentrationGroups33E3`
-- `concentratingFormations33E3`
-
-다음 자연주행에서는 `concentrationStarts → rendezvousReached → jointEngagements` 전환율과 취소 이유를 우선 분석한다.
-
----
-
-## 8. Save / Migration
-
-- save version: `0.33E3`
-- localStorage key: `village-observer-v0-33e3`
-- E2F / E2 / E1 / EF / E save fallback 유지
-- E2F save에 `v33e3`가 없어도 로드 후 E3 기본 state를 생성
-- Formation에 불완전 concentration state가 들어 있으면 attach 시 정리
-
-기술 32개, 기존 E1 Knowledge 생산 배율 `×1.00`, E2 Intelligence state는 그대로 유지한다.
-
----
-
-## 9. 검증
-
-배포 전 다음 검증을 수행했다.
-
-- inline script **90/90 Node syntax check 통과**
-- headless Chromium runtime error **0**
-- 반복 `renderVillageContent()` / 전체 `render()` 이후에도 군사 패널 순서 고정 확인
-- 최종 DOM 순서:
-  - `v33d2-panel`
-  - `v33e2-intel-panel`
-  - `v33e3-command-panel`
-  - `v33-war`
-- standalone C3 / old Formation / old Commander panel **0개** 확인
-- E2F 회귀 판정 `4.66 + 4.47 vs 5.96, distance=1` → concentration **true**
-- 이미 단독 우세한 `7 + 3 vs 5` → concentration **false**
-- GATHER target override → `RENDEZVOUS` 확인
-- Snapshot CSV **899 columns / schema mismatch 0**
-- E2F payload → E3 load/serialize migration 확인
-- fresh-world 장기 smoke test에서 simulation 진행 및 E3 state 유지 확인
-
-자연주행에서 실제 concentration 빈도와 작전 효과는 다음 데이터 검증 대상으로 남긴다.
-
----
-
-## 10. 자연주행 검증 포인트
-
-1. **축차투입 감소**: 10~20일 이내 합류 가능한 Formation들이 따로 공격하는 사례가 줄었는가.
-2. **집결 성공률**: `STARTED → RENDEZVOUS_REACHED → JOINT_ENGAGEMENT`가 실제로 연결되는가.
-3. **대기 교착**: 서로 기다리기만 하거나 180일 timeout이 반복되지 않는가.
-4. **긴급방어 우회**: 수도 위험 상황에서 concentration이 방어를 방해하지 않는가.
-5. **Fog-of-War 보존**: concentration 판단이 실제 적 병력을 직접 읽지 않는가.
-6. **Commander UI**: Commander가 있는 Formation에만 별이 정확히 나타나는가.
-7. **군사 UI 순서**: pause/resume, 전체 render, 부분 render 후에도 D2 → E2 → D → War 순서를 유지하는가.
-
----
-
-## 11. 의도적으로 미룬 범위
-
-E3에서는 다음을 구현하지 않는다.
-
-- Formation 영구 합병/분할 재편성
-- 군단/사단/상급 지휘부
-- Commander 2~5성 실제 능력 체계
-- Intelligence E2 재밸런싱
-- Coalition exhaustion 재설계
-- War Goal / 영토 할양 / 배상 / 종전협상
-
-이 항목들은 E3 자연주행 결과를 본 뒤 별도 버전에서 다룬다.
-
----
-
-# 이전 버전 기술 기록
-
-아래에는 E3의 기반이 된 V0.33E2F/E2 기술 기록을 그대로 보존한다.
-
-## Village Observer V0.33E2F
-### Intel Renderer Ownership Hotfix
-
-기준 버전: **V0.33E2 — Intelligence Uncertainty & Reconnaissance V2**  
-릴리스 성격: **렌더러 소유권 회귀 핫픽스**  
-작성일: 2026-10-01
-
----
-
-## 0. E2F 핫픽스 요약
-
-V0.33E2 자연주행 중 군사 탭에서 `V0.33E2 정보·정찰 V2 / INTEL V2` 패널이 정상 표시된 뒤, 다음 렌더 주기에 구형 `V0.33E 정보 상황 / INTEL V1` 패널로 다시 덮어써지는 UI 회귀가 확인되었다.
-
-원인은 V0.33E에서 남아 있던 `renderIntelE()`가 E2 이후에도 `renderVillageContent()`와 전체 `render()` 후처리에서 실행되던 것이다. E2 renderer가 먼저 V2 패널을 작성해도 구형 E writer가 같은 DOM 영역을 다시 쓰면서 V1이 최종 화면을 소유할 수 있었다.
-
-E2F에서는 다음과 같이 구조적으로 정리한다.
-
-- `NS.V033E2`가 활성화된 이후 구형 `renderIntelE()`는 즉시 no-op 처리
-- 구형 E `renderVillageContent()` 후처리에서 E2 활성 시 V1 writer 호출 금지
-- 구형 E 전체 `render()` 후처리에서도 E2 활성 시 V1 writer 호출 금지
-- 군사 탭 Intelligence panel의 최종 writer를 E2 `renderIntel()` 하나로 단일화
-- D2 STANDBY runtime 문구를 원본부터 `Intelligence E2 추정범위 사용`으로 수정
-- D2 active runtime 문구도 `World Truth → Intelligence E2 추정범위 → War Intent → 실제 준비`로 고정
-
-**Intelligence 추정범위, RECON, War Intent/D2 planning, Commander, 기술, 경제, 전투, 점령, War Exhaustion 규칙은 V0.33E2에서 변경하지 않는다.**
-
----
-
-## 1. 패치 목적
-
-V0.33E는 `World Truth → Intelligence Picture → Strategic Decision` 경계를 도입해 AI가 매 전략 질의마다 상대의 현재 상태를 직접 읽지 않도록 만들었다. 그러나 V0.33E1 자연주행 검증에서 War Intent의 적 야전병력 추정치는 실제값과 거의 항상 같았다. 정보 신뢰도와 정보 나이는 다양했지만, 소규모 Formation의 정수 병력값이 추정과정에서 실제값으로 수렴하여 전략적으로는 사실상 완전정보에 가까운 상태가 남아 있었다.
-
-V0.33E2의 목적은 이 문제를 다음 단계로 해결하는 것이다.
-
-1. 군사정보를 하나의 숫자가 아니라 **중심 추정치 + 하한/상한 범위**로 표현한다.
-2. 관측 이후 시간이 지나면 confidence뿐 아니라 **추정 범위 자체가 넓어진다.**
-3. 국가 AI의 성향에 따라 같은 정보 범위를 서로 다르게 해석한다.
-4. 활성 War Intent가 정보 부족을 감지하면 **능동 RECON**을 시도한다.
-5. 개전 순간 공격국이 실제로 알고 있던 정보와 실제 상태를 함께 저장해 전쟁 오판을 사후 분석할 수 있게 한다.
-6. UI/telemetry 조회가 정보 갱신을 유발하던 observer effect를 제거한다.
-7. 전술 Formation 조회에서도 live enemy cohort membership을 직접 읽는 우회를 차단한다.
-
-E2는 정보의 전략적 효과를 다루며 **정보 신뢰도 자체가 전투 보너스/패널티를 직접 생성하지 않는다.**
-
----
-
-## 2. E1 기준선 유지
-
-다음 V0.33E1 기준은 그대로 유지된다.
-
-- 기술 트리: **32개**
-- 기술 총비용: **4,815 Knowledge**
-- Knowledge 생산 배율: **×1.00**
-- V0.33E1 Formation Commander V1 유지
-- 실제 Person 기반 병력 유지
-- 소규모 Formation casualty smoothing/anti-streak 유지
-- War History single writer 유지
-- `warHistoryLegacyWriterCalls33E1 = 0` 구조 유지
-- War Chest 보존회계 유지
-- READY hysteresis 유지
-- 15~45일 Final Commitment 유지
-- 최대 동시전쟁 2개 유지
-- Persistent Engagement, retreat, recovery, occupation, War Exhaustion 규칙 유지
-- Coalition exhaustion 계산 방식은 이번 버전에서 변경하지 않음
-- War Goal / 영토 할양 / 배상은 이번 버전에서 도입하지 않음
-
----
-
-## 3. Intelligence Picture V2 — 중심값 + 범위
-
-### 3.1 기존 V1
-
-V1은 각 관측마다 대략 다음과 같은 값을 저장했다.
-
-- estimated field manpower
-- estimated total military manpower
-- estimated eligible population
-- estimated readiness
-- confidence
-- observation source
-- observation age
-
-그러나 소규모 병력에서는 중심 추정치가 실제값과 지나치게 자주 일치했다.
-
-### 3.2 V2
-
-E2는 관측 당시의 정보를 다음 구조로 승격한다.
-
-- `fieldCenter`
-- `minField`
-- `maxField`
-- `totalCenter`
-- `minTotal`
-- `maxTotal`
-- `eligibleCenter`
-- `minEligible`
-- `maxEligible`
-- `readinessCenter`
-- `minReadiness`
-- `maxReadiness`
-
-예시:
+향후 융합문화가 생성될 경우 예를 들어:
 
 ```text
-적 야전병력 중심 2명
-추정 범위 0~4명
-군사정보 신뢰도 43%
-관측 210일 전
+id = "TER_LUEN_01"
+derived = true
+parentCultureIds = ["TER", "LUEN"]
+originCal = <발생 시점>
+nameSourceCultureWeights = { TER: 0.55, LUEN: 0.45 }
 ```
 
-AI는 더 이상 단순히 `2명` 하나만 전략 계산에 사용하지 않는다.
+같은 형태를 받을 수 있다.
+
+**E4에서는 이 구조만 준비하고 자동 융합문화 발생 판정은 실행하지 않는다.**
 
 ---
 
-## 4. 소규모 군사정보 오차
+## 3. Person `cultureMix`
 
-E1에서 가장 큰 문제는 실제 야전군이 0~4명일 때 정수 반올림으로 추정값이 실제값에 수렴했다는 점이었다.
+모든 Person은 `cultureMix`를 가진다.
 
-E2는 작은 값에서도 source와 confidence에 따라 ±1 이상의 오판 가능성을 유지한다.
-
-- 낮은 신뢰도의 0명은 1명으로 잘못 추정할 수 있다.
-- 실제 2명을 1명 또는 3명 이상으로 추정할 수 있다.
-- 높은 신뢰도의 전투접촉은 여전히 비교적 정확하다.
-- 낮은 신뢰도의 교역/접촉정보는 더 넓은 범위를 가진다.
-
-추정오차는 deterministic hash 기반으로 생성된다. 따라서 같은 관측 하나를 UI에서 여러 번 읽는다고 값이 계속 다시 굴러가지 않는다.
-
----
-
-## 5. 정보 노후화
-
-관측 뒤 시간이 지나도 중심값은 자동으로 현재 World Truth로 따라가지 않는다.
-
-대신 다음이 발생한다.
-
-1. 군사 confidence 감소
-2. 위치 confidence 감소
-3. 경제/물류 confidence 감소
-4. 야전병력 범위 확대
-5. 총병력 범위 확대
-6. 동원가능 인구 범위 확대
-7. Readiness 범위 확대
-
-따라서 같은 관측값이라도 시간이 지나면:
+예:
 
 ```text
-관측 직후: 2~3명
-180일 후: 1~4명
-360일 후: 0~5명
+[{ id: "TER", share: 0.70 },
+ { id: "LUEN", share: 0.30 }]
 ```
 
-처럼 전략적 불확실성이 커질 수 있다.
+### 3.1 저장 원칙
 
-정확한 확대폭은 source/confidence/기존 추정치와 정보 나이에 따라 달라진다.
+- 0이 아닌 문화 성분만 저장하는 sparse 구조
+- Person 1명당 최대 3개 문화 성분
+- 합계는 항상 1.0으로 정규화
+- 0.5% 미만의 극소 성분은 정리 가능
+- UI용 대표문화는 cultureMix 중 가장 높은 share로 계산
 
----
+`primaryCulture`는 별도 진실값으로 저장하지 않는다. 실제 계산은 항상 `cultureMix`를 사용한다.
 
-## 6. 관측원별 정밀도
-
-기존 E source 체계를 유지하면서 E2 추정오차 모델을 추가한다.
-
-### BATTLE_CONTACT
-
-- 가장 정확한 군사/위치 정보
-- 현재 교전한 Formation에 강함
-- 국가 전체 경제정보에는 제한적
-
-### WAR_CONTACT
-
-- 전쟁 중 비교적 높은 군사/위치 신뢰도
-- 실제 전선 정보에는 강하지만 완전정보는 아님
-
-### BORDER_PATROL
-
-- 국경 인접 군사·Formation 위치에 중상 수준
-- 경제정보에는 약함
-
-### TRADE_NETWORK
-
-- 경제/물류에는 강함
-- 야전군 숫자와 위치에는 약함
-
-### CONTACT_REPORT / PUBLIC_ESTIMATE
-
-- 전략적 존재와 대략적인 규모는 알 수 있으나 군사 숫자의 오차와 범위가 큼
+Person 약 2,000명 기준에서도 문화 데이터는 수천 개의 작은 `(id, share)` 값만 추가되므로 일일 hot loop에 전체 문화 계산을 넣지 않는 한 부담은 작다.
 
 ---
 
-## 7. 성향별 Risk-Weighted Planning
+## 4. 출생과 문화 상속
 
-같은 Intelligence Picture를 모든 AI가 같은 방법으로 해석하지 않는다.
+부모의 문화 구성을 평균하여 신생아의 초기 `cultureMix`를 만든다.
 
-E2는 추정 범위에서 `planning value`를 만든다.
-
-기본 위험가중치는 다음과 같다.
-
-- survival: 상단 방향 **85%**
-- diplomatic: **75%**
-- balanced: **60%**
-- resource_seeker: **48%**
-- expansionist: **35%**
-
-예를 들어 적 야전병력이 `1~5명`, 중심값이 2명이라면:
-
-- 생존안정형은 5명에 가까운 값을 준비 기준으로 사용한다.
-- 균형형은 중상단 값을 사용한다.
-- 영토확장형은 중심값에 더 가까운 값을 사용한다.
-
-이는 전투 보너스가 아니다.
-
-같은 불확실성을 두고 **얼마나 보수적으로 준비할 것인가**만 다르다.
-
----
-
-## 8. D1 War Intent 연결
-
-V0.33D1 War Intent의 전력비 계산은 E2의 `powerPlanning`을 사용한다.
-
-따라서 공격국은 다음을 현재 실제값으로 직접 읽지 않는다.
-
-- 현재 적 field manpower
-- 현재 적 total military manpower
-- 현재 적 eligible population
-- 현재 적 readiness
-
-대신 E2 추정범위에서 성향별 risk-weighted planning 값을 계산해 공격 점수와 estimatedAdvantage에 사용한다.
-
-정보 범위가 지나치게 넓거나 confidence가 극단적으로 낮은 경우에는 uncertainty penalty도 전략평가에 반영된다.
-
----
-
-## 9. D2 전쟁준비 연결
-
-D2의 다음 목표가 E2 planning 값을 사용하도록 변경했다.
-
-### enemyEligible
-
-기존 E1:
+예:
 
 ```text
-estimated eligible 중심값
+아버지 TER 100
+어머니 LUEN 100
+→ 자녀 TER 50 / LUEN 50
 ```
-
-E2:
 
 ```text
-eligiblePlanning
+아버지 TER 100
+어머니 TER 50 / LUEN 50
+→ 자녀 TER 75 / LUEN 25
 ```
 
-### enemyPotential
+부모 중 한 명만 확인 가능한 경우 그 부모의 문화 구성을 그대로 사용한다.
 
-E2의 `totalPlanning` 및 `eligiblePlanning` 기반.
+부모 문화 정보가 전혀 없으면 해당 Nation ID의 founding culture 100%를 사용한다.
 
-### fieldGoal
+### 4.1 장기 동화
 
-E2의 `fieldPlanning` 기반.
+E4에서는 본격적인 assimilation pulse를 추가하지 않는다.
 
-따라서 정보가 불확실한 국가가 무조건 실제 적 병력에 딱 맞는 동원량을 계산하지 않는다.
+따라서 문화 변화의 주된 자연 발생 경로는 현재 단계에서:
 
-보수적인 국가는 과잉 준비할 수 있고, 공격적인 국가는 실제보다 적게 준비할 수 있다.
+- 국가간 실제 Person 이주
+- 서로 다른 문화 Person 사이의 출생
+- 향후 점령/영토 이전 시스템
+
+이다.
+
+장기 거주·교육·행정 중심·혼인·세대교체에 따른 추가 동화는 이후 패치에서 별도로 조정한다.
 
 ---
 
-## 10. Active Reconnaissance V1
+## 5. 국가간 이주와 문화 보존
 
-### 10.1 발동 조건
+기존 `World.socialAndMigration()`의 실제 Person 국가간 이주는 그대로 유지한다.
 
-활성 War Intent가 있을 때 다음 중 하나면 능동 정찰을 검토한다.
-
-- 군사 confidence < 55%
-- 마지막 정보가 150일 이상 경과
-- 야전병력 추정 범위 폭이 3명 이상
-
-검토 cadence는 기본 **90 calendar days**이다.
-
-### 10.2 정찰 경로
-
-#### BORDER_RECON
-
-상대와 직접 국경을 접하는 경우.
-
-- military confidence 약 82%
-- position confidence 약 90%
-
-#### WATCHTOWER_RECON
-
-직접국경이 아니더라도 WATCHTOWERS 기술과 기존 접촉망이 있을 경우.
-
-- military confidence 약 72%
-- position confidence 약 78%
-
-#### NETWORK_RECON
-
-고급 접촉망 또는 실질적인 교역관계가 있을 경우.
-
-- military confidence 약 58%
-- 경제정보는 다른 정찰보다 상대적으로 강함
-
-### 10.3 접근 실패
-
-유효한 정찰 경로가 없으면:
+Person이 다른 Nation으로 이동해도:
 
 ```text
-RECON_MISSION33E2
-result = FAILED
-reason = NO_RECON_ACCESS
+cultureMix
+familyName
+givenName
 ```
 
-만 남기고 정보를 자동 생성하지 않는다.
+은 변경하지 않는다.
 
-### 10.4 Person 정책
+즉 예를 들어 테르 100% Person이 식량난을 피해 루엔 중심 국가로 이주하면 그 Person은 **루엔 국가에 거주하는 테르 문화 Person**이 된다.
 
-E2 RECON은 아직 별도 Spy/Scout Person을 만들지 않는다.
-
-기존 국경망·파수망·교역/접촉 네트워크를 이용하는 저빈도 국가 행동이다.
-
-이는 후속 정보전 버전에서 실제 정찰 Person/조직을 도입할 수 있는 기반이다.
+이 구조가 이후 혼합 Settlement와 혼합 자녀의 기반이 된다.
 
 ---
 
-## 11. 너무 불확실한 War Intent
+## 6. 수도 문화 프로필
 
-정보가 극단적으로 불확실한 경우:
+Nation에 고정된 `nationalCultureId`를 두지 않는다.
 
-- 군사 confidence < 30%
-- 또는 야전병력 범위 폭 >= 6
+대신 수도(`coreTileId`)에 실제 거주하는 살아있는 Person들의 cultureMix를 평균하여 **Capital Culture Profile**을 계산한다.
 
-그리고 War Intent 생성 후 360일 이내라면 초기 ASSESSING 단계에서 바로 전쟁 준비로 넘어가지 않고 `RECON_REQUIRED` 상태를 유지할 수 있다.
-
-정찰 접근 자체가 없는 국가가 영원히 멈추는 것을 방지하기 위해 360일 이후에는 불확실한 정보 자체를 위험으로 받아들이고 기존 전략판단을 계속할 수 있다.
-
----
-
-## 12. Declaration Intelligence Snapshot
-
-AI가 실제 선전포고에 성공하면 그 순간 공격국이 보유한 Intelligence Picture를 전쟁 객체에 저장한다.
-
-저장 필드 예시:
-
-- source
-- intel age
-- military confidence
-- risk weight
-- field center
-- field min/max
-- field planning
-- actual field — debug only
-- eligible center/min/max
-- eligible planning
-- actual eligible — debug only
-- field error
-- planning field error
-- range contains actual 여부
-
-이 정보는 다음 이벤트에도 남는다.
+예:
 
 ```text
-DECLARATION_INTEL_SNAPSHOT33E2
+TER   0.68
+LUEN  0.24
+SERIA 0.08
 ```
 
-목적은 전쟁이 끝난 뒤 다음 질문에 답하기 위한 것이다.
+UI에서는:
 
 ```text
-이 국가는 실제보다 적을 얼마나 과소/과대평가했는가?
-그 오판을 포함한 상태에서 왜 전쟁을 시작했는가?
-그 전쟁은 결과적으로 성공했는가?
+수도 주류문화: 테르 68%
 ```
 
-`actual` 값은 사후 분석용 telemetry이며 AI 전략판단에는 입력되지 않는다.
+처럼 요약하지만 실제 산출 패널티 계산은 전체 profile을 사용한다.
+
+수도에 일시적으로 주민이 0명이라면 Nation 전체 실제 주민 문화 프로필을 fallback으로 사용한다.
+
+Capital profile은 일일/주민 epoch 기준으로 cache하여 Person 생산 hot path에서 수도 주민 전체를 반복 스캔하지 않는다.
 
 ---
 
-## 13. Observer Effect 제거
+## 7. Nation / Settlement 문화 집계
 
-V0.33E 코드에는 다음 두 경로가 정보 query를 하면서 관측주기가 도래한 경우 observation refresh를 발생시킬 가능성이 있었다.
+### Nation 문화
 
-- 군사정보 UI 렌더링
-- telemetry snapshot diagnostic
+Nation의 문화 구성은 해당 Nation에 현재 거주하는 실제 살아있는 Person들의 cultureMix를 평균한다.
 
-E2에서는 이 경로를 read-only로 변경했다.
+### Settlement 문화
 
-따라서:
+Settlement 문화는 해당 `homeTileId`에 거주하는 실제 Person들의 cultureMix를 평균한다.
 
-- 군사 탭 열기
-- 통계 탭 열기
-- UI render
-- CSV snapshot
-- devlog snapshot
-
-자체가 세계의 Intelligence 상태를 변경하지 않는다.
-
-정보 갱신은 실제 simulation observation cadence 또는 RECON을 통해서만 발생한다.
-
----
-
-## 14. Tactical Intelligence Boundary 강화
-
-E1까지는 Formation 위치는 last-seen을 사용했지만, 일부 전술 전력 계산에서 proxy Formation의 cohort id를 통해 현재 살아 있는 적 Person 수를 다시 읽을 수 있는 우회가 남아 있었다.
-
-E2는 적 Formation 조회를 `v33e2IntelProxy`로 변환한다.
-
-전술 AI는 이 proxy에서:
-
-- last-seen tile
-- estimated manpower
-- risk-weighted manpower
-- estimated combat power
-
-를 사용한다.
-
-`fieldPowerD()`는 E2 proxy에 대해서는 current enemy cohort roster를 다시 계산하지 않는다.
-
-따라서 전략정보 경계가 전술 assignment/INTERCEPT/SCREEN 판단에도 한 단계 더 일관되게 적용된다.
-
----
-
-## 15. UI
-
-군사 탭 Intelligence panel은 다음 형식으로 표시한다.
+예:
 
 ```text
-적 야전 중심 2
-범위 0~4
-전략 판단값 3
-군사 신뢰 52%
-180일 전
-BORDER_PATROL
-RECON SUCCESS / FAILED / 대기
+Settlement #145
+LUEN 52%
+TER 31%
+SERIA 17%
 ```
 
-UI 조회 자체는 정보갱신을 일으키지 않는다.
+Settlement나 Nation에 별도의 고정 문화값을 저장하지 않는다.
 
-D2 패널의 기존 `Intel 100%` 표현도 제거하고 E2 추정범위 모델로 교체했다.
-
----
-
-## 16. CSV Telemetry 추가
-
-### World/global
-
-- `intelMeanFieldRangeWidth33E2`
-- `reconAttempts33E2`
-- `reconSuccesses33E2`
-- `reconFailures33E2`
-- `declarationIntelSnapshots33E2`
-- `declarationRangeMisses33E2`
-- `declarationMeanAbsFieldError33E2`
-- `materialFieldMisreads33E2`
-- `observerEffectQueriesBlocked33E2`
-
-`materialFieldMisreads33E2`는 개전 중심 추정치가 실제 야전병력과 2명 이상 차이난 개전의 누적 건수이다.
-
-### Nation/current War Intent
-
-- `warIntentFieldCenter33E2`
-- `warIntentFieldMin33E2`
-- `warIntentFieldMax33E2`
-- `warIntentFieldPlanning33E2`
-- `warIntentActualField33E2`
-- `warIntentFieldError33E2`
-- `warIntentFieldRangeContainsActual33E2`
-- `warIntentRiskWeight33E2`
-- `warIntentIntelAgeDays33E2`
-- `warIntentIntelSource33E2`
-- `warIntentIntelConfidence33E2`
-
-actual 계열은 debug/observer telemetry일 뿐 AI 입력이 아니다.
+따라서 Person이 이동하거나 출생/사망하면 문화 지도와 통계가 실제 인구구성에 따라 자연스럽게 달라진다.
 
 ---
 
-## 17. Save / Migration
+## 8. 수도 문화 정렬도
 
-세이브 버전:
+Person 문화와 수도 문화의 정렬은 각 문화별 겹치는 비율의 합으로 계산한다.
+
+개념식:
 
 ```text
-0.33E2F
+alignment = Σ min(person[culture], capital[culture])
 ```
+
+범위는 0~1이다.
+
+예를 들어 수도가 TER 100%라면:
+
+| Person cultureMix | Alignment |
+|---|---:|
+| TER 100 | 1.00 |
+| TER 70 / LUEN 30 | 0.70 |
+| TER 30 / LUEN 70 | 0.30 |
+| LUEN 100 | 0.00 |
+
+수도가 TER 70 / LUEN 30이고 Person도 TER 70 / LUEN 30이라면 정렬도는 1.00이다.
+
+---
+
+## 9. 문화 산출 패널티 V1
+
+V1 최대 문화 마찰은 **8%**다.
+
+개념식:
+
+```text
+outputMultiplier = 1 - 0.08 × (1 - alignment)
+```
+
+따라서 수도가 TER 100%일 때:
+
+| Person | 배율 | 패널티 |
+|---|---:|---:|
+| TER 100 | 1.000 | 0% |
+| TER 70 / LUEN 30 | 0.976 | -2.4% |
+| TER 30 / LUEN 70 | 0.944 | -5.6% |
+| LUEN 100 | 0.920 | -8.0% |
+
+### 9.1 E4에서 적용되는 생산
+
+실제 Person 행동에서 다음 산출에 적용한다.
+
+- 식량 채취/생산
+- 목재 채취
+- 석재 채취
+- Gold 자연 채취
+- 철광석 채굴
+- 제련소 철 생산
+- 대장간 도구 생산
+
+### 9.2 E4에서 적용하지 않는 항목
+
+- 전투력
+- Commander 능력
+- 건강
+- Hunger
+- 출산율
+- 사망률
+- Happiness
+- 문화별 기술 보너스
+- 일반 건설 노동량
+- 시장 가격 자체
+
+즉 이 수치는 문화의 우열을 뜻하지 않고 **수도 중심 언어·행정·제도와의 사회적 마찰**을 표현하는 작은 경제 조정치다.
+
+향후 행정제도·자치·교육 등이 이 마찰을 완화할 수 있도록 확장할 수 있다.
+
+---
+
+## 10. 이름 시스템 V2 — 문화별 이름풀
+
+기존 단일 공용 이름풀을 E4 문화 기반 이름 registry로 교체한다.
+
+현재 registry 규모:
+
+- **가문명 103개**
+- **개인명 241개**
+- 최대 길이: 가문명 5글자 / 개인명 5글자
+
+문화별로 core 이름군과 shared 이름군을 가지며, 개인명에는 범문화권 common 이름군도 존재한다.
+
+### 10.1 개인명 생성 비율
+
+초기 목표:
+
+```text
+문화 core 이름 약 70%
+문화간 shared 이름 약 20%
+범문화 common 이름 약 10%
+```
+
+혼합 Person의 경우 먼저 cultureMix 비율로 이름의 source culture를 선택한 뒤 해당 문화 이름풀에서 개인명을 선택한다.
+
+예:
+
+```text
+TER 70 / LUEN 30 Person
+→ source culture 선택 확률 TER 70%, LUEN 30%
+→ 선택된 source culture의 이름풀 사용
+```
+
+### 10.2 가문명 생성
+
+가문명은 개인명보다 문화 지속성이 강하다.
+
+신규 founder/초기 Person처럼 새 가문이 필요한 경우:
+
+```text
+문화 core 가문 약 85%
+문화간 shared 가문 약 15%
+```
+
+을 사용한다.
+
+출생자는 기존 규칙대로 부모의 가문명을 상속하며 cultureMix가 변해도 가문명을 자동 변경하지 않는다.
+
+---
+
+## 11. 이름 길이 다양화
+
+기존 이름 시스템은 대부분 2글자여서 Person 이름의 시각적 패턴이 지나치게 비슷했다.
+
+E4는 가문명·개인명 모두 **1~5글자**를 허용한다.
+
+실제 이름 registry에는 특히 3~5글자 이름을 대폭 추가했다.
+
+예시 유형:
+
+```text
+테르: 테린 / 카르온 / 테르하리온
+루엔: 루에나 / 라오렌 / 루미에리안
+세리아: 시엘라 / 세라니엘 / 아르세리안
+카르엔: 카엘라 / 카르베온 / 브렌카리안
+노레아: 네리안 / 노레아나 / 네르하리온
+마엘라: 에리아나 / 아마리엘 / 마엘라리온
+```
+
+가문명도 1~5글자로 다양화되어 기존의 고정적인 `2글자 가문 + 2글자 이름` 패턴이 완화된다.
+
+테스트용 2,400명 이름 생성에서 실제로 1~5글자 모든 길이가 출현했으며, 4~5글자 이름도 충분히 등장했다.
+
+---
+
+## 12. 국가명 가문 예약어
+
+신규 familyName 생성에서 다음 문자열은 사용할 수 없다.
+
+```text
+키오
+델마
+벨른
+라엔
+티아
+에브
+```
+
+따라서 신규 E4 세계에서는 `에브 ○○`, `라엔 ○○`, `벨른 ○○` 같은 국가명-가문 혼동이 신규로 발생하지 않는다.
+
+단, E3 이전 세이브에 이미 존재하던 국가명 가문은 소급 변경하지 않는다.
+
+기존 Person 이름과 가문 역사는 보존하며 해당 가문의 자손도 기존 가문명을 정상 상속한다.
+
+---
+
+## 13. Culture Map Layer
+
+지도 레이어에 **문화 지도**를 추가한다.
+
+표현 원칙:
+
+- 거주 Person이 있는 Settlement만 실제 문화색 overlay
+- 색상은 해당 Settlement의 dominant culture
+- dominant share가 높을수록 문화색이 강함
+- 혼합도가 높을수록 색이 흐려짐
+- 기존 국가 국경과 기본 지형은 base map에서 유지
+
+기초문화 색은 Culture registry에 저장된다.
+
+문화 지도는 이후 영토 할양이 도입되면 **정치 국경과 문화 경계가 서로 다른 모습**을 직접 관찰하는 용도로 사용한다.
+
+---
+
+## 14. UI
+
+### Nation 사회 / 주민 화면
+
+문화 패널에서 다음을 표시한다.
+
+- 수도 문화 구성
+- 전국 문화 구성
+- 평균 수도문화 정렬도
+- 평균 문화 산출 패널티
+- 혼합문화 Person 수/비율
+
+### Person 주민 목록
+
+각 Person에:
+
+```text
+문화 TER 70% · LUEN 30%
+수도 정렬 70%
+```
+
+형식의 정보를 추가한다.
+
+### Settlement 카드
+
+거주민이 있는 Settlement에는 dominant culture와 상위 문화 구성을 표시한다.
+
+### Tile Inspector
+
+선택 타일에 실제 주민이 있으면 타일 문화 프로필을 표시한다.
+
+---
+
+## 15. E3 → E4 migration
+
+E3 저장 데이터에는 cultureMix가 없으므로 E4 load 시 현재 Nation ID의 founding culture 100%를 부여한다.
+
+```text
+Nation 0 / 키오 프리셋 → LUEN 100
+Nation 1 / 델마 프리셋 → TER 100
+Nation 2 / 벨른 프리셋 → KAREN 100
+Nation 3 / 라엔 프리셋 → SERIA 100
+Nation 4 / 티아 프리셋 → MAELA 100
+Nation 5 / 에브 프리셋 → NOREA 100
+```
+
+주의:
+
+- 기존 Person 이름은 변경하지 않는다.
+- 기존 국가명 가문도 변경하지 않는다.
+- 기존 Person/군사/경제/전쟁 상태를 유지한다.
+- migration 이후 새로 태어나는 Person부터 E4 문화 상속과 문화 이름 규칙이 적용된다.
+
+신규 E4 save version은 `0.33E4`다.
 
 localStorage key:
 
 ```text
-village-observer-v0-33e2f
+village-observer-v0-33e4
 ```
 
-fallback:
-
-- 0.33E2
-- 0.33E1
-- 0.33EF
-- 0.33E
-- 0.33D2A
-
-E1 세이브를 불러오면:
-
-1. E1의 32-tech/Commander 상태를 그대로 복원
-2. 기존 E Intelligence record 유지
-3. 기존 observation-time truth/debug 데이터를 기준으로 E2 estimate cache 생성
-4. 현재 정보를 즉시 최신 truth로 덮어쓰지 않음
-5. 이후 passive observation 또는 RECON 시 E2 observation으로 갱신
+fallback load 순서에는 E3/E2F/E2/E1/EF/E 저장 키를 유지한다.
 
 ---
 
-## 18. 이번 버전에서 의도적으로 하지 않은 것
+## 16. Snapshot / CSV Telemetry
 
-E2는 다음을 포함하지 않는다.
+### World
 
-- Spy Person
-- 정찰 전담 직업
-- 첩보기관
-- 정보 조작 / 허위정보
-- 기만작전
-- player-facing map Fog of War
-- 알려지지 않은 영토/국경 자체의 은폐
-- 직접적인 정보 우위 전투력 버프
-- Coalition exhaustion 재설계
-- 전쟁목표 / 영토 할양 / 배상
-- 전쟁 gate 35년 변경
+추가 필드:
+
+```text
+cultureCount33E4
+derivedCultureCount33E4
+mixedCulturePersons33E4
+mixedCultureShare33E4
+meanCultureAlignment33E4
+cultureOutputPenaltyAvg33E4
+cultureMapLayer33E4
+cultureNameRegistryFamilies33E4
+cultureNameRegistryGiven33E4
+```
+
+### Nation
+
+추가 필드:
+
+```text
+capitalPrimaryCulture33E4
+capitalPrimaryCultureShare33E4
+nationPrimaryCulture33E4
+nationPrimaryCultureShare33E4
+mixedCulturePersons33E4
+mixedCultureShare33E4
+meanCapitalCultureAlignment33E4
+cultureOutputPenaltyAvg33E4
+```
+
+문화 전체 분포는 save/UI에서 보존하고 CSV에는 분석에 필요한 요약지표 위주로 기록해 열 폭증을 제한한다.
 
 ---
 
-## 19. 구현 검증
+## 17. 평화 세계 진단용 War Intent observer
 
-### 정적 검사
+이전 E3 자연주행은 77년까지 전쟁이 한 번도 발생하지 않았으며 War Intent도 생성되지 않아, 사후 데이터만으로는 각 국가의 최고 공격 후보가 threshold 바로 아래였는지 다른 gate에 막혔는지를 정확히 보기 어려웠다.
 
-- inline `<script>`: **89개**
-- `node --check`: **89/89 통과**
-- syntax failure: **0**
+E4는 snapshot 시점에만 **observer-only top candidate scan**을 추가한다.
 
-### E2F renderer ownership regression 검사
-
-정적/구조 검사에서 다음을 확인했다.
+Nation CSV 필드:
 
 ```text
-legacy renderIntelE: E2 활성 시 즉시 return
-legacy E renderVillageContent: E2 활성 시 renderIntelE 호출 안 함
-legacy E render: E2 활성 시 renderIntelE 호출 안 함
-D2 STANDBY runtime text: Intelligence E2 추정범위 사용
-D2 active runtime text: Intelligence E2 추정범위 기반
-version badge/title: V0.33E2F
+warScanTopTarget33E4
+warScanTopScore33E4
+warScanReason33E4
 ```
 
-E2의 시뮬레이션 로직은 변경하지 않았으므로 기존 E2 range/recon/D2 integration 검증 기준을 그대로 유지한다.
-
-### Intelligence range
-
-테스트 observation 예시:
+가능한 대표 reason:
 
 ```text
-center 1
-range 0~4
-planning 4
-confidence 40%
-source CONTACT_REPORT
+YEAR_GATE
+TOP_SCORE_BELOW_68
+INTENT_ACTIVE
+AT_WAR
+NO_INTENT_GATE_OR_REVIEW_TIMING
+NO_ASSESSMENT
 ```
 
-이는 smoke seed의 예시이며 고정 밸런스값이 아니다.
+이 관측은 E2 `rawAssessment`를 사용한 뒤:
 
-### Observer-effect regression
+- E2 estimate cache 복원
+- `rangeAssessments` counter 복원
+- D1 `intelAssessments` counter 복원
 
-동일 관측에 대해:
-
-```text
-observedCal before UI render/snapshot = 1
-observedCal after UI render/snapshot  = 1
-```
-
-즉 UI/telemetry read가 observation을 갱신하지 않음을 확인했다.
-
-### Active RECON
-
-synthetic test contact 환경에서:
-
-```text
-attempted = true
-success = true
-source = NETWORK_RECON
-```
-
-### D2 integration
-
-테스트에서:
-
-```text
-E2 eligiblePlanning = 16
-D2 goals.enemyEligible = 16
-```
-
-으로 동일함을 확인했다.
-
-### Declaration snapshot
-
-테스트 war object에 개전 Intelligence snapshot 저장 및 rangeContainsActual 계산을 확인했다.
-
-### CSV
-
-- schema validator: **OK**
-- 테스트 기준 총 column: **888**
-- E2 global/nation columns 존재 확인
-
-### Save / Load
-
-```text
-save version = 0.33E2F
-load version = 0.33E2F
-v33e2 restored = true
-```
-
-### E1 migration
-
-0.33E1 형태의 save payload에서:
-
-```text
-loaded version = 0.33E2F
-v33e1 retained = true
-v33e2 created = true
-tech count = 32
-Knowledge multiplier = 1.00
-```
-
-확인 완료.
-
-### E2 migration
-
-0.33E2 save payload는 E2F에서 직접 로드되며 `v33e2` 추정치·RECON 상태·개전 정보 snapshot을 그대로 유지한다. E2F는 UI ownership hotfix이므로 Intelligence state migration이나 재계산을 수행하지 않는다.
+을 수행하므로 AI War Intent 결정 상태를 변경하지 않는 snapshot-only 진단이다.
 
 ---
 
-## 20. 자연주행 검증 포인트
+## 18. E3 Formation Concentration 유지
 
-E2 자연주행에서는 전쟁 수 자체보다 아래 항목이 중요하다.
+E4는 E3의 다음 로직을 변경하지 않는다.
 
-### A. 정보가 실제로 틀리는가
+- `CONCENTRATE`
+- `RENDEZVOUS`
+- `JOINT_ADVANCE`
+- 수도 긴급상황 집결 bypass
+- Formation 객체 별도 유지
+- Commander 별 UI
+- 군사 탭 renderer ownership
 
-- `warIntentFieldError33E2`
-- `declarationMeanAbsFieldError33E2`
-- `materialFieldMisreads33E2`
+또한 다음 E3 telemetry를 그대로 유지한다.
 
-E1처럼 거의 모든 추정이 정확하면 E2 tuning이 부족한 것이다.
+```text
+activeConcentrationGroups33E3
+concentrationStarts33E3
+rendezvousReached33E3
+jointAdvances33E3
+jointEngagements33E3
+concentrationCancels33E3
+piecemealPrevented33E3
+concentrationEmergencyBypasses33E3
+```
 
-### B. 범위가 의미 있게 존재하는가
-
-- `intelMeanFieldRangeWidth33E2`
-- `warIntentFieldMin33E2`
-- `warIntentFieldMax33E2`
-
-### C. 실제값이 범위 안에 얼마나 들어오는가
-
-- `warIntentFieldRangeContainsActual33E2`
-- `declarationRangeMisses33E2`
-
-범위가 무조건 actual을 포함하면 너무 안전한 정보시스템이고, 지나치게 자주 벗어나면 신뢰할 수 없는 정보시스템이다.
-
-### D. RECON이 의미 있는가
-
-- attempts
-- successes
-- failures
-- source
-- RECON 전후 confidence/range 변화
-
-### E. 오판이 전쟁을 바꾸는가
-
-각 `DECLARATION_INTEL_SNAPSHOT33E2`와 해당 `WAR_ENDED33`를 연결해 다음을 본다.
-
-- 과소평가 후 패전
-- 과대평가 때문에 지나친 준비
-- 공격적인 AI의 위험감수
-- 보수적인 AI의 과잉동원
-
-이 단계가 확인되면 E2의 목적은 달성된 것이다.
+E3 자연주행이 평화로워 이 값들이 모두 0이었으므로 E4 자연주행에서 전쟁이 발생하면 문화와 함께 재검증한다.
 
 ---
 
-## 21. 다음 단계 후보
+## 19. 성능 정책
 
-E2 자연주행이 안정적이면 다음 후보는 별도로 결정한다.
+E4 문화 시스템은 Person daily hot loop에 전체 문화 population scan을 넣지 않는다.
 
-### V0.33E2A 후보
+주요 정책:
 
-- Coalition exhaustion 재설계
-- 늦은 참전국의 낮은 피로도가 coalition 평균을 과도하게 희석하는 문제 보정
+- Person은 최대 3개 culture component만 보유
+- 수도 문화 프로필은 calendar day / resident epoch 기준 cache
+- Settlement/Nation 전체 집계는 UI 또는 snapshot 중심
+- Culture map은 해당 레이어가 실제 선택됐을 때만 전체 Person을 한 번 집계
+- 생산 시 alignment는 cache된 수도 profile과 1~3개 Person component만 비교
+- 자동 융합문화 탐색은 없음
+- 일일 assimilation scan 없음
 
-### V0.33F 후보
+따라서 Person 2,000명 목표에서도 문화 비율 자체의 추가 연산비는 제한적이다.
 
-- War Goal V2
-- 제한전쟁 / 영토전쟁
-- 종전 협상
-- 일부 영토 이전
-- 배상 또는 완충지대
+---
 
-E2에서는 이 두 영역을 의도적으로 변경하지 않아 정보시스템 변화의 효과를 독립적으로 검증한다.
+## 20. 구현 검증
+
+### 정적 검증
+
+- inline script 수: **91**
+- `node --check`: **91 / 91 통과**
+
+### 브라우저 smoke
+
+Headless Chromium에서 확인:
+
+```text
+Version badge = V0.33E4
+document.title = Village Observer V0.33E4
+Culture registry = 6
+모든 초기 Person cultureMix 존재 = PASS
+신규 국가명 familyName 생성 = 0
+Culture map option = PASS
+E3 Formation Concentration namespace 유지 = PASS
+12일 simulation advance = page error 0
+```
+
+### 이름 registry
+
+```text
+Family names = 103
+Given names = 241
+Max family length = 5
+Max given length = 5
+```
+
+2,400명 임시 생성 smoke에서 1~5글자 이름이 모두 발생했고 예약 국가명 가문은 0건이었다.
+
+### 문화 상속 회귀
+
+```text
+TER 100 parent + LUEN 100 parent
+→ baby TER 50 / LUEN 50
+```
+
+PASS.
+
+### 산출 패널티 회귀
+
+수도 TER 100 기준:
+
+```text
+LUEN 100 → multiplier 0.920
+TER 70 / LUEN 30 → multiplier 0.976
+```
+
+PASS.
+
+### Save / migration
+
+- E4 serialize → `0.33E4`
+- E4 round-trip load → cultureMix 유지
+- E3 payload에서 cultureMix 제거 후 load → Nation founding culture 100% migration
+- CSV schema validation → **919 columns / mismatch 0**
+
+PASS.
+
+---
+
+## 21. E4 자연주행 검증 포인트
+
+다음 자연주행에서는 아래를 중점적으로 본다.
+
+### Culture
+
+- 국가간 실제 Person 이주가 발생하는가
+- 이주자의 cultureMix가 그대로 유지되는가
+- 혼합문화 Person이 자연적으로 발생하는가
+- 부모 평균 상속이 장기간 정상 작동하는가
+- 수도 문화와 전국 문화가 실제로 분화되는 국가가 생기는가
+- 문화 output penalty 평균이 과도하게 커지지 않는가
+- Culture map이 실제 Person 구성과 일치하는가
+
+### Name
+
+- 2글자 편중이 체감상 해소됐는가
+- 3~5글자 이름이 자연스럽게 섞이는가
+- 문화별 이름 분위기가 구분되면서도 지나치게 기계적이지 않은가
+- 공유 이름이 문화간 연속성을 만들어주는가
+- 국가명 가문 신규 생성이 0으로 유지되는가
+
+### E3 military
+
+- 전쟁이 발생하면 Concentration 시작 사례가 있는가
+- `RENDEZVOUS → JOINT_ADVANCE`가 실제로 이어지는가
+- 축차투입을 줄이는가
+- 수도 긴급방어를 부당하게 지연시키지 않는가
+
+### Peace-world diagnostics
+
+- 전쟁이 또 없더라도 `warScanTopScore33E4`로 각 Nation의 최고 후보 점수를 확인
+- `TOP_SCORE_BELOW_68`과 실제 gate 문제를 구분
+- E2 불완전 정보가 War Intent score에 미치는 경향 관찰
+
+---
+
+## 22. E4에서 의도적으로 미구현
+
+다음은 E4 범위 밖이다.
+
+- 자동 융합문화 생성
+- 문화 분열/소멸
+- 강제동화 정책
+- 문화별 군사/경제 고유 보너스
+- 문화 반란
+- 민족국가 개념
+- 종교
+- 언어
+- 점령지역 자치
+- 영구 영토 할양
+- War Goal / Peace Settlement V2
+
+이들은 E4 문화 기반을 자연주행으로 검증한 뒤 순차적으로 연결한다.
+
+---
+
+## 23. 이후 로드맵
+
+E4 자연주행이 안정적이면 기본 흐름은 다음과 같다.
+
+### V0.33E4A/B — 필요 시
+
+문화 output penalty, 이름 분포, 문화 UI/지도, 문화 상속에 대한 Adjustment/Balance.
+
+E3 Concentration에서 문제가 재현되면 같은 자연주행 데이터를 근거로 E3 계열 조정도 함께 검토한다.
+
+### V0.33F — War Goal & Peace Settlement V2
+
+- 제한전쟁 / 영토전쟁 목적
+- 영구 영토 이전
+- 종전 합의
+- 일부 점령지 귀속
+- 정복된 Settlement의 기존 Person과 cultureMix 보존
+- 새 수도 문화와 피정복 지역 문화의 alignment에 따른 실제 사회·경제 마찰
+
+E4 이후에는 영토가 넘어갈 때 단순히 `ownerId`만 바뀌는 것이 아니라, **실제 주민·가문·문화가 존재하는 지역이 다른 정치체제에 편입되는 구조**를 만들 수 있다.
