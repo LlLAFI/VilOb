@@ -1,3 +1,721 @@
+# Village Observer V0.33F
+## War Goal & Peace Settlement V2
+
+기준 버전: **V0.33E5F2 — Military Observer Polish**  
+릴리스 성격: **Major Warfare / 영구 국경 변화·평화협정·전쟁배상 도입**  
+작성일: 2026-10-01
+
+---
+
+## 0.33F 패치 목적
+
+V0.33~E5F2까지의 전쟁은 선전포고, Formation 이동, 실제 Person 전투·사상, 지속 Engagement, 후퇴·재편, 임시점령과 Occupation Operations까지 물리적으로 수행했지만, 종전 시 모든 `v33OccupierId`가 제거되어 국경은 전쟁 전 상태로 되돌아갔다.
+
+V0.33F는 이 마지막 단계를 확장한다.
+
+```text
+War Intent / Preparation
+        ↓
+   전쟁목표 생성
+        ↓
+전투 · 점령 · 수도 압박
+        ↓
+  Peace Leverage 산정
+        ↓
+     평화협정
+ ┌────────┬───────────┬──────────────┬────────────────┐
+ │ 백지평화 │ Gold-only │ Territory-only │ Territory + Gold │
+ └────────┴───────────┴──────────────┴────────────────┘
+        ↓
+영구 ownerId 변경 / Gold 보존 이전 / 정복지 사회 연속성
+```
+
+핵심 원칙은 **점령과 영토소유를 끝까지 분리**하는 것이다.
+
+- 전쟁 중 `v33OccupierId` = 임시 군사통제
+- 평화협정의 영구 할양 = `ownerId` 변경
+- SECURING 단계에서는 영구 국경이 바뀌지 않는다.
+- 전쟁 중 깊게 점령한 모든 타일을 자동으로 합병하지 않는다.
+- 수도 점령은 강한 협상력을 주지만 Limited War V1에서는 수도 자체를 영구 양도하지 않는다.
+
+---
+
+# 1. War Goal V1
+
+## 1.1 생성 시점
+
+새 독립전쟁이 `NS.V033D.declareWar()`를 통해 생성되면 즉시 `war.warGoal33F`를 붙인다.
+
+기존 세이브에서 이미 진행 중인 전쟁을 F로 불러온 경우에도 `attachWorld()`가 목표가 없는 활성전쟁을 감지하여 한 번만 생성한다.
+
+Telemetry:
+
+```text
+WAR_GOAL_CREATED33F
+```
+
+## 1.2 제한 영토전쟁 목표
+
+기본 목표는 공격국 영토와 직접 맞닿은 방어국의 **비수도 국경 타일**이다.
+
+후보 타일은 다음 안전 조건을 만족해야 한다.
+
+1. 방어국 소유 타일일 것
+2. 방어국 수도가 아닐 것
+3. 공격국의 현재 영토와 4방향으로 인접할 것
+4. 해당 타일을 제거해도 방어국의 기존 영토 연결 구성요소 수가 늘어나지 않을 것
+
+4번은 섬·기존 월경지처럼 원래부터 분리된 영토를 강제로 하나의 덩어리로 만들지는 않는다. 대신 **이번 할양 때문에 새 단절이 추가되는 것**만 막는다.
+
+후보의 전략가치는 현재 다음 요소를 사용한다.
+
+```text
+기본값                    5
++ 거주인구 × 1.15
++ 주요 건물별 전략가치
++ 개발공간 × 0.12
++ 도로 존재 시 +2
+```
+
+시장·행정·항구·병영·훈련장·무기고·철산업 시설 등은 일반 건물보다 높은 가치를 갖는다.
+
+공격국 인구에 따라 목표 규모는 1~3타일이다.
+
+```text
+기본                  1타일
+공격국 인구 ≥ 90      +1
+공격국 인구 ≥ 220     +1
+최대                  3타일
+```
+
+첫 목표를 잡은 뒤에는 그 목표와 인접한 후보만 연속적으로 추가하여 **연결된 목표 군집**을 만든다.
+
+안전한 영토 목표가 전혀 없다면 전쟁은 다음으로 생성된다.
+
+```text
+LIMITED_PRESSURE
+```
+
+이 경우 영토 강탈을 억지로 만들지 않고 Gold 또는 협상 우위를 중심으로 종전할 수 있다.
+
+---
+
+# 2. Peace Leverage
+
+Peace Leverage는 **전투력 공식이 아니다.**
+
+Formation의 전투력, 사상률, Engagement 승패 계산은 E5F2와 동일하다. F는 전쟁이 끝난 시점에 “이 전쟁에서 어느 쪽이 무엇을 요구할 수 있는가”를 판단할 때만 별도의 협상력을 사용한다.
+
+각 진영의 기본 Leverage는 다음 요소를 합산한다.
+
+```text
+적 영토 임시점령             +4 / 타일
+적 수도 임시점령             +18 / 수도
+전투 승수 - 패수              × 3.5
+잔존 현역 비율 우세          log 비율 × 7, -10~+10 제한
+상대 평균 전쟁피로 - 자국 피로 × 0.22
+자국 전사자                  -0.45 / 명
+자국 부상자                  -0.12 / 명
+```
+
+War Goal의 claimant 진영에는 별도 목적 달성 보너스가 붙는다.
+
+```text
+목표 타일 확보               +14 / 타일
+모든 목표 확보               추가 +8
+미확보 목표                  방어측 +2 / 타일
+```
+
+최종적으로:
+
+```text
+margin = |Leverage A - Leverage B|
+```
+
+을 사용한다.
+
+## 2.1 승자 판정과 기존 전쟁 결과의 관계
+
+기존 D 전쟁 시스템이 이미 `winnerSide`를 확정한 경우 그 결과를 **F가 뒤집지 않는다.**
+
+기존 종전이 교착으로 `winnerSide = null`인 경우에만 F가 Peace Leverage를 보조 판정으로 사용한다.
+
+```text
+margin < 8      → 승자 없음 / 백지평화 가능
+margin ≥ 8      → Leverage 우세 진영을 협상 승자로 인정
+```
+
+F가 새로 협상 승자를 확정한 경우 기존 `v33WarStats.warsWon / warsLost`에도 동일하게 반영하여 전쟁사와 F 통계가 갈라지지 않게 한다.
+
+---
+
+# 3. Peace Settlement V2
+
+종전 직전의 점령상태는 `war.v33fLastControl`에 보존한다.
+
+이는 기존 `endWarD()`가 `WAR_ENDED33` 로그를 남기기 전에 임시점령을 먼저 해제하기 때문이다. F는 마지막 물리적 점령 스냅샷을 이용해 평화조건을 계산한 뒤, legacy peace가 반환한 타일 중 실제 할양 대상만 다시 영구 소유권으로 전환한다.
+
+평화협정 객체:
+
+```text
+war.peaceSettlement33F
+```
+
+지원 결과는 네 종류다.
+
+```text
+WHITE_PEACE
+GOLD_ONLY
+TERRITORY_ONLY
+TERRITORY_GOLD
+```
+
+Telemetry:
+
+```text
+PEACE_SETTLEMENT33F
+```
+
+## 3.1 협상 강도 구간
+
+기본 구간은 다음과 같다.
+
+```text
+승자 없음               WHITE_PEACE
+margin < 20             GOLD_ONLY tier
+20 ≤ margin < 38        LIMITED tier
+margin ≥ 38             DECISIVE tier
+```
+
+LIMITED는 최대 1타일, DECISIVE는 최대 3타일을 검토한다.
+
+실제 결과는 패전국의 영토 연결성과 승전국 국경 연결성, 협상 예산, 실제 Gold 지급 가능액에 따라 더 작아질 수 있다.
+
+예를 들어 Gold-only tier라도 패전국이 실제 지급 가능한 공공 Gold가 전혀 없다면 최종 outcome은 `WHITE_PEACE`가 될 수 있다.
+
+---
+
+# 4. 영구 영토 할양
+
+## 4.1 할양 후보
+
+공격측이 승리한 경우 우선순위는 **실제로 점령한 War Goal 타일**이다.
+
+방어측 승리처럼 공격국 영토를 역점령한 경우에는 실제 역점령지 중 안전한 국경 타일을 검토한다.
+
+할양은 다음 조건을 모두 통과해야 한다.
+
+1. 현재 원 소유국의 실제 `ownerId`와 일치
+2. 원 소유국 수도가 아님
+3. 제거 후 패전국 영토의 연결 구성요소 수가 증가하지 않음
+4. 승전국 기존 영토 또는 같은 협정에서 앞서 선택된 할양 타일과 4방향 인접
+5. 남은 Peace Leverage 예산으로 요구 가능
+
+따라서 한 번의 제한전쟁으로 지도 반대편에 고립된 월경지를 생성하지 않는다.
+
+## 4.2 영토 요구 비용
+
+각 후보는 고정 1타일 가격을 쓰지 않는다.
+
+```text
+영토 Leverage 비용 = 12 + 타일 전략가치 × 0.55
+```
+
+인구가 많거나 시장·행정·산업·군사시설이 있는 타일은 변방보다 더 비싸다.
+
+---
+
+# 5. 정복지 물리적 연속성
+
+영토가 넘어가도 Settlement를 삭제하고 새로 만들지 않는다.
+
+보존 대상:
+
+- 건물과 건물 상태
+- 도로
+- 자연자원 및 문명 비축
+- Settlement Market Gold
+- 산업시설
+- 건설 진행도
+- 토지정비 진행도
+- 주거 개축 진행도
+- 고급시설 전문화 진행도
+- 실제 Person
+- Person ID와 이름
+- 가족/관계 참조
+- `cultureMix`
+- 개인 Gold 지갑
+
+즉 **국경과 국가 귀속이 바뀌는 것이지, 그 지역의 사회를 재생성하지 않는다.**
+
+## 5.1 실제 Person 편입
+
+할양 타일을 `homeTileId`로 가진 생존 Person은 동일 객체 그대로 새 국가 `residents`로 이동한다.
+
+```text
+old Person object
+→ 같은 id / 이름 / 문화 / 지갑 유지
+→ villageId만 새 국가로 변경
+```
+
+정복 직후 해당 주민의 기존 군사배속은 해제한다.
+
+- active soldier를 자동으로 승전국 병사로 만들지 않음
+- cohort member 참조 제거
+- 군사 상태 → civilian
+- 새 국가의 일반 노동시장 재검토 대상으로 돌림
+
+이는 “점령지 주민이 종전 다음 날 자동으로 정복군이 되는” 현상을 막는다.
+
+## 5.2 통근과 개척 프로젝트 정리
+
+패전국 주민 중 **거주는 다른 곳이지만 할양 타일에서 근무하던 Person**은 외국 직장 참조를 유지하지 않는다.
+
+- `workTileId`를 본인 `homeTileId`로 되돌림
+- 기존 job-slot 참조 제거
+- 즉시 재취업 검토 가능 상태로 전환
+
+반면 해당 Settlement 자체의 건설 프로젝트는 새 국가로 승계한다.
+
+할양 타일을 **출발지로 삼던 패전국 Frontier Project**는 국가 영토 기반이 사라졌으므로 취소한다. 관련 `PIONEER` assignment도 해제한다.
+
+Telemetry:
+
+```text
+FRONTIER_PROJECT_CANCELLED33F_CESSION
+TERRITORY_CEDED33F
+```
+
+---
+
+# 6. Gold 평화협정
+
+V0.33F부터 전쟁에서 이겼다고 반드시 영토를 받는 것은 아니다.
+
+근소한 우세에서는 다음과 같은 결과가 가능하다.
+
+```text
+영토 양도 0
+패전국 → 승전국 Gold 8.4
+결과: GOLD_ONLY
+```
+
+더 강한 승리에서는:
+
+```text
+목표 영토 1~3타일
++ 남는 협상력을 Gold로 전환
+결과: TERRITORY_GOLD
+```
+
+## 6.1 Gold 요구량
+
+Gold-only tier:
+
+```text
+requested = 3 + (margin - 8) × 0.55
+```
+
+영토가 포함된 경우:
+
+```text
+leftover = margin - territoryLeverageSpent
+requested = leftover × 0.45
+DECISIVE이면 추가 +2
+```
+
+이는 “Leverage 1 = Gold 1” 같은 고정환율이 아니라 **영토 요구에 쓰고 남은 협상 우위를 금전조건으로 전환하는 규칙**이다.
+
+## 6.2 실제 지급 능력
+
+요청액 전체를 생성해서 지급하지 않는다.
+
+패전국의 실제 공공 가용자금만 사용한다.
+
+1. Nation Treasury의 전략 reserve 초과분
+2. Settlement Market의 지역 유동성 reserve 초과분
+
+시장별 유동성 reserve:
+
+```text
+max(2 Gold, 지역 인구 × 0.10)
+```
+
+Treasury reserve는 기존 B2 전략재정 reserve를 그대로 읽고 최소 2 Gold를 보존한다.
+
+최종 1회 지급 상한:
+
+```text
+min(
+  requested,
+  패전국 공공 가용 Gold × 30%,
+  30 Gold
+)
+```
+
+Person 개인지갑은 직접 징수하지 않는다.
+
+승전국 수령액은 Nation Treasury로 들어간다.
+
+## 6.3 통화량 보존
+
+지급 전후 `NS.V032E6.moneyStock()`이 존재하면 세계 통화량을 감사한다.
+
+Telemetry:
+
+```text
+PEACE_GOLD_TRANSFER33F
+requested
+payableCap
+paid
+treasuryPaid
+marketPaid
+marketMoves
+moneySupplyDelta
+```
+
+Gold는 이동만 하며 생성·삭제하지 않는다.
+
+장기 할부 배상금은 V0.33F 범위가 아니다.
+
+---
+
+# 7. Culture & Conquest
+
+E4의 문화시스템을 정복지에 그대로 연결한다.
+
+할양 시 정복지 주민의 `cultureMix`는 변경하지 않는다.
+
+예:
+
+```text
+정치적 소유: 에브
+지역 주민문화: LUEN 92%
+에브 수도문화: MAELA 중심
+```
+
+이 상태를 그대로 유지한다.
+
+## 7.1 기존 E4 문화마찰
+
+기존 E4의 수도문화 불일치 생산 마찰은 계속 적용된다.
+
+최대 약 8%의 문화 output friction은 F가 대체하지 않는다.
+
+## 7.2 정복 행정 마찰
+
+F는 별도로 초기 행정혼란을 추가한다.
+
+```text
+adminFrictionStart = 4% × (1 - 지역문화/새 수도문화 overlap)
+```
+
+최대 4%다.
+
+그리고 8년 동안 선형으로 감소한다.
+
+```text
+8년 = 2880 calendar days
+현재 마찰 = 초기 마찰 × max(0, 1 - 정복 후 경과일 / 2880)
+```
+
+기존 문화마찰은 남을 수 있지만 **정복 행정 마찰만 시간이 지나며 사라진다.**
+
+반란, 독립운동, 강제동화, 강제이주는 아직 없다.
+
+---
+
+# 8. 수도 처리
+
+Limited War V1에서 수도는 영구 할양 금지다.
+
+수도 점령은 다음 효과만 갖는다.
+
+- 임시 군사통제
+- Peace Leverage 큰 보너스
+- 기존 전쟁피로 및 군사·행정 압박
+
+평화협정 후 수도는 원 소유국에 반환된다.
+
+국가 완전합병·수도 이전·멸망전쟁은 후속 시스템으로 분리한다.
+
+---
+
+# 9. D2 전쟁준비 ↔ 평시 전역 충돌 Fix
+
+E5F2 자연주행에서 다음 churn이 관측됐다.
+
+```text
+D2 PREPARING: 현역 6명 필요
+        ↓
+V0.32B 평시 planner: 현역 목표 3명 → 3명 전역
+        ↓
+다음 준비 pulse: 다시 동원
+        ↓
+다음 분기: 다시 전역
+```
+
+F에서는 D2 Preparation의 `goals.active`를 평시 전역의 실질적 하한으로 사용한다.
+
+구현은 오래된 32B planner의 전체 밸런스를 재작성하지 않고, planner 실행 후 **방금 전역된 기존 현역 Person만 필요한 수만큼 즉시 복구**한다.
+
+따라서:
+
+```text
+peacetimeTarget = 3
+preparationActiveGoal = 6
+실제 하한 = 6
+```
+
+Preparation이 끝나면 다시 평시 목표까지 자연스럽게 전역할 수 있다.
+
+Telemetry:
+
+```text
+PEACETIME_DEMOBILIZATION_GUARD33F
+```
+
+---
+
+# 10. UI / Observer
+
+국가 → 군사 탭 상단에 **전쟁목표·평화협정 V2** 패널을 추가한다.
+
+활성전쟁:
+
+- War Goal label
+- 목표 타일 수
+- 현재 확보 목표 수
+- 수도 영구양도 금지 안내
+
+최근 종료전쟁:
+
+- `WHITE_PEACE / GOLD_ONLY / TERRITORY_ONLY / TERRITORY_GOLD`
+- 승자 진영
+- 영구 할양 타일 수
+- 실제 지급 Gold
+- 최종 Peace Leverage margin
+
+할양된 타일 Inspector에는 다음 역사정보를 표시한다.
+
+- 전 소유국 → 현 소유국
+- 문화마찰
+- 현재 남은 정복 행정 마찰
+
+타일 자체에는 `v33fConquest` 기록을 남겨 이후 역사 UI 확장을 가능하게 한다.
+
+---
+
+# 11. Snapshot / CSV Telemetry
+
+E5F2 실측 CSV는 **999 columns**였다.
+
+F는 World 14개 + Nation 9개, 총 23개 관찰 필드를 추가하여 정상 schema 기준 **1022 columns**를 사용한다.
+
+## World fields
+
+```text
+activeWarGoals33F
+peaceSettlements33F
+whitePeace33F
+goldOnlyPeace33F
+territoryOnlyPeace33F
+territoryGoldPeace33F
+permanentTilesCeded33F
+conqueredPersonsTransferred33F
+peaceGoldRequested33F
+peaceGoldPaid33F
+peaceGoldAuditMismatches33F
+demobilizationGuards33F
+demobilizationGuardedPersons33F
+activeConquestAdminTiles33F
+```
+
+## Nation fields
+
+```text
+activeWarGoals33F
+warGoalTargetTiles33F
+peaceSettlementsWon33F
+peaceSettlementsLost33F
+permanentTilesGained33F
+permanentTilesLost33F
+conqueredPersonsIntegrated33F
+peaceGoldReceived33F
+peaceGoldPaid33F
+```
+
+Devlog JSON의 `worldSummary`에는 F 규칙 설명과 평화협정 유형 누적치를 포함한다.
+
+---
+
+# 12. 저장 / 마이그레이션
+
+현재 저장 version:
+
+```text
+0.33F
+```
+
+Save key:
+
+```text
+village-observer-v0-33f
+```
+
+Fallback 우선순위:
+
+```text
+0.33E5F2
+0.33E5F1
+0.33E5F
+0.33E5
+0.33E4A
+```
+
+F 저장에는 다음을 추가한다.
+
+```text
+v33f.revision
+v33f.settlements[]
+v33f.stats
+v33f.nationStats
+```
+
+`Tile.serialize()`가 확장 속성을 보존하므로 `v33fConquest`도 세이브에 유지된다. 국가별 F 누적치도 `v33f.nationStats`로 별도 보존하여 불러오기 뒤 `peaceSettlementsWon/Lost`, 영토 획득/상실, 정복주민 편입, Gold 수취/지급 누적치가 0으로 리셋되지 않는다.
+
+진행 중 E5F2 전쟁을 F로 마이그레이션하면 목표가 없는 활성전쟁에 War Goal을 한 번 생성한다.
+
+---
+
+# 13. 구현 이벤트
+
+주요 신규 이벤트:
+
+```text
+WAR_GOAL_CREATED33F
+PEACE_SETTLEMENT33F
+PEACE_GOLD_TRANSFER33F
+TERRITORY_CEDED33F
+FRONTIER_PROJECT_CANCELLED33F_CESSION
+PEACETIME_DEMOBILIZATION_GUARD33F
+```
+
+기존 `WAR_ENDED33 / WAR_ENDED33D`, `TILE_OCCUPIED33`, Engagement·사상자 이벤트는 그대로 유지한다.
+
+---
+
+# 14. 회귀 검증
+
+최종 코드 기준 수행한 정적/Node mock 회귀:
+
+### JavaScript
+
+- inline script: **97개**
+- syntax check: **97 / 97 통과**
+
+### Decisive settlement
+
+검증:
+
+- War Goal 생성
+- 강한 승리 → `TERRITORY_GOLD`
+- 목표 타일 `ownerId` 영구 변경
+- 정복 주민 동일 Person 객체 유지
+- `cultureMix` 유지
+- 기존 공사 진행도 승계
+- Settlement Market Gold 그대로 유지
+- 세계 총 Gold 변화 0
+
+### Gold-only settlement
+
+- 제한적 우세
+- 영토 변경 0
+- 실제 Gold만 이전
+- 세계 통화량 보존
+- legacy `warsWon / warsLost`와 F 협상 승자 동기화
+
+### White Peace
+
+- 실질적 교착
+- winnerSide 없음
+- 영토 0
+- Gold 0
+
+### Capital protection
+
+- 수도를 직접 cession 함수에 넣어도 거부
+- `ownerId` 유지
+
+### Conquest continuity
+
+- 패전국 외부 거주자의 할양지 직장 참조 해제
+- 할양지를 출발지로 한 Frontier Project 취소
+- 관련 Pioneer assignment 해제
+- Settlement 건설 프로젝트는 새 국가로 승계
+
+### Demobilization guard
+
+- D2 준비 목표 4명
+- legacy 평시 planner가 1명까지 낮추려는 mock
+- F guard 후 실제 현역 4명 유지
+- guard telemetry 증가
+
+### CSV
+
+- 검증된 E5F2 999-column 형태에 F 23필드 추가
+- header/모든 mock rows **1022 columns 일치**
+
+### Save migration
+
+- E5F2 → F attach 통과
+- F save/reload `v33f.settlements` 보존 통과
+
+실행 환경의 관리 정책이 `file://` 및 localhost 페이지의 headless Chromium 로딩을 차단하여 실제 Canvas 브라우저 smoke test는 자동화하지 못했다. 실제 PC 자연주행에서는 전쟁목표 패널, 종전 후 국경 변경, Gold 배상, 타일 정복 이력 표시를 추가 확인한다.
+
+---
+
+# 15. F에서 의도적으로 제외한 범위
+
+이번 버전에는 다음을 넣지 않는다.
+
+- 동맹조약
+- 속국
+- 포로
+- 완전합병
+- 국가멸망 목적 전쟁
+- 수도 영구양도
+- 반란 / 독립운동
+- 문화동화
+- 강제이주
+- 장기 할부 배상
+- 배상 불이행 외교
+- 개인 Combat 스킬의 전투 라운드 직접 가중 확대
+- 장비 전투손실 / 노획 / 회수
+- 전략 경계와 Intelligence의 통합
+
+마지막 세 군사 항목은 별도 후속 군사 개편 후보로 유지한다.
+
+---
+
+# 16. 다음 자연주행에서 우선 확인할 것
+
+1. `WHITE_PEACE / GOLD_ONLY / TERRITORY_ONLY / TERRITORY_GOLD`가 실제 자연전쟁에서 어느 비율로 발생하는가
+2. 공격국이 목표보다 지나치게 많은 영토를 얻지 않는가
+3. 국경 할양이 월경지·영토 단절을 만들지 않는가
+4. 패전국이 Gold 배상 한 번으로 경제 붕괴하지 않는가
+5. Gold 배상이 기존 통화 집중을 과도하게 가속하지 않는가
+6. 정복지 Person·건물·시장·문화가 장기적으로 정상 작동하는가
+7. 8년 정복 행정마찰이 의도대로 감소하는가
+8. D2 준비 중 전역↔재동원 churn이 사라졌는가
+9. 영토가 거의 포화된 19×19 세계에서 전쟁이 실제 국경 재편의 주된 동력으로 전환되는가
+
+---
+
+# Previous detailed release notes
+
+아래에는 기준선인 V0.33E5F2 이하의 상세 기술 문서를 그대로 보존한다.
+
 # Village Observer V0.33E5F2
 ## Military Observer Polish
 
