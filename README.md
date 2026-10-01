@@ -1,3 +1,348 @@
+# Village Observer V0.33F2
+## War Preparation Pipeline Stabilization
+
+기준 버전: **V0.33F1 — Peace Settlement & Operational Coordination Fix**  
+릴리스 성격: **소규모 안정화 패치 / 전쟁준비 상태기계·통계 정합성 수정**  
+작성일: 2026-10-02
+
+---
+
+## 0.33F2 패치 목적
+
+V0.33F1 PC 자연주행은 F 계열의 핵심 목표였던 **자연종전 → Peace Settlement → 영구 영토 이전 + Gold 배상 + 실제 Person/culture 보존**을 처음으로 정상 검증했다. 반면 같은 데이터에서 다음 활성 경로 문제가 확인되었다.
+
+- 라엔이 벨른전을 준비하면서 D2 목표 현역을 올려도 V0.32B lexical 평시 planner가 분기마다 다시 전역시켰다.
+- 약한 평가로 취소된 동일 상대 War Intent의 180일 cooldown 값은 저장됐지만 최신 E2 lexical scanner가 이를 읽지 않았다.
+- Final Commitment가 latch된 뒤 D2A가 매일 soft readiness 하락을 이유로 commitment를 취소하고 F1이 뒤에서 복원하는 `cancel → restore` churn이 발생했다.
+- 세계 단위 Peace Settlement는 정상인데 `v33f.nationStats`의 오래된 값이 attach 때 각 Nation의 최신 누적치를 0으로 덮을 수 있었다.
+
+F2는 새 밸런스나 전쟁 규칙을 추가하지 않고 이 네 문제를 **실제 활성 경로에서 직접 수정**한다.
+
+```text
+D2 PREPARING/READY active goal
+          ↓
+32B targetActive 계산 단계에서 하한 적용
+          ↓
+애초에 전역 대상에서 제외
+
+weak Intent cancel
+          ↓
+180일 pair cooldown 저장
+          ↓
+E2 실제 candidate scanner가 직접 검사
+          ↓
+동일 상대 즉시 재생성 차단
+
+Final Commitment latch
+          ↓
+E2 일반 review skip
+          ↓
+D2A soft readiness drift는 관측만
+          ↓
+hard abort가 아니면 countdown 유지
+          ↓
+선전포고
+
+peaceSettlements33F
+          ↓
+국가별 누적치 canonical 재구성
+          ↓
+v33fStats / v33f.nationStats 동기화
+```
+
+---
+
+# 1. PREPARING / READY 현역 하한
+
+## 1.1 실제 lexical V0.32B 경로 수정
+
+기존 F는 `NS.V032B.planMilitary` wrapper 뒤에서 이미 전역된 Person을 다시 active로 복구하는 방식을 사용했다. 자연주행에서는 seasonal tick이 closure 내부의 `planMilitary32B()`를 직접 호출해 wrapper가 우회될 수 있었다.
+
+F2는 `planMilitary32B()`의 실제 `target32B()` 직후에 D2 preparation 목표를 읽는다.
+
+```text
+peacetime targetActive = 6
+D2 preparation active goal = 10
+→ 실제 32B targetActive = 10
+```
+
+따라서 Person은 **전역된 뒤 재동원되는 것이 아니라 처음부터 전역 대상이 되지 않는다.**
+
+준비가 취소·종료되면 D2 하한이 사라지고 기존 평시 targetActive가 다시 적용된다.
+
+신규 Devlog:
+
+```text
+PEACETIME_DEMOBILIZATION_BLOCKED33F2
+```
+
+Telemetry:
+
+- `preparationFloorApplications33F2`
+- `preparationDemobilizationBlockedPersons33F2`
+- Nation `preparationActiveFloor33F2`
+- Nation `preparationActiveCount33F2`
+
+정상 invariant:
+
+```text
+PREPARING / READY 중 activeCount < activeGoal 때문에
+평시 전역이 새로 발생하는 경우 = 0
+```
+
+---
+
+# 2. War Intent 동일 상대 재시도 Cooldown
+
+## 2.1 실제 E2 scanner 연결
+
+F1은 `ASSESSMENT_TOO_WEAK` 또는 `INSUFFICIENT_CASE_AFTER_ASSESSMENT` 취소 때 180 calendar-day cooldown을 저장했지만, 최신 E2 War Intent 의사결정은 lexical `rawAssessment()`를 직접 호출해 Namespace wrapper를 우회했다.
+
+F2는 실제 candidate loop에서 다음 순서를 사용한다.
+
+```text
+candidateAllowed
+→ F2 pair cooldown 검사
+→ 허용된 상대만 WAR_INTENT_SCAN assessment
+```
+
+따라서 동일 상대에 대해:
+
+```text
+Intent 생성 → 약한 평가로 취소 → 다음 분기 즉시 재생성
+```
+
+패턴이 더 이상 반복되지 않는다.
+
+신규 Devlog:
+
+```text
+WAR_INTENT_RETRY_COOLDOWN_APPLIED33F2
+```
+
+Telemetry:
+
+- `intentRetryCooldownApplied33F2`
+- `activeIntentRetryCooldowns33F2`
+- Nation `intentRetryCooldownRemaining33F2`
+
+전쟁 발생률 자체를 낮추는 새 점수 보정은 추가하지 않는다. Cooldown이 끝난 뒤에는 기존 War Intent 평가를 그대로 다시 수행한다.
+
+---
+
+# 3. Final Commitment 상태기계 안정화
+
+## 3.1 사후 restore 방식 제거
+
+F1 자연주행에서는 한 Final Commitment에서 기존 D2A `WAR_FINAL_COMMITMENT_CANCELLED33D2A`가 195회 발생하고 F1이 196회 복원하는 사례가 확인되었다.
+
+F2에서는 latch된 commitment가 **일반 E2 War Intent review 대상에서 직접 제외**된다.
+
+또한 D2A에서 readiness / field / 기타 preparation 수치가 일시적으로 100% 아래로 흔들려도:
+
+- `READY → PREPARING`으로 강등하지 않는다.
+- `cancelCommitmentA()`를 호출하지 않는다.
+- commitment due date를 유지한다.
+- soft drift는 진단값으로만 남긴다.
+
+Telemetry:
+
+- `finalCommitmentReviewSkips33F2`
+- `finalCommitmentSoftDriftObserved33F2`
+- `finalCommitmentSoftCancelEvents33F2`
+
+정상 목표:
+
+```text
+latched Final Commitment의 실제 soft cancel event = 0
+```
+
+## 3.2 Hard Abort는 유지
+
+Commitment를 무조건 강제하는 것은 아니다. declaration 직전에도 F2 hard-abort gate를 통과해야 한다.
+
+허용되는 중단 사유:
+
+- `TARGET_INVALID`
+- `SURVIVAL`
+- `RECOVERY`
+- `WAR_LIMIT`
+- `NO_OPERATIONAL_ROUTE`
+- `MANPOWER_COLLAPSE` — preparation active goal의 절반 미만
+
+신규 Devlog:
+
+```text
+WAR_FINAL_COMMITMENT_HARD_ABORT33F2
+```
+
+F1의 기존 hard-abort 안전망도 유지한다.
+
+---
+
+# 4. PREPARING 장기 교착 진단
+
+F2는 준비 상태를 임의로 시간초과 취소하지 않는다. 대신 실제 안정화가 효과가 있는지 확인하기 위해 장기 체류를 명시적으로 관측한다.
+
+Telemetry:
+
+- `preparingAgeDaysMax33F2`
+- `preparingStuckOver3Years33F2`
+- Nation `preparingAgeDays33F2`
+
+V0.33F1 자연주행의 라엔처럼 5,000 calendar-day 이상 같은 전쟁준비에 묶이는 상태가 F2에서 재발하는지 바로 확인할 수 있다.
+
+---
+
+# 5. Peace Settlement 국가별 누적 통계 Fix
+
+## 5.1 Canonical source
+
+세계의 **`v33f.settlements[]`를 국가별 평화협정 통계의 canonical source**로 사용한다.
+
+각 attach / save / migration 시 다음 값을 settlement history로부터 재구성한다.
+
+- `settlementsWon`
+- `settlementsLost`
+- `tilesGained`
+- `tilesLost`
+- `personsIntegrated`
+- `goldReceived`
+- `goldPaid`
+
+이후 동일 값을:
+
+```text
+Village.v33fStats
+w.v33f.nationStats
+```
+
+양쪽에 동기화한다.
+
+F의 attach도 수정해 **이미 존재하는 live `v33fStats`를 오래된 cache로 덮지 않도록** 했다.
+
+따라서 V0.33F1 세이브에서 세계 Settlement는 존재하지만 국가별 값만 0인 경우도 F2 로드 시 복구된다.
+
+신규 Devlog:
+
+```text
+PEACE_NATION_STATS_REBUILT33F2
+```
+
+Telemetry:
+
+- `nationSettlementStatRepairs33F2`
+- `nationSettlementStatCurrentMismatch33F2`
+- Nation `peaceSettlementStatConsistent33F2`
+
+정상 invariant:
+
+```text
+world peaceSettlements33F와 Nation별 누적 결과 불일치 = 0
+```
+
+---
+
+# 6. F1 기능 유지
+
+다음은 이번 패치에서 변경하지 않는다.
+
+- 방어측이 역공에 성공했을 때 공격국 점령지를 영구 할양받는 규칙
+- `WHITE_PEACE / GOLD_ONLY / TERRITORY_ONLY / TERRITORY_GOLD`
+- Peace Leverage 공식
+- Gold 배상 상한 및 보존 회계
+- 수도 제한전쟁 영구 양도 금지
+- Person ID / 이름 / 가족관계 / cultureMix / 개인 Gold 보존
+- 정복지 행정마찰
+- War Goal 규모
+- Formation 목표 reservation / deconfliction
+- 철광석 전용 자원지도
+- 전투력 / 사상률 / 점령시간
+
+철광석 지도는 F1 PC 확인에서 정상 작동으로 검증 완료된 상태다.
+
+---
+
+# 7. Validation
+
+## 7.1 JavaScript 정적 검사
+
+현재 `index.html`의 inline script:
+
+```text
+99 / 99 node --check PASS
+syntax failure: 0
+```
+
+## 7.2 활성 경로 정적 회귀
+
+최종 파일에서 다음 실제 경로 삽입을 확인했다.
+
+```text
+32B lexical targetActive → D2 active-goal floor
+E2 lexical reviewIntent → latched commitment skip
+E2 lexical candidate scan → F2 cooldown
+D2A lexical READY downgrade → latch 제외
+D2A declaration due → F2 hard-abort gate
+F attach → live Nation stats 보존
+F1 restoreLatch → 이미 DECLARED인 commitment 재복원 금지
+```
+
+## 7.3 독립 F2 mock runtime
+
+Node mock world에서 확인:
+
+```text
+Peace Settlement canonical Nation stats rebuild PASS
+방어측 승리 / 역영토 할양 통계 PASS
+Person integrated count PASS
+Gold paid / received count PASS
+retry cooldown block + expiry PASS
+Final Commitment latch detection PASS
+MANPOWER_COLLAPSE hard-abort 판정 PASS
+```
+
+## 7.4 CSV schema
+
+실제 제공된 V0.33F1 자연주행 CSV:
+
+```text
+1041 columns
+846 rows
+column mismatch: 0
+```
+
+F2 신규 진단 필드:
+
+```text
+Global 12 + Nation 5 = 17 columns
+```
+
+따라서 예상 V0.33F2 CSV schema:
+
+```text
+1058 columns
+```
+
+## 7.5 브라우저 자동화 제한
+
+현재 실행환경의 Chromium은 `file://` 및 localhost 페이지 접근을 `ERR_BLOCKED_BY_ADMINISTRATOR`로 차단했다. 따라서 실제 Canvas/DOM browser smoke test는 자동화하지 못했다.
+
+다음 PC 자연주행에서 우선 확인할 핵심 값:
+
+```text
+preparationDemobilizationBlockedPersons33F2 > 0일 수 있음
+PREPARING 중 목표 이하 평시 전역 = 0
+finalCommitmentSoftCancelEvents33F2 = 0
+intentRetryCooldownApplied33F2 > 0이면 동일 상대 즉시 재생성 차단 성공
+nationSettlementStatCurrentMismatch33F2 = 0
+preparingStuckOver3Years33F2가 F1보다 크게 감소
+```
+
+---
+
+# Historical Documentation — V0.33F1 and Earlier
+
 # Village Observer V0.33F1
 ## Peace Settlement & Operational Coordination Fix
 
