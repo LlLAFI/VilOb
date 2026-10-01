@@ -1503,3 +1503,6 @@ E3 Concentration에서 문제가 재현되면 같은 자연주행 데이터를 �
 - 새 수도 문화와 피정복 지역 문화의 alignment에 따른 실제 사회·경제 마찰
 
 E4 이후에는 영토가 넘어갈 때 단순히 `ownerId`만 바뀌는 것이 아니라, **실제 주민·가문·문화가 존재하는 지역이 다른 정치체제에 편입되는 구조**를 만들 수 있다.
+
+### Scenario import compatibility fix
+E5 regression scenario packages use the canonical Test Scenario V1 numeric `version: 1`. The E5 importer also normalizes the accidentally emitted legacy string `village-observer-scenario-v1`, so both corrected files and the earlier broken E5 scenario files can be imported.
