@@ -1,4 +1,231 @@
-# Village Observer V0.33E5F1
+# Village Observer V0.33E5F2
+## Military Observer Polish
+
+기준 버전: **V0.33E5F1 — Occupied Tile Control Fix**  
+릴리스 성격: **Polish / 관찰성·지도 가독성·진단 강화 (밸런스 변경 없음)**  
+작성일: 2026-10-01
+
+---
+
+## F2 패치 목적
+
+V0.33E5F1 PC 자연주행은 점령 통제 Fix가 실제 자연전쟁에서도 정상 작동함을 확인했다. 동시에 다음 관찰 문제가 남았다.
+
+1. 실제 Person 지휘관이 Formation에 존재하고 군사 탭에서는 `★`로 표시되지만, 지도에서는 지휘관 보유 여부를 즉시 알 수 없다.
+2. E5 Occupation Operations의 `defensiveFirepower`는 자연주행에서 누적 관측되지만 실제 점령 중 사상으로 이어지는 빈도가 매우 낮아, 밸런스 변경 전에 더 직접적인 결과 진단이 필요하다.
+3. 군사 장비는 국가별로 `0% ↔ 100%`처럼 크게 갈리는 사례가 관측되어 Armory/장비 풀 채택 분포를 장기주행에서 바로 비교할 필요가 있다.
+4. C3 전략도로 fallback의 후보 거절이 대량 발생할 때 `START_REJECTED / sourceReason=null`로 남는 경우가 많아 실제 병목 판독이 어렵다.
+
+F2는 위 네 항목을 **Observer/diagnostic 계층에서만 보완**한다. 전투력, 사상률, 장비 생산량, Occupation defensive firepower, 도로 우선순위와 fallback 행동은 변경하지 않는다.
+
+---
+
+## 1. Formation Commander 지도 ★
+
+### 표시 조건
+
+군사 지도(`military32D`)에서 다음 조건을 모두 만족하는 Formation에 금색 `★`를 표시한다.
+
+```text
+Formation lifecycle != DORMANT
+v33d1HasPhysicalPresence != false
+실제 active Person manpower > 0
+유효한 commanderPersonId가 현재 Formation 내부 Person을 가리킴
+```
+
+따라서 평시 국경 경계, 전쟁 준비, 실제 전시, 후퇴/재편 이후 다시 물리적으로 존재하는 Formation 모두 동일한 지휘관 표시 규칙을 사용한다.
+
+DORMANT Formation은 실제 지도상 병력이 아니므로 별을 표시하지 않는다. 현재 `CORE_GARRISON`은 Formation Commander 체계가 아니므로 이번 ★ 표시에 포함하지 않는다.
+
+### 위치와 겹침 처리
+
+- ★는 기존 Formation 병력 라벨을 가리지 않도록 타일 중심의 **우상단 외곽**에 그린다.
+- 별 자체는 타일 경계를 조금 넘어갈 수 있다.
+- 금색 별에 어두운 stroke를 적용하여 국가색·전장표식·지형 위에서도 읽히게 한다.
+- 작은 국가색 점을 함께 붙여 같은 타일의 복수 국가/Formation을 구분하기 쉽게 한다.
+- 같은 타일에 지휘관 보유 Formation이 복수 존재하면 별을 수평으로 펼쳐 그린다.
+- 최종 F2 renderer가 마지막에 ★를 그리므로 전장/점령/Formation 라벨 뒤에 묻히지 않는다.
+
+이는 **시각화 전용 변경**이며 Commander의 전투 보너스나 임명 규칙은 바꾸지 않는다.
+
+---
+
+## 2. Tile Inspector 지휘관 상세
+
+E1부터 타일 Inspector에 지휘관 이름과 Command Score가 표시되지만, F2에서는 지도 ★와 직접 연결되는 상세 박스를 추가한다.
+
+지휘관 보유 Formation이 선택 타일에 있으면 다음을 함께 표시한다.
+
+- Nation / Formation 이름
+- 지휘관 실제 Person 이름
+- Command Score
+- 현재 Commander 전투력 보너스
+- 패전 Battle Morale 손실 감소율
+- Regroup 기간 감소율
+
+현재 Command V1 공식은 변경하지 않는다.
+
+```text
+Command Score = combat 45%
+              + service 20%
+              + social 15%
+              + health 10%
+              + happiness 10%
+```
+
+Command Score 45 미만 후보는 기존과 동일하게 지휘관이 될 수 없다.
+
+---
+
+## 3. Occupation Defensive Fire 관찰 진단
+
+이번 자연주행에서 `defensiveFirepowerEncountered33E5`는 증가했지만 완료된 점령작전의 방어화력 사상자가 0으로 끝나는 패턴이 관측되었다. F2는 이를 바로 판독할 수 있도록 **F2 이후 완료되는 작전**을 다음처럼 분리 집계한다.
+
+- `occupationFireCompletions33E5F2`
+  - `defensiveFirepower > 0` 상태로 완료된 점령작전 수
+- `occupationFireNoCasualtyCompletions33E5F2`
+  - 위 작전 중 `wounded + deaths == 0`
+- `occupationFireCasualtyCompletions33E5F2`
+  - 위 작전 중 실제 Person casualty가 1명 이상 발생
+- `occupationFireCasualties33E5F2`
+  - 해당 완료 작전의 누적 wound + death 수
+
+중요: **방어화력 공식, 3일 cadence, accumulator threshold, 사망/부상 확률을 전혀 변경하지 않는다.** 이 데이터는 다음 자연주행에서 밸런스 조정 여부를 판단하기 위한 관찰값이다.
+
+---
+
+## 4. 군사 장비 분포 관찰
+
+기존 V0.32C/F 장비 시스템은 그대로 유지한다. F2는 Snapshot/CSV에 다음 분포만 추가한다.
+
+### World
+
+- `armoryNations33E5F2`
+- `equipmentNationsWithStock33E5F2`
+- `equipmentNationsFullCoverage33E5F2`
+- `equipmentCoverageMax33E5F2`
+- `equipmentCoverageMedian33E5F2`
+- `equipmentStockConcentrationTop133E5F2`
+
+`equipmentStockConcentrationTop133E5F2`는 세계 군사장비 풀 중 가장 많은 장비를 가진 한 국가의 비중이다.
+
+### Nation
+
+- `armoriesObserved33E5F2`
+- `equipmentCoverageObserved33E5F2`
+- `equipmentStockObserved33E5F2`
+
+장비 생산·소비 공식, Armory 건설 판단, Formation combat의 equipment 가중치는 변경하지 않는다.
+
+---
+
+## 5. Commander 관찰 Telemetry
+
+Snapshot/CSV에 현재 물리적 야전 Formation과 지휘관 보유 비율을 추가한다.
+
+### World
+
+- `activeFieldFormations33E5F2`
+- `commanderFormations33E5F2`
+- `commanderCoveragePct33E5F2`
+
+### Nation
+
+- `activeFieldFormations33E5F2`
+- `commanderFormations33E5F2`
+- `commanderCoveragePct33E5F2`
+
+여기서 active field Formation은 `DORMANT`가 아니고 실제 active Person manpower가 있는 물리 Formation만 센다.
+
+---
+
+## 6. Strategic Road START_REJECTED 진단
+
+C3F는 전략도로 첫 후보가 거절되면 같은 경로의 뒤 후보를 순차 시도하는 fallback 자체는 정상 작동한다. 그러나 일부 상위 `startConstruction()` gate는 거절 이벤트를 별도로 남기지 않아 C3F가 최종적으로 다음처럼 기록하는 경우가 많았다.
+
+```text
+blocker: START_REJECTED
+sourceEvent: null
+sourceReason: null
+```
+
+F2는 `ROAD_NETWORK_CANDIDATE_REJECTED33C3F` 기록 직전에 현재 tile/Nation 상태를 다시 읽어 **보수적인 inferred blocker**를 추가한다.
+
+가능한 분류:
+
+- `OCCUPATION_CONTROL`
+- `NOT_OWNED`
+- `ALREADY_ROAD`
+- `TILE_BUSY`
+- `PROJECT_CAP`
+- `SPACE`
+- `WOOD`
+- `STONE`
+- `STRATEGIC_OR_PAYMENT_GATE`
+- `INVALID_SITE`
+
+원래 C3F의 `START_REJECTED`는 `legacyBlocker33C3F`로 보존한다. 확정적으로 구분하기 어려운 전략 슬롯 reserve / Gold·market payment / 기타 상위 gate는 잘못 단정하지 않고 `STRATEGIC_OR_PAYMENT_GATE`로 묶는다.
+
+따라서 이 패치는 **diagnosis만 개선**하며 다음은 모두 그대로다.
+
+- road proposal score
+- competing infrastructure urgency
+- preempt 기준
+- 최대 6개 fallback 후보
+- 실제 `startConstruction()` 성공/실패 결과
+
+Devlog summary에는 inferred reason별 누적 횟수도 `roadRejectReasonCounts33E5F2`로 저장한다.
+
+---
+
+## 7. Save / migration
+
+- save version: `0.33E5F2`
+- localStorage key: `village-observer-v0-33e5f2`
+- fallback:
+  1. `village-observer-v0-33e5f1`
+  2. `village-observer-v0-33e5f`
+  3. `village-observer-v0-33e5`
+  4. `village-observer-v0-33e4a`
+- export prefix: `village-observer-v033E5F2-*`
+
+F2 통계는 `v33e5f2.stats`에 저장한다. E5F1 이전 저장을 불러오면 F2 관찰 카운터는 0에서 시작하며 기존 E5/E5F/F1 누적 데이터는 그대로 유지한다.
+
+---
+
+## 8. 범위 밖 / 후속 후보
+
+이번 패치에서 의도적으로 변경하지 않은 항목:
+
+- 개인 `combat/health`를 전투 라운드 전투력에 더 직접 반영
+- 장비의 전투 중 파손·후퇴 유실·전사자 장비 회수
+- 전략 경계와 E2 Intelligence / 실제 군사위협의 통합
+- Occupation defensive firepower의 피해 확률/압력 상향
+- Armory 건설 기준 또는 장비 생산량 완화
+- Gold concentration 조정
+- War Goal / 영구 영토 이전 / Peace Settlement V2
+
+위 앞 세 항목은 현재 군사 시스템의 후속 구조 개편 후보로 유지한다. E5F2 자연주행에서 새 회귀가 없다면 E5 계열을 마감하고 **V0.33F — War Goal & Peace Settlement V2**로 넘어갈 수 있다.
+
+---
+
+## 9. 정적 검증
+
+F2 작성 직후 수행한 검증:
+
+- inline script: **96 / 96 `node --check` 통과**
+- F2 final namespace: `NS.V033E5F2`
+- F2 save/export/version chain 추가
+- 기존 E5F1 occupation-control 코드를 수정하지 않고 최종 additive layer로 추가
+- Snapshot/CSV 신규 observer 필드는 기존 CSV wrapper 뒤에 추가
+- F1 실측 CSV 979 columns 기준 F2 observer 20개 추가 → **예상 999 columns**
+- 독립 mock runtime에서 snapshot → CSV wrapper row/header column count 일치 확인
+
+현재 실행 환경의 headless Chromium은 로컬 `file://` 및 localhost 페이지를 조직 정책으로 차단하여 브라우저 자동 smoke test를 직접 수행할 수 없었다. 따라서 이번 빌드는 정적 script 검증과 코드 경로 검토를 완료한 상태이며, 실제 PC 첫 실행에서 지도 ★와 CSV export를 우선 확인한다.
+
+---
+
+# V0.33E5F1
 ## Occupied Tile Control Fix
 
 기준 버전: **V0.33E5F — Occupation Progress Fix**  
