@@ -1,3 +1,382 @@
+# Village Observer V0.33F1
+## Peace Settlement & Operational Coordination Fix
+
+기준 버전: **V0.33F — War Goal & Peace Settlement V2**  
+릴리스 성격: **Fix / 자연주행 종전 경로·War Goal 작전연결·다중 Formation 조정·관찰 UI 보강**  
+작성일: 2026-10-01
+
+---
+
+## 0.33F1 패치 목적
+
+V0.33F 첫 PC 자연주행에서 War Goal 생성과 실제 전쟁·점령은 정상적으로 발생했지만, 실제 D 전쟁 일일처리는 lexical `warPulseD()` / `endWarD()` 경로를 사용하기 때문에 F가 `NS.V033D.warPulse` / `NS.V033D.endWar`에 덧씌운 Peace Settlement wrapper를 우회하는 문제가 확인되었다.
+
+그 결과 자연전쟁은 종전했어도 `peaceSettlement33F`가 생성되지 않아 영구 영토 양도와 Gold 합의가 0으로 남았다. 같은 실행에서 War Goal과 실제 작전목표가 분리되어 있었고, 적 야전군이 소멸한 뒤에도 복수 Formation이 같은 무방비 타일을 연속으로 추적하는 현상, Final Commitment가 시작된 뒤 일반 전략 재평가로 다시 취소될 수 있는 현상도 확인되었다.
+
+F1은 밸런스 재조정이 아니라 **F에서 의도했던 시스템 연결을 실제 자연주행 경로에 맞게 복구**하는 패치다.
+
+```text
+D lexical warPulse/endWar
+        ↓
+F1 final-day observer
+        ↓
+종전 직전 occupation evidence 보존
+        ↓
+기존 F Peace Leverage / Settlement를 정확히 1회 실행
+        ↓
+영구 ownerId / Gold 합의 / 전쟁기록
+
+적 야전군 존재·불확실
+        ↓
+기존 C3/E3 전술·집중 판단 유지
+
+정보상 적 야전군 무력화
+        ↓
+남은 War Goal 우선
+        ↓
+복수 Formation 목표 reservation
+        ↓
+무방비 목표 분산 점령
+```
+
+---
+
+# 1. Natural Peace Settlement Hook Fix
+
+## 1.1 실제 종전 경로 복구
+
+F1은 최종 `World.advanceOneDay()` 바깥에서 그날 시작 시점의 활성전쟁을 기록한다.
+
+- 전쟁 시작 시 실제 `v33OccupierId` / `v33OccupationWarId`를 snapshot으로 보존한다.
+- 전쟁 중 `TILE_OCCUPIED33` / `TILE_LIBERATED33`로 갱신되던 기존 `war.v33fLastControl`도 계속 사용한다.
+- 상속된 하루 처리가 끝난 뒤, 시작 당시 ACTIVE였지만 현재 ENDED가 된 전쟁을 확인한다.
+- `peaceSettlement33F`가 아직 없으면 기존 **V0.33F `applySettlement()`**를 최종 통제 증거와 함께 실행한다.
+- 이미 합의가 존재하면 다시 실행하지 않는다.
+
+신규 Devlog:
+
+```text
+PEACE_SETTLEMENT_APPLIED33F1
+```
+
+핵심 invariant:
+
+```text
+F War Goal이 존재하는 자연 종전 전쟁
+→ peaceSettlement33F 정확히 1개
+→ endedWarsMissingSettlement33F1 = 0
+```
+
+## 1.2 V0.33F 세이브 복구
+
+F에서 이미 끝났지만 settlement hook을 우회했던 전쟁도 다음 조건을 모두 만족하면 F1 로드 시 복구한다.
+
+- `war.status === ENDED`
+- `war.warGoal33F` 존재
+- `war.v33fLastControl` 존재
+- `war.peaceSettlement33F` 없음
+
+보존된 마지막 occupation evidence로 기존 F Peace Settlement를 적용한다. 전쟁목표나 점령 증거가 없는 더 오래된 전쟁을 임의로 재구성하지 않는다.
+
+---
+
+# 2. War Goal → 실제 작전목표 연결
+
+V0.33F의 War Goal은 평화협상 계산에만 사용되고 실제 Formation target selection에는 연결되지 않았다. F1은 E3의 최종 `targetOverride()` 경계에 얹어서 이를 연결한다.
+
+## 2.1 기존 전술판단 우선
+
+다음 경우에는 기존 E3/C3 작전 판단을 그대로 유지한다.
+
+- `RENDEZVOUS`
+- `CONCENTRATE`
+- `JOINT_ADVANCE`
+- Intelligence상 적 야전군이 남아 있음
+- 적 병력 정보의 신뢰도가 낮거나 너무 오래되어 소멸을 확신할 수 없음
+
+즉 War Goal 때문에 살아 있는 적 야전군을 무시하고 땅만 먹으러 가지 않는다.
+
+## 2.2 적 야전군이 무력화된 뒤
+
+Intelligence가 충분히 신뢰 가능하고 알려진 적 야전 Formation이 0이면 공격측의 OFFENSIVE Formation은:
+
+1. 아직 확보하지 않은 War Goal
+2. 다른 Formation이 예약하지 않은 War Goal
+3. War Goal을 모두 확보/예약했다면 별도의 무방비 적 영토 압박 목표
+
+순서로 실제 작전목표를 선택한다.
+
+신규 target kind:
+
+```text
+WAR_GOAL
+SPLIT_PRESSURE
+CAPITAL_PRESSURE
+```
+
+Devlog:
+
+```text
+FORMATION_OPERATIONAL_TARGET33F1
+```
+
+---
+
+# 3. Multi-Formation Target Reservation / Deconfliction
+
+같은 국가·같은 전쟁의 여러 OFFENSIVE Formation이 동일한 무방비 타일을 독립적으로 최고점으로 선택하는 현상을 막는다.
+
+작전목표 reservation 키:
+
+```text
+warId + nationId + tileId
+```
+
+예약은 짧은 수명(60 calendar days)을 가지며 다음 경우 자동 제거된다.
+
+- 목표가 이미 같은 편에 의해 점령됨
+- Formation이 사라짐 / DORMANT
+- Formation 실제 병력이 0
+- 전쟁 종료
+- reservation TTL 종료
+
+한 Formation이 목표를 예약하면 다른 Formation은 다른 War Goal 또는 다른 무방비 압박 목표를 선택한다.
+
+단, **E3의 의도적 집중은 reservation보다 우선**한다. 실제 적군이 존재하거나 E3가 RENDEZVOUS/CONCENTRATE/JOINT_ADVANCE를 결정한 경우 동일 목표 이동이 허용된다.
+
+따라서 F 자연주행에서 관찰된 “상대 야전군 DORMANT 이후 2개 Formation이 11개 타일을 거의 같은 순서로 따라감”은 분산 대상으로 취급하지만, 적 주력이 남아 있을 때의 의도적 합동전투는 유지한다.
+
+---
+
+# 4. Final Commitment Latch
+
+D2A Final Commitment가 시작된 Intent는 일반적인 전략점수·준비도 일시 변동으로 취소되지 않는다.
+
+Latch 시작 조건은 실제 D2A commitment가 시작되어 다음 중 하나가 존재하는 READY intent다.
+
+```text
+readySinceCal33D2A
+commitmentDueCal33D2A
+```
+
+F1은 D1 quarterly decision pulse에서 해당 국가의 ordinary review를 잠시 건너뛰게 하고, 같은 날 D2A가 일시적인 readiness 변동으로 READY를 PREPARING으로 되돌리더라도 commitment 상태를 복구한다.
+
+Final Commitment 이후에도 다음 **hard abort**는 허용한다.
+
+- 생존위기
+- Recovery emergency
+- 목표 국가 무효/소멸
+- 작전경로 완전 상실
+- 동시전쟁 한도 도달
+- 준비 당시 목표 active manpower의 절반 미만으로 급붕괴
+
+commitment due date가 도달했고 hard abort가 없다면 일반 선언 경로를 먼저 시도하고, 단순 전략점수 변동 때문에 선언 gate가 거부된 경우에는 commitment latch가 선언을 완결한다.
+
+신규 Devlog:
+
+```text
+WAR_FINAL_COMMITMENT_LATCHED33F1
+WAR_FINAL_COMMITMENT_SOFT_CANCEL_PREVENTED33F1
+WAR_FINAL_COMMITMENT_HARD_ABORT33F1
+WAR_INTENT_DECLARED33F1
+```
+
+또한 `ASSESSMENT_TOO_WEAK` / `INSUFFICIENT_CASE_AFTER_ASSESSMENT`로 취소된 동일 국가→동일 상대의 새 scan에는 **180일 재시도 cooldown**을 둔다. 다른 상대 평가까지 막지는 않는다.
+
+---
+
+# 5. War History / Recent Wars에 평화협정 통합
+
+기존 별도 F 평화협정 박스뿐 아니라 실제 전쟁 기록 카드에도 최종 합의를 표시한다.
+
+## 통계 탭 → 전쟁 기록
+
+각 종료 전쟁 카드 하단에 다음을 추가한다.
+
+- 합의 유형: 백지평화 / Gold 배상 / 영토 양도 / 영토+Gold
+- War Goal 확보 수 / 전체 수
+- 영구 양도 타일 좌표
+- Gold 지급국 → 수취국 / 실제 지급량
+- 반환된 임시점령 타일 수
+
+## 국가 군사 탭 → 최근 전쟁
+
+동일 canonical `war.peaceSettlement33F`를 사용해 각 최근 전쟁 바로 아래에 같은 핵심 합의 결과를 표시한다.
+
+백지평화도 단순히 공백으로 두지 않고:
+
+```text
+합의: 백지평화 · 영토/Gold 변화 없음
+```
+
+으로 명시한다.
+
+---
+
+# 6. 철광석 전용 자원지도
+
+`iron_ore`는 식량·목재·석재처럼 모든 육지에 연속적으로 존재하는 자원이 아니므로 generic resource renderer에서 분리한다.
+
+철광석 자원지도에서는:
+
+- 철광 매장이 있는/있던 타일만 **흰색 테두리**
+- 철광이 없는 육지는 별도 회색 resource overlay 없음
+- 현재 잔존량이 많을수록 내부 흰색 opacity 증가
+- 고갈된 광맥은 내부 fill 0, 흰색 테두리만 유지
+- 국가 경계는 ore fill 위에 다시 그려 식별 가능하게 유지
+- 선택 타일은 cyan outline으로 마지막에 다시 표시
+
+채움 강도는 단순 잔존율이 아니라 **현재 절대 잔존량을 세계 초기 최대 광맥과 비교**해 제곱근 스케일로 표시한다. 따라서 작은 광맥 100%와 거대 광맥 100%가 같은 밝기로 보이지 않는다.
+
+이 변경은 자원 표시 전용이며 철광 생성량·채굴속도·산업식은 변경하지 않는다.
+
+---
+
+# 7. Telemetry / CSV
+
+신규 World 지표:
+
+```text
+endedWarsObserved33F1
+naturalPeaceSettlements33F1
+migrationSettlementRepairs33F1
+endedWarsMissingSettlement33F1
+warGoalOperationalTargets33F1
+targetReservations33F1
+targetDeconflicts33F1
+deliberateConcentrations33F1
+duplicateOffensiveTargets33F1
+finalCommitmentLatches33F1
+finalCommitmentSoftCancelPrevented33F1
+finalCommitmentHardAborts33F1
+intentRetryCooldownSkips33F1
+activeTargetReservations33F1
+```
+
+신규 Nation 지표:
+
+```text
+warGoalOperationalTargets33F1
+targetDeconflicts33F1
+deliberateConcentrations33F1
+finalCommitmentLatched33F1
+intentRetryCooldownRemaining33F1
+```
+
+V0.33F 자연주행 CSV 실측은 **1022 columns**였으며 F1은 19개 열을 추가한다.
+
+예상 F1 CSV schema:
+
+```text
+1041 columns
+```
+
+---
+
+# 8. Save / Migration
+
+현재 save version:
+
+```text
+0.33F1
+```
+
+localStorage key:
+
+```text
+village-observer-v0-33f1
+```
+
+주요 fallback:
+
+```text
+village-observer-v0-33f
+village-observer-v0-33e5f2
+village-observer-v0-33e5f1
+village-observer-v0-33e5f
+```
+
+F1 전용으로 저장하는 값은 cumulative diagnostics, target reservation, retry cooldown, nation diagnostics다. 기존 F의 `v33f` settlement / conquest / nation stats는 그대로 직렬화된다.
+
+---
+
+# 9. 구현 회귀 검증
+
+## 정적 검사
+
+- inline script: **98개**
+- `node --check`: **98 / 98 PASS**
+- syntax failure: **0**
+
+## 독립 mock runtime
+
+브라우저 외부에서도 최종 F1 wrapper의 연결 경로를 독립적으로 검증했다.
+
+```text
+lexical-style natural war end
+→ NATURAL_END_PATH settlement 생성 PASS
+
+2개 OFFENSIVE Formation + 적 야전군 0 + War Goal 2개
+→ Formation A: War Goal #1
+→ Formation B: War Goal #2
+→ duplicate target 없음 PASS
+
+Final Commitment 중 D1 review
+→ READY 유지 PASS
+
+Final Commitment 중 일시 READY→PREPARING demotion
+→ READY / commitment due 복구 PASS
+
+commitment due 도달
+→ DECLARED 전환 PASS
+
+종료된 0.33F war + v33fLastControl + settlement 없음
+→ F1 attach migration repair PASS
+
+World.serialize()
+→ version 0.33F1 PASS
+
+CSV wrapper mock
+→ header / row column count 일치 PASS
+```
+
+실제 V0.33F 자연주행 CSV는 1022열 전 행 일치(846 rows)였고, F1 추가열 19개를 적용하면 1041열이 된다.
+
+## 브라우저 smoke test 제약
+
+현재 실행 환경에서는 `file://` 및 localhost 페이지 이동이 `ERR_BLOCKED_BY_ADMINISTRATOR`로 차단되어 실제 Chromium Canvas 렌더 smoke test는 자동 수행할 수 없었다.
+
+따라서 다음 PC 자연주행에서 특히 확인할 항목은 다음이다.
+
+1. 종료된 F1 전쟁마다 합의가 1회 생성되는지
+2. `endedWarsMissingSettlement33F1 = 0` 유지
+3. 실제 국경/Gold 변화가 전쟁기록과 일치하는지
+4. 적 야전군 소멸 뒤 복수 Formation이 War Goal/무방비 목표로 분산되는지
+5. 필요할 때 E3 집중은 그대로 유지되는지
+6. 100% Final Commitment가 일반 평가 흔들림으로 다시 취소되지 않는지
+7. 철광석 자원지도에서 비광맥 타일이 강조되지 않고, 광맥 흰 테두리/잔량 opacity가 정상인지
+
+---
+
+# 10. 밸런스 유지 범위
+
+F1에서는 다음 수치를 의도적으로 변경하지 않았다.
+
+- Formation 전투력 공식
+- Person 사상률
+- Engagement round 규칙
+- Occupation Operation 시간/방어화력
+- War Goal 1~3타일 규모
+- Peace Leverage 공식
+- Gold 배상 1회 상한
+- 정복 문화/행정마찰 수치
+
+이번 버전은 **F의 시스템 연결과 관찰성 수정**이다. 이 값들의 실제 밸런스는 F1 자연주행 이후 조정한다.
+
+---
+
+# Historical Documentation — V0.33F and Earlier
+
 # Village Observer V0.33F
 ## War Goal & Peace Settlement V2
 
