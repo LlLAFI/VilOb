@@ -1,5 +1,448 @@
-# Village Observer V0.33F3
-## War Preparation Recovery & State Stabilization
+# Village Observer V0.33F4
+## Peace Cession & Treasury Circulation Stabilization
+
+기준 버전: **V0.33F3 — War Preparation Recovery & State Stabilization**  
+릴리스 성격: **소규모 안정화 패치 / 평화협정 영토 연결성 + 성장기 국가재정·Gold 순환 개편**  
+작성일: 2026-10-02
+
+---
+
+## 0.33F4 패치 목적
+
+최근 V0.33F2 장기 자연주행과 후속 코드 분석에서 서로 다른 두 계열의 문제가 확인됐다.
+
+첫째, Peace Settlement 자체는 정상 실행됐지만 수령국 수도권과 연결되지 않는 enclave형 할양지가 다음 날 기존 `pruneDisconnectedTerritory()`에 의해 중립화될 수 있었다. 실제 사례에서는 벨른이 잃은 #275 / #294 / #332가 키오에게 `TERRITORY_CEDED33F`로 영구 이전된 뒤, 다음 날 키오의 `TERRITORY_DISCONNECTED` 정리에서 세 타일이 다시 중립지가 됐다. 이 과정은 평화협정 기록, Person 이전, 건물 보존 의도와 실제 세계 상태를 서로 어긋나게 만들었다.
+
+둘째, 20~60년대 세계 경제에서 국가 금고가 비어 있는 원인은 단순히 시장에 돈이 많이 있기 때문만이 아니었다. 기본 `payBuild()`가 Gold 건설비를 세계 통화량에서 전액 소각하고 있었고, 성장기에는 개척·주택·창고·교역·산업·군사시설 건설이 집중되면서 세계 전체 Gold가 초기 약 700~800G 수준에서 60년대 약 250G 수준까지 감소하는 런이 반복됐다. 기존 V0.23의 `publicSpendingPending × 12%` 연간 환류는 이 손실을 일부 사후 보정했지만, 실제 돈의 이동이라기보다 소멸 후 재생성에 가까워 회계 해석도 어려웠다.
+
+F4는 다음 원칙으로 두 문제를 정리한다.
+
+```text
+Peace Settlement
+  → 수령국 수도 연결 component에 붙는 타일만 양도
+  → 복수 할양은 이미 승인된 연결 타일을 따라 chain 가능
+  → 종전 직후 connectivity invariant 검사
+  → 다음 날 disconnected cleanup에 의해 사라질 영토를 애초에 만들지 않음
+
+Construction Gold
+  → 국가/공동재정에서 실제 결제
+  → Gold 비용 75%를 해당 Settlement market으로 즉시 환류
+  → 25%만 실제 세계 통화 sink
+  → 시장 → 임금 → Person → 소비 → 세금/행정세의 기존 순환 사용
+
+Legacy public-spending return
+  → publicSpendingPending × 12% = 완전 삭제
+  → 기존 pending 값은 Gold로 전환하지 않음
+  → 성인/상인/상업시설/무역 기반 소규모 일반 연간세입만 유지
+
+Settlement surplus levy
+  → 0.38% / 30일 → 0.8% / 30일
+  → local liquidity reserve와 행정등급 multiplier는 유지
+```
+
+---
+
+# 1. Peace Settlement 할양 연결성
+
+## 1.1 기존 충돌
+
+V0.33F의 할양 후보는 수령국 소유 타일과 인접해 있으면 받을 수 있었지만, 기존 영토 유지 시스템은 수도에서 4방향 BFS로 실제 territory component를 검사한다.
+
+따라서 아래 두 조건이 서로 달랐다.
+
+```text
+F Settlement: 인접한 수령국 ownerId 타일이 있는가?
+Legacy territory cleanup: 수도와 실제 territory Set으로 연결되는가?
+```
+
+이 차이 때문에 평화협정 직후에는 수령국 영토였지만 다음 tick에서 중립화되는 enclave가 생길 수 있었다.
+
+## 1.2 F4 recipient-core 규칙
+
+F4는 `recipientCoreComponent()`를 추가한다.
+
+- 수령국 `coreTileId`에서 시작한다.
+- 수령국 `territory`를 4방향으로 탐색한다.
+- 평화협정에서 이미 승인한 선행 ceded tile은 임시 extra component로 포함할 수 있다.
+- 새 할양 후보는 이 수도 연결 component의 타일과 직접 인접해야 한다.
+
+복수 타일 할양은 다음처럼 가능하다.
+
+```text
+수령국 본토 ─ A ─ B ─ C
+              ↑   ↑   ↑
+            1번  2번  3번 할양
+```
+
+하지만 아래와 같은 고립지는 거부한다.
+
+```text
+수령국 본토       X
+                  ↑
+             고립 할양 후보
+```
+
+## 1.3 양도 시점 이중 검사
+
+`settlementTerms()` 후보 선정 단계에서 한 번 검사하고, 실제 `cedeTile()` 적용 단계에서 다시 검사한다.
+
+거부 이벤트:
+
+- `PEACE_CESSION_CONNECTIVITY_REJECT33F4`
+  - `stage: TERMS`: 조약안 작성 단계에서 거부
+  - `stage: APPLY`: 실제 양도 직전 최종 검사에서 거부
+
+## 1.4 종전 직후 invariant
+
+실제 양도 후 각 `cededTile`이 수령국 수도 component에 포함되는지 다시 확인한다.
+
+- `PEACE_CESSION_POSTCHECK_FAILED33F4`
+- 정상 자연주행 목표: `postPeaceDisconnectedCededTiles33F4 = 0`
+
+F4는 이 post-check에서 영토를 다시 중립화하지 않는다. 핵심은 애초 후보/적용 단계에서 disconnected cession이 만들어지지 않도록 하는 것이다.
+
+## 1.5 타일 Inspector stale 표시
+
+`v33fConquest`는 역사 기록으로 남을 수 있다. 그러나 현재 `ownerId`가 `toNationId`와 다르면 더 이상 현재 상태를 뜻하지 않는다.
+
+따라서 F4부터 `평화협정 영구 편입` 표시는 다음 조건에서만 나타난다.
+
+```text
+tile.v33fConquest 존재
+AND tile.ownerId === tile.v33fConquest.toNationId
+```
+
+중립화, 재정복, 재개척 뒤에는 과거 편입 기록이 현재 소유 상태처럼 표시되지 않는다.
+
+---
+
+# 2. 건설 Gold 직접 국내 순환
+
+## 2.1 기존 문제
+
+기존 기본 결제는 Gold 건설비를 다음처럼 처리했다.
+
+```text
+Nation Treasury / pooled market funding
+            ↓
+payBuild()
+            ↓
+Gold cost 전액 차감
+            ↓
+세계 통화량에서 소멸
+```
+
+성장기에는 건설 건수가 많기 때문에 이 구조가 세계 통화량을 크게 줄였다. 시장 공동재정을 쓰는 시설도 market Gold를 Treasury로 옮긴 뒤 같은 `payBuild()`에서 전액 소멸하므로, 자금원만 달랐을 뿐 최종 Gold sink는 같았다.
+
+## 2.2 F4 기본 비율
+
+모든 성공한 Gold-bearing `payBuild()`에 다음 규칙을 적용한다.
+
+```text
+Gold cost = G
+
+Settlement market 직접 환류 = 0.75G
+실제 세계 통화 sink          = 0.25G
+```
+
+예를 들어 20G 시설을 지으면:
+
+```text
+결제 재정 -20G
+대상 Settlement market +15G
+세계 통화량 순감소 -5G
+```
+
+이 환류는 새 Gold를 건설 완료 후 임의로 국고에 찍는 방식이 아니라, **결제 직후 국내 시장에 남는 공사대금**으로 취급한다.
+
+## 2.3 환류 위치
+
+75%는 건설 대상 타일의 `v29Economy.marketGold`에 들어간다.
+
+그 뒤 기존 경제 시스템이 그대로 처리한다.
+
+```text
+Settlement market
+  → 임금
+  → Person wallet
+  → 소비
+  → 90% 시장 / 10% 소비세
+  → market surplus levy
+  → Nation Treasury
+```
+
+따라서 건설비가 바로 국고로 되돌아가는 것이 아니라 국내 경제를 거쳐 다시 세입화된다.
+
+## 2.4 공동재정과 동일 규칙
+
+경제·철산업·군사시설은 기존에 Settlement market surplus를 공동재정으로 사용할 수 있다.
+
+F4에서는 자금원이
+
+- Treasury 단독
+- local Settlement market + Treasury
+- remote Settlement market + Treasury
+
+중 무엇이든 최종 Gold 비용의 75%를 동일하게 대상 Settlement 시장으로 환류한다.
+
+## 2.5 건설 Gold audit
+
+매 성공 건설마다 해당 국가의 다음 합계를 전후 비교한다.
+
+```text
+Nation money = Treasury + Settlement markets + alive Person wallets
+```
+
+기대 delta:
+
+```text
+expected delta = -(Gold cost × 0.25)
+```
+
+기록:
+
+- `buildGoldPayments33F4`
+- `buildGoldCost33F4`
+- `buildGoldRecirculated33F4`
+- `buildGoldSink33F4`
+- `buildGoldAuditChecks33F4`
+- `buildGoldAuditMismatches33F4`
+
+정상 목표:
+
+```text
+buildGoldAuditMismatches33F4 = 0
+buildGoldRecirculated ≈ buildGoldCost × 0.75
+buildGoldSink ≈ buildGoldCost × 0.25
+```
+
+---
+
+# 3. publicSpending 사후 환류 완전 삭제
+
+## 3.1 삭제 대상
+
+기존 V0.23 / V0.24 연간 재정식에는 다음 항목이 있었다.
+
+```text
+publicSpendingPending × 0.12
+```
+
+건설·개척·축제 등 공공지출을 추적한 뒤 다음 연도에 일부를 Treasury Gold로 다시 생성하는 근사였다.
+
+F4에서는 이 항목을 **완전히 삭제**한다.
+
+## 3.2 세이브 호환
+
+`fiscalStats23.publicSpendingPending` 필드는 구버전 세이브 호환을 위해 구조상 남을 수 있지만 다음처럼 취급한다.
+
+- F4 attach 시 0으로 초기화
+- 연간 fiscal tick에서도 0으로 정리
+- 어떤 경우에도 Gold로 변환하지 않음
+- `lifetimePublicSpending`은 역사 통계이므로 유지
+
+## 3.3 유지되는 일반 연간세입
+
+다음 항목은 public spending return과 별개의 소규모 경제활동 기반 세입이므로 유지한다.
+
+- 성인 인구
+- 상인 수
+- market / trading_post / merchant_guild / grand_market 수
+- 최근 무역 증가량
+
+기존 국가당 연간 최대 6G cap도 유지한다.
+
+즉 F4의 연간식은 개념적으로 다음과 같다.
+
+```text
+annual general revenue
+= adults component
++ merchants component
++ commerce component
++ trade activity component
+
+publicSpending component = 0
+```
+
+---
+
+# 4. Settlement market surplus levy
+
+## 4.1 세율 변경
+
+기존 기본 levy:
+
+```text
+0.0038 = 0.38% / 30 calendar days
+```
+
+F4:
+
+```text
+0.008 = 0.8% / 30 calendar days
+```
+
+행정 중심지 등급 multiplier는 그대로 적용된다.
+
+- 주요 도시: ×1.30
+- 도시: ×1.20
+- 지역 중심지: ×1.10
+- 일반 정착지: ×1.00
+
+## 4.2 보호되는 시장 유동성
+
+세율은 올리지만 세금 기반은 여전히 `marketGold - local reserve`이다.
+
+local reserve 공식과 작은 Settlement 보호는 바꾸지 않는다. 즉 시장 전체 잔액에 0.8%를 부과하는 것이 아니다.
+
+## 4.3 유지 항목
+
+- Person 소비세 10% 유지
+- regional grant 공식 유지
+- public spending 시장지원 유지
+- Treasury Reserve 건설 방어선 유지
+
+이번 F4에는 별도의 `Treasury Target / Fiscal Stance`를 넣지 않는다. 먼저 직접 건설 순환 + levy 강화만으로 60년대 재정이 어디까지 회복되는지 자연주행으로 본다.
+
+---
+
+# 5. 자연주행 검증 기준
+
+## 5.1 평화협정
+
+```text
+postPeaceDisconnectedCededTiles33F4 = 0
+```
+
+평화협정으로 받은 영토가 다음 날 `TERRITORY_DISCONNECTED`로 사라지는 사례가 없어야 한다.
+
+## 5.2 건설 회계
+
+```text
+buildGoldAuditMismatches33F4 = 0
+```
+
+누적치도 대략:
+
+```text
+recirculated / cost = 0.75
+sink / cost = 0.25
+```
+
+여야 한다.
+
+## 5.3 60년대 세계 통화량
+
+이전 장기런의 60년 세계 통화량 약 250G보다 명확히 높아야 한다.
+
+첫 관찰 목표는 **600G 이상**, 이상적으로 **700~900G 부근**이다. 이는 강제 밸런스 하드캡이 아니라 자연주행 비교 기준이다.
+
+## 5.4 Gold 위치 분포
+
+관찰용 목표 범위:
+
+- Treasury: 35~50%
+- Settlement market: 35~45%
+- Person: 15~25%
+
+이 범위를 즉시 강제하지 않는다. `treasuryShare33F4`, `marketShare33F4`, `personShare33F4`로 추세를 본다.
+
+## 5.5 국가별 국고
+
+60년대에 모든 국가가 반드시 100G를 가져야 한다는 하드 규칙은 아직 두지 않는다.
+
+이번 1차 목표는:
+
+- 일반국 국고가 기존 한 자릿수~수십 G에서 의미 있게 상승
+- 일부 경제·행정 강국은 100G 이상 축적 가능
+- 90년대 이전부터 전쟁배상금·War Chest에 실제 공공재정이 의미를 갖기 시작
+
+이다.
+
+---
+
+# 6. F4에서 변경하지 않는 것
+
+다음은 이번 패치에서 그대로 유지한다.
+
+- F3 demobilization grace
+- Recovery Emergency ↔ Rally Lock 우선순위
+- Final Commitment demotion protection
+- SURVIVAL_ABORT same-target recovery gate
+- War Goal 규모와 생성 규칙
+- Peace Leverage 공식
+- 방어측의 역영토 획득 허용
+- Gold 배상 요구·지급 cap
+- Person wallet 직접 압류 금지
+- 전투력·사상률·점령시간
+- Formation target deconfliction / deliberate concentration
+- 철광석 자원 레이어
+
+후속 후보:
+
+- multi-year PREPARING stagnation safety valve
+- 최근 동일 상대 패전 기억의 전쟁 의사결정 반영 강화
+- coalition war contribution / peace distribution
+- Treasury Target / Fiscal Stance
+- 2,000 Person 전후 성능 최적화
+
+---
+
+# 7. F4 신규 telemetry
+
+세계:
+
+- `buildGoldPayments33F4`
+- `buildGoldCost33F4`
+- `buildGoldRecirculated33F4`
+- `buildGoldSink33F4`
+- `buildGoldAuditChecks33F4`
+- `buildGoldAuditMismatches33F4`
+- `peaceCessionConnectivityRejects33F4`
+- `postPeaceDisconnectedCededTiles33F4`
+- `treasuryShare33F4`
+- `marketShare33F4`
+- `personShare33F4`
+- `marketLevyRate33F4`
+- `publicSpendingReturnRate33F4`
+
+국가:
+
+- `buildGoldCostNation33F4`
+- `buildGoldRecirculatedNation33F4`
+- `buildGoldSinkNation33F4`
+- `moneyTreasuryShareNation33F4`
+- `moneyMarketShareNation33F4`
+- `moneyPersonShareNation33F4`
+
+F3 예상 CSV 1077열에 F4 19열을 추가하므로 F4 예상 schema는 **1096열**이다.
+
+---
+
+# 8. 핵심 요약
+
+V0.33F4의 목적은 국가에 Gold를 직접 지급하는 것이 아니다.
+
+```text
+기존
+국가 건설 → Gold 소멸 → 다음 해 일부 가상 환류
+
+F4
+국가 건설 → 75% 국내 시장에 실제 잔존 → 임금·소비·세금으로 순환
+          → 25%만 실제 sink
+          → publicSpending 가상 환류 0
+```
+
+동시에 Peace Settlement는 수령국 수도권에 실제로 붙는 영토만 영구 양도한다.
+
+F4 자연주행의 가장 중요한 질문은 두 가지다.
+
+1. **전쟁으로 얻은 영토가 실제 국경으로 남는가?**
+2. **60년대 국가재정과 세계 통화량이 90년까지 기다리지 않고 성장경제를 지탱할 정도로 회복되는가?**
+
+---
+
+# Appendix A. V0.33F3 — War Preparation Recovery & State Stabilization
 
 기준 버전: **V0.33F2 — War Preparation Pipeline Stabilization**  
 릴리스 성격: **소규모 안정화 패치 / 전쟁준비 취소·회복·Final Commitment 상태 정합성 수정**  
