@@ -1,3 +1,434 @@
+# Village Observer V0.33F5
+## Monetary Price Level V1
+
+기준 버전: **V0.33F4 — Peace Cession & Treasury Circulation Stabilization**  
+릴리스 성격: **가격체계 기반 패치 / 실물 희소가격과 명목가격 분리 / Gold 유동성의 가격수준 반영**  
+작성일: 2026-10-02
+
+---
+
+## 0.33F5 패치 목적
+
+V0.33F4 자연주행에서는 건설 Gold 75% 국내환류가 정상 작동하면서 세계 통화량의 장기 고갈이 크게 완화됐다. 동시에 새로운 문제가 더 선명해졌다.
+
+60년대 이후 세계 Gold와 1인당 유동 Gold가 크게 늘어도 식량·목재·철광석·철·도구의 명목가격은 거의 움직이지 않았다. 석재는 수급 부족 때문에 상승했지만, 이것 역시 통화팽창이 아니라 기존 실물 희소성 가격식의 반응이었다.
+
+기존 가격식은 다음 요소를 중심으로 작동한다.
+
+```text
+식량
+  → reserve days / 현지 재고 / 소비 압력
+
+목재·석재
+  → 재고 coverage / 건설·주거·유지보수 수요
+  → 생산 / 최근 물류·거래
+
+철광석·철·도구
+  → 현지 재고 / 저장용량 / 산업수요
+```
+
+이 실물가격 모델은 상대가격 신호로서 유지할 가치가 있다. 따라서 F5는 기존 가격식을 바꾸지 않고 그 위에 별도 **Monetary Price Level**을 추가한다.
+
+```text
+Scarcity Price
+  = 기존 V0.30 / V0.31 실물 수급 가격
+
+Monetary Price Index
+  = 세계의 장기적인 1인당 유동 Gold 변화
+
+Nominal Transaction Price
+  = Scarcity Price × Monetary Price Index
+```
+
+핵심 원칙은 다음과 같다.
+
+```text
+실물 부족/풍부함
+  → 자원간 상대가격을 변화시킴
+
+Gold 유동성 증가/감소
+  → 공통적인 명목가격 수준을 변화시킴
+```
+
+따라서 F5는 Gold 팽창 자체를 억제하지 않는다. Gold 팽창이 실제 거래가격에 보이도록 만든다.
+
+---
+
+# 1. Liquid Gold
+
+## 1.1 가격수준에 반영하는 Gold
+
+국고 Gold 전액을 즉시 소비 가능한 구매력으로 보지 않는다.
+
+F5의 세계 유동성은 다음으로 계산한다.
+
+```text
+Liquid Gold
+= Settlement Market Gold
++ living Person wallet Gold
++ Nation Treasury Gold × 0.25
+```
+
+즉 Treasury의 **25%**만 단기적인 명목가격 압력에 포함한다.
+
+```text
+Liquid Gold per capita
+= Liquid Gold / living population
+```
+
+이 값은 일시적인 거래·건설·세금 이동에 따라 너무 빠르게 흔들리지 않도록 **180 calendar-day EMA**를 적용한다.
+
+## 1.2 초기 Gold 배정 왜곡 방지
+
+새 세계는 국가 시작 Gold가 비교적 크고, 성장 초기에 개척·건설·유지비로 이 Gold가 빠르게 감소한다.
+
+시작 시점의 높은 Gold를 그대로 영구 기준점으로 잡으면 후기 경제가 성장해도 오랫동안 `monetary index < 1`인 구조가 될 수 있다. F5는 이 초기 seed/endowment 소진기를 통화경제의 정상 기준으로 해석하지 않는다.
+
+따라서 초기에는 **1인당 유동 Gold의 장기 최저점**을 임시 anchor로 추적한다.
+
+anchor 고정 조건:
+
+```text
+연도 >= 20
+AND
+anchor 최저점이 360 calendar days 이상 갱신되지 않음
+AND
+smoothed Liquid Gold / capita >= anchor × 1.15
+```
+
+세 조건이 모두 충족되면 `anchorLpc`를 고정한다.
+
+이후에는 새 최저점에 맞춰 기준을 계속 움직이지 않는다. 즉 anchor 고정 이후의 통화팽창과 통화수축은 실제 명목가격 변화로 남는다.
+
+이 규칙은 특정 60년 시점을 하드코딩하지 않고, 각 자연주행에서 초기 통화수축이 끝나고 지속적인 재팽창이 시작되는 시점을 자동으로 찾기 위한 장치다.
+
+---
+
+# 2. Monetary Price Index
+
+anchor 고정 전:
+
+```text
+Monetary Price Index = 1.0
+```
+
+anchor 고정 후 목표값:
+
+```text
+Target Index
+= (Smoothed Liquid Gold per capita / Anchor Liquid Gold per capita) ^ 0.40
+```
+
+초기 탄력성은 **0.40**이다.
+
+따라서 유동 Gold/인이 2배가 되어도 모든 가격이 곧바로 2배가 되지 않는다.
+
+```text
+2.0 ^ 0.40 ≈ 1.32
+```
+
+즉 다른 실물조건이 동일하다면 약 32% 정도의 명목가격 상승압력이 발생한다.
+
+Target Index를 그대로 즉시 적용하지 않고 **360 calendar-day EMA**로 실제 index가 따라가게 한다.
+
+안전범위:
+
+```text
+0.55 <= Monetary Price Index <= 4.00
+```
+
+이 범위는 V1 폭주 방지용이며, 자연주행을 보고 다시 평가한다.
+
+---
+
+# 3. Scarcity Price와 Nominal Price 분리
+
+## 3.1 생산·AI 판단
+
+기존 V0.30/V0.31 `marketPrice` / `price31` 계열은 **Scarcity Price** 역할을 계속 맡는다.
+
+따라서 다음과 같은 판단은 통화팽창만으로 갑자기 발생하지 않는다.
+
+- 석재가 명목상 비싸졌다는 이유만으로 채석장 과잉 건설
+- 통화팽창만으로 Stoneworks 수요가 폭증
+- 광업 AI가 일반 물가상승을 자원 희소성으로 오인
+
+생산시설·전략 AI의 희소성 판단에는 기존 실물가격을 유지한다.
+
+## 3.2 실제 거래
+
+실제 Gold 결제에는 명목가격을 사용한다.
+
+```text
+Nominal Price
+= Scarcity Price × Monetary Price Index
+```
+
+적용 대상:
+
+- V0.29 Settlement 간 국내교역
+- D5 국제 상품 판매호가
+- D5 구매자 최대지불가격
+- E6 국제 운송서비스 Gold 단가
+
+전략 프리미엄·반복구매 프리미엄·관계 조정·판매자의 현금압박 할인은 기존 비율 규칙을 유지한다.
+
+국제운송비 역시 같은 monetary index를 받는다. 자원 명목가격만 상승하고 운송 Gold 비용이 수십 년간 고정되어 실질 운송비가 사라지는 현상을 방지하기 위한 것이다.
+
+국내 운송의 기존 route fee 공식은 F5에서 별도로 재설계하지 않는다.
+
+---
+
+# 4. 기존 가격 통계의 의미 변경
+
+F5 이후 기존 통계 UI의 `평균 가격` 그래프는 **Nominal Price**를 표시한다.
+
+동시에 개발자 데이터에는 실물가격을 별도 저장한다.
+
+6개 대상 자원:
+
+- food
+- wood
+- stone
+- iron_ore
+- iron
+- tools
+
+각 자원에 대해 세계 기준으로 다음을 기록한다.
+
+```text
+scarcityPrice<Resource>33F5
+nominalPrice<Resource>33F5
+realizedPrice<Resource>33F5
+realizedVolume<Resource>33F5
+```
+
+Nation 기준:
+
+```text
+scarcityPrice<Resource>Nation33F5
+nominalPrice<Resource>Nation33F5
+```
+
+기존 `price_food / price_wood / price_stone` 및 `avgIronOrePrice31 / avgIronPrice31 / avgToolsPrice31`의 현재 연간 통계값은 명목가격으로 갱신한다.
+
+Settlement 연간 `pf / pw / ps` 역시 명목가격으로 갱신한다.
+
+---
+
+# 5. 실제 체결가격 관측
+
+계산된 가격과 실제 시장에서 지불된 가격을 구분한다.
+
+F5의 `realizedPrice*33F5`는 최근 **1년(120 legacy simulation days = 360 calendar days)** 동안의 실제 거래를 사용한다.
+
+포함:
+
+- 국제교역 `recentTrades`
+- 국내 `DOMESTIC_TRADE29`
+
+계산:
+
+```text
+Realized Price
+= Σ(거래량 × 실제 unit price) / Σ(거래량)
+```
+
+거래가 없으면 0으로 기록한다.
+
+따라서 이후 전쟁경제에서 다음을 구분할 수 있다.
+
+```text
+철 Scarcity Price 상승
+vs
+Monetary inflation
+vs
+실제 철 거래가격 상승
+```
+
+---
+
+# 6. 세계 통화 Telemetry
+
+추가 세계 필드:
+
+```text
+liquidMoney33F5
+liquidMoneyPerCapita33F5
+smoothedLiquidMoneyPerCapita33F5
+monetaryPriceIndex33F5
+monetaryPriceTarget33F5
+monetaryAnchorLpc33F5
+monetaryAnchorFrozen33F5
+monetaryAnchorAgeDays33F5
+inflation1y33F5
+liquidityPerCapitaGrowth1y33F5
+treasuryLiquidityWeight33F5
+monetaryElasticity33F5
+```
+
+Anchor가 처음 고정될 때:
+
+- `MONETARY_PRICE_ANCHOR_FROZEN33F5`
+
+이벤트를 한 번 기록한다.
+
+기존 F4 CSV 1096열에 F5 48개 열을 추가하므로 **예상 CSV schema는 1144열**이다.
+
+---
+
+# 7. F4 자연주행에 대한 사후 calibration 확인
+
+F4 PC 자연주행의 저장된 연간 흐름을 F5 anchor 규칙에 대입해보면 대략 다음 패턴이 나온다.
+
+```text
+1인당 유동 Gold 장기 저점
+  ≈ 0.79G / person
+  ≈ 57~60년대
+
+지속 회복 확인 후 anchor 고정
+  ≈ 66년 전후
+
+84년 부근
+  target monetary index ≈ 1.24
+  360일 smoothing 적용 index ≈ 1.23
+```
+
+즉 F4와 비슷한 경제라면 60년대 저점 이후 80년대에 다른 실물조건이 동일한 자원의 명목가격이 약 20%대 상승하는 정도가 첫 관찰 기대치다.
+
+이 값은 F5에서 강제로 목표한 가격이 아니라 F4 데이터를 새 규칙에 대입한 calibration 결과다.
+
+---
+
+# 8. F5에서 의도적으로 변경하지 않는 것
+
+다음은 그대로 유지한다.
+
+- F4 건설 Gold 75% 시장환류 / 25% sink
+- `publicSpendingPending × 12%` 환류 삭제
+- Settlement market surplus levy 0.8% / 30일
+- 소비세 10%
+- 임금 공식
+- 건물 Gold 건설비
+- Frontier Expansion Gold 비용과 100% sink 구조
+- Gold 자연광맥 채굴
+- 활동기반 연간 일반세입
+- 전투력 / 사상률 / 점령 / 평화협정
+- 장비 생산량·보급률
+- 전투 중 장비 파손·유실 모델 없음
+
+가격이 올랐다고 임금이나 건설비를 자동 indexation하지 않는다. F5 자연주행에서 실질임금과 고정비용이 지나치게 낮아지는지 별도로 관찰한다.
+
+---
+
+# 9. F5 자연주행 검증 포인트
+
+## Monetary layer
+
+- 초기 성장기에는 index가 1.0 부근에서 calibration되는가
+- 초기 Gold 소진의 장기 저점이 정상적으로 anchor 후보가 되는가
+- 장기 저점 이후 15% 회복 + 1년 안정 조건에서 anchor가 한 번 고정되는가
+- 고정 이후 index가 Gold/인구 변화에 따라 완만히 상승·하락하는가
+- 하루/한 분기의 Gold 이동으로 가격이 급등락하지 않는가
+
+## Price
+
+- 식량·목재·석재·철광석·철·도구의 nominal price가 monetary index 방향을 반영하는가
+- 석재처럼 실제 부족한 자원의 상대적 상승폭은 유지되는가
+- 철광석·철·도구가 기존처럼 거의 고정된 명목가격에 머물지 않는가
+- Scarcity price 자체가 통화량 상승만으로 오르지 않는가
+
+## Trade
+
+- 국내 Settlement 실제 unit price가 nominal price를 반영하는가
+- 국제 seller ask / buyer willingness / actual goods price가 nominal price를 반영하는가
+- 국제 운송서비스 단가가 monetary index와 함께 완만히 증가하는가
+- 기존 Gold conservation / E6 transport audit mismatch = 0을 유지하는가
+
+## Observer
+
+- 기존 가격 그래프가 nominal price를 표시하는가
+- F5 scarcity/nominal/realized 가격이 서로 구분되어 export되는가
+- realized price가 거래가 존재할 때 실제 unit price와 일치하는가
+- CSV 1144열 / schema mismatch 0
+
+---
+
+# 10. 이후 전쟁경제 로드맵
+
+F5는 전쟁이 철값을 직접 올리는 패치가 아니다. 가격 신호가 제대로 표현될 기반을 만드는 단계다.
+
+후속 권장 순서:
+
+### V0.33F5A — Frontier Expansion Finance
+
+- 개척 Gold의 100% 직접 sink 검토
+- Treasury reserve 우회 수정
+- 건설과 개척의 국내경제 환류 의미 통일
+
+### V0.34A — Equipment Attrition & Replacement Demand
+
+- 전투 장비 파손·유실·회수·노획
+- 실제 장비 pool 감소
+- replacement backlog
+
+### V0.34B — Industrial Demand Propagation
+
+```text
+장비 replacement backlog
+→ 철 수요
+→ 제련 생산압력
+→ 철광석 수요
+→ 실제 Scarcity Price 상승
+```
+
+### V0.34C — War Economy & Export Response
+
+- 철/철광석 실제 가격과 최근 수출량에 생산투자 AI가 반응
+- 철광산·제련소·창고·도로·교역소 확장
+- 전쟁에 참가하지 않는 자원국이 수출 Gold와 세수를 축적할 가능성
+
+### V0.34D — Strategic Trade / Neutrality
+
+- 전략물자 수출정책
+- 전시 중립국 교역
+- 양 교전국에 대한 판매
+- 봉쇄·외교압력·수출통제
+
+장기 목표는 다음 흐름을 실제 재고와 Gold 이동으로 만드는 것이다.
+
+```text
+세계전쟁
+→ 장비 수요 급증
+→ 철/철광석 실물수요 급증
+→ Scarcity Price 상승
+→ F5 Monetary Layer와 결합된 명목가격 상승
+→ 중립 철광국 수출 증가
+→ Market / Merchant / Treasury Gold 유입
+→ 산업투자 확대
+→ 경제적 부상
+```
+
+---
+
+# 11. 정적 검증
+
+F5 구현 후 확인 항목:
+
+- 전체 inline JavaScript syntax check
+- F5 단독 mock runtime: anchor freeze / monetary index / 국제 goods quote / E6 transport index / snapshot / serialize
+- F4 `payBuild` 회계와 F5 가격 레이어 분리
+- V0.29 국내교역 가격 hook이 F5 nominal API를 사용하고, 다른 scarcity 기반 AI는 기존 `NS.V017.marketPrice`를 유지하는지 확인
+
+브라우저 장기 자연주행은 다음 사용자 테스트 데이터로 검증한다.
+
+---
+
+# 이전 버전 상세 문서
+
+아래에는 V0.33F4 이하의 상세 설계·회귀·로드맵 기록을 그대로 유지한다.
+
+---
 # Village Observer V0.33F4
 ## Peace Cession & Treasury Circulation Stabilization
 
