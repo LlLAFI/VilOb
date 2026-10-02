@@ -1,3 +1,432 @@
+# Village Observer V0.33F3
+## War Preparation Recovery & State Stabilization
+
+기준 버전: **V0.33F2 — War Preparation Pipeline Stabilization**  
+릴리스 성격: **소규모 안정화 패치 / 전쟁준비 취소·회복·Final Commitment 상태 정합성 수정**  
+작성일: 2026-10-02
+
+---
+
+## 0.33F3 패치 목적
+
+V0.33F2 장기 태블릿 자연주행은 다음 핵심 항목을 정상 검증했다.
+
+- PREPARING / READY 중 평시 planner의 전역 하한이 실제 활성 경로에서 작동했다.
+- 동일 상대 War Intent retry cooldown이 실제 scanner에서 적용됐다.
+- Peace Settlement와 국가별 누적통계가 일치했다.
+- War Goal 작전목표와 복수 Formation 목표분산/의도적 집중이 자연주행에서 실제 발생했다.
+
+반면 같은 데이터에서 **전쟁준비가 취소되거나 Recovery Emergency가 개입할 때의 상태 전환**에 세 가지 문제가 남았다.
+
+1. `D2A_SURVIVAL_ABORT` 직후 D2가 준비용 추가병력을 즉시 대량 전역시키고, 바로 이어지는 V0.32B 평시 planner가 현역을 평시 목표까지 추가 축소하여 Formation이 하루 만에 `DORMANT`가 될 수 있었다.
+2. `RECOVERY_EMERGENCY`가 preparation rally lock을 해제한 뒤 V0.33E lock repair가 같은 Formation을 다시 잠그고, D2A가 다시 해제하는 release ↔ repair oscillation이 반복됐다.
+3. F2가 D2A 쪽 soft drift는 보호했지만, 더 앞선 lexical D2 `READY → PREPARING` 강등이 먼저 발생할 수 있어 Final Commitment soft-cancel 이벤트가 자연주행에서 18회 남았다.
+
+F3는 새 전쟁 밸런스를 추가하지 않고 이 세 상태 충돌을 **실제 활성 lexical 경로**에서 정리한다. 추가로 `SURVIVAL_ABORT` 뒤 동일 상대에 대한 재준비는 단순 시간 cooldown뿐 아니라 국가 기반의 최소 회복 조건을 요구한다.
+
+```text
+D2A_SURVIVAL_ABORT
+        ↓
+180일 post-preparation demobilization grace
+        ↓
+0~90일  : 평시 목표 + 준비 초과병력 60% 유지
+90~180일: 평시 목표 + 준비 초과병력 30% 유지
+        ↓
+180일 후 정상 평시 목표
+
+RECOVERY_EMERGENCY active
+        ↓
+D2A rally lock release
+        ↓
+V0.33E lock repair suppress
+        ↓
+회복 종료 후 D2A가 다시 preparation rally 소유
+
+Final Commitment latch
+        ↓
+lexical D2 READY→PREPARING demotion 자체 차단
+        ↓
+D2A countdown 유지
+        ↓
+hard abort 또는 선전포고
+
+SURVIVAL_ABORT same-target retry
+        ↓
+최소 180일 + survival/recovery 종료
++ 식량 회복 + Treasury 회복 + 적격 인력 회복
+        ↓
+동일 상대 재검토 허용
+```
+
+---
+
+# 1. 준비 취소 후 단계적 전역
+
+## 1.1 문제
+
+F2에서는 PREPARING 중 평시 전역을 성공적으로 막았지만, 준비가 취소되는 순간 preparation floor 자체가 사라졌다.
+
+장기 자연주행의 벨른에서는 다음 흐름이 반복됐다.
+
+```text
+현역 6~8명으로 전쟁준비
+→ D2A_SURVIVAL_ABORT
+→ 다음 날 준비용 Person 즉시 전역
+→ 평시 targetActive 1~2명까지 추가 전역
+→ FIELD_COHORT = 0
+→ Formation DORMANT
+```
+
+Formation 객체는 보존되었지만 지도상 물리 병력이 통째로 사라졌다가 다음 재군비 때 다시 나타났다.
+
+## 1.2 F3 demobilization grace
+
+`D2A_SURVIVAL_ABORT` 발생 당시 다음을 기록한다.
+
+- 당시 실제 active Person 수
+- 해당 국가의 원래 평시 targetActive
+- 취소된 Intent / 상대국
+- grace 시작·종료 calendar day
+
+그 후 180 calendar-day 동안 두 단계로 군 규모를 축소한다.
+
+### 0~90일
+
+```text
+floor = peacetime target + (abort 당시 초과병력 × 60%)
+```
+
+### 90~180일
+
+```text
+floor = peacetime target + (abort 당시 초과병력 × 30%)
+```
+
+180일 뒤에는 기존 평시 목표가 완전히 복원된다.
+
+예:
+
+```text
+abort 당시 active 7
+평시 target 1
+
+첫 90일 floor 5
+다음 90일 floor 3
+이후 target 1
+```
+
+## 1.3 두 전역 경로를 동시에 제어
+
+F3는 단순히 V0.32B planner만 막지 않는다.
+
+- D2 `finishPrep2()`가 `extraPersonIds`를 즉시 reserve로 돌리는 경로
+- V0.32B lexical `planMilitary32B()`가 평시 목표에 맞춰 추가 전역시키는 경로
+
+둘 다 동일한 F3 grace floor를 읽는다.
+
+따라서 준비 취소 직후 한 경로가 다른 경로를 우회해 야전군을 통째로 해산시키는 것을 방지한다.
+
+신규 Devlog:
+
+```text
+POST_PREPARATION_DEMOBILIZATION_GRACE_STARTED33F3
+POST_PREPARATION_DEMOBILIZATION_FLOOR33F3
+POST_PREPARATION_DEMOBILIZATION_GRACE_ENDED33F3
+```
+
+---
+
+# 2. Recovery Emergency와 Preparation Rally 우선순위
+
+## 2.1 기존 oscillation
+
+F2 장기 로그에서 다음 조합이 수백 회 반복됐다.
+
+```text
+WAR_PREPARATION_RALLY_RELEASED33D2A
+reason = RECOVERY_EMERGENCY
+
+→ 같은 날/다음 tick
+
+WAR_PREPARATION_LOCK_REPAIRED33E
+reason = ACTIVE_PREPARATION_RALLY_TARGET_PRESENT
+
+→ D2A가 다시 release
+```
+
+각 시스템은 독립적으로는 정상 판단이었지만, **어느 시스템이 Formation 제어권을 우선하는지 공유하지 않았기 때문**이다.
+
+## 2.2 F3 우선순위
+
+Recovery 상태가 활성화되어 있으면:
+
+```text
+RECOVERY_EMERGENCY > WAR_PREPARATION_RALLY
+```
+
+로 취급한다.
+
+- D2A는 preparation lock을 해제할 수 있다.
+- V0.33E `repairPreparationLocksE()`는 `recoveryState.active`인 국가를 재잠그지 않는다.
+- Recovery가 종료되면 기존 PREPARING/READY Intent가 계속 유효한 경우 D2A가 정상적으로 rally lock을 다시 설정한다.
+
+전쟁준비를 취소하거나 Formation을 삭제하는 규칙은 아니다. **일시적으로 Recovery가 Formation 제어권을 가진다.**
+
+---
+
+# 3. Final Commitment soft-cancel 제거
+
+## 3.1 F2에서 남았던 경로
+
+F2는 E2 전략 재평가와 D2A soft readiness drift를 보호했지만, 더 앞선 D2 lexical `syncPrep2()`가 다음을 먼저 실행할 수 있었다.
+
+```text
+READY
+→ progress.ready = false
+→ PREPARING 강등
+→ D2A에서 NOT_READY commitment cancel
+```
+
+그래서 자연주행에서 F2 신규 telemetry 기준 Final Commitment soft cancel이 18회 남았다.
+
+## 3.2 F3 수정
+
+D2 `syncPrep2()`의 실제 `READY → PREPARING` 분기에서 Final Commitment latch를 직접 확인한다.
+
+latch 상태라면:
+
+- Intent phase는 `READY` 유지
+- Preparation record도 `READY` 유지
+- 일시적 blocker는 관측 가능
+- commitment countdown은 유지
+- soft cancellation event를 생성하지 않음
+
+다음 hard abort 규칙은 그대로 유지한다.
+
+- 생존위기
+- Recovery Emergency
+- 목표국 무효
+- 작전경로 완전 상실
+- 동시전쟁 한도
+- 심각한 현역 병력 붕괴
+
+신규 Devlog:
+
+```text
+WAR_FINAL_COMMITMENT_DEMOTION_BLOCKED33F3
+```
+
+---
+
+# 4. SURVIVAL_ABORT 동일 상대 재준비 Recovery Gate
+
+## 4.1 목적
+
+F2 retry cooldown은 `ASSESSMENT_TOO_WEAK` 등의 일반적 전략 취소에 잘 작동했다.
+
+하지만 벨른처럼 `D2A_SURVIVAL_ABORT`를 반복하는 국가는 단순히 시간이 지난 뒤 같은 상대를 다시 선택하고, 다시 군비를 올렸다가 생존위기로 취소하는 순환이 가능했다.
+
+F3는 `SURVIVAL_ABORT`만 별도 취급한다.
+
+## 4.2 재검토 허용 조건
+
+같은 공격국 → 같은 상대국 pair는 다음을 모두 만족해야 다시 War Intent 후보가 될 수 있다.
+
+- 최소 180 calendar-day 경과
+- 국가 survival mode 비활성
+- Recovery Emergency 비활성
+- abort 당시 상황에 따라 설정된 최소 식량비축 회복
+- 최소 Treasury Gold 회복
+- 당시 준비목표를 기준으로 한 최소 적격 군사인구 회복
+
+조건이 충족되기 전에는 최신 E2 candidate scanner에서 직접 제외한다.
+
+신규 Devlog:
+
+```text
+WAR_SURVIVAL_RETRY_GATE_STARTED33F3
+WAR_SURVIVAL_RETRY_GATE_BLOCKED33F3
+WAR_SURVIVAL_RETRY_GATE_RELEASED33F3
+```
+
+이 규칙은 일반적인 약한 전략평가 cooldown을 대체하지 않는다. **SURVIVAL_ABORT에 추가되는 실제 국가회복 gate**다.
+
+---
+
+# 5. Telemetry
+
+신규 Global Snapshot / CSV:
+
+```text
+demobilizationGraceStarts33F3
+demobilizationGraceFloorApplications33F3
+cancelledPrepDemobilizationRetainedPersons33F3
+demobilizationGraceCompletions33F3
+recoveryLockRepairSuppressions33F3
+recoveryLockRepairViolations33F3
+survivalRetryGatesCreated33F3
+survivalRetryGateBlocks33F3
+survivalRetryGateReleases33F3
+finalCommitmentDemotionBlocks33F3
+finalCommitmentSoftCancelEvents33F3
+formationDormancyDuringGrace33F3
+activeDemobilizationGraces33F3
+activeSurvivalRetryGates33F3
+```
+
+신규 Nation Snapshot / CSV:
+
+```text
+demobilizationGraceRemainingDays33F3
+demobilizationGraceFloor33F3
+survivalRetryGateActive33F3
+survivalRetryGateReasons33F3
+recoveryRallySuspended33F3
+```
+
+F2 자연주행 CSV 1058열을 기준으로 F3는 19개 열을 추가하므로 예상 schema는 **1077열**이다.
+
+다음 자연주행에서 우선 볼 invariant:
+
+```text
+recoveryLockRepairViolations33F3 = 0
+finalCommitmentSoftCancelEvents33F3 = 0
+formationDormancyDuringGrace33F3 = 0 또는 실제 전투손실 등 설명 가능한 예외만 존재
+```
+
+그리고 벨른과 같은 사례에서:
+
+```text
+SURVIVAL_ABORT 직후
+7 → 1 즉시 급락 X
+7 → 약 5 → 약 3 → 평시 목표
+```
+
+형태가 관측되는지 확인한다.
+
+---
+
+# 6. Save / Migration
+
+현재 save version:
+
+```text
+0.33F3
+```
+
+localStorage key:
+
+```text
+village-observer-v0-33f3
+```
+
+fallback:
+
+```text
+village-observer-v0-33f2
+village-observer-v0-33f1
+village-observer-v0-33f
+village-observer-v0-33e5f2
+```
+
+F2 이전 save를 불러오면 F3 state가 additive하게 생성된다.
+
+신규 보존 상태:
+
+- post-abort demobilization grace
+- survival retry gate
+- F3 누적 telemetry stats
+
+---
+
+# 7. 구현 검증
+
+## 7.1 정적 JavaScript 검사
+
+HTML inline script:
+
+```text
+100 / 100 PASS
+syntax failures: 0
+```
+
+## 7.2 독립 F3 state regression
+
+최소 mock runtime에서 확인:
+
+```text
+abort active = 7
+peacetime target = 1
+첫 grace floor = 5
+직접 D2 demobilization 후 active = 5
+두 번째 grace floor = 3
+```
+
+동일 상대 SURVIVAL retry:
+
+```text
+180일 미만 → blocked
+180일 이후라도 식량/Gold/인력 미회복 → blocked
+회복 조건 충족 → released
+```
+
+Recovery Rally:
+
+```text
+recoveryState.active = true
+→ preparation lock repair suppressed = true
+```
+
+Final Commitment:
+
+```text
+latched commitment protected = true
+D2 demotion block telemetry = 1
+F3 soft cancel telemetry = 0
+```
+
+Serialization:
+
+```text
+World.serialize().version = 0.33F3
+```
+
+## 7.3 브라우저 자동 smoke test 제한
+
+현재 실행 환경의 Chromium 조직 정책이 `file://` 및 localhost 접근을 차단한다.
+
+```text
+“file” links are blocked
+127.0.0.1 is blocked
+```
+
+따라서 실제 Canvas/browser smoke test는 자동화하지 못했다. JavaScript syntax 및 독립 state regression으로 검증했고, 실제 UI는 다음 PC/태블릿 자연주행에서 확인한다.
+
+---
+
+# 8. 범위 유지
+
+V0.33F3에서 변경하지 않은 것:
+
+- Peace Settlement 공식
+- 방어측의 역영토 획득
+- Gold 배상 상한/지급원
+- War Goal 생성/가치
+- Formation target reservation/deconfliction
+- deliberate concentration
+- 전투력 공식
+- 사상률
+- 점령시간 및 저항도
+- 장비 생산/충족률
+- 철광석 자원지도
+- 문화/정복 행정마찰
+
+이번 버전은 **전쟁준비 취소와 회복 상태 전환의 안정화만 수행한다.**
+
+---
+
+# Historical Documentation — V0.33F2 and Earlier
+
 # Village Observer V0.33F2
 ## War Preparation Pipeline Stabilization
 
