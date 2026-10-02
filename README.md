@@ -1,9 +1,59 @@
-# Village Observer V0.33F5
-## Monetary Price Level V1
+# Village Observer V0.33F5P1
+## Price Statistics Observer + Anchor Init Hotfix
 
-기준 버전: **V0.33F4 — Peace Cession & Treasury Circulation Stabilization**  
-릴리스 성격: **가격체계 기반 패치 / 실물 희소가격과 명목가격 분리 / Gold 유동성의 가격수준 반영**  
+기준 버전: **V0.33F5 — Monetary Price Level V1**  
+릴리스 성격: **관측 UI 보강 / 실제 체결가 통계 / F5 monetary anchor 초기화 핫픽스**  
 작성일: 2026-10-02
+
+---
+
+## V0.33F5P1 변경사항
+
+### 1. 통계 탭 가격 기준 분리
+
+기존 `평균 가격`은 실제 거래 체결가가 아니라 Settlement별 계산가격을 평균한 값이었다. F5P1부터 UI 명칭을 명확히 분리한다.
+
+```text
+지역 가격
+  = 각 Settlement의 계산된 Nominal Price 평균
+  = Scarcity Price × Monetary Price Index
+
+실제 체결가
+  = 최근 1년 국내 + 국제 상품거래 unitPrice의 물량가중평균(VWAP)
+```
+
+세계·국가 통계에서는 `지역 가격`과 `실제 체결가`를 별도 항목으로 선택할 수 있고, 두 항목 모두 기존 식량/목재/석재/철광석/철/도구 자원 선택기를 공유한다. Settlement 범위에서는 실제 체결가 장기통계를 만들 수 있는 endpoint telemetry가 아직 없으므로 기존 `현지 가격`만 표시한다.
+
+국제거래의 실제 체결가는 **상품 unitPrice 기준**이며 운송서비스 Gold 비용은 포함하지 않는다. 최근 1년 거래량이 0이면 가격을 0G로 해석하지 않고 해당 연도의 체결가 관측값을 그래프에서 생략한다.
+
+### 2. 국가별 실제 체결가 telemetry
+
+F5는 세계 범위의 realized price/volume만 이미 기록하고 있었다. F5P1은 각 국가에 대해서도 다음을 계산한다.
+
+- 해당 국가 내부의 `DOMESTIC_TRADE29`
+- 해당 국가가 buyer 또는 seller인 국제거래
+- 최근 120 legacy days = 1 calendar year
+- `Σ(qty × unitPrice) / Σ(qty)`
+
+6개 자원 각각 `realizedPrice...Nation33F5P1`, `realizedVolume...Nation33F5P1`을 추가한다. 따라서 F5 예상 CSV 1144열에서 **F5P1 예상 schema는 1156열**이다.
+
+### 3. F5 monetary anchor 초기화 핫픽스
+
+F5 자연주행에서 `anchorLpc=0`, `anchorAge=0`, `monetaryPriceIndex=1`이 계속 유지된 원인은 `null` 초기값이 `Number(null)=0`으로 변환된 뒤 초기화 분기를 건너뛰는 문제였다. F5P1은 F5의 경제식을 바꾸지 않고 이 초기화만 수리한다.
+
+새 게임에서는 현재 Liquid Gold/인을 정상 anchor 후보로 초기화한다. 기존 F5 세이브를 불러올 때는 F5 snapshot이 남아 있으면 관측된 최저 smoothed Liquid Gold/인을 anchor 후보로 복구한다.
+
+다음 F5 파라미터는 **변경하지 않는다**.
+
+- Treasury liquidity weight = 25%
+- Monetary elasticity = 0.40
+- Liquidity EMA = 180 calendar days
+- Price-index EMA = 360 calendar days
+- Anchor freeze = year 20+ / trough 1년 안정 / trough 대비 15% 회복
+
+### 4. 범위 유지
+
+F5P1은 observer/hotfix 패치다. 임금, 건설 Gold 비용, 세율, 개척비, 장비 소모, 군수수요, 철산업 수요전파의 밸런스는 바꾸지 않는다. 기존 로드맵의 **V0.33F5A Frontier Expansion Finance**와 **V0.34 전쟁경제 계열**은 그대로 후속 단계로 유지한다.
 
 ---
 
