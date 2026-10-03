@@ -1,5 +1,201 @@
-# Village Observer V0.33F5P1
-## Price Statistics Observer + Anchor Init Hotfix
+# Village Observer V0.33F5P2
+## Anchor Calibration + War Intent Observation V2
+
+기준 버전: **V0.33F5P1 — Price Statistics Observer + Anchor Init Hotfix**  
+릴리스 성격: **Monetary anchor calibration hotfix / War Intent ASSESSING 재설계 / 정찰·점수 telemetry 보강**  
+작성일: 2026-10-03
+
+---
+
+## V0.33F5P2 패치 목적
+
+F5P1 자연주행을 두 번 비교한 결과 서로 다른 세계에서도 Monetary anchor가 **20년 1분기 1일**에 조기 고정되었다. 그 뒤 실제 1인당 Liquid Gold가 50년대까지 계속 하락했는데도 초기 anchor가 유지되어 Monetary Price Index가 장기간 1 미만으로 내려갔다.
+
+동시에 최근 자연주행에서는 실제 전쟁이 거의 발생하지 않았다. War Intent 로그를 확인한 결과 병력·War Chest·식량 준비에서 막힌 것이 아니라, 대부분의 Intent가 **ASSESSING 첫 재검토에서 취소되어 PREPARING 자체에 진입하지 못하는 것**이 직접 병목이었다.
+
+F5P2는 이 두 문제를 좁게 수정한다. 전투력·사상률·점령·Peace Settlement·D2 준비 목표·F4 Gold 순환·F5 가격 탄력성은 바꾸지 않는다.
+
+---
+
+## 1. Monetary anchor calibration V2
+
+### 1.1 Year 20 이전 startup anchor 폐기
+
+F5/F5P1은 새 게임 시작 직후의 Liquid Gold/인을 임시 anchor 후보로 사용했다. 이후 20년이 되었을 때 현재 값이 그 초기 후보보다 15% 이상 높으면 장기 trough 회복으로 잘못 해석할 수 있었다.
+
+F5P2부터 anchor search는 명시적으로 **20년 진입 시 새로 시작**한다.
+
+```text
+Year < 20
+  Monetary Index = 1.0
+  startup anchor는 영구 기준점으로 사용하지 않음
+
+Year 20 진입
+  anchor candidate = 현재 smoothed Liquid Gold / population
+  anchorSearchStarted = true
+
+이후
+  더 낮은 smoothed LPC 발견
+    → anchor candidate 갱신
+
+  마지막 저점 이후 360 calendar days 이상 안정
+  AND 현재 LPC >= trough × 1.15
+    → anchor freeze
+```
+
+기존 파라미터는 유지한다.
+
+- Treasury liquidity weight: **25%**
+- Monetary elasticity: **0.40**
+- Liquid Gold EMA: **180 calendar days**
+- Monetary Price Index EMA: **360 calendar days**
+- anchor 회복 기준: **+15%**
+- index clamp: **0.55 ~ 4.0**
+
+### 1.2 F5P1 세이브 migration
+
+F5P1 세이브에서 20년 초 조기 freeze가 확인되거나 post-year-20 search 상태가 없으면, 남아 있는 snapshot 중 **20년 이후 smoothed LPC 최저점**을 찾아 anchor를 재구성한다.
+
+재구성 시 다음 이벤트를 남긴다.
+
+- `MONETARY_ANCHOR_RECALIBRATED33F5P2`
+- 신규 세계에서 20년 search가 시작되면 `MONETARY_PRICE_ANCHOR_SEARCH_STARTED33F5P2`
+
+---
+
+## 2. War Intent disposition modifier 조정
+
+War Intent score의 국가 성향 보정을 다음으로 변경한다.
+
+| 성향 | F5P1 이전 | F5P2 |
+|---|---:|---:|
+| 영토확장형 | +10 | **+5** |
+| 자원개척형 | +6 | **+3** |
+| 균형형 | 0 | **0** |
+| 도시집약형 | 0 | **0** |
+| 교역외교형 | -5 | **-3** |
+| 생존안정형 | -8 | **-5** |
+
+이 조정은 영토확장형만 전쟁을 독점하는 현상을 완화한다. 동시에 PREPARING 기준 자체도 76에서 71로 이동하므로 영토확장형의 성향 보정 제외 실질 문턱은 크게 낮추지 않고, 다른 성향이 강한 전략적 이유가 있을 때 전쟁을 검토할 여지를 넓힌다.
+
+---
+
+## 3. War Intent ASSESSING V2
+
+War Intent의 score band를 다음과 같이 사용한다. 경계값은 겹치지 않는다.
+
+```text
+score < 63
+  → CANCELLED
+  → ASSESSMENT_TOO_WEAK
+
+63 <= score < 67
+  → WEAK Intent
+  → ASSESSING 최대 180일
+  → 180일까지 67에 도달하지 못하면 WEAK_INTENT_TIMEOUT
+
+67 <= score < 71
+  → STRONG Intent
+  → ASSESSING 최대 360일
+  → active reconnaissance 강화
+  → 360일까지 71에 도달하지 못하면 STRONG_INTENT_TIMEOUT
+
+score >= 71
+  → PREPARING
+  → 실제 동원/비축/War Chest/집결/시설 준비는 기존 D2/D2A가 담당
+```
+
+신규 후보 scan floor도 기존 **68 → 63**으로 변경한다.
+
+신규 Intent가 최초 scan에서 이미 71 이상이면 90일을 기다리지 않고 즉시 PREPARING으로 전환한다. F5P2에서는 War Intent 평가 단계가 직접 READY/전쟁선언을 수행하지 않는다. PREPARING 이후 READY와 Final Commitment는 기존 D2/D2A 파이프라인이 처리한다.
+
+WEAK/STRONG timeout 취소 뒤에는 기존 F2와 동일하게 같은 공격국→상대국 조합에 **180일 retry cooldown**을 적용한다.
+
+---
+
+## 4. STRONG Intent 정찰 강화
+
+67~71 미만의 STRONG Intent는 단순 대기 상태가 아니다. 해당 상대에 대해 기존 Intelligence 경로를 사용해 더 자주 능동정찰을 시도한다.
+
+```text
+STRONG Intent
+  → 60 calendar-day cadence active recon
+  → BORDER_RECON / WATCHTOWER_RECON / NETWORK_RECON 중 기존 접근 가능한 경로 사용
+  → 성공 시 실제 Intelligence observation 갱신
+```
+
+정찰 강화는 점수 보너스가 아니다. 적 전력 추정의 신뢰도와 범위를 갱신할 뿐이며, synthetic Person이나 직접 전투 보너스를 만들지 않는다.
+
+---
+
+## 5. War score component telemetry
+
+War Intent 생성·검토·상태변경 로그에서 최종 score만 보지 않고 다음 구성요소를 분리한다.
+
+```text
+final score
+= concern component
++ relation component
++ border component
++ power component
++ disposition modifier
+- trade penalty
+- route penalty
+- intel penalty
+```
+
+추가 이벤트/필드의 목적은 다음 질문을 자연주행 데이터에서 직접 답할 수 있게 하는 것이다.
+
+- Intent가 왜 생성되었는가
+- 90~360일 관찰 중 어떤 항목 때문에 점수가 상승/하락했는가
+- 정찰 이후 power/intel 항목이 얼마나 변했는가
+- 특정 성향이 여전히 과도하게 전쟁을 독점하는가
+
+Snapshot/CSV에는 국가별로 현재 Intent의 band, age, assessment count와 각 score component를 추가한다. F5P1 **1156열**에서 21개 필드가 추가되어 F5P2 예상 CSV schema는 **1177열**이다.
+
+---
+
+## 6. F5P2에서 변경하지 않는 것
+
+- D2 manpower / food / readiness / force-ratio 준비 목표
+- D2A War Chest와 Final Commitment
+- F3 post-abort recovery / demobilization grace / survival retry gate
+- 전투력·사상률·Engagement·후퇴·점령시간
+- F War Goal / Peace Leverage / 영토·Gold 평화협정
+- F4 건설 Gold 75% 시장환류 / 25% sink
+- F5 Liquid Gold 정의와 elasticity 0.40
+- Frontier Expansion Gold 100% sink
+- 장비 전투손실·회수·노획
+- 장비 수요 → 철 → 철광석 수요 전파
+
+Frontier Expansion Finance와 0.34 전쟁경제는 F5P2 자연주행이 안정된 뒤 후속 단계로 유지한다.
+
+---
+
+## 7. F5P2 자연주행 검증 포인트
+
+다음 런에서 우선 확인할 항목은 두 묶음이다.
+
+### Monetary
+
+- 20년 이전 Monetary Index가 1.0으로 유지되는가
+- 20년 진입 시 anchor search가 새로 시작되는가
+- 40~60년대 LPC 하락 시 anchor 후보가 계속 낮아지는가
+- 실제 trough 이후 360일 안정 + 15% 회복 뒤에만 freeze되는가
+- 후기 LPC 회복 시 index가 1.0 위로 자연스럽게 이동하는가
+
+### War Intent
+
+- WEAK / STRONG Intent가 실제로 90일 이상 생존하는가
+- STRONG Intent의 정찰이 실제로 발생하는가
+- score 71 이상에서 PREPARING 진입 사례가 생기는가
+- PREPARING 이후에는 D2 준비조건 중 무엇이 실제 병목이 되는가
+- 전쟁 빈도가 증가하되 매 분기 무분별한 전쟁이 발생하지 않는가
+- 공격국이 영토확장형/자원개척형 두 성향에만 100% 편중되지 않는가
+
+---
+
+# V0.33F5P1 — Price Statistics Observer + Anchor Init Hotfix
 
 기준 버전: **V0.33F5 — Monetary Price Level V1**  
 릴리스 성격: **관측 UI 보강 / 실제 체결가 통계 / F5 monetary anchor 초기화 핫픽스**  
