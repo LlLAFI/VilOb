@@ -1,13 +1,146 @@
-# Village Observer V0.33F5A
+# Village Observer V0.33F5A1
 
-## Frontier Expansion Finance V1
+## Stats Dropdown + Frontier Finance Gate Sync Hotfix
 
-Base version: **V0.33F5P2**  
+Base version: **V0.33F5A**  
 Release date: **2026-10-03**
 
-V0.33F5A integrates Frontier Expansion into the conserved domestic Gold economy. The patch changes the **financial path of expansion only**. Frontier selection, expansion pace, Pioneer counts, physical resource costs, accident risk, military systems, occupation, peace settlement, and the F5 monetary price formula remain unchanged.
+V0.33F5A1 is a focused stabilization patch based on the first long PC natural run of F5A. It does **not** rebalance Frontier costs, circulation ratios, fiscal reserve rates, the F5 monetary layer, War Intent, combat, occupation, or peace settlement.
+
+The patch fixes two observed integration regressions:
+
+1. Statistics `<select>` dropdowns closing on every simulation render tick on PC.
+2. F5A Frontier finance being enforced only at payment time, while AI EXPAND feasibility and V0.32D3 diagnostics could still report the same expansion as executable / `NONE`.
 
 ---
+
+## A1-1. Statistics dropdown stability
+
+The previous selector protection mainly prevented repeated `<option>` replacement, but later Statistics wrappers still reassigned `.value`, changed option labels, inserted/removed options, or changed selector visibility during every tick. Desktop native `<select>` popups can close when their DOM is touched while open.
+
+A1 adds a final strong render guard:
+
+- if the currently focused element is any `<select>` inside `#view-stats`, the simulation tick **skips `renderStats()` entirely**;
+- therefore no Statistics writer may alter option DOM, `.value`, label text, insertion/removal, or display state while the dropdown is open;
+- a real user `change` event grants exactly one immediate render so the selected value is applied without waiting for an unrelated click;
+- after focus leaves the selector, normal tick-based graph refresh resumes automatically.
+
+This intentionally favors selector stability over live chart redraw while a dropdown is physically open. The simulation itself continues normally.
+
+Telemetry adds:
+
+- `statsRenderDeferrals33F5A1`
+
+This counts render calls deferred by the focus guard. It is an observer/debug counter only.
+
+---
+
+## A1-2. Frontier finance feasibility synchronization
+
+F5A correctly enforced the fiscal reserve at `payFrontierFinance()`, but older Frontier eligibility layers still used the legacy test `v.gold >= 6`. In the first F5A natural run this produced repeated sequences such as:
+
+- AI chooses `EXPAND`;
+- D3 reports no physical/resource blocker;
+- F5A payment rejects the project because 6/7G would leave Treasury below the 40% Gold reserve floor;
+- AI falls back to another action;
+- the old D3 event can misleadingly report `blocker: NONE` or `SCORE`.
+
+A1 makes the **same F5A finance quote** part of Frontier feasibility before EXPAND is treated as executable.
+
+### V0.20 compatibility Frontier
+
+The 6G project checks the F5A quote before `canStartFrontier20()` returns true.
+
+### V0.21 balanced Frontier
+
+The current best candidate is inspected first. The expected 2- or 3-Pioneer project cost is calculated as 6G or 7G and the F5A quote must pass before `canStartFrontier21()` returns true.
+
+### V0.24 regional Frontier
+
+The current best regional candidate is inspected, the same real 2/3-Pioneer rule determines 6G/7G, and the F5A quote must pass before `canRegionalExpand24()` returns true.
+
+Because the existing V0.24 AI EXPAND score and autonomous Frontier pulse already depend on `canRegionalExpand24()`, this synchronizes:
+
+- AI EXPAND availability;
+- ordinary `startExpansion()` execution;
+- autonomous regional expansion;
+- F5A payment affordability.
+
+No separate expansion probability or score modifier is added.
+
+---
+
+## A1-3. D3 expansion blocker synchronization
+
+`expansionDiagD3()` now consults the same A1 Frontier feasibility result after its physical/population/resource checks pass.
+
+It may therefore report the real financial cause directly:
+
+- `FISCAL_RESERVE`
+- `WAR_PREPARATION_PRIORITY`
+- `INSUFFICIENT_TREASURY` where applicable
+
+instead of falling through to `NONE` and later being converted to `SCORE` after payment rejection.
+
+The diagnostic also carries observer fields internally:
+
+- `financeBlocker33F5A1`
+- `frontierGoldCost33F5A1`
+- `frontierReserveFloor33F5A1`
+
+Snapshot/CSV adds:
+
+- `frontierFinanceFeasible33F5A1`
+- `frontierFinanceBlocker33F5A1`
+
+Together with the global dropdown debug field, F5A1 adds **3 CSV columns** on top of the F5A schema.
+
+---
+
+## A1-4. Balance intentionally unchanged
+
+F5A1 does **not** change:
+
+- normal Frontier nominal cost: **6G / 7G**;
+- Recovery Escape nominal cost: **4G**;
+- Pioneer wage share: **50%**;
+- source Settlement market share: **25%**;
+- actual money-supply sink: **25%**;
+- normal AI Gold reserve protection: **40%**;
+- Recovery AI Gold reserve protection: **15%**;
+- War Chest ownership / operating-floor rules;
+- physical wood / stone / food Frontier costs;
+- candidate scoring, expansion chance, Pioneer counts, duration, accident risk or parallel project cap;
+- F5 monetary anchor / monetary price formula;
+- F5P2 War Intent 63 / 67 / 71 bands and STRONG reconnaissance;
+- D2/D2A War Chest and Final Commitment;
+- combat, occupation and Peace Settlement.
+
+The 8G reserve floor observed in the F5A natural run is therefore **not rebalanced in this hotfix**. A1 first removes the feasibility/diagnostic mismatch so a later natural run can measure the reserve rule itself cleanly.
+
+---
+
+## A1-5. Compatibility and save chain
+
+- Save version: `0.33F5A1`
+- LocalStorage key: `village-observer-v0-33f5a1`
+- Primary fallback: `village-observer-v0-33f5a`
+- F5A saves are upgraded through the existing F5A loader and retain `v33f5a` finance counters.
+- A1 state is stored separately as `v33f5a1`.
+- Devlog / CSV / scenario export filenames use `v033F5A1`.
+
+The original F5A finance API remains authoritative:
+
+- `NS.V033F5A.financeQuote(...)`
+- `NS.V033F5A.payFrontierFinance(...)`
+
+A1 adds the read-only integration helper:
+
+- `NS.V033F5A1.frontierFeasibility(...)`
+
+---
+
+# Retained V0.33F5A technical specification
 
 ## 1. Goal
 
