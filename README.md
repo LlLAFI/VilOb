@@ -1,261 +1,310 @@
-# Village Observer V0.33F5A8
+# Village Observer V0.33G
 
-## Recovery Essential Investment
+## AIProfile Hardcode Removal
 
-V0.33F5A8은 V0.33F5A7 자연주행에서 확인된 **Recovery 자기잠금(deadlock)** 을 수정하는 안정화 패치다.
+V0.33G는 V0.33F5A8을 기준으로, 향후 **AIProfile JSON / AI Editor / 사용자 정의 AI**를 안전하게 도입하기 위한 구조 정리 패치다.
 
-A7에서는 AIProfile 수치가 실제 개척량·생산투자·연구인프라·재정·도시이주·전쟁성에 연결되는 데 성공했다. 하지만 카이렌 장기주행에서 다음 순환이 확인됐다.
+A6~A7에서 AIProfile 계층과 카이렌을 추가하고 주요 행동 경로를 trait 기반으로 연결했지만, 단일 HTML에 누적된 과거 버전 코드에는 여전히 `brain.type === 'expansionist'`처럼 **프로필 ID 문자열 자체를 행동 규칙으로 사용하는 분기**가 남아 있었다.
 
-1. 목재/식량 여건 악화로 Recovery 진입
-2. Production Proposal은 제재소 또는 고대 농장을 최우선 후보로 평가
-3. A5 생산 gate가 `recoveryState.active`를 조기 Survival과 같은 `SURVIVAL` blocker로 처리
-4. 회복에 필요한 시설도 착공 불가
-5. Recovery가 장기간 유지되고 생산성 회복이 늦어짐
+이 상태에서는 `custom_usa`, `my_ai_01`처럼 새로운 ID의 커스텀 프로필이 들어왔을 때 trait 값과 무관하게 일부 구형 경로에서 기본형으로 떨어질 수 있다.
 
-A8의 목표는 **Recovery의 우선권이나 비용을 없애는 것이 아니라, Recovery가 자기 회복수단을 금지하는 모순만 제거하는 것**이다.
+G의 목표는 명확하다.
 
----
+> **프로필 ID는 정체성(identity)으로만 사용하고, 실제 행동은 trait / semantic capability를 통해 결정한다.**
 
-## 1. Recovery와 진짜 Survival 분리
-
-A5까지 생산시설 gate는 다음 세 상태를 모두 사실상 같은 `SURVIVAL` blocker로 취급했다.
-
-- V0.30B2 조기 생존위기
-- V0.30B4 계열 생존위기
-- 장기 `recoveryState.active`
-
-A8에서는 이를 분리한다.
-
-### 진짜 Survival
-
-다음 중 하나가 활성화되어 있으면 기존과 동일하게 **절대 우선**이다.
-
-- `v30b2.survival.active`
-- `v30b4.survival.active`
-
-이 상태에서는 A8 Recovery Essential Investment가 작동하지 않는다.
-
-### Recovery only
-
-`recoveryState.active === true` 이면서 위 두 Survival이 모두 비활성일 때만 복구 필수시설을 별도로 검토한다.
+이번 버전은 AI Editor UI나 JSON 파일 형식을 아직 추가하지 않는다. 먼저 본편 시뮬레이션의 행동 라우팅을 ID 비의존 구조로 정리한다.
 
 ---
 
-## 2. Recovery Essential Investment 대상
+## 1. Semantic Capability Layer
 
-A8에서 Recovery 예외를 받을 수 있는 시설은 두 종류뿐이다.
+기존 여섯 archetype이 코드 곳곳에서 사용하던 의미를 다음 다섯 capability로 분리했다.
 
-### 고대 제재소
+| Capability | 의미 |
+| --- | --- |
+| `survivalPriority` | 생존·안정에 추가 우선권을 두는 정도 |
+| `tradeDiplomacy` | 교역·외교형 특수 행동을 사용하는 정도 |
+| `territorialExpansion` | 적극적 영토확장 행동을 사용하는 정도 |
+| `urbanConcentration` | 도시집중·고밀도 유지 성향 |
+| `resourceSeeking` | 전략자원·자원거점 추구 성향 |
 
-다음과 같은 경우 복구 필수시설 후보가 된다.
+Capability는 0~1 범위의 연속값이다.
 
-- `FORESTRY` 보유
-- Recovery 활성
-- 진짜 Survival 비활성
-- 전쟁 중이 아님
-- 현재/예정 제재소가 없음 또는 목재가 회복 목표보다 낮음
-- A5 Production Proposal에서 실제 후보 타일을 찾을 수 있음
+기존 기본 AI는 과거 행동을 보존하기 위해 compatibility capability를 명시적으로 갖는다.
 
-Recovery 종료식의 목재 기준과 국가 목표 목재량을 함께 참고해 필요성을 계산한다.
+| 기본 AI | survival | trade | expansion | urban | resource |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 키오 / 생존안정형 | 1 | 0 | 0 | 0 | 0 |
+| 델마 / 교역외교형 | 0 | 1 | 0 | 0 | 0 |
+| 벨른 / 영토확장형 | 0 | 0 | 1 | 0 | 0 |
+| 라엔 / 균형형 | 0 | 0 | 0 | 0 | 0 |
+| 티아 / 도시집약형 | 0 | 0 | 0 | 1 | 0 |
+| 에브 / 자원개척형 | 0 | 0 | 0 | 0 | 1 |
+| 카이렌 / 기술개발형 | 0 | 0 | 0 | 0 | 0 |
 
-### 고대 농장
-
-다음과 같은 경우 복구 필수 개축 후보가 된다.
-
-- `IRRIGATION` 보유
-- Recovery 활성
-- 진짜 Survival 비활성
-- 전쟁 중이 아님
-- 식량 비축이 42일 미만이거나 평균 Hunger가 높음
-- 실제 고대 경작지가 개축 후보로 존재
-
----
-
-## 3. 우선순위와 범위 제한
-
-A8은 국가별 계절 tick 시작 시 Recovery Essential Investment를 **최대 1회** 먼저 검토한다.
-
-복구 필수시설은 일반 Production Proposal보다 먼저 슬롯을 요청할 수 있지만 다음 원칙을 유지한다.
-
-- 한 분기에 국가별 최대 한 개
-- 실제 프로젝트 슬롯 필요
-- 실제 건축공간 필요
-- 실제 목재/석재/Gold 필요
-- 실제 건설/개축 노동 필요
-- 실제 `startConstruction()` / `startFarmUpgrade()` 사용
-- 자원 또는 Gold 생성 없음
-- 전쟁 중에는 예외 사용 안 함
-- 고대 채석장, 학당, 도로, 상업시설, 군사시설은 Recovery 예외 대상 아님
-- Frontier Expansion도 Recovery 예외 대상 아님
+카이렌은 A6 이전 legacy archetype에 존재하지 않았으므로 compatibility capability는 균형형처럼 0이다. 카이렌의 차이는 A6/A7의 `technology`, `production`, `expansion`, `risk` 등 **실제 trait delta**에서 계속 발생한다.
 
 ---
 
-## 4. 전략 reserve 완화
+## 2. 사용자 정의 프로필의 Capability 파생
 
-자연주행 원인을 추적하면서 추가 교착이 확인됐다.
+기본 preset이 아닌 임의의 AIProfile에는 capability를 직접 넣을 수도 있고, 없으면 trait에서 의미값을 파생한다.
 
-Recovery 필수시설을 Production Proposal gate에서 허용해도 기존 `startConstruction()` 내부의 다음 정책적 reserve가 다시 시설을 막을 수 있었다.
+현재 기본 파생 기준은 다음과 같다.
 
-- `aiPlan.reserves` 기반 일반 건설 reserve
-- V0.30B2 Treasury reserve
-- V0.31H 철산업용 마지막 슬롯 예약
-- V0.32C1 군사시설용 마지막 슬롯 예약
+- `survival > 1` → `survivalPriority`
+- `trade > 1` → `tradeDiplomacy`
+- `expansion > 1` → `territorialExpansion`
+- `urbanization > 1` → `urbanConcentration`
+- `resourceAcquisition > 1` → `resourceSeeking`
 
-이 reserve들은 **자원 자체가 아니라 AI 정책상 남겨두는 여유분**이므로, Recovery를 직접 해결하는 시설까지 막으면 같은 자기잠금이 반복될 수 있다.
+예를 들어 ID가 `custom_probe_xyz`여도 `expansion: 1.55`라면 영토확장 capability를 사용할 수 있다. 코드가 더 이상 `custom_probe_xyz === 'expansionist'` 같은 이름 일치를 요구하지 않는다.
 
-A8은 복구 필수 착공을 실제로 시도하는 짧은 구간에서만 이 정책 reserve를 완화한다.
-
-중요:
-
-- 실제 목재/석재/Gold 비용은 전부 차감된다.
-- 실제 Project Cap은 우회하지 않는다.
-- 실제 Space gate는 우회하지 않는다.
-- 실제 노동일은 우회하지 않는다.
-- 실제 건물 조건/기술 조건은 우회하지 않는다.
-- 호출이 끝나면 기존 reserve/산업/군사 상태를 즉시 복원한다.
-
-즉 이것은 무료 건설이나 치트가 아니라 **Recovery 목적의 긴급 예산 우선권**이다.
+Capability는 legacy archetype의 특수 동작을 데이터화하기 위한 계층이고, A6/A7의 일반 trait 계수는 그대로 별도로 적용된다. 따라서 향후 AI Editor에서는 **연속적인 trait 조정 + 필요한 capability 조정**을 함께 표현할 수 있다.
 
 ---
 
-## 5. Recovery 종료 조건
+## 3. G에서 제거한 행동용 Profile-ID 분기
 
-A8은 Recovery 종료 조건 자체를 바꾸지 않는다.
+A8 소스는 수년간 누적된 단일 HTML이므로 최신 경로뿐 아니라 구형 compatibility 경로에도 직접 분기가 남아 있었다. G는 현재 실행 여부와 무관하게 행동 결과에 관여할 수 있는 직접 타입 분기를 정리했다.
 
-기존 Recovery 안정 판정은 그대로 유지된다.
+주요 변환 영역은 다음과 같다.
 
-- 비활성 건물 비율 낮음
-- 식량 비축 > 42일
-- 목재 > `max(16, 인구 × 0.4)`
-- 주거/수용 능력 안정
-- 안정 분기 누적 후 종료
+### 전략 행동
 
-A8은 이 조건을 쉽게 만들기 위해 시설 성능을 직접 버프하지 않는다. 필요한 시설을 실제 투자로 지을 수 있게 할 뿐이다.
+- 기본 AI 행동 점수
+- 교역외교형의 장기 구조적 정체 탈출
+- 자원개척형 Frontier 후보 보정
+- Strategic Program 성향 보정
 
----
+### Frontier Expansion
 
-## 6. AIProfile과의 관계
+- V21 autonomous 개척 임계값
+- V24 regional frontier 임계값
+- A7 자율개척 확률
+- 동시 Frontier capacity
+- 밀도·잔류인구 gate
+- 후보 점수 threshold
 
-A7에서 다음 연결은 유지된다.
+기존 preset의 주요 값은 그대로 유지한다.
 
-- `expansion` → 개척 확률/병렬 수/밀도/점수 gate
-- `technology` → 실제 학당 투자
-- `production` → 농장/제재소/채석장 우선 투자
-- `fiscalConservatism` → 전략 reserve
-- `urbanization` → 내부이주 관성
-- `military/risk/...` → War Intent
-- Profile delta → Strategic Program
+- 키오: autonomous chance 0.270
+- 델마: 0.340
+- 벨른: 0.560
+- 라엔: 0.380
+- 티아: 0.240
+- 에브: 0.440
+- 카이렌: 약 0.287
 
-A8 Recovery Essential Investment는 **모든 AI에 공통인 안전장치**다.
+### 유지보수
 
-생산형 AI에게 특별 보너스를 주는 것이 아니라, 어떤 Custom AI라도 Recovery에 들어간 뒤 "필요한 시설을 선호하지만 Recovery라서 영원히 못 짓는" 상태에 빠지지 않도록 한다.
+기존 archetype별 건물 유지보수 중요도와 remote maintenance 규칙을 capability 가중식으로 전환했다.
 
-시설 후보의 우선도 계산에서는 기존 `production` trait을 약하게 참고하지만, 물리 비용과 Survival 우선권은 동일하다.
+기존 preset은 capability가 0 또는 1이므로 과거 상수와 같은 값이 나온다. 혼합형 Custom AI는 여러 성향의 유지보수 우선도가 연속적으로 결합될 수 있다.
 
----
+### 군사·전쟁
 
-## 7. 신규 관측 필드
+다음 직접 type 분기를 capability 기반으로 변환했다.
 
-### 세계 단위
+- 초기 전쟁 선포 평가 보정
+- D 다중전선 AI 참전 확률
+- D1 War Intent 평가
+- E Intelligence 기반 평가
+- E2 불확실성·위험 성향
+- 동맹/공동전쟁 개입 성향
+- F5P2 / A7 War disposition fallback
+- A3 평시 상비군 목표
 
-- `recoveryEssentialReviews33F5A8`
-- `recoveryEssentialStarts33F5A8`
-- `recoveryEssentialSawmillStarts33F5A8`
-- `recoveryEssentialFarmStarts33F5A8`
-- `recoveryEssentialRejected33F5A8`
-- `recoveryEssentialProjectCapBlocks33F5A8`
-- `recoveryEssentialTrueSurvivalBlocks33F5A8`
-- `recoveryEssentialWarBlocks33F5A8`
-- `recoveryEssentialNoNeed33F5A8`
-- `recoveryEssentialReserveOverrides33F5A8`
+A7 기준 기존 War disposition은 그대로 유지한다.
 
-### 국가 단위
+- 키오 -5
+- 델마 -3
+- 벨른 +5
+- 라엔 0
+- 티아 0
+- 에브 +3
+- 카이렌 약 -2.2
 
-- `recoveryEssentialActive33F5A8`
-- `recoveryEssentialLastType33F5A8`
-- `recoveryEssentialLastBlocker33F5A8`
-- `recoveryEssentialStartsNation33F5A8`
-- `recoveryEssentialSawmillStartsNation33F5A8`
-- `recoveryEssentialFarmStartsNation33F5A8`
+### 도시·이주·경제
 
-### Devlog 이벤트
-
-- `RECOVERY_ESSENTIAL_REVIEW33F5A8`
-- `RECOVERY_ESSENTIAL_STARTED33F5A8`
-
-Review 이벤트는 상태가 바뀔 때만 기록해 로그 폭증을 피한다.
+A7에서 이미 Profile trait로 이동한 도시 이주 관성, 전략 reserve, 생산시설 우선권 등의 경로와 G capability layer를 같은 Profile 조회 체계로 통합했다.
 
 ---
 
-## 8. 호환성
+## 4. Nation Name과 Profile ID
 
-- A7 세이브를 A8에서 로드 가능
-- 기존 7개 AIProfile 유지
-- 기존 6국 세이브도 기존 국가 수 유지
-- MapData A~G 구조 유지
-- A7 Frontier/Profile/군사/경제 규칙 유지
-- Snapshot CSV는 기존 전체 telemetry 뒤에 A8 필드를 추가
-- Devlog Compression 정책 유지
+국가 이름 preset도 더 이상 `NAME_PRESET[v.brain.type]`를 행동 코드처럼 직접 조회하지 않는다.
+
+현재 AIProfile 자체의 `nationName`을 우선 사용한다.
+
+따라서 향후 커스텀 프로필은 다음과 같은 구조를 자연스럽게 가질 수 있다.
+
+```json
+{
+  "id": "custom_profile",
+  "label": "사용자 AI",
+  "nationName": "사용자국",
+  "traits": { }
+}
+```
+
+`brain.type` 필드는 당장 삭제하지 않는다. 기존 세이브와 하위버전 호환을 위해 다음 용도로만 남는다.
+
+- save serialization의 legacy identity
+- 이전 버전 save migration fallback
+- 기존 객체가 `aiProfileId`를 아직 갖지 않은 경우 profile identity 복구
+
+**행동 판단에서는 profile ID 문자열을 비교하지 않는다.**
 
 ---
 
-## 9. 구현 검증
+## 5. 기존 7개 AI 회귀 보존 방식
 
-개발 검증에서 다음을 확인했다.
+G는 기본 AI를 새롭게 재밸런싱하는 패치가 아니다.
 
-### Recovery + 목재 부족
+기존 preset은 과거 type 분기가 만들던 결과를 compatibility capability로 재현하고, 그 위에 A6/A7의 trait delta를 그대로 유지한다.
 
-- `FORESTRY` 보유
-- Recovery 활성
-- 진짜 Survival 비활성
-- 실제 자원 충분
+예를 들어 과거 코드가 영토확장형에 `+10` 전쟁 보정을 줬다면 G에서는 다음 의미가 된다.
 
-결과:
+```text
++10 × territorialExpansion
+```
 
-- `A8_RECOVERY_ESSENTIAL_SAWMILL` 사유로 실제 고대 제재소 건설 프로젝트 시작
-- 목재/석재/Gold 실제 차감
+벨른은 capability 1이므로 기존과 같은 +10을 받는다. 균형형은 0이므로 받지 않는다. Custom AI가 0.4라면 +4가 된다.
 
-### Recovery + 식량 부족
+이 방식은 기존 행동 보존과 커스텀 AI의 연속적인 성향 표현을 동시에 가능하게 한다.
 
-- `IRRIGATION` 보유
-- Recovery 활성
-- 진짜 Survival 비활성
-- 고대 경작지 존재
+---
 
-결과:
+## 6. 정적 감사 결과
 
-- `A8_RECOVERY_ESSENTIAL_FARM` 사유로 실제 고대 농장 개축 프로젝트 시작
-- 목재/석재/Gold 실제 차감
+G 최종 소스에서 다음 패턴을 별도로 검사했다.
 
-### 진짜 Survival
+- `brain.type === '...'`
+- `brain.type !== '...'`
+- 지역 변수 `brain / bt / b / t`에 profile ID를 담은 뒤 문자열 비교하는 형태
+- legacy archetype 상수 map으로 행동값을 고르는 형태
 
-Recovery가 함께 켜져 있어도 `v30b2.survival.active === true`이면:
+**행동용 직접 profile-ID 비교: 0건**
 
-- 복구 필수 착공 0
-- blocker `TRUE_SURVIVAL`
+`brain.type` 문자열 자체는 위에서 설명한 legacy identity/save/migration 용도에만 남긴다.
 
-### 장기 Smoke / schema
+또한 HTML 내 JavaScript를 각각 분리해 문법 검사했다.
 
-- 360 simulation-day smoke run 정상
-- Runtime / Console error 0
-- A7 → A8 save migration 정상
-- Snapshot CSV schema validation 통과
-- CSV 1297 columns / bad rows 0
+- inline JavaScript: **115개**
+- syntax failure: **0**
+
+---
+
+## 7. 런타임 회귀 검증
+
+브라우저 런타임에서 다음을 검증했다.
+
+### 새 자연 세계
+
+- 7개국 정상 생성
+- 카이렌 technologist 유지
+- 국가명 preset 정상
+- G 버전 serialize 정상
+
+### 기본 AI compatibility
+
+대표 Profile 실효값 확인:
+
+| 국가 | Frontier chance | War disposition |
+| --- | ---: | ---: |
+| 키오 | 0.270 | -5.0 |
+| 델마 | 0.340 | -3.0 |
+| 벨른 | 0.560 | +5.0 |
+| 라엔 | 0.380 | 0.0 |
+| 티아 | 0.240 | 0.0 |
+| 에브 | 0.440 | +3.0 |
+| 카이렌 | 0.287 | -2.2 |
+
+A7 기준값과 동일하다.
+
+### 임의 Custom ID
+
+`custom_probe_xyz`라는 기존 코드에 전혀 존재하지 않는 ID를 런타임 등록해 다음을 확인했다.
+
+- profile ID 그대로 보존
+- trait에서 capability 정상 파생
+- Frontier 실효값 계산
+- War disposition 계산
+- `NS.Brains.create()`가 임의 ID를 그대로 가진 Brain 생성
+
+즉 커스텀 AI가 기존 7개 이름 중 하나를 사칭할 필요가 없다.
+
+### Save migration
+
+A8 형식으로 간주한 7국 save를 G로 다시 로드해 다음 profile 순서를 보존했다.
+
+`survival / diplomatic / expansionist / balanced / urbanist / resource_seeker / technologist`
+
+G state도 정상 부착됐다.
+
+### Simulation smoke
+
+- 180 calendar-day 자연 진행
+- 7개국 유지
+- runtime exception 0
+- G save version 유지
+
+### CSV
+
+- Snapshot CSV: **1305 columns**
+- schema validation: **PASS**
+- bad rows: **0**
+
+---
+
+## 8. A8 Recovery Essential Investment 계승
+
+G는 A8의 Recovery Essential Investment 밸런스를 변경하지 않는다.
+
+A8 자연주행에서는 Recovery Essential 검토가 실제 발생했으나 자연 착공 성공이 0회였고, `START_REJECTED` 원인 세분화는 향후 안정화 항목으로 남아 있다.
+
+G의 목적은 이 값을 재조정하는 것이 아니라 AI 구조의 ID 의존을 제거하는 것이다.
+
+---
+
+## 9. 아직 하지 않는 것
+
+V0.33G에는 다음을 아직 구현하지 않는다.
+
+- AIProfile JSON 파일 import/export
+- AIProfile schema의 외부 파일 버전 고정
+- 국가별 Custom AI 선택 UI
+- 독립 `AI Editor.html`
+- 역사 국가 preset 제작
+- AI에게 직접 생산/연구/군사 보너스를 주는 국가 버프
+
+특히 AIProfile은 **능력치 치트가 아니라 의사결정 성향**을 표현한다는 원칙을 유지한다.
 
 ---
 
 ## 10. 다음 단계
 
-A7에서 AIProfile의 행동 연결이 자연주행으로 확인됐고, A8에서 Recovery가 Profile 행동을 영구 무력화할 수 있는 교착을 제거했다.
+G 자연주행 회귀가 통과하면 다음 순서는 다음과 같다.
 
-따라서 다음 AI 개발 단계는 원래 계획대로:
+1. **AIProfile JSON v1 규격 고정**
+2. 본편 Profile import / export
+3. Custom Profile validation 및 오류 메시지
+4. 국가 슬롯에 Custom AI 적용
+5. 별도 **AI Editor v1** 제작
+6. 기본/고급 parameter UI
+7. 이후 필요 시 상황별 doctrine 계층 확장
 
-1. **AIProfile JSON 규격 확정**
-2. **Profile export/import**
-3. 기본 7개 preset과 Custom Profile의 동일 로더 사용
-4. 국가 슬롯에 Custom AI 지정
-5. 이후 별도 **AI Editor HTML** 제작
+이를 통해 장기적으로 `미국형`, `일본형`, `산업집약형`, `고립주의형` 등 특정 행동 양식을 가진 AI를 **동일한 시뮬레이션 규칙 안에서 Profile 데이터만으로 제작**할 수 있게 한다.
 
-순서로 진행한다.
+---
 
-F5 Monetary Anchor는 이번 버전에서 변경하지 않는다.
+## 호환성
+
+- 기준 버전: `V0.33F5A8`
+- Save version: `0.33G`
+- A8 / A7 / A6 save fallback 지원
+- 기존 7개 AIProfile ID 유지
+- MapData A~G spawn 규칙 유지
+- Person 실체, 경제, 전쟁, 점령, 평화협정, 생산시설 수치 변경 없음
+
