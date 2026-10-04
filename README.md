@@ -1,377 +1,420 @@
-# Village Observer V0.33F5A5
-## Production Activation + UI State Stabilization
+# Village Observer V0.33F5A6
+## AIProfile Foundation + Kairen
 
-기준 버전: **V0.33F5A4**  
-패치 성격: A4 생산시설 자연 AI 활성화 + 백과/전쟁기록/국가카드 렌더러 안정화
+기준 버전: **V0.33F5A5**  
+패치 성격: 7번째 기본 AI 추가 + 향후 AI Editor를 위한 data-driven AIProfile 기반 구축 + A5 생산 Proposal 보완
 
 ---
 
 ## 1. 패치 목표
 
-V0.33F5A4는 고대 농장, 고대 제재소, 전 지형 고대 채석장을 실제 건설/생산 체계에 추가했지만 자연주행에서는 새 생산시설이 거의 등장하지 않았다.
+V0.33F5A6는 별도의 AI Editor를 바로 추가하는 버전이 아니다. 먼저 기존 AI 구조를 편집 가능한 데이터 구조로 옮기기 위한 **AIProfile v1 기반**을 만든다.
 
-A4 PC 자연주행의 64년 시점에는 다음과 같은 상태가 확인됐다.
+A5까지의 AI는 `brain.type === 'expansionist'`, `brain.type === 'urbanist'`와 같은 직접 분기가 코드 여러 계층에 누적되어 있다. A5 기준 소스 감사에서는 이러한 직접 성향 참조가 약 **81곳** 확인됐다.
 
-- 고대 농장 개축 시작: 0
-- 고대 농장 완공: 0
-- 고대 제재소 착공: 0
-- 고대 제재소 완공: 0
-- A4 전 지형 채석장 착공: 1
+이를 한 번에 전부 제거하면 0.18~0.33까지 축적된 개척·교역·도시·군사·연구 행동이 동시에 변해 회귀 위험이 크다. 따라서 A6는 다음 순서를 사용한다.
 
-원인은 신규 생산시설 AI가 기존 `seasonalTick()`의 모든 건설 판단이 끝난 뒤 남는 프로젝트 슬롯만 사용하는 후순위 구조였기 때문이다. 즉 기술과 자원이 충분해도 주거, 도로, 저장, 상업, 군사, 철산업 등 기존 시스템이 프로젝트 슬롯을 먼저 사용하면 농장/제재소가 수십 년 동안 단 한 번도 착공되지 않을 수 있었다.
-
-동시에 A4 백과와 통계 전쟁 기록은 매 UI render마다 내부 DOM을 재생성하면서 스크롤 위치가 초기화됐고, 국가 카드에는 구형 renderer와 V0.26 이후 stable updater가 동시에 남아 기술 수가 잠깐 표시됐다가 사라지는 현상이 있었다.
-
-V0.33F5A5의 목표는 다음과 같다.
-
-- A4 생산시설을 **실제 계절 건설 경쟁에 참여하는 Production Proposal**로 승격한다.
-- 생존/군사/철산업/주거 등 기존 핵심 체계를 무리하게 밀어내지 않도록 **soft priority**를 사용한다.
-- 생산시설이 0개일 때 원인을 바로 확인할 수 있도록 구체적인 blocker telemetry를 추가한다.
-- 백과 건물목록의 DOM을 매 tick 다시 만들지 않아 스크롤과 선택을 유지한다.
-- 통계 전쟁기록의 스크롤 컨테이너를 유지하고 전쟁 구조가 바뀔 때만 전체 rebuild한다.
-- 국가 카드 renderer를 하나로 통합하고 `⚗️ 기술 수`를 항상 표시한다.
-
-이번 버전에서는 A4의 생산 수치 자체, 군사 밸런스, 인구/출산 공식, Frontier 비용, F5 통화가격 공식은 변경하지 않는다.
+1. 7번째 기본 AI **카이렌 / 기술개발형** 추가
+2. 공통 `AIProfile` 데이터 계층 추가
+3. 기존 6개 성향을 compatibility preset으로 등록
+4. 행동에 영향이 큰 핵심 경로부터 profile 값을 읽게 전환
+5. 기존 6개 preset은 해당 핵심 경로에서 **delta=0**이 되도록 하여 기존 행동을 최대한 유지
+6. 자연주행 검증 후 나머지 직접 `brain.type` 분기를 단계적으로 제거
+7. 이후 Profile JSON import/export → 별도 AI Editor HTML 순서로 확장
 
 ---
 
-## 2. Production Proposal V1
+## 2. 7번째 국가: 카이렌
 
-### 2.1 기존 A4 문제
+새 자연 세계의 기본 국가는 다음 7개다.
 
-A4의 생산시설 판단은 다음 순서였다.
+| 국가 | 기본 AI |
+|---|---|
+| 키오 | 생존안정형 |
+| 델마 | 교역외교형 |
+| 벨른 | 영토확장형 |
+| 라엔 | 균형형 |
+| 티아 | 도시집약형 |
+| 에브 | 자원개척형 |
+| **카이렌** | **기술개발형** |
 
-1. 기존 모든 seasonal 건설 시스템 실행
-2. 남은 프로젝트 슬롯 확인
-3. 남는 슬롯이 있을 때만 농장/제재소/채석장 검토
+카이렌의 내부 profile id는 `technologist`다.
 
-따라서 새 생산시설은 사실상 최하위 fallback이었다.
+카이렌은 단순한 생산 보너스를 받지 않는다. 다른 국가와 동일한 물리 자원·Person 노동·Gold·건설비 규칙을 사용하면서 **무엇에 먼저 투자할지**가 다르다.
 
-### 2.2 A5 soft-priority 구조
+주요 성향은 다음과 같다.
 
-A5는 각 국가의 계절 tick 시작 시 생산 후보를 먼저 평가한다.
+- 기술 투자: 높음
+- 생산시설 투자: 높음
+- 철산업 투자: 높음
+- 도로/행정 연결: 비교적 높음
+- 도시집약: 약간 높음
+- 교역: 평균보다 약간 높음
+- 영토확장: 낮음
+- 군사투자: 다소 낮음
+- 위험감수: 다소 낮음
 
-대상은 다음 세 종류다.
-
-- 고대 경작지 → 고대 농장 개축
-- 고대 제재소 신축
-- 국가 최초 고대 채석장 신축
-
-단, A5 생산 Proposal은 **프로젝트 슬롯이 최소 2칸 이상 비어 있을 때만 한 칸을 먼저 사용할 수 있다.**
-
-즉 프로젝트 한도가 3이고 현재 프로젝트가 1개라면:
-
-- 생산시설 1개 착공 가능
-- 최소 1개 슬롯은 기존 seasonal 건설 체계에 남음
-
-프로젝트 슬롯이 마지막 1칸뿐이라면 A5는 `PRIORITY` blocker를 기록하고 선점하지 않는다. 이 마지막 슬롯은 기존 생존, 주거, 군사, 철산업, 전략 교역망 등 오래된 우선순위 체계에 먼저 맡긴다.
-
-A4의 기존 후순위 생산 planner는 그대로 남아 있으므로, 기존 체계가 마지막 슬롯을 사용하지 않았다면 생산시설이 그 뒤에 착공될 가능성도 유지한다.
-
----
-
-## 3. 생산 후보 점수
-
-A5는 고정 순서만 사용하는 대신 생산시설마다 필요도를 계산해 후보 점수를 만든다.
-
-### 고대 농장
-
-주요 가중치:
-
-- 첫 고대 농장인지
-- 국가 식량 비축일
-- 평균 Hunger
-- 인구 규모 대비 현재 고대 농장 수
-- 해당 경작지의 정착 인구와 식량 상태
-
-기존 A4 기준인 `인구 / 약 45명당 고대 농장 1개` 목표는 유지한다.
-
-### 고대 제재소
-
-주요 가중치:
-
-- 첫 제재소인지
-- 현재 목재량 대비 목표 목재량
-- 후보 타일의 목재 자원량
-- 숲 여부
-- 인구 규모 대비 현재 제재소 수
-
-기존 A4의 `인구 / 약 90명당 제재소 1개` 목표는 유지한다.
-
-숲은 매우 높은 입지 점수를 받지만 통행 가능한 다른 육지에도 제재소를 지을 수 있다.
-
-### 고대 채석장
-
-A5 Production Proposal에서는 **국가 최초 채석장**을 중심으로 평가한다.
-
-주요 가중치:
-
-- 현재 석재량 대비 목표 석재량
-- 자원추구형 AI 여부
-- 후보 타일의 실제 석재량
-- 지형
-
-암지와 산은 평야/초지/숲보다 큰 입지 가중치를 받는다.
-
-채석장 생산 배율은 A4와 동일하다.
-
-| 지형 | 고대 채석장 효율 |
-|---|---:|
-| 평야 | ×1.08 |
-| 초지 | ×1.08 |
-| 숲 | ×1.06 |
-| 암지 | ×1.40 |
-| 산 | ×1.55 |
+따라서 카이렌은 넓은 영토를 먼저 차지하기보다 기존 영토의 생산·연구·가공망을 키우는 국가를 목표로 한다.
 
 ---
 
-## 4. Production Proposal blocker
+## 3. AIProfile v1
 
-생산시설이 등장하지 않을 때 원인을 추적할 수 있도록 다음 blocker를 기록한다.
+A6는 AI 이름과 행동 파라미터를 분리한다.
 
-- `PROJECT_CAP` — 프로젝트 슬롯이 모두 사용 중
-- `PRIORITY` — 마지막 1개 슬롯을 기존 전략/생존 건설에 남김
-- `SURVIVAL` — 국가가 Survival/Recovery 상태
-- `NO_SITE` — 실제 건설/개축 가능한 타일 없음
-- `SPACE` — 필요한 개발공간 부족
-- `WOOD` — 목재 부족
-- `STONE` — 석재 부족
-- `GOLD` — 직접 공공 Gold 부족
-- `START_REJECTED` — 사전 검사는 통과했지만 실제 `startConstruction/payBuild` 계층에서 거부
-- `NONE` — 현재 A5 기준으로 실행 가능
+개념 구조는 다음과 같다.
 
-Devlog에는 `PRODUCTION_PROPOSAL33F5A5`, `PRODUCTION_PROPOSAL_STARTED33F5A5`, `PRODUCTION_PROPOSAL_REJECTED33F5A5`가 기록될 수 있다.
+```text
+AIProfile
+ ├─ id / label / nationName
+ ├─ legacyBase
+ ├─ mods
+ ├─ traits
+ │   ├─ survival
+ │   ├─ expansion
+ │   ├─ trade
+ │   ├─ urbanization
+ │   ├─ resourceAcquisition
+ │   ├─ technology
+ │   ├─ production
+ │   ├─ military
+ │   ├─ risk
+ │   └─ fiscalConservatism
+ ├─ research weights
+ └─ construction weights
+```
 
-Snapshot/CSV의 국가별 주요 필드는 다음과 같다.
+현재 schema version은 **1**이다.
 
-- `productionProposalType33F5A5`
-- `productionProposalScore33F5A5`
-- `productionProposalBlocker33F5A5`
-- `productionFacilityStartsNation33F5A5`
-- `ancientFarmStartsNation33F5A5`
-- `sawmillStartsNation33F5A5`
-- `quarryStartsNation33F5A5`
+런타임 API는 `VSim.AIProfiles` 아래에 존재한다.
 
-세계 누적 blocker와 Proposal 실행 횟수도 별도 필드로 저장한다.
+주요 API:
 
----
+- `AIProfiles.ids()`
+- `AIProfiles.get(id)`
+- `AIProfiles.profileFor(village)`
+- `AIProfiles.trait(village, key)`
+- `AIProfiles.delta(village, key)`
+- `AIProfiles.register(def)`
+- `AIProfiles.assign(village, id)`
+- `AIProfiles.validate(def)`
 
-## 5. A4 생산 수치는 변경하지 않음
-
-A5는 **activation 패치**다. 시설 자체의 숫자는 그대로 유지한다.
-
-### 고대 농장
-
-- 개축비: 목재 18 / 석재 8 / Gold 4
-- 노동: 260 성인 노동일
-- 농부 슬롯: 10
-- 식량 자연회복: ×1.60
-- 식량 채취: 최대 ×1.25
-
-### 고대 제재소
-
-- 건설비: 목재 22 / 석재 8 / Gold 5
-- 노동: 280 성인 노동일
-- 목수 슬롯: 4
-- 해당 제재소 근무 목수의 목재 채취: 최대 ×1.45
-- 임업의 숲 자연회복 +30% 유지
-
-관개·윤작에서 제거한 과거 평야/초지 식량 보너스 및 경작지 노동자 +1/+2는 다시 추가하지 않는다.
+`register()`는 향후 AI Editor가 만든 custom profile을 런타임에 등록할 수 있게 하기 위한 기반 API다. **A6에서는 아직 파일 import/export UI를 제공하지 않는다.**
 
 ---
 
-## 6. 백과 스크롤/선택 안정화
+## 4. Compatibility preset 원칙
 
-### A4 문제
+기존 6개 AI는 A6에서 갑자기 새로운 행동 공식으로 교체하지 않는다.
 
-A4의 canonical Codex는 `renderCodex()`가 호출될 때마다 전체 `codexContent.innerHTML`을 다시 작성했다.
+각 preset에는 기존 성향을 설명하는 trait가 들어가지만, A6의 핵심 profile-driven wrapper는 **해당 AI가 기존 코드에서 이미 받던 성향을 baseline으로 사용**한다.
 
-그 결과:
+따라서 기존 6개 AI의 A6 profile delta는 핵심 경로에서 0이다.
 
-- 건물 목록 스크롤이 매 tick 0으로 돌아감
-- 건물 목록 DOM이 매번 새 객체가 됨
-- 선택 상태가 불안정해질 수 있음
-- 정적인 백과인데도 불필요한 DOM 작업이 반복됨
+예:
 
-### A5 변경
+```text
+생존안정형 technology delta = 0
+영토확장형 expansion delta = 0
+도시집약형 urbanization delta = 0
+자원개척형 resourceAcquisition delta = 0
+```
 
-A5는 `.a4-codex-tabs` 구조가 이미 존재하면 tick render에서 백과 구조를 재생성하지 않는다.
+카이렌은 `balanced`를 legacy baseline으로 사용하고, 그 위에서 기술·생산은 크게 높이고 개척·군사는 낮춘다.
+
+이 방식은 다음 목적을 가진다.
+
+- 기존 6개국 회귀 최소화
+- custom AI가 나중에 기존 archetype을 기반으로 일부 값만 바꿀 수 있음
+- 모든 직접 type 분기를 한 패치에서 강제로 제거하지 않아도 됨
+
+---
+
+## 5. A6에서 profile-driven으로 전환된 핵심 경로
+
+### 5.1 기본 행동 점수
+
+`FOOD / MAINTAIN / TRADE / EXPAND / HOUSING / SECURITY` 점수에 AIProfile trait delta가 반영된다.
+
+카이렌은 특히:
+
+- EXPAND 억제
+- MAINTAIN/생산 투자 강화
+- HOUSING/도시 기반 소폭 강화
+- SECURITY/상비군 선호 소폭 감소
+
+경향을 가진다.
+
+### 5.2 연구 선택
+
+기존 기술 prerequisite와 생존/철산업/전략프로그램 우선순위는 그대로 유지한다.
+
+그 위에서 profile의 `research` 가중치가 다음 분야 선택에 영향을 준다.
+
+- 식량
+- 생산/공학
+- 철산업
+- 상업
+- 행정
+- 군사
+- 지식/교육
+
+카이렌은 생산·철산업·지식 계열을 더 선호한다.
+
+### 5.3 Frontier 후보
+
+A2의 실제 재정 feasibility와 지형별 Frontier 비용은 그대로 유지한다.
+
+A6는 후보 점수에 profile의:
+
+- `expansion`
+- `resourceAcquisition`
+
+delta를 추가한다.
+
+따라서 카이렌은 일반적인 외곽 확장 점수가 낮지만 전략자원이 풍부한 후보는 상대적으로 덜 불리하다.
+
+### 5.4 교역
+
+기존 교역 거리, 시장 연결, 실제 Gold 결제 규칙은 바꾸지 않는다.
+
+Profile의 trade delta는 일부 merchant capacity에 소폭 반영된다.
+
+### 5.5 군사 기반
+
+기존 A3 전시 manpower lifecycle, Formation, War Intent 밸런스는 유지한다.
+
+A6는 구형 V0.32B 군사 목표 계층에서 profile의 military delta를 소폭 반영한다. 이후 군사 직접 분기들은 별도 단계에서 추가로 data-driven 전환한다.
+
+---
+
+## 6. 생산시설과 기술개발형
+
+A5 자연주행에서 다음 문제가 확인됐다.
+
+- Production Proposal 평가 약 1,400회 이상
+- 실제 착공 시도는 수십 회
+- `START_REJECTED`가 발생하면 같은 계절에 다음 READY 생산 후보까지 이어지지 않는 경우 존재
+- 제재소가 자연주행에서 여전히 0개일 수 있음
+
+A6는 AIProfile 기반을 만드는 동시에 이 문제를 보완한다.
+
+### 일반 AI
+
+A5가 `START_REJECTED`를 기록했고 실제 생산시설 착공이 없었다면 A6가 남은 생산 후보를 다시 검사한다.
+
+즉:
+
+```text
+농장 READY → 실제 착공 거부
+→ 제재소 READY 확인
+→ 채석장 READY 확인
+```
+
+과 같은 fallback이 가능하다.
+
+### 카이렌
+
+카이렌은 `production` trait가 높기 때문에 A5가 해당 계절에 생산시설을 착공하지 못한 경우 안전 조건 안에서 생산 후보를 추가 검토한다.
+
+카이렌의 건설 가중치는 특히 다음이 높다.
+
+- 고대 농장
+- 고대 제재소
+- 철산업
+- 도로
+
+시설의 실제 생산량과 건설비는 A4/A5와 동일하다. AIProfile은 **결정 우선순위**만 바꾼다.
+
+---
+
+## 7. 7개국 Spawn / MapData 호환
+
+### 자연 세계
+
+새 19×19 자연 세계는 7개 국가를 배치한다.
+
+A6 검증에서 12회 연속 새 세계 생성 시:
+
+- 국가 수 7
+- 서로 다른 수도 7개
+- 카이렌 존재
+- 카이렌 profile `technologist`
+
+조건을 모두 만족했다.
+
+### 기존 6국 세이브
+
+A5 이하의 기존 세이브는 **자동으로 카이렌을 삽입하지 않는다.**
+
+이유는 기존 세계의 영토, 외교, 문화, 전쟁, 경제 상태를 뒤늦게 변경하지 않기 위해서다.
 
 따라서:
 
-- 건물 목록 DOM 객체 유지
-- 건물목록 `scrollTop` 유지
-- 선택한 건물 유지
-- 건물 상세 카드 유지
-- 탭 클릭 등 실제 사용자 입력 시에만 필요한 페이지 갱신
+- 새 A6 세계: 7국
+- 기존 6국 세이브 로드: 그대로 6국
 
-새 구조가 정말 필요할 때만 `codexStructureRebuilds33F5A5`가 증가한다.
+이다.
+
+### MapData
+
+기존 MapData A~F 6 Spawn은 그대로 호환된다.
+
+- Spawn G가 존재하면 → 해당 위치를 카이렌 수도로 사용
+- A~F만 존재하면 → 기존 6개 Spawn을 그대로 유지하고 카이렌용 7번째 Spawn만 자동 생성
+
+A6 런타임 테스트에서 explicit G와 6+auto 방식 모두 검증했다.
+
+맵 에디터 자체의 기본 Spawn 개수/UI 확장은 별도 맵 에디터 세션에서 맞추면 된다. 현재 에디터의 동적 Spawn 구조를 유지하는 것이 전제다.
 
 ---
 
-## 7. 통계 탭 War History 안정화
+## 8. 문화와 국가의 분리
 
-### 기존 문제
+A6는 새 AI/국가를 추가하지만 **7번째 신규 문화까지 동시에 추가하지 않는다.**
 
-V0.33E War History renderer는 매 render마다:
+국가와 문화는 서로 다른 시스템이므로 카이렌은 A6에서 기존 문화 풀을 사용해 E4 문화 schema와 이름 생성을 유지한다.
 
-```text
-panel.innerHTML = ...
+향후 문화 추가/융합은 AI Editor와 별개의 문제로 유지한다.
+
+---
+
+## 9. Telemetry
+
+### World
+
+- `aiProfileSchema33F5A6`
+- `aiProfileCount33F5A6`
+- `legacyDirectTypeAuditA533F5A6`
+- `profileProductionStarts33F5A6`
+- `kairenPresent33F5A6`
+
+### Nation
+
+- `aiProfileId33F5A6`
+- `aiProfileLabel33F5A6`
+- `aiTraitTechnology33F5A6`
+- `aiTraitProduction33F5A6`
+- `aiTraitExpansion33F5A6`
+- `aiTraitTrade33F5A6`
+- `aiTraitMilitary33F5A6`
+- `aiTraitRisk33F5A6`
+
+Devlog에는 필요 시:
+
+- `AI_PROFILE_NATION_ADDED33F5A6`
+- `AI_PROFILE_PRODUCTION_STARTED33F5A6`
+
+이 기록된다.
+
+---
+
+## 10. AI Editor 로드맵
+
+A6 이후 권장 순서는 다음과 같다.
+
+### 단계 1 — A6 자연주행 검증
+
+확인할 항목:
+
+- 카이렌의 영토 규모가 실제로 상대적으로 작게 유지되는가
+- 기술 완성 시점이 다른 국가보다 빠른가
+- 농장/제재소/철산업을 실제로 더 적극적으로 짓는가
+- 생산 투자 때문에 초기 생존이 지나치게 불안정하지 않은가
+- 기존 6개 성향의 장기 행동이 A5와 크게 달라지지 않는가
+
+### 단계 2 — 직접 `brain.type` 분기 추가 제거
+
+A5 감사 기준 약 81개 직접 참조를 영역별로 옮긴다.
+
+권장 순서:
+
+1. Frontier/도시/생산
+2. 교역/상업
+3. 연구/전략 프로그램
+4. 군사/War Intent
+5. 기타 UI/진단용 분기
+
+### 단계 3 — AIProfile JSON
+
+예정 형식:
+
+```json
+{
+  "format": "village-observer-ai",
+  "version": 1,
+  "id": "custom-example",
+  "name": "Custom Example",
+  "legacyBase": "balanced",
+  "traits": {},
+  "research": {},
+  "construction": {}
+}
 ```
 
-로 전쟁기록 패널 전체를 교체했다.
+이 단계에서 custom profile이 Save에도 안전하게 포함되도록 schema를 확정한다.
 
-`.v33a-history`는 자체 스크롤 영역이므로 DOM이 교체될 때마다 스크롤이 최상단으로 초기화됐다.
+### 단계 4 — AI Editor HTML
 
-### A5 변경
+기본 화면:
 
-A5 War History는 전쟁 목록의 구조 signature를 사용한다.
+- 생존 중시
+- 개척성
+- 교역성
+- 도시화
+- 자원 확보
+- 기술 투자
+- 생산 투자
+- 군사성
+- 위험 감수
+- 재정 보수성
 
-전체 목록 rebuild는 다음처럼 구조가 실제로 바뀔 때만 발생한다.
+고급 화면:
 
-- 새 전쟁 추가
-- 전쟁 종료로 ACTIVE/ENDED 상태 변경
-- 합동전쟁 참여국 구성이 변함
+- 분야별 연구 가중치
+- 시설별 건설 가중치
+- 개척/재정/군사 임계값
+- 향후 상태별 doctrine
 
-일반 tick에서는:
-
-- `.v33a-history` 스크롤 컨테이너 자체를 유지
-- 현재 점령/누적 점령/해방 수치만 기존 DOM에서 갱신
-- 진행 중 전쟁 카드만 기존 카드 객체 안에서 갱신
-- 종료된 전쟁 카드는 그대로 유지
-
-따라서 전쟁 기록을 아래로 스크롤한 상태에서 시간이 흘러도 목록이 위로 튀지 않는다.
-
-구조 rebuild 횟수는 `warHistoryStructureRebuilds33F5A5`로 관측한다.
-
----
-
-## 8. 국가 카드 단일 renderer
-
-기존에는 두 UI 소유자가 충돌했다.
-
-구형 renderer:
-
-```text
-👥 인구 · 🏘️ 영토 · 🪙 Gold · 🧠 기술 수
-```
-
-V0.26 stable updater:
-
-```text
-👥 인구 · 🗺️ 영토 · 🪙 Gold
-```
-
-그래서 카드가 처음 생성될 때만 기술 수가 보이고 다음 render에서 사라질 수 있었다.
-
-A5는 국가 카드 renderer를 하나로 통합한다.
-
-항상 다음 형태를 유지한다.
-
-> **👥 인구 · 🗺️ 영토 · 🪙 Gold · ⚗️ 기술 수**
-
-카드 구조는 국가 ID/이름/AI 성향 구조가 실제로 바뀌지 않는 한 다시 만들지 않고 각 `<span>`의 값만 갱신한다.
-
-따라서:
-
-- 기술 수가 더 이상 깜빡이거나 사라지지 않음
-- 🧠 대신 요청한 플라스크 계열 `⚗️` 아이콘 사용
-- 국가 카드 DOM이 매 tick 교체되지 않음
-- 카드 가로 스크롤도 안정적으로 유지 가능
-
-구조 rebuild 횟수는 `nationCardStructureRebuilds33F5A5`로 기록한다.
-
----
-
-## 9. 성능 관측 범위
-
-A4 데이터에서는 60년대 인구가 A3보다 약 1/3 적었지만 `perfMsPerDay`는 거의 비슷했다.
-
-이는 Person.act 자체는 감소했지만 다음 비용들이 인구에 비례하지 않았기 때문이다.
-
-- Settlement/영토 기반 국내경제
-- 교역 planner
-- 계절 건설 판단
-- 유지보수/물류
-- UI 전체 DOM 재생성
-
-A5는 대규모 simulation 알고리즘 최적화 버전은 아니다. 다만 백과/War History/국가 카드의 불필요한 구조 rebuild를 제거하고 해당 rebuild 횟수를 telemetry로 노출한다.
-
-다음 자연주행에서는 A4와 비슷한 인구/영토 시점에서 `Render`, `perfMsPerDay`, seasonal profiler를 다시 비교한다.
-
----
-
-## 10. 호환성
-
-- 기준 세이브: V0.33F5A4
-- A4 세이브를 A5에서 직접 불러올 수 있다.
-- A4의 `v33f5a4` 생산시설/군사 상태를 그대로 유지한다.
-- A5는 별도 `v33f5a5` observer/Proposal/UI 상태를 추가한다.
-- Snapshot CSV는 기존 필드를 삭제하지 않고 A5 필드를 뒤에 추가한다.
-- Compact Devlog V3 정책은 그대로 유지한다.
-
-저장 버전 문자열은 `0.33F5A5`다.
+이 구조가 완성되면 `미국형`, `일본형`, `소련형` 같은 프로필도 별도의 국가 버프가 아니라 **의사결정 성향의 조합**으로 제작할 수 있다.
 
 ---
 
 ## 11. 검증
 
-릴리스 전 다음을 확인했다.
+A6 구현 후 수행한 검증:
 
-### 정적 검사
-
-- HTML 내 inline JavaScript: **110개**
-- `node --check`: **전부 통과**
-
-### Chromium 런타임
-
-CDP `Page.setDocumentContent` 방식으로 실제 Chromium에서 전체 HTML을 실행했다.
-
-- 문서 제목: `Village Observer V0.33F5A5`
-- VSim 초기화: 정상
-- UI 초기화: 정상
-- Runtime exception: **0**
-- `console.error`: **0**
-
-### UI 안정성
-
-- `renderVillageCards()` 연속 호출 후 첫 국가 카드 DOM identity 유지 확인
-- 국가 카드에 `⚗️ 기술 수` 상시 표시 확인
-- `renderCodex()` 연속 호출 후 `.a4-building-list` DOM identity 유지 확인
-- 건물 첫 선택 상태 정상 확인
-- `renderStats()` 연속 호출 후 `.v33a-history` DOM identity 유지 확인
-
-### Production Proposal
-
-인위적으로 기술/자원/공간을 충족시킨 테스트에서:
-
-- 고대 경작지 → 고대 농장 A5 Proposal 실행 성공
-- 실제 `buildingUpgradeProjects`에 `ancient_farm` / 260 노동일 프로젝트 생성 확인
-- 고대 제재소 A5 Proposal 실행 성공
-- 실제 `constructionProjects`에 `sawmill` / 280 노동일 프로젝트 생성 확인
-- 실제 건설비와 기존 F4 Gold recirculation 경로 사용 확인
-
-### 저장/CSV
-
-- A5 serialize → A5 load round trip 정상
-- A4 형식 세이브 → A5 migration 정상
-- Snapshot CSV validation 정상
-- 테스트 기준 CSV 열 수: **1255열**
-- 잘못된 열 수 행: **0**
+- inline script **111개** `node --check` 통과
+- 브라우저 런타임 page/console error **0건**
+- 최초 화면 국가 카드 **7개**
+- 국가명: `키오 / 델마 / 벨른 / 라엔 / 티아 / 에브 / 카이렌`
+- AI type: `survival / diplomatic / expansionist / balanced / urbanist / resource_seeker / technologist`
+- 기존 6개 preset의 주요 profile delta = **0**
+- 카이렌 profile delta:
+  - technology `+0.58`
+  - production `+0.55`
+  - expansion `-0.34`
+- A6 save → load 후 7개 profile 유지
+- A5형 6국 세이브 migration → **6국 그대로 유지**
+- MapData explicit Spawn G → 카이렌이 G 위치에 배치
+- MapData A~F → 기존 6개 위치 유지 + 카이렌 자동 Spawn 보완
+- 새 자연 세계 12회 연속 7개 서로 다른 수도 배치 성공
+- 180 simulation-day smoke run 오류 0
+- Snapshot CSV **1268열**, schema validation 통과
+- Devlog version `0.33F5A6`
 
 ---
 
-## 12. 다음 자연주행에서 확인할 항목
+## 12. 이번 버전에서 바꾸지 않은 것
 
-A5에서 가장 중요한 검증 대상은 다음과 같다.
+- Person 실체 모델
+- 전쟁/Formation/점령/평화협정 공식
+- Frontier 지형별 Gold 비용
+- F5 통화가격 공식
+- 농장/제재소/채석장 실제 생산 배율
+- 건설비와 유지비
+- 인구/출산/사망 공식
+- 장비 생산/손실 모델
+- 문화 융합
 
-1. 관개·윤작 연구 후 고대 농장이 실제 자연주행에서 등장하는가
-2. 임업 연구 후 제재소가 적절한 시기에 등장하는가
-3. 생산시설 때문에 생존/철산업/군사 건설이 과도하게 밀리지 않는가
-4. `productionProposalBlocker33F5A5`가 0건 원인을 충분히 설명하는가
-5. A4에서 낮아졌던 출생/인구 곡선이 생산 인프라 활성화 뒤 어떻게 변하는가
-6. 백과 건물목록 스크롤이 실제 플레이 중 유지되는가
-7. 통계 전쟁기록 스크롤이 실제 전쟁 중에도 유지되는가
-8. 국가 카드의 `⚗️ 기술 수`가 항상 표시되는가
-9. UI 구조 rebuild 감소가 Render 비용에 실제 영향을 주는가
-
+A6의 핵심은 **새 능력 보너스를 주는 것**이 아니라, 향후 모든 AI를 편집 가능한 데이터로 표현할 수 있도록 의사결정 구조를 분리하는 것이다.
