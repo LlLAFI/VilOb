@@ -1,479 +1,437 @@
-# Village Observer V0.33G1
+# Village Observer V0.33G1A
 
-## Formation Ownership + AIProfile JSON v1
+## Formation Write Gate + Recovery Plateau Exit
 
-V0.33G1은 V0.33G를 기준으로 두 작업을 하나의 패치로 묶는다.
-
-1. V0.33G PC 자연주행에서 확인된 **평시/Recovery Formation 이동 제어권 충돌**을 수정한다.
-2. V0.33G에서 완료한 AIProfile 하드코딩 제거 위에 **외부 AIProfile JSON v1 import/export·국가 적용·save/load 보존 기반**을 추가한다.
-
-이번 버전은 독립형 AI Editor 자체를 만들기 전의 본편 기반 패치다. AI Editor는 이 버전에서 고정한 `village-observer-ai` JSON을 생성·편집하는 별도 UI로 이어갈 수 있다.
+- 기준선: **V0.33G1**
+- 패치 날짜: **2026-10-05**
+- 이번 패치의 성격: G1 자연주행 회귀 안정화
+- 다음 예정 큰 단계: **AI Profile Editor V1 (G2)**
 
 ---
 
-# 1. V0.33G 자연주행에서 확인된 Formation 문제
+## 1. 패치 배경
 
-PC 자연주행에서 티아는 키오에 대한 War Intent를 `PREPARING` 상태로 유지한 채 Recovery Mode에 들어갔다.
+V0.33G1은 다음 두 축을 도입했다.
 
-기존 구조에서는 다음 두 규칙이 동시에 작동할 수 있었다.
+1. Formation control owner 개념
+   - WAR_OPERATION
+   - POSTWAR_WITHDRAWAL
+   - RECOVERY_EMERGENCY
+   - WAR_PREPARATION
+   - PEACETIME
+2. AIProfile JSON v1
+   - Custom profile import/export
+   - 국가별 profile 적용
+   - Custom registry save/load 복원
 
-- D2 War Preparation: Formation을 전쟁 준비 staging tile로 반복 집결시킨다.
-- Recovery/평시 Formation planner: Recovery 우선순위에 따라 기존 rally lock을 해제하고 평시·복구 목표를 다시 부여한다.
+G1 자연주행 결과, `WAR_PREPARATION_RALLY`와 Recovery의 직접 충돌은 크게 줄었지만 Formation ownership이 아직 **실제 write 권한**이 아니라 **사후 판정 + reconcile**에 가까운 문제가 남았다.
 
-D2A/F3는 Recovery 진입 시 rally **lock**은 해제했지만 D2의 `rallyAssign2()` 자체는 계속 실행되었다. 그 결과 같은 Formation에 대해 staging 목표와 평시/Recovery 목표가 반복해서 덮어써지는 왕복이 발생할 수 있었다.
+특히 Recovery 중인 국가의 평시 `planFormations32D()`가 `BORDER / RESOURCE / ADMIN / FRONTIER` target을 다시 쓴 뒤, G1 reconcile이 이를 home으로 되돌리는 현상이 확인되었다. 이 구조에서는 `FORMATION_CONTROL_CONFLICT33G1`가 실제 침범을 항상 정확히 포착하지 못하고, `recovery re-home`이 반복될 수 있었다.
 
-V0.33G1은 이 문제를 target writer의 원인 지점에서 수정한다.
+또한 장기 Recovery 고착 사례에서 다음 상태가 관찰되었다.
 
----
+- inactive building share: 사실상 0
+- wood: 충분
+- 국가 경제/건축/산업 활동 지속
+- food reserve days: 대략 35~36일대에서 장기 정체
 
-# 2. Formation 단일 제어권
+기존 Recovery의 정상 종료는 `food > 42`를 포함한 strict stable 조건을 3회 연속 만족해야 하므로, 붕괴 상태가 이미 끝난 국가가 식량 42일선을 구조적으로 넘지 못하면 수십 년 동안 Recovery에 남을 수 있었다.
 
-G1은 각 물리 Formation에 현재의 **effective movement owner**를 기록한다.
-
-현재 구분은 다음과 같다.
-
-| Control owner | 의미 |
-| --- | --- |
-| `WAR_OPERATION` | 실제 ACTIVE 전쟁의 작전 이동 |
-| `POSTWAR_WITHDRAWAL` | 종전 후 본국 귀환/철군 |
-| `RECOVERY_EMERGENCY` | 평시 국가 Recovery가 Formation 제어 |
-| `WAR_PREPARATION` | D2 PREPARING/READY 집결 |
-| `PEACETIME` | 일반 평시 배치 |
-
-전쟁·철군 같은 lifecycle 상태는 기존 군사 규칙을 유지한다. G1이 직접 수정한 핵심 충돌은 **Recovery와 War Preparation 사이**다.
-
-Formation에는 관측용으로 다음 값이 유지된다.
-
-- `v33g1ControlOwner`
-- `v33g1ControlOwnerSinceCal`
-- `v33g1LastOwnerChange`
-- `v33g1DesiredTargetTileId`
-- `v33g1DesiredTargetReason`
-
-이 값은 이동력을 추가하거나 병력을 생성하지 않는다. 누가 Formation의 목표를 소유하고 있는지 명시하고 회귀를 진단하기 위한 상태다.
+G1A는 이 두 문제만 안정화하며 AIProfile JSON 규격이나 전쟁/경제 공식은 건드리지 않는다.
 
 ---
 
-# 3. Recovery 중 War Preparation rally suspend
+## 2. Formation Write Gate
 
-D2의 `rallyAssign2()`는 이제 Recovery 상태를 직접 확인한다.
+### 2.1 핵심 변경
 
-Recovery 중이고 실제 전쟁이 시작되지 않았다면:
+G1의 `controlOwner()`를 단순 telemetry 개념이 아니라 실제 Formation target 쓰기 권한으로 승격했다.
 
-- staging target을 **쓰지 않는다**.
-- `rallySuspended33G1 = true`가 된다.
-- 최초 suspend 시 `WAR_PREPARATION_RALLY_SUSPENDED33G1`을 기록한다.
-- G1 Formation owner는 `RECOVERY_EMERGENCY`가 된다.
-- 평시 물리 Formation은 home/core 방향의 `RECOVERY_EMERGENCY` 목표로 re-home된다.
+각 활성 Formation의 다음 필드를 accessor gate로 보호한다.
 
-따라서 예전처럼
+- `targetTileId`
+- `targetReason`
 
-`전쟁 준비 staging → 평시 BORDER → staging → BORDER`
+내부 world/village 참조와 backing value는 non-enumerable property로 보존하여 기존 `serialize()`의 `{...formation}` 결과에 불필요한 참조가 섞이지 않도록 했다.
 
-가 반복되지 않는다.
+### 2.2 Owner별 허용 규칙
 
-Recovery가 종료되었을 때 War Intent가 여전히 `PREPARING` 또는 `READY`라면:
+#### RECOVERY_EMERGENCY
 
-- 다음 D2 preparation 진행에서 rally suspension이 해제된다.
-- `WAR_PREPARATION_RALLY_RESUMED33G1`이 기록된다.
-- Formation owner가 다시 `WAR_PREPARATION`으로 전환된다.
-- 기존 D2 준비 목표와 실제 Person-backed Formation을 그대로 사용해 집결을 재개한다.
+허용:
 
-즉 Recovery는 전략적 Intent 자체를 무조건 삭제하지 않는다. **이동 제어만 일시적으로 Recovery에 넘긴다.**
+- `targetTileId == homeTileId` 또는 core fallback
+- `targetReason == RECOVERY_EMERGENCY`
+
+차단:
+
+- BORDER
+- RESOURCE
+- ADMIN
+- FRONTIER
+- WAR_PREPARATION staging
+- 기타 Recovery owner와 충돌하는 평시/준비 writer
+
+따라서 평시 planner가 Recovery 중 BORDER target을 계산하더라도 Formation의 실제 target 값은 바뀌지 않는다.
+
+#### WAR_PREPARATION
+
+허용 target은 해당 Formation에 이미 등록된 준비 목표만 인정한다.
+
+- `v33d2aStagingTileId`
+- `v33d2RallyTargetTileId`
+- 현재 active preparation의 `rallyTargets[formationId]`
+
+허용 reason:
+
+- `WAR_PREPARATION` 계열
+
+평시 planner가 active preparation 중 BORDER/RESOURCE target을 쓰는 것은 차단된다.
+
+#### WAR_OPERATION / POSTWAR_WITHDRAWAL
+
+기존 전쟁 및 철군 writer를 그대로 허용한다.
+
+이번 패치는 전쟁 작전 target routing을 재설계하지 않는다.
+
+#### PEACETIME
+
+기존 평시 planner 동작을 유지한다.
+
+### 2.3 Terminal preparation cleanup
+
+Preparation의 상태가 이미 다음 중 하나라면 stale intent phase 때문에 Formation이 불필요하게 `WAR_PREPARATION` owner로 잠기는 것을 피하기 위해 G1A gate에서는 실질적으로 PEACETIME으로 취급한다.
+
+- DECLARED
+- CANCELLED
+- ENDED
+
+이를 통해 `clearRally2()`의 home cleanup이 정상적으로 가능하다.
+
+### 2.4 새 Formation 보호
+
+새 야전 Formation이 `FORMATION_CREATED32D` 이벤트를 발생시키면 이벤트 호출이 반환되기 전에 gate를 설치한다.
+
+따라서 새 Formation이 생성된 바로 그 seasonal tick에서 이어지는 legacy plan/move에도 가능한 한 즉시 write protection이 적용된다.
 
 ---
 
-# 4. Formation control conflict 진단
+## 3. Recovery Plateau Exit
 
-향후 같은 종류의 충돌을 장기 자연주행에서 뒤늦게 발견하지 않도록 별도 telemetry를 추가했다.
+### 3.1 기존 빠른 종료조건 유지
 
-다음과 같은 상충 writer가 관측되면 `FORMATION_CONTROL_CONFLICT33G1`이 기록된다.
+기존 Recovery 로직은 수정하지 않는다.
 
-- effective owner가 `RECOVERY_EMERGENCY`인데 `WAR_PREPARATION` writer가 target을 쓰는 경우
-- effective owner가 `WAR_PREPARATION`인데 `PEACETIME` writer가 target을 쓰는 경우
+기존 stable 조건:
 
-주요 누적 필드:
+- inactive building share < 20%
+- food reserve > 42일
+- wood > `max(16, population × 0.4)`
+- capacity >= population × 0.85
+- 3 stable seasons
 
-- `formationControlOwnerChanges33G1`
-- `formationControlConflicts33G1`
-- `recoveryRallySuspensions33G1`
-- `recoveryRallyResumes33G1`
-- `recoveryFormationRehomes33G1`
+이 조건을 만족하면 기존 코드가 그대로 빠르게 Recovery를 종료한다.
 
-국가별 Snapshot/CSV:
+### 3.2 장기 고착 전용 보조 종료경로
 
-- `formationControlOwners33G1`
-- `formationControlConflictsNation33G1`
-- `recoveryFormationRehomesNation33G1`
+G1A는 기존 종료를 대체하지 않고, **오래 지속된 Recovery가 명백히 비붕괴 상태로 안정된 경우**에만 별도 plateau exit를 허용한다.
 
-정상 자연주행에서 `formationControlConflicts33G1`은 원칙적으로 **0**이어야 한다.
+최소 Recovery age:
+
+- **720 calendar days** 이상
+
+plateau eligibility:
+
+- true survival 비활성
+- inactive building share < **10%**
+- food reserve >= **30일**
+- wood >= `max(12, population × 0.25)`
+- housing capacity >= population × **0.80**
+- average health >= **48**
+
+이 기준은 Recovery 진입 임계값보다 충분히 안전한 방향에 있다. 즉 단순히 시간이 오래 지났다는 이유만으로 Recovery를 해제하지 않는다.
+
+### 3.3 필요한 안정 유지기간
+
+일반 장기 Recovery:
+
+- 360 calendar days 연속 안정
+
+이미 오래 고착된 episode:
+
+- Recovery age >= 1,800일: 180일 연속 안정
+- Recovery age >= 3,600일: 90일 연속 안정
+
+오래된 Recovery일수록 **안전 기준은 그대로 유지**하고, 이미 충분히 오래 관찰된 상태라는 점을 반영하여 필요한 연속 안정기간만 줄인다.
+
+### 3.4 Plateau 실패 시
+
+어느 하나라도 기준을 벗어나면 plateau stable counter는 0으로 reset된다.
+
+따라서 식량/주거/건강 등이 다시 악화된 상태에서는 자동 종료되지 않는다.
 
 ---
 
-# 5. F5P2 War Intent Profile telemetry 수정
+## 4. 새 Telemetry
 
-V0.33G는 실제 AI 행동을 profile/capability 기반으로 전환했지만 과거 F5P2 관측 코드 일부는 여전히 `scoreComponents.brain`을 읽고 있었다.
+### Event
 
-G 이후 raw assessment에는 `profileId`가 저장되므로 해당 관측값이 없을 때 `balanced`로 잘못 표시되는 사례가 있었다.
+`FORMATION_TARGET_WRITE_BLOCKED33G1A`
 
-G1은 `assessmentBrain33F5P2`가 우선 `profileId`를 읽도록 수정한다.
+주요 필드:
 
-이 변경은 War Intent 점수나 선전포고 확률을 바꾸지 않는다. **개발자 로그의 AI 정체성 표시만 실제 계산 경로와 일치시킨다.**
+- village / villageId
+- formationId
+- owner
+- field (`targetTileId` 또는 `targetReason`)
+- requested
+- kept
+- 현재 targetTileId / targetReason
+- recoveryActive
+- intentId
+
+`RECOVERY_PLATEAU_EXIT33G1A`
+
+주요 필드:
+
+- recoveryAgeCalendarDays
+- stableCalendarDays
+- foodReserveDays
+- inactiveShare
+- wood / woodFloor
+- capacity / population
+- health
+
+### Snapshot / CSV global columns
+
+- `formationWriteGateSchema33G1A`
+- `formationTargetWriteBlocks33G1A`
+- `recoveryTargetWriteBlocks33G1A`
+- `preparationTargetWriteBlocks33G1A`
+- `formationTargetGateInstalls33G1A`
+- `recoveryPlateauEvaluations33G1A`
+- `recoveryPlateauExits33G1A`
+- `recoveryPlateauResets33G1A`
+
+### Snapshot / CSV nation columns
+
+- `formationTargetWriteBlocksNation33G1A`
+- `recoveryTargetWriteBlocksNation33G1A`
+- `preparationTargetWriteBlocksNation33G1A`
+- `recoveryPlateauStableDays33G1A`
+- `recoveryAgeDays33G1A`
+- `recoveryPlateauEligible33G1A`
+- `recoveryPlateauBlockers33G1A`
+- `recoveryPlateauExitsNation33G1A`
 
 ---
 
-# 6. AIProfile JSON v1
+## 5. 저장 호환성
 
-G1은 본편에서 사용할 외부 Custom AI 데이터 포맷을 처음 고정한다.
+새 버전 문자열:
 
-기본 envelope:
+- `0.33G1A`
+
+새 localStorage key:
+
+- `village-observer-v0-33g1a`
+
+fallback load:
+
+1. `village-observer-v0-33g1`
+2. `village-observer-v0-33g`
+3. `village-observer-v0-33f5a8`
+
+G1의 `v33g1.customProfiles`는 그대로 유지되며 G1A의 별도 상태는 `v33g1a`에 저장한다.
+
+Formation gate의 world/village 참조와 backing storage는 non-enumerable이므로 Formation save payload에는 기존 public fields만 저장된다.
+
+---
+
+## 6. AIProfile JSON v1 — 변경 없음
+
+G1 규격을 그대로 유지한다.
+
+### Envelope
 
 ```json
 {
   "format": "village-observer-ai",
   "version": 1,
   "profile": {
-    "id": "my_technologist",
-    "label": "산업연구형",
-    "nationName": "커스텀국",
-    "basePreset": "technologist",
-    "traits": {
-      "technology": 1.8
-    }
+    "id": "custom_id",
+    "label": "Custom AI",
+    "nationName": "Custom",
+    "basePreset": "balanced",
+    "traits": {},
+    "capabilities": {},
+    "research": {},
+    "construction": {},
+    "mods": {}
   }
 }
 ```
 
-이 예시는 `technology`만 덮어쓴다. 나머지 값은 `technologist` 기본 preset에서 상속된다.
+### Trait keys
 
-따라서 결과적으로 카이렌 preset의 예를 들면:
+- survival
+- expansion
+- trade
+- urbanization
+- resourceAcquisition
+- technology
+- production
+- military
+- risk
+- fiscalConservatism
 
-- `production = 1.55`
-- `expansion = 0.66`
-- 기존 research 가중치
-- 기존 construction 가중치
-- 기존 행동 mods
+범위: 0.25 ~ 2.5
 
-를 유지하면서 `technology`만 1.8로 바뀐다.
+### Semantic capability keys
 
-AI Editor가 모든 내부 값을 매번 완전한 JSON으로 출력할 필요가 없고, **기본 preset + 필요한 override** 구조를 사용할 수 있도록 한 것이다.
+- survivalPriority
+- tradeDiplomacy
+- territorialExpansion
+- urbanConcentration
+- resourceSeeking
 
----
+범위: 0 ~ 1
 
-# 7. basePreset 규칙
+### Research keys
 
-`basePreset`은 다음 기본 7개만 허용한다.
+- food
+- production
+- industry
+- commerce
+- administration
+- military
+- knowledge
 
-- `survival`
-- `diplomatic`
-- `expansionist`
-- `balanced`
-- `urbanist`
-- `resource_seeker`
-- `technologist`
+범위: 0.25 ~ 2.5
 
-Custom Profile을 다른 Custom Profile의 basePreset으로 사용하는 것은 v1에서 허용하지 않는다.
+### Construction keys
 
-이유는 다음과 같다.
+- farm
+- sawmill
+- quarry
+- iron
+- roads
+- commerce
+- military
+- housing
 
-- custom→custom 순환 상속 방지
-- 파일 하나만으로 의미가 결정되도록 유지
-- save/load 및 버전 마이그레이션 단순화
-- 향후 AI Editor가 항상 예측 가능한 7개 기준점에서 시작하도록 유지
+범위: 0.25 ~ 2.5
 
----
+### Base action mod keys
 
-# 8. JSON 필드와 범위
+- MAINTAIN
+- FOOD
+- HOUSING
+- TRADE
+- SECURITY
+- EXPAND
 
-## 8.1 traits
+범위: -50 ~ 50
 
-다음 10개를 지원한다.
+기본 preset 7종의 ID는 custom import로 덮어쓸 수 없다.
 
-- `survival`
-- `expansion`
-- `trade`
-- `urbanization`
-- `resourceAcquisition`
-- `technology`
-- `production`
-- `military`
-- `risk`
-- `fiscalConservatism`
-
-허용 범위: **0.25 ~ 2.50**
-
-생략한 값은 `basePreset`에서 상속된다.
-
-## 8.2 semantic capabilities
-
-- `survivalPriority`
-- `tradeDiplomacy`
-- `territorialExpansion`
-- `urbanConcentration`
-- `resourceSeeking`
-
-허용 범위: **0 ~ 1**
-
-`capabilities` 자체를 생략하거나 일부 key만 쓰면, 나머지는 최종 traits에서 자동 파생된다. 따라서 일반적인 Custom AI는 capabilities를 직접 건드리지 않아도 된다.
-
-이 필드는 과거 archetype의 특수 행동을 세밀하게 조정하려는 **고급 설정**에 해당한다.
-
-## 8.3 research
-
-- `food`
-- `production`
-- `industry`
-- `commerce`
-- `administration`
-- `military`
-- `knowledge`
-
-허용 범위: **0.25 ~ 2.50**
-
-생략값은 basePreset에서 상속된다.
-
-## 8.4 construction
-
-- `farm`
-- `sawmill`
-- `quarry`
-- `iron`
-- `roads`
-- `commerce`
-- `military`
-- `housing`
-
-허용 범위: **0.25 ~ 2.50**
-
-생략값은 basePreset에서 상속된다.
-
-## 8.5 mods
-
-- `MAINTAIN`
-- `FOOD`
-- `HOUSING`
-- `TRADE`
-- `SECURITY`
-- `EXPAND`
-
-허용 범위: **-50 ~ +50**
-
-생략값은 basePreset에서 상속된다.
+- survival
+- diplomatic
+- expansionist
+- balanced
+- urbanist
+- resource_seeker
+- technologist
 
 ---
 
-# 9. ID 및 안전 규칙
+## 7. 이번 패치에서 변경하지 않은 것
 
-Custom `profile.id`는:
-
-- 최대 48자
-- 영문/숫자/`_`/`-`만 사용
-- 첫 글자는 영문 또는 숫자
-
-기본 7개 ID는 import로 덮어쓸 수 없다.
-
-예를 들어 Custom JSON이 `id: "balanced"`를 사용하면 가져오기가 거부된다.
-
-AIProfile JSON은 실행 가능한 JavaScript나 callback을 포함하지 않는 **순수 데이터 포맷**이다. G의 목표였던 “ID 문자열에 행동코드를 결합하지 않는다”는 원칙을 그대로 유지한다.
-
----
-
-# 10. 본편 Import / Export / 국가 적용 UI
-
-World 탭의 기존 Save 영역 아래에 **AI Profile JSON v1** 패널이 추가된다.
-
-지원 기능:
-
-1. 등록된 Profile 선택
-2. Profile JSON 내보내기
-3. Custom Profile JSON 가져오기
-4. 현재 선택 국가에 Profile 적용
-
-가져오기와 국가 적용은 분리되어 있다.
-
-즉 Custom JSON을 import했다고 즉시 어느 국가의 AI가 바뀌지는 않는다. 사용자가 Profile을 등록한 뒤 원하는 국가를 선택하고 **선택 국가에 적용**을 눌러야 한다.
-
-독립형 AI Editor는 아직 포함하지 않는다.
+- AIProfile JSON v1 schema
+- 기본 7개 AI profile 밸런스
+- AI Editor
+- Monetary Anchor
+- Gold 집중/회계 구조
+- 전투력 공식
+- 사상률
+- 점령 시간
+- 전쟁 목표
+- 평화협정
+- Gold 배상
+- 생산 공식
+- Formation 전쟁 작전 routing
 
 ---
 
-# 11. Export 규칙
+## 8. 정적/단위 검증
 
-내보내기는 현재 registry에서 사용 중인 **정규화된 전체 Profile**을 저장한다.
+패치 제작 시 다음 검증을 수행했다.
 
-따라서 부분 override로 가져온 Profile도 다시 export하면 traits/research/construction/capabilities/mods가 모두 포함된 완전한 v1 JSON이 된다.
-
-파일명 예:
-
-`village-observer-ai-my_technologist.json`
-
----
-
-# 12. Custom AI save/load 보존
-
-Custom Profile은 단순히 현재 브라우저 registry에만 존재하면 안 된다. 저장게임을 다시 열 때 Profile 정의가 사라지면 해당 국가가 `balanced`로 fallback될 수 있기 때문이다.
-
-G1은 World save의 `v33g1.customProfiles[]`에 Custom 정의를 같이 저장한다.
-
-로드 순서는 다음과 같다.
-
-1. Save의 Custom Profile 정의를 읽는다.
-2. AIProfile registry에 Custom Profile을 먼저 복구한다.
-3. 그 뒤 기존 Village/Brain을 deserialize한다.
-4. 국가의 `aiProfileId`를 해당 Custom Profile에 다시 연결한다.
-
-이 순서 때문에 임의의 ID를 사용한 Custom AI도 저장 후 다시 로드했을 때 balanced로 떨어지지 않는다.
-
-G1 save key:
-
-`village-observer-v0-33g1`
-
-이전 G 및 F5A8 save는 fallback load 대상이다.
+1. 전체 inline JavaScript 구문 검사
+   - 117 script block 결합 후 `node --check`
+   - syntax error 없음
+2. Recovery write gate mock
+   - Recovery owner 상태에서 BORDER target write 차단 확인
+   - 실제 target은 home 유지
+3. Preparation write gate mock
+   - 임의 BORDER target 차단
+   - 등록된 rally target 허용
+   - terminal preparation 이후 home cleanup 허용
+4. Recovery plateau mock
+   - eligibility를 충분히 오래 유지한 stale Recovery가 정상 종료됨을 확인
+5. Formation JSON serialization mock
+   - non-enumerable world/village/backing 참조가 JSON에 섞이지 않음
 
 ---
 
-# 13. G의 hardcode 제거 유지
+## 9. 자연주행 검증 포인트
 
-G1은 V0.33G의 구조적 원칙을 그대로 유지한다.
+G1A PC 자연주행에서 우선 확인할 항목은 다음과 같다.
 
-정적 감사 기준 행동 결정용 다음 패턴은 **0건**이다.
+### Formation
 
-- `brain.type === '...'`
-- `brain.type==='...'`
-- `brain?.type === '...'`
-- `this.type === '...'`
+정상 기대값:
 
-`brain.type`/`aiProfileId` 자체는 identity와 과거 save migration을 위해 존재할 수 있지만, Custom AI의 행동을 특정 ID 문자열 비교로 결정하지 않는다.
+- `recoveryFormationRehomesNation33G1`가 G1보다 크게 감소
+- `FORMATION_TARGET_WRITE_BLOCKED33G1A`는 Recovery/Preparation 중 legacy writer가 시도할 때 발생 가능
+- 차단 이벤트 뒤 실제 Formation이 BORDER 쪽으로 이동해서는 안 됨
+- Recovery 중 target은 home + `RECOVERY_EMERGENCY` 유지
 
----
+특히 G1에서 티아처럼 장기 Recovery였던 국가가 있으면 Formation target history를 확인한다.
 
-# 14. 검증
+### Recovery
 
-## 14.1 정적 검증
+정상 기대값:
 
-- inline script: **116개**
-- JavaScript syntax failure: **0**
-- 행동용 profile-id 직접 비교: **0건 유지**
+- 정상적으로 식량 42일 이상을 확보하는 국가는 기존 fast exit 사용
+- 식량 30~42일대에 장기적으로 안정된 국가는 plateau counter가 누적
+- 조건 악화 시 plateau counter reset
+- 장기적으로 건강한 국가가 수십 년 Recovery에 고착되는 현상 감소
+- 실제 생존위기/시설붕괴 상태에서는 plateau exit가 발생하지 않음
 
-## 14.2 브라우저 부팅
+### 핵심 데이터
 
-- Chromium 실제 실행 정상
-- 제목: `Village Observer V0.33G1`
-- 새 자연 세계: **7개국 정상 생성**
-- runtime exception: **0**
-- console error: **0**
+분석 시 아래 열을 우선 확인한다.
 
-## 14.3 Formation 강제 회귀
-
-실제 Person-backed 티아 Formation에 대해 다음 상태를 강제로 재현했다.
-
-`PREPARING → Recovery → Recovery 종료`
-
-Recovery 진입 후:
-
-- owner = `RECOVERY_EMERGENCY`
-- Formation target = home/core
-- D2 preparation progress를 실행해도 staging target 재기록 없음
-- `rallySuspended33G1 = true`
-
-Recovery 종료 후:
-
-- rally 자동 resume
-- owner = `WAR_PREPARATION`
-- 기존 preparation 집결 재개
-
-테스트 결과:
-
-- rally suspension: **1회**
-- rally resume: **1회**
-- Recovery re-home: **1회**
-- control conflict: **0회**
-
-장기 자연주행에서 티아의 과거 1,300회 이상 왕복이 제거되는지는 다음 PC 자연주행 devlog로 최종 회귀 확인한다.
-
-## 14.4 Custom Profile JSON 상속
-
-테스트 Profile:
-
-- basePreset = `technologist`
-- override = `technology: 1.8`
-
-결과:
-
-- technology = **1.8**
-- production = **1.55** 상속
-- expansion = **0.66** 상속
-- research.industry = **1.52** 상속
-- construction.sawmill = **1.42** 상속
-- 생략 capability는 최종 traits에서 자동 파생
-
-## 14.5 JSON validation
-
-정상 거부 확인:
-
-- 기본 preset ID 덮어쓰기
-- Custom Profile을 basePreset으로 사용
-- 허용 범위를 벗어난 수치
-- 잘못된 format/version/id
-
-## 14.6 Custom save/load round trip
-
-Custom Profile을 카이렌 슬롯에 적용한 뒤:
-
-1. World serialize
-2. 런타임 registry에서 Custom ID 제거
-3. serialize 데이터로 다시 load
-
-결과:
-
-- Custom ID 복원
-- custom Profile 정의 복원
-- nation assignment 복원
-- override trait 값 복원
-
-## 14.7 자연 smoke 및 CSV
-
-추가 schema 보정 후 120일 smoke run:
-
-- 7개국 정상
-- runtime error 0
-- Formation control conflict 0
-- Snapshot CSV **1320 columns**
-- schema validation PASS
-- bad row 0
-
-이전 구현 단계에서는 360일 smoke와 G→G1 save migration도 별도로 통과했다.
+- `recoveryAgeDays33G1A`
+- `recoveryPlateauStableDays33G1A`
+- `recoveryPlateauEligible33G1A`
+- `recoveryPlateauBlockers33G1A`
+- `recoveryPlateauExitsNation33G1A`
+- `recoveryTargetWriteBlocksNation33G1A`
+- `preparationTargetWriteBlocksNation33G1A`
+- 기존 `recoveryFormationRehomesNation33G1`
+- 기존 `formationControlConflictsNation33G1`
 
 ---
 
-# 15. 이번 버전에서 변경하지 않은 것
+## 10. 다음 단계
 
-G1은 다음 수치를 재조정하지 않는다.
+G1A 자연주행에서 다음 두 조건이 확인되면 Formation/Recovery 안정화는 닫는다.
 
-- Monetary Price Anchor / freeze 조건
-- Gold 집중 및 재분배
-- 전쟁 선포 score 자체
-- 전투력·사상자 공식
-- 점령·평화협정
-- Frontier 비용/개척 밸런스
-- 생산시설 생산효율
-- Recovery 진입/종료 임계값
-- 기술 비용
+1. Recovery/Preparation owner를 침범하는 target이 실제 이동으로 이어지지 않음
+2. 장기 Recovery가 실제 붕괴가 해소된 뒤 합리적인 시점에 종료됨
 
-Formation 수정은 **이동 명령의 소유권 충돌 제거**, AIProfile 작업은 **데이터 외부화 기반**에 한정한다.
+그 다음 패치는 예정대로 **V0.33G2 — AI Profile Editor V1**로 진행한다.
 
----
-
-# 16. 다음 단계
-
-G1 자연주행에서 우선 확인할 항목:
-
-1. `formationControlConflicts33G1`이 0으로 유지되는가.
-2. Recovery 중 PREPARING Formation이 staging↔BORDER 왕복을 하지 않는가.
-3. Recovery 종료 후 유효한 War Intent가 정상적으로 rally를 재개하는가.
-4. Custom AI를 적용한 국가가 장기주행·save/load 후에도 동일 Profile을 유지하는가.
-5. 기존 7개 기본 AI의 G 행동 회귀가 없는가.
-
-위 조건이 통과하면 다음 패치는 **독립형 AI Editor v1**로 진행할 수 있다.
-
-AI Editor는 이번에 확정한 JSON v1을 읽고 쓰는 도구로 만들며, 본편의 AI 판단 코드를 별도로 복제하지 않는다.
+G2에서는 본편 AI 코드를 직접 수정하는 에디터가 아니라 `AIProfile JSON v1`을 생성/수정/검증하는 독립형 `ai-editor.html`을 제작한다.
