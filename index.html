@@ -8967,28 +8967,31 @@ try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHe
 window.VSim=window.VSim||{};(function(NS){
 'use strict';
 const VERSION='V0.33E4', REV='culture-identity-foundation-v1';
-const CULTURE_IDS=['TER','LUEN','SERIA','KAREN','NOREA','MAELA'];
+const CULTURE_IDS=['TER','LUEN','SERIA','KAREN','NOREA','MAELA','KAIREN'];
 const CULTURES={
  TER:{id:'TER',name:'테르',color:'#c77b55',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{TER:1}},
  LUEN:{id:'LUEN',name:'루엔',color:'#5fa8d3',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{LUEN:1}},
  SERIA:{id:'SERIA',name:'세리아',color:'#b48bd2',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{SERIA:1}},
  KAREN:{id:'KAREN',name:'카르엔',color:'#d3a85f',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{KAREN:1}},
  NOREA:{id:'NOREA',name:'노레아',color:'#74b58a',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{NOREA:1}},
- MAELA:{id:'MAELA',name:'마엘라',color:'#d9829f',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{MAELA:1}}
+ MAELA:{id:'MAELA',name:'마엘라',color:'#d9829f',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{MAELA:1}},
+ KAIREN:{id:'KAIREN',name:'카이렌계',color:'#59c7bd',derived:false,parentCultureIds:[],originCal:0,nameSourceCultureWeights:{KAIREN:1}}
 };
-const FOUNDING_BY_NATION_ID={0:'LUEN',1:'TER',2:'KAREN',3:'SERIA',4:'MAELA',5:'NOREA'};
-const RESERVED_NATION_NAMES=new Set(['키오','델마','벨른','라엔','티아','에브']);
+const FOUNDING_BY_NATION_ID={0:'LUEN',1:'TER',2:'KAREN',3:'SERIA',4:'MAELA',5:'NOREA',6:'KAIREN'};
+const RESERVED_NATION_NAMES=new Set(['키오','델마','벨른','라엔','티아','에브','카이렌']);
 const FAMILY_CORE={
  TER:['카른','델','테른','도렌','제른','타르','하르','아르덴','테르안','카르돈','데르반','하르덴','테르하르','카르테온','테르하리온','카르도리안','아르테리온'],
  LUEN:['루엔','레브','리브','유렌','루미','라비','로엔','루메르','라우엔','리오렌','유리엘','루엔카르','레이아르','로미엔','루엔세리온','라우메리안','리오루미엘'],
  SERIA:['세르','시안','세온','시엘','니아','에리','세리온','시에른','세라엘','에리안','니아렌','세리아르','시엘로아','에르시안','세리아노엘','시엘라리안','에리세리온'],
  KAREN:['벨','베른','키르','칼','카엘','브렌','비르','키안','카르덴','베르카','브레온','카르엔','키르안','하젠','카르베리온','브렌카리안','키르아베론'],
  NOREA:['노르','네르','메른','미르','하온','노엔','마린','테오','노레인','네리온','메르안','하오렌','노르메아','네르하온','노레아리온','네르하리온','메르노아린'],
- MAELA:['아렌','아델','에란','마엘','다엘','유라','모라','솔','마에른','아르엘','에라미','다에론','마엘린','아르세라','마엘라리온','아르마에른','다엘아리안']
+ MAELA:['아렌','아델','에란','마엘','다엘','유라','모라','솔','마에른','아르엘','에라미','다에론','마엘린','아르세라','마엘라리온','아르마에른','다엘아리안'],
+ KAIREN:['이렌','사이르','오리엔','네이르','라에른','베이론','아리엔','세이르','오렌','리엔','타이르','제이렌','에이른','오라엔','사이렌','리오엔','아에리온']
 };
 const FAMILY_SHARED={
  TER:['카엘','하젠','키안','테오'],LUEN:['로엔','시엘','하온','다엘'],SERIA:['시엘','다엘','아델','로엔'],
- KAREN:['카엘','하젠','키안','레온'],NOREA:['로엔','테오','하온','마엘'],MAELA:['다엘','아델','마엘','유라']
+ KAREN:['카엘','하젠','키안','레온'],NOREA:['로엔','테오','하온','마엘'],MAELA:['다엘','아델','마엘','유라'],
+ KAIREN:['나엘','레인','시엘','아엘']
 };
 const GIVEN_CORE={
  TER:['테른','도렌','베르','키르','도안','제온','아론','키안','베론','테린','하렌','로한','레빈','델온','카르온','타리온','데르안','테르온','르','델','카르','도란','테리아','카르디','하르온','베르탄','타레온','도르카','제라온','테르마리온','카르세온','하르데인','데르아나','테르카인','아르도렌','테르하리온','카르도리안','데르마리온','하르세리안','아르테리온','타르베리온'],
@@ -8996,7 +8999,8 @@ const GIVEN_CORE={
  SERIA:['세라','시안','세온','시엘','세린','엘린','세아','시온','세이','에리','미엘','시렌','세리아','시라','세하','티엘','에린','네린','엘라','세라나','시엘라','에리세나','세라니엘','시아렌','세리안','엘리아','시에나','에리온','세비아','시엘린','네리아','세라엘','아르세리안','에실리아','시오렌','세리아노엘','시엘라리안','에리세리온','세라미리안','아르시에나','에실리아나'],
  KAREN:['카엘','베르','키르','칼','카이','카온','카린','카렌','카리','베인','로한','아벨','카엘라','키라','카나','카르온','베르카인','브레온','키르아','카리안','하젠','베론','레오','카르디온','베르안','카엘린','키온','브라엘','카르베온','키라온','벨라','카레나','브레나','카르세린','베르하온','카르베리온','브렌카리안','키르아베론','카엘세리안','베르카리온','카르아레나'],
  NOREA:['네아','마린','하린','노아','하온','네오','마론','노린','미온','네라','노렌','메린','네온','미나','하니','레인','노이','라운','네리안','노레아나','메리온','하오렌','노아린','미레나','네루아','노레인','마리온','하리나','메이라','노엘','네오라','노르아','미라','메르시아','하오리안','노레아리온','네르하리온','메르노아린','하오네리안','노아메리온','미레하오렌'],
- MAELA:['미아','아린','레나','누리','다온','메라','에나','아엘','테아','에일','마엘','다엘','미라','아델','라나','에라','유라','마리','벨라','나오','다미','아나','마엘라','하루','에린아','유엘라','하엘라','아르','에스','에리아나','아마리엘','마엘로아','아르미나','다에리아','아르세라','마엘라리온','아르마에른','다엘아리안','에리아노엘','아마리세라','마엘세리안']
+ MAELA:['미아','아린','레나','누리','다온','메라','에나','아엘','테아','에일','마엘','다엘','미라','아델','라나','에라','유라','마리','벨라','나오','다미','아나','마엘라','하루','에린아','유엘라','하엘라','아르','에스','에리아나','아마리엘','마엘로아','아르미나','다에리아','아르세라','마엘라리온','아르마에른','다엘아리안','에리아노엘','아마리세라','마엘세리안'],
+ KAIREN:['이아','레이','세이','오르','네이','라에','리엔','아이','에오','사이','베이','아오','이레아','세이아','오리엔','라에오','네이아','아이렌','사이오','베이라','리엔아','오레아','에이린','아리오','세이렌','오라엔','레이아','이오렌','아에린','네이라','사이엘','오리안','라에린','베이아','리오엔','에이라','아이로','세이오','오라니','리엔세아','아리오렌']
 };
 const GIVEN_SHARED={
  TER:['카엘','베론','로한','키안','카르온','레온','테오','아벨'],
@@ -9004,7 +9008,8 @@ const GIVEN_SHARED={
  SERIA:['리안','시엘','나엘','리엘','엘린','미아','아엘','미라','에린','세리아'],
  KAREN:['카엘','베론','로한','키안','카르온','레온','베라','테오'],
  NOREA:['노아','레인','하온','유엘','네오','미나','마리','하니','네라','하루'],
- MAELA:['미아','아엘','미라','에린','세리아','미나','마리','하니','네라','하루']
+ MAELA:['미아','아엘','미라','에린','세리아','미나','마리','하니','네라','하루'],
+ KAIREN:['나엘','레인','시엘','아엘','레아','리오','세아','에일']
 };
 const GIVEN_COMMON=['테오','노아','레온','미아','리안'];
 const NAME_REGISTRY={family:{},given:{}};
@@ -10387,9 +10392,9 @@ NS.AIProfiles={schemaVersion:1,registry,register(def,{replace=false}={}){const p
 /* Brain factory now reads the registry. Existing six retain the exact legacy mods. */
 NS.Brains={create(type){const p=getProfile(type);const b=new NS.VillageBrain(p.id,p.label,{...p.mods});b.aiProfileId=p.id;b.aiProfileCapabilities={...p.capabilities};b.profileVersion=1;return b;},random(){const ids=[...registry.keys()];return this.create(ids[Math.floor(Math.random()*ids.length)]);},types:[...registry.keys()]};
 
-/* Seventh nation identity. Culture remains independent from nation count; Kairen reuses the existing KAREN founding pool in A6. */
+/* Seventh nation identity. G2 gives Kairen its own KAIREN founding culture; no legacy-save culture migration is performed. */
 if(NS.V033E4?.RESERVED_NATION_NAMES?.add)NS.V033E4.RESERVED_NATION_NAMES.add('카이렌');
-if(NS.V033E4?.FOUNDING_BY_NATION_ID)NS.V033E4.FOUNDING_BY_NATION_ID[6]='KAREN';
+if(NS.V033E4?.FOUNDING_BY_NATION_ID)NS.V033E4.FOUNDING_BY_NATION_ID[6]='KAIREN';
 NS.NATION_COLORS=[...(NS.NATION_COLORS||[])];if(NS.NATION_COLORS.length<7)NS.NATION_COLORS.push('#e889c7');
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -10772,8 +10777,8 @@ function installGate(v,w,f){
  Object.defineProperty(f,'_v33g1aTargetTileId',{value:target,writable:true,configurable:true,enumerable:false});
  Object.defineProperty(f,'_v33g1aTargetReason',{value:reason,writable:true,configurable:true,enumerable:false});
  Object.defineProperty(f,'_v33g1aTargetGate',{value:true,writable:false,configurable:true,enumerable:false});
- Object.defineProperty(f,'targetTileId',{configurable:true,enumerable:true,get(){return this._v33g1aTargetTileId;},set(raw){const vv=this._v33g1aVillage,ww=this._v33g1aWorld,value=Number(raw);if(!vv||!ww||!Number.isFinite(value)){this._v33g1aTargetTileId=raw;return;}const owner=effectiveOwner(vv,ww,this),current=Number(this._v33g1aTargetTileId);if(value===current){this._v33g1aTargetTileId=value;return;}let ok=true;if(owner==='RECOVERY_EMERGENCY')ok=value===Number(this.homeTileId??vv.coreTileId);else if(owner==='WAR_PREPARATION')ok=prepTargetAllowed(vv,ww,this,value);if(ok)this._v33g1aTargetTileId=value;else blockedWrite(vv,ww,this,owner,'targetTileId',value,current);}});
- Object.defineProperty(f,'targetReason',{configurable:true,enumerable:true,get(){return this._v33g1aTargetReason;},set(raw){const vv=this._v33g1aVillage,ww=this._v33g1aWorld,value=String(raw??'');if(!vv||!ww){this._v33g1aTargetReason=value;return;}const owner=effectiveOwner(vv,ww,this),current=String(this._v33g1aTargetReason||'');if(value===current){this._v33g1aTargetReason=value;return;}let ok=true;if(owner==='RECOVERY_EMERGENCY')ok=value==='RECOVERY_EMERGENCY';else if(owner==='WAR_PREPARATION')ok=value.includes('WAR_PREPARATION');if(ok)this._v33g1aTargetReason=value;else blockedWrite(vv,ww,this,owner,'targetReason',value,current);}});
+ Object.defineProperty(f,'targetTileId',{configurable:true,enumerable:true,get(){return this._v33g1aTargetTileId;},set(raw){const vv=this._v33g1aVillage,ww=this._v33g1aWorld,value=Number(raw);if(!vv||!ww||!Number.isFinite(value)){this._v33g1aTargetTileId=raw;return;}const owner=effectiveOwner(vv,ww,this),current=Number(this._v33g1aTargetTileId);if(value===current){this._v33g1aTargetTileId=value;return;}let ok=true;if(owner==='RECOVERY_EMERGENCY')ok=value===Number(this.homeTileId??vv.coreTileId);else if(owner==='WAR_PREPARATION')ok=prepTargetAllowed(vv,ww,this,value)||(String(this._v33g1aTargetReason||'')==='HOME_RETURNED'&&value===Number(this.homeTileId??vv.coreTileId));if(ok)this._v33g1aTargetTileId=value;else blockedWrite(vv,ww,this,owner,'targetTileId',value,current);}});
+ Object.defineProperty(f,'targetReason',{configurable:true,enumerable:true,get(){return this._v33g1aTargetReason;},set(raw){const vv=this._v33g1aVillage,ww=this._v33g1aWorld,value=String(raw??'');if(!vv||!ww){this._v33g1aTargetReason=value;return;}const owner=effectiveOwner(vv,ww,this),current=String(this._v33g1aTargetReason||'');if(value===current){this._v33g1aTargetReason=value;return;}let ok=true;if(owner==='RECOVERY_EMERGENCY')ok=value==='RECOVERY_EMERGENCY';else if(owner==='WAR_PREPARATION')ok=value.includes('WAR_PREPARATION')||(value==='HOME_RETURNED'&&current==='POSTWAR_WITHDRAWAL');if(ok)this._v33g1aTargetReason=value;else blockedWrite(vv,ww,this,owner,'targetReason',value,current);}});
  ensure(w).stats.targetGateInstalls++;return f;
 }
 function instrumentVillage(v,w){if(!v||!w)return 0;v._world=w;let n=0;for(const f of NS.V033D?.ensureFormations?.(v,w)||[]){if(!f._v33g1aTargetGate)n++;installGate(v,w,f);}return n;}
@@ -10814,6 +10819,45 @@ if(NS.UI){const headPrev=NS.UI.prototype.renderHeader,setPrev=NS.UI.prototype.se
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33G1A'))NS.PATCH_NOTES.unshift({version:'V0.33G1A',date:'2026-10-05',title:'Formation Write Gate + Recovery Plateau Exit',summary:'G1 자연주행에서 확인된 PEACETIME BORDER target 침범과 장기 Recovery 고착을 수정합니다. Formation owner를 사후 감시가 아니라 실제 target write gate로 승격하고, 붕괴 지표가 해소된 장기 Recovery에 안전한 plateau 종료 경로를 추가합니다.',sections:[['Formation 실제 write gate',['Formation의 targetTileId/targetReason 자체를 보호해 Recovery 중에는 home RECOVERY_EMERGENCY 목표만 허용합니다.','War Preparation 중에는 해당 Formation에 등록된 rally/staging 목표만 허용하고 평시 BORDER/RESOURCE/ADMIN writer의 덮어쓰기를 차단합니다.','전쟁 작전과 종전 철군은 기존 상위 lifecycle writer를 그대로 허용합니다.','새 Formation은 생성 이벤트가 반환되기 전에 gate를 설치해 같은 tick의 plan/move에도 보호가 적용됩니다.']],['Recovery 장기 고착 해제',['기존 food>42 + 3 stable seasons의 빠른 정상복귀 조건은 그대로 유지합니다.','Recovery 2년 이후 붕괴 신호가 사라진 상태를 장기간 유지하면 별도 plateau 종료가 가능합니다.','plateau 기준은 비활성 건물 <10%, 식량 30일 이상, 목재 안전선 이상, 수용량 80% 이상, 건강 48 이상, true survival 비활성입니다.','이미 5년/10년 이상 고착된 episode는 필요한 안정 유지기간만 180일/90일로 단축하며 안전 기준 자체는 낮추지 않습니다.']],['검증 telemetry',['차단된 target write를 FORMATION_TARGET_WRITE_BLOCKED33G1A로 기록합니다.','Snapshot/CSV에 국가별 Recovery/Preparation write block, Recovery age, plateau 안정일수·blocker·exit 횟수를 추가합니다.']],['범위 유지',['AIProfile JSON v1 규격과 Custom AI 저장은 변경하지 않습니다.','AI Editor 별도 HTML은 이 안정화 검증 뒤 다음 패치로 유지합니다.','전투·점령·평화협정·Gold·생산 공식은 변경하지 않습니다.']]]});
 NS.V033G1A={version:VERSION,revision:REV,attachWorld:attach,ensureState:ensure,installGate,instrumentAll,effectiveOwner,plateauEligibility,recoveryPlateau,base:'V0.33G1'};
 try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33G1A startup attach failed',e);}
+})(window.VSim);
+</script>
+\n<script>
+(function(NS){'use strict';
+if(!NS||!NS.World||!NS.Telemetry||!NS.V033G1A||!NS.AIProfiles)return;
+const VERSION='0.33G2',REV='ai-profile-editor-culture-formation-stabilization';
+const BUILTIN=new Set(['survival','diplomatic','expansionist','balanced','urbanist','resource_seeker','technologist']);
+const clone=x=>{try{return JSON.parse(JSON.stringify(x));}catch{return x;}};
+function ensure(w,src=null){if(!w)return null;if(src?.v33g2&&!w.v33g2)w.v33g2=clone(src.v33g2);const z=w.v33g2||(w.v33g2={revision:REV,stats:{}});z.revision=REV;z.stats=z.stats||{};for(const[k,d]of Object.entries({postwarPreparationHandoffs:0,postwarHomeCleanupMarkers:0}))z.stats[k]=Number(z.stats[k]??d);return z;}
+function activePrep(w,nid){const x=NS.V033D1?.currentIntent?.(w,nid);if(!x||!['PREPARING','READY'].includes(String(x.phase)))return null;const p=(NS.V033D2?.ensureState?.(w)?.preparations||[]).find(q=>String(q.intentId)===String(x.id));return p?{x,p}:null;}
+function formation(v,w,id){return(NS.V033D?.ensureFormations?.(v,w)||[]).find(f=>String(f.id)===String(id));}
+function canonicalProfile(p){return{id:String(p?.id||''),label:String(p?.label||''),nationName:String(p?.nationName||''),legacyBase:String(p?.legacyBase||'balanced'),traits:p?.traits||{},capabilities:p?.capabilities||{},research:p?.research||{},construction:p?.construction||{},mods:p?.mods||{}};}
+function fingerprint(p){const str=JSON.stringify(canonicalProfile(p));let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h.toString(16).padStart(8,'0');}
+function cultureReady(){return !!(NS.V033E4?.CULTURES?.KAIREN&&NS.V033E4?.CULTURE_IDS?.includes?.('KAIREN')&&NS.V033E4?.FOUNDING_BY_NATION_ID?.[6]==='KAIREN');}
+function attach(w,src=null){w=NS.V033G1A?.attachWorld?.(w,src)||w;if(!w)return w;ensure(w,src);for(const v of w.villages||[])v._world=w;return w;}
+
+/* Observe clean withdrawal -> preparation handoffs. The G1A gate now explicitly permits terminal HOME_RETURNED cleanup before preparation takes ownership. */
+const recPrev=NS.Telemetry.prototype.record;
+NS.Telemetry.prototype.record=function(type,w,payload={}){const r=recPrev.call(this,type,w,payload);try{const z=ensure(w);if(type==='POSTWAR_WITHDRAWAL_COMPLETED33A'){const v=(w?.villages||[]).find(q=>Number(q.id)===Number(payload?.villageId)),f=v?formation(v,w,payload?.formationId):null;if(v&&f&&activePrep(w,v.id)){Object.defineProperty(f,'_v33g2PendingPrepHandoff',{value:{cal:Number(w?.calendarOrdinalDay?.()??0),intentId:activePrep(w,v.id)?.x?.id||null},writable:true,configurable:true,enumerable:false});z.stats.postwarHomeCleanupMarkers++;}}else if(type==='FORMATION_CONTROL_OWNER_CHANGED33G1'&&payload?.to==='WAR_PREPARATION'){const v=(w?.villages||[]).find(q=>Number(q.id)===Number(payload?.villageId)),f=v?formation(v,w,payload?.formationId):null;if(f?._v33g2PendingPrepHandoff){const m=f._v33g2PendingPrepHandoff;delete f._v33g2PendingPrepHandoff;z.stats.postwarPreparationHandoffs++;recPrev.call(this,'POSTWAR_PREPARATION_HANDOFF33G2',w,{village:v.name,villageId:v.id,formationId:f.id,intentId:m.intentId,targetTileId:Number(f.targetTileId),targetReason:String(f.targetReason||''),atomicHomeCleanup:true});}}else if(type==='FORMATION_CONTROL_OWNER_CHANGED33G1'){const v=(w?.villages||[]).find(q=>Number(q.id)===Number(payload?.villageId)),f=v?formation(v,w,payload?.formationId):null;if(f?._v33g2PendingPrepHandoff&&payload?.to!=='POSTWAR_WITHDRAWAL')delete f._v33g2PendingPrepHandoff;}}catch(e){console.error('G2 handoff telemetry failed',e);}return r;};
+
+/* Telemetry: culture-7 readiness + arbitrary profile identity. */
+const snapPrev=NS.Telemetry.prototype.snapshot;
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){const s=snapPrev.call(this,w,reason,note);if(!s)return s;const z=ensure(w);Object.assign(s.global,{cultureCount33G2:Number(NS.V033E4?.CULTURE_IDS?.length||0),kairenCultureReady33G2:cultureReady()?1:0,postwarPreparationHandoffs33G2:z.stats.postwarPreparationHandoffs,postwarHomeCleanupMarkers33G2:z.stats.postwarHomeCleanupMarkers,aiEditorSchema33G2:1});for(const row of s.villages||[]){const v=(w.villages||[]).find(q=>Number(q.id)===Number(row.id));if(!v)continue;const p=NS.AIProfiles.profileFor(v),id=String(p?.id||v.aiProfileId||'balanced');Object.assign(row,{foundingCulture33G2:String(NS.V033E4?.FOUNDING_BY_NATION_ID?.[Number(v.id)]||''),aiProfileSource33G2:BUILTIN.has(id)?'BUILTIN':'CUSTOM',aiProfileFingerprint33G2:fingerprint(p)});}return s;};
+const csvPrev=NS.Telemetry.prototype.snapshotsCSV;
+NS.Telemetry.prototype.snapshotsCSV=function(){const base=csvPrev.call(this),lines=base.split('\\n');if(!lines.length)return base;const G=['cultureCount33G2','kairenCultureReady33G2','postwarPreparationHandoffs33G2','postwarHomeCleanupMarkers33G2','aiEditorSchema33G2'],R=['foundingCulture33G2','aiProfileSource33G2','aiProfileFingerprint33G2'],q=v=>`"${String(v??'').replace(/"/g,'""')}"`;lines[0]+=','+[...G,...R].map(q).join(',');let i=1;for(const s of this.snapshots||[])for(const row of s.villages||[]){if(i>=lines.length)break;lines[i++]+=','+[...G.map(k=>s.global?.[k]),...R.map(k=>row?.[k])].map(q).join(',');}return lines.join('\\n');};
+const jsonPrev=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=jsonPrev.call(this,w),z=ensure(w);d.version=VERSION;d.v33g2=clone(z);Object.assign(d.worldSummary||{},{v33G2Revision:REV,kairenCulture33G2:'Fresh worlds use a seventh founding culture KAIREN for nation 6. No migration of pre-G2 Person cultureMix is performed.',postwarPreparationHandoff33G2:'Terminal HOME_RETURNED cleanup is allowed atomically before an already-active War Preparation takes Formation ownership.',aiProfileEditor33G2:'Standalone ai-editor.html authors village-observer-ai JSON v1 using the exact G1 validator ranges; arbitrary custom ids continue through the generic profile path.'});return d;};
+
+/* Persistence. No legacy culture migration: old cultureMix values are left untouched by design. */
+const serPrev=NS.World.prototype.serialize,fromPrev=NS.World.from;
+NS.World.prototype.serialize=function(){const d=serPrev.call(this);d.version=VERSION;d.v33g2=clone(ensure(this));return d;};
+NS.World.from=function(d){if(d?.version===VERSION){const src=d,w=fromPrev({...d,version:'0.33G1A'});return attach(w,src);}return attach(fromPrev(d),d);};
+const oldSave=NS.SaveSystem;(function(){const KEY='village-observer-v0-33g2',fallback=['village-observer-v0-33g1a','village-observer-v0-33g1','village-observer-v0-33g'];const dl=(name,text,type='application/json')=>{const blob=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};NS.SaveSystem={...oldSave,save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},load(){let r=localStorage.getItem(KEY);for(const k of fallback)if(!r)r=localStorage.getItem(k);return r?NS.World.from(JSON.parse(r)):null;},export(w){dl(`village-observer-v033G2-save-${w.year}y.json`,JSON.stringify(w.serialize()));},exportDevJSON(w){dl(`village-observer-v033G2-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},exportDevCSV(w){const x=w.telemetry.snapshotsCSV(),c=NS.V032E14?.validateCSV?.(x);if(c&&!c.ok)throw new Error(`CSV schema mismatch: expected ${c.columns} columns; bad rows ${c.bad.slice(0,8).join(', ')}`);dl(`village-observer-v033G2-snapshots-${w.telemetry.sessionId}.csv`,'\\ufeff'+x,'text/csv;charset=utf-8');},async import(file){return NS.World.from(JSON.parse(await file.text()));},async importMap(file){return attach(await oldSave.importMap(file));},async importScenario(file){return attach(await oldSave.importScenario(file));}};})();
+
+function installEditorLink(){const panel=document.getElementById('aiProfilePanel33G1');if(!panel||document.getElementById('aiEditorLink33G2'))return;const row=document.createElement('div');row.style.marginTop='8px';row.innerHTML=`<a id="aiEditorLink33G2" href="ai-editor.html" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:#163454;color:var(--text);font-weight:800;text-decoration:none">🧠 AI Editor 열기</a> <span class="muted small">별도 HTML에서 Custom AIProfile JSON을 제작합니다.</span>`;panel.appendChild(row);const tag=panel.querySelector('.tag');if(tag)tag.textContent='G2';}
+if(NS.UI){const headPrev=NS.UI.prototype.renderHeader,setPrev=NS.UI.prototype.setWorld,renderPrev=NS.UI.prototype.render,worldPrev=NS.UI.prototype.renderWorld;NS.UI.prototype.setWorld=function(w){const r=setPrev.call(this,attach(w));installEditorLink();return r;};NS.UI.prototype.renderHeader=function(){headPrev.call(this);document.title='Village Observer V0.33G2';const b=document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>V0.33G2</strong>';const st=this.q?.('runtimeStatus'),z=ensure(this.world);if(st)st.textContent=`✓ V0.33G2 AI Profile Editor V1 · 문화 ${NS.V033E4?.CULTURE_IDS?.length||0} · handoff ${z.stats.postwarPreparationHandoffs||0}`;installEditorLink();};NS.UI.prototype.render=function(){const r=renderPrev.call(this);installEditorLink();return r;};if(worldPrev)NS.UI.prototype.renderWorld=function(){const r=worldPrev.call(this);installEditorLink();return r;};}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33G2'))NS.PATCH_NOTES.unshift({version:'V0.33G2',date:'2026-10-05',title:'AI Profile Editor V1 + Culture/Formation Stabilization',summary:'카이렌을 독립 제7 문화로 분리하고 종전 철군→차기 전쟁준비 handoff를 정리하며, G1 AIProfile JSON v1을 직접 제작하는 standalone AI Editor를 추가합니다.',sections:[['카이렌 독립 문화',['새 세계의 카이렌은 KAREN이 아니라 신규 KAIREN(카이렌계) 기초문화를 사용합니다.','전용 문화색과 family/given name pool을 추가해 벨른 문화와 이름 생성부터 분리합니다.','기존 세이브의 cultureMix를 변환하는 migration은 의도적으로 구현하지 않습니다.']],['Formation lifecycle 정리',['종전 철군 완료 시 HOME_RETURNED terminal cleanup을 먼저 허용한 뒤 이미 활성인 War Preparation이 제어권을 이어받습니다.','정상 handoff가 G1A write-block telemetry를 오염시키지 않도록 경계조건을 정리합니다.']],['Standalone AI Editor V1',['ai-editor.html에서 10 Traits, 7 Research weights, 8 Construction weights, 6 Seasonal action mods와 5 semantic capabilities를 편집합니다.','G1 validator와 동일한 범위/ID 규칙을 적용하며 Import/Export JSON round-trip을 지원합니다.','Built-in 7 profile을 reference로 불러오고 Duplicate로 새 Custom ID를 만들 수 있습니다.','technologist처럼 built-in capability가 trait 자동값과 다른 경우 Override를 자동 보존해 복제 행동이 달라지지 않게 합니다.']],['관측',['Snapshot/CSV에 foundingCulture, profile source(BUILTIN/CUSTOM), profile fingerprint, culture-7 readiness와 postwar-preparation handoff 횟수를 추가합니다.']],['범위 유지',['AIProfile schema는 v1을 유지합니다.','전쟁·경제·연구 속도·Recovery 밸런스는 변경하지 않습니다.','AI 행동 차이의 장기 비교는 다음 G3 Behaviour Anchor에서 수행합니다.']]]});
+NS.V033G2={version:VERSION,revision:REV,attachWorld:attach,ensureState:ensure,profileFingerprint:fingerprint,cultureReady,base:'V0.33G1A',aiEditorSchemaVersion:1,cultureMigration:false};
+try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);installEditorLink();ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33G2 startup attach failed',e);}
 })(window.VSim);
 </script>
 
