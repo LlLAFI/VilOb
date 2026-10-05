@@ -1,4 +1,350 @@
-# Village Observer V0.33G2
+# Village Observer V0.33G2A
+
+## AI / Nation Profile UX + Stabilization
+
+- 기준선: **V0.33G2**
+- 패치 날짜: **2026-10-06**
+- 목적: G2의 AI Profile Editor를 **Custom 국가 제작/적용 도구 V1**로 확장하고, 자연주행에서 확인된 CSV 및 Formation owner 회귀를 닫는다.
+- AIProfile 파일 포맷: **`village-observer-ai` / version 1 유지**
+- 기존 Person 문화 강제 migration: **없음**
+- 전쟁·경제 수치 밸런스 변경: **없음**
+
+---
+
+## 1. G2 자연주행에서 확인된 사항
+
+G2 PC 자연주행과 개발자 로그에서 다음이 확인되었다.
+
+### PASS
+
+- arbitrary custom profile `Joseon_261005`가 Import → Registry → Nation assignment → 장기 실행까지 유지됨
+- Custom Profile 값이 실제 frontier / war disposition / reserve / capability 계산에 도달함
+- 카이렌의 founding culture가 `KAIREN`으로 분리되고 벨른 `KAREN`과 구별됨
+- Custom Profile 적용 뒤 국가명도 시뮬레이션 진행 과정에서 정상 동기화됨
+
+### G2A에서 수정하는 회귀
+
+1. World 탭 Profile 교체 UI가 암묵적인 현재 선택 국가에 의존해 교체 대상을 이해하기 어려움
+2. Profile을 적용하는 순간에는 `nationName`이 즉시 UI에 보이지 않을 수 있음
+3. 지도에서 선택한 타일의 국가로 바로 이동할 observer bridge가 없음
+4. AI Editor가 국가색/문화 정체성을 작성할 수 없음
+5. G2 CSV wrapper가 실제 newline이 아니라 literal `\\n`을 사용해 Snapshot CSV schema validation이 실패함
+6. 활성 War Preparation이 국가의 모든 Formation을 `WAR_PREPARATION` owner로 잡아, 실제 rally와 관계없는 Formation에서도 장기간 target write block이 발생할 수 있음
+
+---
+
+## 2. World 탭 AI / 국가 Profile 교체 UX
+
+기존 G1/G2 Profile 패널은 Profile 선택과 JSON Import는 제공했지만, **어느 국가를 교체하는지 패널 자체에서 명시하지 않았다.**
+
+G2A는 World 탭에 다음 흐름을 제공한다.
+
+```text
+교체 대상 국가 선택
+        +
+적용할 AI Profile 선택
+        ↓
+현재 국가 카드  →  적용 후 카드
+        ↓
+AI / 정체성 교체
+```
+
+Before / After 카드에는 다음이 표시된다.
+
+- 국가명
+- 국가색
+- Profile label / id
+- Built-in / Custom 여부
+- founding culture
+- 진행 중 월드에서 문화 변경 시 기존 주민 `cultureMix` 유지 안내
+
+JSON Import는 Profile을 Registry에 등록할 뿐 즉시 국가를 교체하지 않는다. 사용자가 Before → After를 확인한 후 Apply 버튼을 눌러야 적용된다.
+
+Profile 적용 시 `nationName`은 다음 simulation tick을 기다리지 않고 즉시 `Village.name`에 반영된다.
+
+---
+
+## 3. AI Editor → AI / Nation Editor V1
+
+`ai-editor.html`은 기존 행동 파라미터 편집 기능을 유지하면서 optional **Nation Identity**를 작성할 수 있다.
+
+기존 G1 JSON은 그대로 유효하다. `identity`가 없는 Profile은 본편에서 기존 국가 정체성을 보존한다.
+
+확장 형식:
+
+```json
+{
+  "format": "village-observer-ai",
+  "version": 1,
+  "profile": {
+    "id": "custom_id",
+    "label": "Custom AI",
+    "nationName": "국가명",
+    "basePreset": "balanced",
+    "traits": {},
+    "research": {},
+    "construction": {},
+    "mods": {},
+    "identity": {
+      "nationColor": "#315f9b",
+      "culture": {
+        "mode": "custom",
+        "id": "CUSTOM_CULTURE",
+        "label": "문화 표시명",
+        "color": "#7aa8c8",
+        "familyCore": [],
+        "familyShared": [],
+        "givenCore": [],
+        "givenShared": []
+      }
+    }
+  }
+}
+```
+
+`identity`는 행동 계산과 분리된 metadata/identity layer다. AI 행동은 기존 G/G1 generic profile path를 그대로 사용한다.
+
+---
+
+## 4. 국가색
+
+Editor에서 Nation Color를 선택할 수 있다.
+
+- 형식: `#RRGGBB`
+- 문화색과 별도
+- 적용 대상: 영토 tint/border, 국가 카드, Formation 등 `NS.NATION_COLORS`를 참조하는 국가 표시
+- G2A는 초기 지도 렌더러가 캡처한 구형 local color palette 경로도 현재 `NS.NATION_COLORS`를 동적으로 읽도록 보정한다.
+
+Profile에 `nationColor`가 없으면 현재 국가 색상을 유지한다.
+
+---
+
+## 5. 문화 설정
+
+Editor에서 세 가지 모드를 선택한다.
+
+### 5.1 현재 국가 문화 유지 — `preserve`
+
+Profile을 적용해도 `FOUNDING_BY_NATION_ID`를 변경하지 않는다.
+
+### 5.2 기존 기초문화 사용 — `existing`
+
+현재 7개 founding culture 중 하나를 선택한다.
+
+- `LUEN`
+- `TER`
+- `KAREN`
+- `SERIA`
+- `MAELA`
+- `NOREA`
+- `KAIREN`
+
+### 5.3 신규 기초문화 생성 — `custom`
+
+작성 항목:
+
+- Culture ID
+- 표시명
+- 문화색
+- Family Core
+- Family Shared
+- Given Core
+- Given Shared
+
+제약:
+
+- Culture ID: 영문 대문자로 시작, 대문자/숫자/`_`, 2~24자
+- 기본 7문화 ID를 Custom 정의로 덮어쓸 수 없음
+- 표시명: 1~20자
+- Core family/given pool: 각각 최소 2개
+- 이름 항목: 최대 5자
+
+Custom culture는 E4의 실제 `CULTURES`, `CULTURE_IDS`, 이름 pool, `NAME_REGISTRY`에 등록되므로 이후 E4 이름 생성 경로가 동일하게 사용한다.
+
+---
+
+## 6. 문화 적용 정책 — Person 연속성 보존
+
+G2A는 Profile 교체와 주민 문화 변환을 동일시하지 않는다.
+
+### 진행 중 월드
+
+- 국가의 founding culture는 새 설정으로 변경 가능
+- **기존 Person의 `cultureMix`는 강제 변환하지 않음**
+- 정복/이주/혼합으로 형성된 실제 문화 이력을 보존
+
+### 새 월드 첫날
+
+정확히 Year 1 / 시작 season / Day 1에 국가 정체성을 교체하고 founding culture가 달라질 경우에만 시작 주민을 새 founding culture 100%로 초기화할 수 있다.
+
+이 경우 시작 주민 이름도 새 문화의 Family/Given pool로 다시 생성한다.
+
+이 규칙은 이전 세이브의 KAREN → KAIREN 같은 추론 migration과는 별개다. 그런 migration은 여전히 추가하지 않는다.
+
+---
+
+## 7. 지도 상단 선택 국가 Profile Card
+
+지도 canvas 바로 위에 선택 타일의 소유 국가 요약을 표시한다.
+
+표시 정보:
+
+- 국가색 / 국가명
+- Built-in 또는 Custom Profile
+- Profile label
+- 인구
+- 영토 타일 수
+- 기술 수
+- Gold
+- founding culture
+- 다른 국가가 임시 점령 중이면 occupier 표시
+
+`국가 정보 보기 →` 버튼은 해당 소유 국가를 선택하고 Nation 탭의 Overview로 이동한다.
+
+무주지를 선택하면 국가 Profile 대신 무주지/지형 정보를 표시한다.
+
+---
+
+## 8. Snapshot CSV 다운로드 수정
+
+G2 회귀 원인은 G2 telemetry wrapper의 newline 처리였다.
+
+잘못된 형태:
+
+```js
+base.split('\\n')
+lines.join('\\n')
+```
+
+이는 실제 행 구분자가 아니라 backslash + `n` 문자열을 찾는다.
+
+G2A에서는 모든 G2 wrapper가 실제 newline을 사용한다.
+
+```js
+base.split('\n')
+lines.join('\n')
+```
+
+따라서 각 snapshot row에 G2/G2A 컬럼이 정상 추가되고 기존 E14 CSV schema validator를 다시 통과할 수 있다.
+
+다운로드 직전 validator는 유지한다. 스키마가 다시 깨지면 잘못된 CSV를 조용히 저장하는 대신 오류로 중단한다.
+
+---
+
+## 9. War Preparation Formation owner 범위 수정
+
+### G2 문제
+
+G1 owner 함수는 활성 Preparation이 하나라도 존재하면 해당 국가의 모든 field Formation에 `WAR_PREPARATION` owner를 부여했다.
+
+그 결과 실제 rally에 참여하지 않는 Formation도 평시 HOME/BORDER target을 쓰지 못할 수 있었다.
+
+G2 자연주행에서는 이 현상이 카이렌 한 Formation에서 장기간 반복되어 수백 회의 `FORMATION_TARGET_WRITE_BLOCKED33G1A`를 만들었다.
+
+### G2A 규칙
+
+`WAR_PREPARATION`은 다음 중 하나를 만족하는 Formation만 소유한다.
+
+1. 현재 preparation의 `rallyTargets[formationId]`에 등록됨
+2. `formation.v33d2IntentId`가 현재 intent와 일치
+3. `formation.v33d2aPreparationIntentId`가 현재 intent와 일치
+
+그 외 Formation은 활성 Preparation이 존재하더라도 `PEACETIME` owner를 유지한다.
+
+우선순위 자체는 유지한다.
+
+```text
+WAR_OPERATION
+> POSTWAR_WITHDRAWAL
+> RECOVERY_EMERGENCY
+> registered WAR_PREPARATION
+> PEACETIME
+```
+
+전쟁 준비 목표, readiness, food, War Chest, Final Commitment 등의 밸런스 값은 변경하지 않는다.
+
+---
+
+## 10. 저장 / 로드
+
+G2A save version:
+
+- `0.33G2A`
+
+저장되는 추가 identity 상태:
+
+- 국가별 적용 Profile ID
+- nationName
+- nationColor
+- foundingCultureId
+- 적용 시점
+- fresh founder reset 여부
+- Custom Profile 안의 optional identity
+- Custom culture 정의
+
+Custom culture는 구버전 World.from 체인이 Person cultureMix를 normalize하기 전에 먼저 registry에 설치한다. 이후 Profile registry가 복원된 뒤 identity reference를 다시 연결한다.
+
+---
+
+## 11. 관측 항목
+
+G2A Snapshot/CSV에는 다음 identity 관측값을 추가한다.
+
+Global:
+
+- `aiNationIdentitySchema33G2A`
+- `customCultureCount33G2A`
+- `profileIdentityImports33G2A`
+- `profileIdentityAssignments33G2A`
+- `freshFounderCultureApplications33G2A`
+- `csvExports33G2A`
+
+Nation:
+
+- `nationColor33G2A`
+- `profileIdentityCultureMode33G2A`
+- `profileIdentityCultureId33G2A`
+
+Formation owner 검증에는 기존 G1/G1A의 owner/write-block telemetry를 그대로 사용한다.
+
+---
+
+## 12. G2A에서 하지 않는 것
+
+- 기존 Person 문화의 진행 중 일괄 변환
+- 과거 세이브 문화 migration
+- 자동 문화 융합 / 파생문화 생성
+- 문화에 따른 전투/건강/출산 신규 효과
+- AI Profile schema v2
+- 런타임 slider로 AI를 매 tick 수정하는 기능
+- 전쟁·경제 밸런스 재조정
+
+G2A는 **Custom 국가의 정체성을 작성/적용하고 G2의 UX 및 안정화 회귀를 닫는 패치**다.
+
+---
+
+## 13. 다음 단계
+
+G2A 자연주행에서 다음을 확인한 뒤 **V0.33G3 — AI Behaviour Anchor / Validation**으로 넘어간다.
+
+핵심 검증:
+
+1. Custom nation color가 지도/국가/군사 표시에서 일관됨
+2. Custom culture 이름 생성과 founding mapping이 유지됨
+3. 진행 중 Profile 교체가 기존 주민 cultureMix를 보존함
+4. Snapshot CSV가 정상 다운로드되고 모든 행 column 수가 동일함
+5. unrelated Formation의 Preparation write block이 사라짐
+6. arbitrary Profile ID가 계속 generic AI path를 사용함
+
+G3부터는 같은 map/seed/초기조건에서 Profile만 바꾸어 행동 차이를 측정한다.
+
+---
+
+# Historical Implementation Notes
+
+아래는 G2 기준 구현 기록이며 G2A에서 삭제하지 않고 유지한다.
+
+# V0.33G2 기준 구현 기록
 
 ## AI Profile Editor V1 + Culture / Formation Stabilization
 
