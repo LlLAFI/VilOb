@@ -1,310 +1,479 @@
-# Village Observer V0.33G
+# Village Observer V0.33G1
 
-## AIProfile Hardcode Removal
+## Formation Ownership + AIProfile JSON v1
 
-V0.33G는 V0.33F5A8을 기준으로, 향후 **AIProfile JSON / AI Editor / 사용자 정의 AI**를 안전하게 도입하기 위한 구조 정리 패치다.
+V0.33G1은 V0.33G를 기준으로 두 작업을 하나의 패치로 묶는다.
 
-A6~A7에서 AIProfile 계층과 카이렌을 추가하고 주요 행동 경로를 trait 기반으로 연결했지만, 단일 HTML에 누적된 과거 버전 코드에는 여전히 `brain.type === 'expansionist'`처럼 **프로필 ID 문자열 자체를 행동 규칙으로 사용하는 분기**가 남아 있었다.
+1. V0.33G PC 자연주행에서 확인된 **평시/Recovery Formation 이동 제어권 충돌**을 수정한다.
+2. V0.33G에서 완료한 AIProfile 하드코딩 제거 위에 **외부 AIProfile JSON v1 import/export·국가 적용·save/load 보존 기반**을 추가한다.
 
-이 상태에서는 `custom_usa`, `my_ai_01`처럼 새로운 ID의 커스텀 프로필이 들어왔을 때 trait 값과 무관하게 일부 구형 경로에서 기본형으로 떨어질 수 있다.
-
-G의 목표는 명확하다.
-
-> **프로필 ID는 정체성(identity)으로만 사용하고, 실제 행동은 trait / semantic capability를 통해 결정한다.**
-
-이번 버전은 AI Editor UI나 JSON 파일 형식을 아직 추가하지 않는다. 먼저 본편 시뮬레이션의 행동 라우팅을 ID 비의존 구조로 정리한다.
+이번 버전은 독립형 AI Editor 자체를 만들기 전의 본편 기반 패치다. AI Editor는 이 버전에서 고정한 `village-observer-ai` JSON을 생성·편집하는 별도 UI로 이어갈 수 있다.
 
 ---
 
-## 1. Semantic Capability Layer
+# 1. V0.33G 자연주행에서 확인된 Formation 문제
 
-기존 여섯 archetype이 코드 곳곳에서 사용하던 의미를 다음 다섯 capability로 분리했다.
+PC 자연주행에서 티아는 키오에 대한 War Intent를 `PREPARING` 상태로 유지한 채 Recovery Mode에 들어갔다.
 
-| Capability | 의미 |
+기존 구조에서는 다음 두 규칙이 동시에 작동할 수 있었다.
+
+- D2 War Preparation: Formation을 전쟁 준비 staging tile로 반복 집결시킨다.
+- Recovery/평시 Formation planner: Recovery 우선순위에 따라 기존 rally lock을 해제하고 평시·복구 목표를 다시 부여한다.
+
+D2A/F3는 Recovery 진입 시 rally **lock**은 해제했지만 D2의 `rallyAssign2()` 자체는 계속 실행되었다. 그 결과 같은 Formation에 대해 staging 목표와 평시/Recovery 목표가 반복해서 덮어써지는 왕복이 발생할 수 있었다.
+
+V0.33G1은 이 문제를 target writer의 원인 지점에서 수정한다.
+
+---
+
+# 2. Formation 단일 제어권
+
+G1은 각 물리 Formation에 현재의 **effective movement owner**를 기록한다.
+
+현재 구분은 다음과 같다.
+
+| Control owner | 의미 |
 | --- | --- |
-| `survivalPriority` | 생존·안정에 추가 우선권을 두는 정도 |
-| `tradeDiplomacy` | 교역·외교형 특수 행동을 사용하는 정도 |
-| `territorialExpansion` | 적극적 영토확장 행동을 사용하는 정도 |
-| `urbanConcentration` | 도시집중·고밀도 유지 성향 |
-| `resourceSeeking` | 전략자원·자원거점 추구 성향 |
+| `WAR_OPERATION` | 실제 ACTIVE 전쟁의 작전 이동 |
+| `POSTWAR_WITHDRAWAL` | 종전 후 본국 귀환/철군 |
+| `RECOVERY_EMERGENCY` | 평시 국가 Recovery가 Formation 제어 |
+| `WAR_PREPARATION` | D2 PREPARING/READY 집결 |
+| `PEACETIME` | 일반 평시 배치 |
 
-Capability는 0~1 범위의 연속값이다.
+전쟁·철군 같은 lifecycle 상태는 기존 군사 규칙을 유지한다. G1이 직접 수정한 핵심 충돌은 **Recovery와 War Preparation 사이**다.
 
-기존 기본 AI는 과거 행동을 보존하기 위해 compatibility capability를 명시적으로 갖는다.
+Formation에는 관측용으로 다음 값이 유지된다.
 
-| 기본 AI | survival | trade | expansion | urban | resource |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 키오 / 생존안정형 | 1 | 0 | 0 | 0 | 0 |
-| 델마 / 교역외교형 | 0 | 1 | 0 | 0 | 0 |
-| 벨른 / 영토확장형 | 0 | 0 | 1 | 0 | 0 |
-| 라엔 / 균형형 | 0 | 0 | 0 | 0 | 0 |
-| 티아 / 도시집약형 | 0 | 0 | 0 | 1 | 0 |
-| 에브 / 자원개척형 | 0 | 0 | 0 | 0 | 1 |
-| 카이렌 / 기술개발형 | 0 | 0 | 0 | 0 | 0 |
+- `v33g1ControlOwner`
+- `v33g1ControlOwnerSinceCal`
+- `v33g1LastOwnerChange`
+- `v33g1DesiredTargetTileId`
+- `v33g1DesiredTargetReason`
 
-카이렌은 A6 이전 legacy archetype에 존재하지 않았으므로 compatibility capability는 균형형처럼 0이다. 카이렌의 차이는 A6/A7의 `technology`, `production`, `expansion`, `risk` 등 **실제 trait delta**에서 계속 발생한다.
+이 값은 이동력을 추가하거나 병력을 생성하지 않는다. 누가 Formation의 목표를 소유하고 있는지 명시하고 회귀를 진단하기 위한 상태다.
 
 ---
 
-## 2. 사용자 정의 프로필의 Capability 파생
+# 3. Recovery 중 War Preparation rally suspend
 
-기본 preset이 아닌 임의의 AIProfile에는 capability를 직접 넣을 수도 있고, 없으면 trait에서 의미값을 파생한다.
+D2의 `rallyAssign2()`는 이제 Recovery 상태를 직접 확인한다.
 
-현재 기본 파생 기준은 다음과 같다.
+Recovery 중이고 실제 전쟁이 시작되지 않았다면:
 
-- `survival > 1` → `survivalPriority`
-- `trade > 1` → `tradeDiplomacy`
-- `expansion > 1` → `territorialExpansion`
-- `urbanization > 1` → `urbanConcentration`
-- `resourceAcquisition > 1` → `resourceSeeking`
+- staging target을 **쓰지 않는다**.
+- `rallySuspended33G1 = true`가 된다.
+- 최초 suspend 시 `WAR_PREPARATION_RALLY_SUSPENDED33G1`을 기록한다.
+- G1 Formation owner는 `RECOVERY_EMERGENCY`가 된다.
+- 평시 물리 Formation은 home/core 방향의 `RECOVERY_EMERGENCY` 목표로 re-home된다.
 
-예를 들어 ID가 `custom_probe_xyz`여도 `expansion: 1.55`라면 영토확장 capability를 사용할 수 있다. 코드가 더 이상 `custom_probe_xyz === 'expansionist'` 같은 이름 일치를 요구하지 않는다.
+따라서 예전처럼
 
-Capability는 legacy archetype의 특수 동작을 데이터화하기 위한 계층이고, A6/A7의 일반 trait 계수는 그대로 별도로 적용된다. 따라서 향후 AI Editor에서는 **연속적인 trait 조정 + 필요한 capability 조정**을 함께 표현할 수 있다.
+`전쟁 준비 staging → 평시 BORDER → staging → BORDER`
 
----
+가 반복되지 않는다.
 
-## 3. G에서 제거한 행동용 Profile-ID 분기
+Recovery가 종료되었을 때 War Intent가 여전히 `PREPARING` 또는 `READY`라면:
 
-A8 소스는 수년간 누적된 단일 HTML이므로 최신 경로뿐 아니라 구형 compatibility 경로에도 직접 분기가 남아 있었다. G는 현재 실행 여부와 무관하게 행동 결과에 관여할 수 있는 직접 타입 분기를 정리했다.
+- 다음 D2 preparation 진행에서 rally suspension이 해제된다.
+- `WAR_PREPARATION_RALLY_RESUMED33G1`이 기록된다.
+- Formation owner가 다시 `WAR_PREPARATION`으로 전환된다.
+- 기존 D2 준비 목표와 실제 Person-backed Formation을 그대로 사용해 집결을 재개한다.
 
-주요 변환 영역은 다음과 같다.
-
-### 전략 행동
-
-- 기본 AI 행동 점수
-- 교역외교형의 장기 구조적 정체 탈출
-- 자원개척형 Frontier 후보 보정
-- Strategic Program 성향 보정
-
-### Frontier Expansion
-
-- V21 autonomous 개척 임계값
-- V24 regional frontier 임계값
-- A7 자율개척 확률
-- 동시 Frontier capacity
-- 밀도·잔류인구 gate
-- 후보 점수 threshold
-
-기존 preset의 주요 값은 그대로 유지한다.
-
-- 키오: autonomous chance 0.270
-- 델마: 0.340
-- 벨른: 0.560
-- 라엔: 0.380
-- 티아: 0.240
-- 에브: 0.440
-- 카이렌: 약 0.287
-
-### 유지보수
-
-기존 archetype별 건물 유지보수 중요도와 remote maintenance 규칙을 capability 가중식으로 전환했다.
-
-기존 preset은 capability가 0 또는 1이므로 과거 상수와 같은 값이 나온다. 혼합형 Custom AI는 여러 성향의 유지보수 우선도가 연속적으로 결합될 수 있다.
-
-### 군사·전쟁
-
-다음 직접 type 분기를 capability 기반으로 변환했다.
-
-- 초기 전쟁 선포 평가 보정
-- D 다중전선 AI 참전 확률
-- D1 War Intent 평가
-- E Intelligence 기반 평가
-- E2 불확실성·위험 성향
-- 동맹/공동전쟁 개입 성향
-- F5P2 / A7 War disposition fallback
-- A3 평시 상비군 목표
-
-A7 기준 기존 War disposition은 그대로 유지한다.
-
-- 키오 -5
-- 델마 -3
-- 벨른 +5
-- 라엔 0
-- 티아 0
-- 에브 +3
-- 카이렌 약 -2.2
-
-### 도시·이주·경제
-
-A7에서 이미 Profile trait로 이동한 도시 이주 관성, 전략 reserve, 생산시설 우선권 등의 경로와 G capability layer를 같은 Profile 조회 체계로 통합했다.
+즉 Recovery는 전략적 Intent 자체를 무조건 삭제하지 않는다. **이동 제어만 일시적으로 Recovery에 넘긴다.**
 
 ---
 
-## 4. Nation Name과 Profile ID
+# 4. Formation control conflict 진단
 
-국가 이름 preset도 더 이상 `NAME_PRESET[v.brain.type]`를 행동 코드처럼 직접 조회하지 않는다.
+향후 같은 종류의 충돌을 장기 자연주행에서 뒤늦게 발견하지 않도록 별도 telemetry를 추가했다.
 
-현재 AIProfile 자체의 `nationName`을 우선 사용한다.
+다음과 같은 상충 writer가 관측되면 `FORMATION_CONTROL_CONFLICT33G1`이 기록된다.
 
-따라서 향후 커스텀 프로필은 다음과 같은 구조를 자연스럽게 가질 수 있다.
+- effective owner가 `RECOVERY_EMERGENCY`인데 `WAR_PREPARATION` writer가 target을 쓰는 경우
+- effective owner가 `WAR_PREPARATION`인데 `PEACETIME` writer가 target을 쓰는 경우
+
+주요 누적 필드:
+
+- `formationControlOwnerChanges33G1`
+- `formationControlConflicts33G1`
+- `recoveryRallySuspensions33G1`
+- `recoveryRallyResumes33G1`
+- `recoveryFormationRehomes33G1`
+
+국가별 Snapshot/CSV:
+
+- `formationControlOwners33G1`
+- `formationControlConflictsNation33G1`
+- `recoveryFormationRehomesNation33G1`
+
+정상 자연주행에서 `formationControlConflicts33G1`은 원칙적으로 **0**이어야 한다.
+
+---
+
+# 5. F5P2 War Intent Profile telemetry 수정
+
+V0.33G는 실제 AI 행동을 profile/capability 기반으로 전환했지만 과거 F5P2 관측 코드 일부는 여전히 `scoreComponents.brain`을 읽고 있었다.
+
+G 이후 raw assessment에는 `profileId`가 저장되므로 해당 관측값이 없을 때 `balanced`로 잘못 표시되는 사례가 있었다.
+
+G1은 `assessmentBrain33F5P2`가 우선 `profileId`를 읽도록 수정한다.
+
+이 변경은 War Intent 점수나 선전포고 확률을 바꾸지 않는다. **개발자 로그의 AI 정체성 표시만 실제 계산 경로와 일치시킨다.**
+
+---
+
+# 6. AIProfile JSON v1
+
+G1은 본편에서 사용할 외부 Custom AI 데이터 포맷을 처음 고정한다.
+
+기본 envelope:
 
 ```json
 {
-  "id": "custom_profile",
-  "label": "사용자 AI",
-  "nationName": "사용자국",
-  "traits": { }
+  "format": "village-observer-ai",
+  "version": 1,
+  "profile": {
+    "id": "my_technologist",
+    "label": "산업연구형",
+    "nationName": "커스텀국",
+    "basePreset": "technologist",
+    "traits": {
+      "technology": 1.8
+    }
+  }
 }
 ```
 
-`brain.type` 필드는 당장 삭제하지 않는다. 기존 세이브와 하위버전 호환을 위해 다음 용도로만 남는다.
+이 예시는 `technology`만 덮어쓴다. 나머지 값은 `technologist` 기본 preset에서 상속된다.
 
-- save serialization의 legacy identity
-- 이전 버전 save migration fallback
-- 기존 객체가 `aiProfileId`를 아직 갖지 않은 경우 profile identity 복구
+따라서 결과적으로 카이렌 preset의 예를 들면:
 
-**행동 판단에서는 profile ID 문자열을 비교하지 않는다.**
+- `production = 1.55`
+- `expansion = 0.66`
+- 기존 research 가중치
+- 기존 construction 가중치
+- 기존 행동 mods
 
----
+를 유지하면서 `technology`만 1.8로 바뀐다.
 
-## 5. 기존 7개 AI 회귀 보존 방식
-
-G는 기본 AI를 새롭게 재밸런싱하는 패치가 아니다.
-
-기존 preset은 과거 type 분기가 만들던 결과를 compatibility capability로 재현하고, 그 위에 A6/A7의 trait delta를 그대로 유지한다.
-
-예를 들어 과거 코드가 영토확장형에 `+10` 전쟁 보정을 줬다면 G에서는 다음 의미가 된다.
-
-```text
-+10 × territorialExpansion
-```
-
-벨른은 capability 1이므로 기존과 같은 +10을 받는다. 균형형은 0이므로 받지 않는다. Custom AI가 0.4라면 +4가 된다.
-
-이 방식은 기존 행동 보존과 커스텀 AI의 연속적인 성향 표현을 동시에 가능하게 한다.
+AI Editor가 모든 내부 값을 매번 완전한 JSON으로 출력할 필요가 없고, **기본 preset + 필요한 override** 구조를 사용할 수 있도록 한 것이다.
 
 ---
 
-## 6. 정적 감사 결과
+# 7. basePreset 규칙
 
-G 최종 소스에서 다음 패턴을 별도로 검사했다.
+`basePreset`은 다음 기본 7개만 허용한다.
+
+- `survival`
+- `diplomatic`
+- `expansionist`
+- `balanced`
+- `urbanist`
+- `resource_seeker`
+- `technologist`
+
+Custom Profile을 다른 Custom Profile의 basePreset으로 사용하는 것은 v1에서 허용하지 않는다.
+
+이유는 다음과 같다.
+
+- custom→custom 순환 상속 방지
+- 파일 하나만으로 의미가 결정되도록 유지
+- save/load 및 버전 마이그레이션 단순화
+- 향후 AI Editor가 항상 예측 가능한 7개 기준점에서 시작하도록 유지
+
+---
+
+# 8. JSON 필드와 범위
+
+## 8.1 traits
+
+다음 10개를 지원한다.
+
+- `survival`
+- `expansion`
+- `trade`
+- `urbanization`
+- `resourceAcquisition`
+- `technology`
+- `production`
+- `military`
+- `risk`
+- `fiscalConservatism`
+
+허용 범위: **0.25 ~ 2.50**
+
+생략한 값은 `basePreset`에서 상속된다.
+
+## 8.2 semantic capabilities
+
+- `survivalPriority`
+- `tradeDiplomacy`
+- `territorialExpansion`
+- `urbanConcentration`
+- `resourceSeeking`
+
+허용 범위: **0 ~ 1**
+
+`capabilities` 자체를 생략하거나 일부 key만 쓰면, 나머지는 최종 traits에서 자동 파생된다. 따라서 일반적인 Custom AI는 capabilities를 직접 건드리지 않아도 된다.
+
+이 필드는 과거 archetype의 특수 행동을 세밀하게 조정하려는 **고급 설정**에 해당한다.
+
+## 8.3 research
+
+- `food`
+- `production`
+- `industry`
+- `commerce`
+- `administration`
+- `military`
+- `knowledge`
+
+허용 범위: **0.25 ~ 2.50**
+
+생략값은 basePreset에서 상속된다.
+
+## 8.4 construction
+
+- `farm`
+- `sawmill`
+- `quarry`
+- `iron`
+- `roads`
+- `commerce`
+- `military`
+- `housing`
+
+허용 범위: **0.25 ~ 2.50**
+
+생략값은 basePreset에서 상속된다.
+
+## 8.5 mods
+
+- `MAINTAIN`
+- `FOOD`
+- `HOUSING`
+- `TRADE`
+- `SECURITY`
+- `EXPAND`
+
+허용 범위: **-50 ~ +50**
+
+생략값은 basePreset에서 상속된다.
+
+---
+
+# 9. ID 및 안전 규칙
+
+Custom `profile.id`는:
+
+- 최대 48자
+- 영문/숫자/`_`/`-`만 사용
+- 첫 글자는 영문 또는 숫자
+
+기본 7개 ID는 import로 덮어쓸 수 없다.
+
+예를 들어 Custom JSON이 `id: "balanced"`를 사용하면 가져오기가 거부된다.
+
+AIProfile JSON은 실행 가능한 JavaScript나 callback을 포함하지 않는 **순수 데이터 포맷**이다. G의 목표였던 “ID 문자열에 행동코드를 결합하지 않는다”는 원칙을 그대로 유지한다.
+
+---
+
+# 10. 본편 Import / Export / 국가 적용 UI
+
+World 탭의 기존 Save 영역 아래에 **AI Profile JSON v1** 패널이 추가된다.
+
+지원 기능:
+
+1. 등록된 Profile 선택
+2. Profile JSON 내보내기
+3. Custom Profile JSON 가져오기
+4. 현재 선택 국가에 Profile 적용
+
+가져오기와 국가 적용은 분리되어 있다.
+
+즉 Custom JSON을 import했다고 즉시 어느 국가의 AI가 바뀌지는 않는다. 사용자가 Profile을 등록한 뒤 원하는 국가를 선택하고 **선택 국가에 적용**을 눌러야 한다.
+
+독립형 AI Editor는 아직 포함하지 않는다.
+
+---
+
+# 11. Export 규칙
+
+내보내기는 현재 registry에서 사용 중인 **정규화된 전체 Profile**을 저장한다.
+
+따라서 부분 override로 가져온 Profile도 다시 export하면 traits/research/construction/capabilities/mods가 모두 포함된 완전한 v1 JSON이 된다.
+
+파일명 예:
+
+`village-observer-ai-my_technologist.json`
+
+---
+
+# 12. Custom AI save/load 보존
+
+Custom Profile은 단순히 현재 브라우저 registry에만 존재하면 안 된다. 저장게임을 다시 열 때 Profile 정의가 사라지면 해당 국가가 `balanced`로 fallback될 수 있기 때문이다.
+
+G1은 World save의 `v33g1.customProfiles[]`에 Custom 정의를 같이 저장한다.
+
+로드 순서는 다음과 같다.
+
+1. Save의 Custom Profile 정의를 읽는다.
+2. AIProfile registry에 Custom Profile을 먼저 복구한다.
+3. 그 뒤 기존 Village/Brain을 deserialize한다.
+4. 국가의 `aiProfileId`를 해당 Custom Profile에 다시 연결한다.
+
+이 순서 때문에 임의의 ID를 사용한 Custom AI도 저장 후 다시 로드했을 때 balanced로 떨어지지 않는다.
+
+G1 save key:
+
+`village-observer-v0-33g1`
+
+이전 G 및 F5A8 save는 fallback load 대상이다.
+
+---
+
+# 13. G의 hardcode 제거 유지
+
+G1은 V0.33G의 구조적 원칙을 그대로 유지한다.
+
+정적 감사 기준 행동 결정용 다음 패턴은 **0건**이다.
 
 - `brain.type === '...'`
-- `brain.type !== '...'`
-- 지역 변수 `brain / bt / b / t`에 profile ID를 담은 뒤 문자열 비교하는 형태
-- legacy archetype 상수 map으로 행동값을 고르는 형태
+- `brain.type==='...'`
+- `brain?.type === '...'`
+- `this.type === '...'`
 
-**행동용 직접 profile-ID 비교: 0건**
-
-`brain.type` 문자열 자체는 위에서 설명한 legacy identity/save/migration 용도에만 남긴다.
-
-또한 HTML 내 JavaScript를 각각 분리해 문법 검사했다.
-
-- inline JavaScript: **115개**
-- syntax failure: **0**
+`brain.type`/`aiProfileId` 자체는 identity와 과거 save migration을 위해 존재할 수 있지만, Custom AI의 행동을 특정 ID 문자열 비교로 결정하지 않는다.
 
 ---
 
-## 7. 런타임 회귀 검증
+# 14. 검증
 
-브라우저 런타임에서 다음을 검증했다.
+## 14.1 정적 검증
 
-### 새 자연 세계
+- inline script: **116개**
+- JavaScript syntax failure: **0**
+- 행동용 profile-id 직접 비교: **0건 유지**
 
-- 7개국 정상 생성
-- 카이렌 technologist 유지
-- 국가명 preset 정상
-- G 버전 serialize 정상
+## 14.2 브라우저 부팅
 
-### 기본 AI compatibility
+- Chromium 실제 실행 정상
+- 제목: `Village Observer V0.33G1`
+- 새 자연 세계: **7개국 정상 생성**
+- runtime exception: **0**
+- console error: **0**
 
-대표 Profile 실효값 확인:
+## 14.3 Formation 강제 회귀
 
-| 국가 | Frontier chance | War disposition |
-| --- | ---: | ---: |
-| 키오 | 0.270 | -5.0 |
-| 델마 | 0.340 | -3.0 |
-| 벨른 | 0.560 | +5.0 |
-| 라엔 | 0.380 | 0.0 |
-| 티아 | 0.240 | 0.0 |
-| 에브 | 0.440 | +3.0 |
-| 카이렌 | 0.287 | -2.2 |
+실제 Person-backed 티아 Formation에 대해 다음 상태를 강제로 재현했다.
 
-A7 기준값과 동일하다.
+`PREPARING → Recovery → Recovery 종료`
 
-### 임의 Custom ID
+Recovery 진입 후:
 
-`custom_probe_xyz`라는 기존 코드에 전혀 존재하지 않는 ID를 런타임 등록해 다음을 확인했다.
+- owner = `RECOVERY_EMERGENCY`
+- Formation target = home/core
+- D2 preparation progress를 실행해도 staging target 재기록 없음
+- `rallySuspended33G1 = true`
 
-- profile ID 그대로 보존
-- trait에서 capability 정상 파생
-- Frontier 실효값 계산
-- War disposition 계산
-- `NS.Brains.create()`가 임의 ID를 그대로 가진 Brain 생성
+Recovery 종료 후:
 
-즉 커스텀 AI가 기존 7개 이름 중 하나를 사칭할 필요가 없다.
+- rally 자동 resume
+- owner = `WAR_PREPARATION`
+- 기존 preparation 집결 재개
 
-### Save migration
+테스트 결과:
 
-A8 형식으로 간주한 7국 save를 G로 다시 로드해 다음 profile 순서를 보존했다.
+- rally suspension: **1회**
+- rally resume: **1회**
+- Recovery re-home: **1회**
+- control conflict: **0회**
 
-`survival / diplomatic / expansionist / balanced / urbanist / resource_seeker / technologist`
+장기 자연주행에서 티아의 과거 1,300회 이상 왕복이 제거되는지는 다음 PC 자연주행 devlog로 최종 회귀 확인한다.
 
-G state도 정상 부착됐다.
+## 14.4 Custom Profile JSON 상속
 
-### Simulation smoke
+테스트 Profile:
 
-- 180 calendar-day 자연 진행
-- 7개국 유지
-- runtime exception 0
-- G save version 유지
+- basePreset = `technologist`
+- override = `technology: 1.8`
 
-### CSV
+결과:
 
-- Snapshot CSV: **1305 columns**
-- schema validation: **PASS**
-- bad rows: **0**
+- technology = **1.8**
+- production = **1.55** 상속
+- expansion = **0.66** 상속
+- research.industry = **1.52** 상속
+- construction.sawmill = **1.42** 상속
+- 생략 capability는 최종 traits에서 자동 파생
 
----
+## 14.5 JSON validation
 
-## 8. A8 Recovery Essential Investment 계승
+정상 거부 확인:
 
-G는 A8의 Recovery Essential Investment 밸런스를 변경하지 않는다.
+- 기본 preset ID 덮어쓰기
+- Custom Profile을 basePreset으로 사용
+- 허용 범위를 벗어난 수치
+- 잘못된 format/version/id
 
-A8 자연주행에서는 Recovery Essential 검토가 실제 발생했으나 자연 착공 성공이 0회였고, `START_REJECTED` 원인 세분화는 향후 안정화 항목으로 남아 있다.
+## 14.6 Custom save/load round trip
 
-G의 목적은 이 값을 재조정하는 것이 아니라 AI 구조의 ID 의존을 제거하는 것이다.
+Custom Profile을 카이렌 슬롯에 적용한 뒤:
 
----
+1. World serialize
+2. 런타임 registry에서 Custom ID 제거
+3. serialize 데이터로 다시 load
 
-## 9. 아직 하지 않는 것
+결과:
 
-V0.33G에는 다음을 아직 구현하지 않는다.
+- Custom ID 복원
+- custom Profile 정의 복원
+- nation assignment 복원
+- override trait 값 복원
 
-- AIProfile JSON 파일 import/export
-- AIProfile schema의 외부 파일 버전 고정
-- 국가별 Custom AI 선택 UI
-- 독립 `AI Editor.html`
-- 역사 국가 preset 제작
-- AI에게 직접 생산/연구/군사 보너스를 주는 국가 버프
+## 14.7 자연 smoke 및 CSV
 
-특히 AIProfile은 **능력치 치트가 아니라 의사결정 성향**을 표현한다는 원칙을 유지한다.
+추가 schema 보정 후 120일 smoke run:
 
----
+- 7개국 정상
+- runtime error 0
+- Formation control conflict 0
+- Snapshot CSV **1320 columns**
+- schema validation PASS
+- bad row 0
 
-## 10. 다음 단계
-
-G 자연주행 회귀가 통과하면 다음 순서는 다음과 같다.
-
-1. **AIProfile JSON v1 규격 고정**
-2. 본편 Profile import / export
-3. Custom Profile validation 및 오류 메시지
-4. 국가 슬롯에 Custom AI 적용
-5. 별도 **AI Editor v1** 제작
-6. 기본/고급 parameter UI
-7. 이후 필요 시 상황별 doctrine 계층 확장
-
-이를 통해 장기적으로 `미국형`, `일본형`, `산업집약형`, `고립주의형` 등 특정 행동 양식을 가진 AI를 **동일한 시뮬레이션 규칙 안에서 Profile 데이터만으로 제작**할 수 있게 한다.
+이전 구현 단계에서는 360일 smoke와 G→G1 save migration도 별도로 통과했다.
 
 ---
 
-## 호환성
+# 15. 이번 버전에서 변경하지 않은 것
 
-- 기준 버전: `V0.33F5A8`
-- Save version: `0.33G`
-- A8 / A7 / A6 save fallback 지원
-- 기존 7개 AIProfile ID 유지
-- MapData A~G spawn 규칙 유지
-- Person 실체, 경제, 전쟁, 점령, 평화협정, 생산시설 수치 변경 없음
+G1은 다음 수치를 재조정하지 않는다.
 
+- Monetary Price Anchor / freeze 조건
+- Gold 집중 및 재분배
+- 전쟁 선포 score 자체
+- 전투력·사상자 공식
+- 점령·평화협정
+- Frontier 비용/개척 밸런스
+- 생산시설 생산효율
+- Recovery 진입/종료 임계값
+- 기술 비용
+
+Formation 수정은 **이동 명령의 소유권 충돌 제거**, AIProfile 작업은 **데이터 외부화 기반**에 한정한다.
+
+---
+
+# 16. 다음 단계
+
+G1 자연주행에서 우선 확인할 항목:
+
+1. `formationControlConflicts33G1`이 0으로 유지되는가.
+2. Recovery 중 PREPARING Formation이 staging↔BORDER 왕복을 하지 않는가.
+3. Recovery 종료 후 유효한 War Intent가 정상적으로 rally를 재개하는가.
+4. Custom AI를 적용한 국가가 장기주행·save/load 후에도 동일 Profile을 유지하는가.
+5. 기존 7개 기본 AI의 G 행동 회귀가 없는가.
+
+위 조건이 통과하면 다음 패치는 **독립형 AI Editor v1**로 진행할 수 있다.
+
+AI Editor는 이번에 확정한 JSON v1을 읽고 쓰는 도구로 만들며, 본편의 AI 판단 코드를 별도로 복제하지 않는다.
