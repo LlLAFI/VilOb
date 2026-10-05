@@ -1,4 +1,318 @@
-# Village Observer V0.33G2A
+# Village Observer V0.33G2B
+
+## Identity/Gender + Recovery Stabilization + Technology Expansion
+
+- 기준선: **V0.33G2A**
+- 패치 날짜: **2026-10-06**
+- AIProfile 파일 포맷: **`village-observer-ai` / version 1 유지**
+- 기술 수: **32 → 36**
+- 새 기술 추가 비용: **+1,810 Knowledge**
+- 기존 Person 문화 강제 migration: **없음**
+- 계급별 이름 체계: **이번 범위에서 보류**
+
+이번 패치는 G2A 자연주행에서 확인된 세 가지를 직접 닫는다. 첫째, 국가 영토의 채우기색과 국경선색을 하나의 `nationColor`로 취급하던 구조를 분리한다. 둘째, Custom Culture의 개인명을 남성/여성/공용으로 나누고 Fresh Founder 재명명 시 실제 상속 필드까지 동기화한다. 셋째, Recovery 중 평시 Formation planner가 계속 막힌 target write를 시도하던 churn과 대국의 목재 절대재고 때문에 Recovery가 장기간 고착되는 문제를 완화한다. 동시에 정상 성장국이 50년대 전후 32개 기술을 모두 끝내는 현상을 고려해 후기 고대~초기 중세 기술 4개를 추가한다.
+
+---
+
+## 1. G2A 자연주행 검증 요약
+
+G2A PC 자연주행에서 다음이 확인되었다.
+
+### PASS
+
+- Snapshot CSV가 정상 다운로드되고 행 schema가 유지됨
+- G2에서 카이렌에 411회 발생했던 War Preparation write-block 장기 고착 제거
+- Preparation write-block은 전체 2회로 감소
+- Custom Profile `joseon_g2a_example`이 장기 실행까지 유지됨
+- Fresh World에서 Custom Culture `JOSEON`이 실제 founding culture로 적용됨
+- Custom 국가색이 runtime/telemetry에 유지됨
+
+### 새로 확인된 문제
+
+- 라엔이 약 7,306 calendar-day 동안 Recovery에 남아 있음
+- Recovery write-block 6,413회가 한 Formation에 집중됨
+- 원인은 Recovery owner가 target을 보호하는 동안 옛 PEACETIME/BORDER planner가 같은 target 변경을 계속 시도한 것
+- 장기 Recovery plateau의 목재 조건 `wood >= max(12, population×0.25)`가 정상적인 대국에도 지나치게 높은 절대재고를 요구할 수 있음
+- Custom Culture founder의 화면상 `name`은 바뀌었지만 내부 `familyName/givenName`이 남아 후손에게 옛 성씨가 상속될 수 있음
+- 일반 성장국은 대체로 48~56년 사이 32개 기술을 완료하여 후기 연구 목표가 빠르게 소진됨
+
+---
+
+## 2. 국가 외형 V2 — Fill / Border 분리
+
+AI/Nation Profile의 국가 외형을 다음처럼 분리한다.
+
+```json
+"identity": {
+  "appearance": {
+    "fillColor": "#C10D46",
+    "borderColor": "#E8C36A"
+  }
+}
+```
+
+- `fillColor`: 영토 채우기, 국가 카드, 기본 국가 식별색
+- `borderColor`: 국가 외곽/국경선 강조색
+- 문화색은 계속 별도 값이며 국가 외형과 독립적이다.
+- 두 국가가 맞닿는 국경은 중립 중심선과 양쪽 국가 고유 borderColor를 함께 사용한다.
+- 선택 국가 외곽선도 해당 국가의 borderColor를 사용한다.
+
+### 하위호환
+
+기존 G2A JSON의 다음 형식은 그대로 읽힌다.
+
+```json
+"identity": { "nationColor": "#315F9B" }
+```
+
+이 값은 자동으로 `appearance.fillColor`로 해석한다. `borderColor`가 없으면 기존 슬롯의 국경색을 유지한다.
+
+---
+
+## 3. 문화 이름 V2 — 성별 이름풀
+
+계급/신분별 이름 차이는 아직 도입하지 않는다. 이번 버전에서는 Person의 기존 `sex`를 이용해 개인명만 세 갈래로 분리한다.
+
+Custom Culture가 지원하는 이름풀:
+
+- `familyCore`
+- `familyShared`
+- `givenMaleCore`
+- `givenMaleShared`
+- `givenFemaleCore`
+- `givenFemaleShared`
+- `givenUnisexCore`
+- `givenUnisexShared`
+
+이름 생성은 해당 성별 Core/Shared를 우선 사용하고, 공용 이름풀을 보조적으로 사용한다. 공용 이름은 남녀 모두에게 나올 수 있다.
+
+기본 7개 문화도 동일한 인터페이스를 사용한다. 이번 버전에서는 기존 판타지 이름풀을 결정론적으로 남/여 그룹에 나눈 **1차 데이터 구조 전환**이며, 실제 언어학적 성별 이름 고증을 의미하지 않는다. 향후 문화 데이터 자체를 다듬을 수 있다.
+
+### 기존 JSON 호환
+
+G2A의 `givenCore/givenShared`만 가진 Custom Culture는 삭제하거나 거부하지 않는다. 각각 새 `givenUnisexCore/givenUnisexShared`로 자동 해석한다.
+
+---
+
+## 4. Fresh Founder 성씨 상속 수정
+
+G2A에서는 Fresh World에 Custom Culture를 적용할 때 화면 표시용 `p.name`만 새 이름으로 바뀌고, Person 내부의 `familyName`과 `givenName`이 남을 수 있었다.
+
+그 결과 새로 태어난 아이는 아버지의 옛 `familyName`을 상속하여 Custom Family Pool과 다른 성씨가 계속 남는 현상이 생길 수 있었다.
+
+G2B에서는 Fresh Founder 재명명 시 반드시 동시에 갱신한다.
+
+```text
+p.familyName
+p.givenName
+p.name
+```
+
+따라서 Custom Culture의 성씨가 실제 세대 상속 구조에 들어간다.
+
+진행 중인 월드에 Profile을 적용할 때 기존 주민의 문화/이름을 강제로 다시 쓰지는 않는다는 기존 정책은 유지한다.
+
+---
+
+## 5. Recovery Formation planner 안정화
+
+G1A write gate 자체는 정상적으로 Recovery target을 보호하고 있었다. 문제는 보호받는 동안에도 기존 평시 Formation planner가 `BORDER` 등의 새 목표를 반복적으로 쓰려고 했다는 점이다.
+
+G2B에서는:
+
+- `recoveryState.active === true`인 국가는 PEACETIME/BORDER `planFormations32D()` 자체를 건너뛴다.
+- Recovery owner가 지정한 실제 home target과 이동은 유지한다.
+- 따라서 setter에서 수천 번 거부하기 전에 불필요한 평시 plan을 만들지 않는다.
+- `recoveryPlannerSkips33G2B` telemetry로 진입 차단 횟수를 관측한다.
+
+목표는 G2A에서 확인된 수천 회의 `FORMATION_TARGET_WRITE_BLOCKED33G1A` 및 실제로 바뀌지 않은 목표를 `FORMATION_TARGET_CHANGED32D`로 기록하는 observer churn을 제거하는 것이다.
+
+---
+
+## 6. Recovery Plateau 목재 조건 V2
+
+기존의 다른 안전조건은 유지한다.
+
+- Recovery age ≥ 720 calendar days
+- true Survival 비활성
+- inactive building share < 10%
+- food reserve ≥ 30 days
+- housing capacity ≥ population × 0.80
+- average health ≥ 48
+
+목재만 절대재고 단일 판정에서 **Stock 또는 Operational Flow** 판정으로 바꾼다.
+
+### A. Stock 경로
+
+```text
+wood >= max(6, population × 0.05)
+```
+
+### B. Operational Flow 경로
+
+Stock 경로를 못 넘더라도 다음을 모두 만족하면 목재 상태를 정상으로 본다.
+
+```text
+wood >= 3
+building condition average >= 90
+최근 maintenance wood shortfall share <= 10%
+30일 평균 wood 생산/day >= max(0.05, population × 0.0008)
+```
+
+즉 목재를 계속 생산하고 유지보수를 정상적으로 수행하면서 건물 상태가 좋은 국가는 창고에 큰 절대재고를 쌓지 않았다는 이유만으로 수십 년 Recovery에 갇히지 않는다.
+
+빠른 Recovery exit 조건과 true Survival 안전장치는 변경하지 않는다.
+
+---
+
+## 7. 기술 트리 32 → 36
+
+G2A 자연주행에서는 일반 성장국이 대체로 50년대에 32개 기술을 모두 완료했다. G2B는 이미 존재하는 시스템에 직접 연결되는 후기 기술 4개를 추가한다.
+
+### 📜 관료제 `BUREAUCRACY`
+
+- 비용: **420 Knowledge**
+- 선행: `ADMINISTRATION + RECORD_KEEPING + CURRENCY`
+- 분류: 개척·행정 / AI research group `administration`
+- 효과:
+  - 내부 물류 경로비용 **-6%**
+  - 내부 물류 수송량 **+3.5%**
+
+새 자원이나 Gold를 생성하지 않고 기존 internal logistics 계산만 개선한다.
+
+### 🎒 군수 행정 `MILITARY_LOGISTICS`
+
+- 비용: **460 Knowledge**
+- 선행: `FRONTIER_LOGISTICS + ROADS + ADMINISTRATION`
+- 분류: 군사
+- 효과:
+  - Formation supply 산정 **+6**
+  - 군사 이동시간 multiplier **×0.92**
+
+병력이나 장비를 생성하지 않는다.
+
+### 🏰 공성공학 `SIEGE_ENGINEERING`
+
+- 비용: **500 Knowledge**
+- 선행: `ENGINEERING + FORTIFICATION + IRONWORKING`
+- 분류: 군사
+- 효과:
+  - 적 타일 securing requirement **×0.88**
+  - securing 과정의 defensive firepower **×0.90**
+
+일반 야전 battle power 자체는 올리지 않는다.
+
+### 🔥 고급 단조 `ADVANCED_FORGING`
+
+- 비용: **430 Knowledge**
+- 선행: `IRONWORKING + ENGINEERING`
+- 분류: 생산/산업
+- 효과:
+  - smithy 철→tools 산출계수 **0.78 → 0.88**
+  - 군사장비 1단위당 iron **0.72 → 0.66**
+  - 군사장비 1단위당 tools **0.045 → 0.040**
+  - wood 소모는 유지
+
+새 철/도구를 무상 생성하지 않고 기존 실물 재고 변환효율만 개선한다.
+
+네 기술의 합계 비용은 **1,810 Knowledge**다. E1의 32개 고정 기준 6,315 Knowledge에 더하면 현재 전체 nominal tech cost는 **8,125 Knowledge**다.
+
+---
+
+## 8. AI Editor V1 변경
+
+`ai-editor.html`의 국가 정체성 화면에 다음이 추가된다.
+
+- 영토 Fill color picker + HEX
+- Border color picker + HEX
+- 실제 fill/border 조합 Preview
+- Custom Culture 남성 이름 Core / Shared
+- Custom Culture 여성 이름 Core / Shared
+- Custom Culture 공용 이름 Core / Shared
+
+검증 규칙:
+
+- 모든 색상: `#RRGGBB`
+- familyCore 최소 2개
+- 남/여/공용 given Core 합계 최소 2개
+- 남성은 Male Core 또는 Unisex Core 중 하나가 있어야 함
+- 여성은 Female Core 또는 Unisex Core 중 하나가 있어야 함
+- 각 이름 최대 5자
+
+Built-in 문화 선택과 문화 유지 모드는 그대로 제공한다.
+
+---
+
+## 9. Telemetry / 검증 필드
+
+G2B Snapshot/CSV 추가 필드:
+
+### Global
+
+- `techCount33G2B`
+- `techCostTotal33G2B`
+- `recoveryPlannerSkips33G2B`
+- `genderNameSchema33G2B`
+- `founderNameFieldRepairs33G2B`
+
+### Nation
+
+- `nationFillColor33G2B`
+- `nationBorderColor33G2B`
+- `recoveryWoodOperational33G2B`
+- `recoveryWoodFloor33G2B`
+- `recoveryWoodFlowFloor33G2B`
+- `recoveryWoodProduction30G2B`
+- `recoveryMaintenanceWoodShortfallShare33G2B`
+
+G1A/G2/G2A 기존 telemetry는 유지한다.
+
+---
+
+## 10. 다음 자연주행에서 볼 핵심
+
+1. Snapshot CSV가 G2B 추가 컬럼까지 정상 다운로드되는가
+2. Recovery 중 `recoveryPlannerSkips33G2B`는 증가하지만 `recoveryTargetWriteBlocks33G1A`는 크게 감소하는가
+3. G2A의 라엔 같은 조건에서 WOOD가 유일 blocker인 장기 Recovery가 정상적으로 해제되는가
+4. Custom Culture의 자녀 성씨가 실제 Custom `familyCore/familyShared`에서 상속되는가
+5. 남/여 Person이 해당 성별 이름풀을 우선 사용하는가
+6. fillColor와 borderColor가 지도에서 독립적으로 표시되는가
+7. 36개 기술이 연구 가능하고 새 네 기술의 효과가 실제 시스템에 도달하는가
+8. 정상 성장국의 기술 포화 시점이 50년대에서 어느 정도 뒤로 이동하는가
+
+---
+
+## 11. 이번 버전에서 하지 않는 것
+
+- 계급/신분별 이름풀
+- 문화별 작명 문법/음운 규칙
+- 자동 문화 융합
+- 진행 중 Person의 강제 문화/이름 migration
+- 산업시대 기술
+- 화약/총기 체계
+- 선박 실체/unit 시스템
+- 장비 손실·회수 모델
+- 전쟁 기본 battle power 재조정
+- 경제 기본가격/Gold 재조정
+
+---
+
+## 12. 호환성
+
+- AIProfile envelope는 계속 `format = village-observer-ai`, `version = 1`이다.
+- G2A `nationColor`는 새 fillColor로 호환한다.
+- G2A `givenCore/givenShared`는 새 Unisex pool로 호환한다.
+- G2A 세이브를 불러오는 fallback을 유지한다.
+- 새 G2B save key: `village-observer-v0-33g2b`
+- 새 export 파일명은 `village-observer-v033G2B-*`를 사용한다.
+
+---
+
+# V0.33G2A 이전 상세 기록
+
+아래는 기준선의 기존 상세 문서다. G2B와 충돌하는 항목은 위 G2B 규칙이 우선한다.
+
+# Village Observer V0.33G2A (기준선 기록)
 
 ## AI / Nation Profile UX + Stabilization
 
