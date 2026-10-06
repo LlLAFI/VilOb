@@ -1,5 +1,14 @@
 # Village Observer V0.33G3 — AI Behaviour Anchor Validation
 
+> **Hotfix 1 (2026-10-06): G3 Validation Harness 관측 수정**
+>
+> Alpha 5-run 분석에서 확인된 세 가지 **검증용 telemetry/summary 문제만** 수정한다. AIProfile 가중치, 개척, 경제, 연구, 전쟁, Recovery 등 실제 시뮬레이션 행동 공식은 변경하지 않는다. 따라서 기존 alpha 결과는 유효하며 재실험하지 않는다.
+>
+> - Summary의 `experiment.profileId / profileLabel / expected`를 시험국에 실제 적용된 Profile에서 재동기화한다.
+> - `TRADE` 이벤트의 `buyerId / sellerId` 양쪽에 `internationalTrades / internationalTradeVolume`을 누적한다. 기존 `tradeCount / tradeVolume` 계산은 변경하지 않는다.
+> - 70년 최초 도달 시 `G3_FINAL_70`을 자동 캡처한다. 70년 이후에 Summary를 내려받아도 `final`은 이 exact-70 checkpoint를 사용한다.
+> - Summary JSON에는 `hotfix: 1`, `finalCapture: "EXACT_70" | "CURRENT"`를 기록한다.
+
 > **버전 성격:** V0.33G3는 AI 밸런스 조정판이 아니라 **AIProfile 검증판**이다. 기준선은 V0.33G2B + AI Editor Hotfix 1이며, G3는 전쟁·경제·연구·개척 공식의 수치를 바꾸지 않는다.
 >
 > **0.33G 종료 목표:** 임의의 Custom AIProfile이 하드코딩 없이 저장·적용되고, 동일한 시작 조건의 통제실험에서 설정값에 따른 행동 차이가 반복적으로 관측되면 0.33G를 종료한다.
@@ -117,7 +126,7 @@ G3 검증 세계는 다음 둘을 저장한다.
 - 40년
 - 60년
 
-권장 최종 관측시점은 **70년**이다.
+권장 최종 관측시점은 **70년**이며, Hotfix 1부터 70년 최초 도달 시 exact Final checkpoint를 자동 저장한다.
 
 Checkpoint에는 시험국의 다음 지표를 요약한다.
 
@@ -144,7 +153,7 @@ World 탭 G3 패널에서 별도 파일을 받을 수 있다.
 - `G3 Summary JSON`
 - `G3 Summary CSV`
 
-Summary는 20/40/60년 checkpoint와 현재 Final 상태를 한 파일에 모은다. 여러 런을 비교할 때 거대한 전체 devlog를 먼저 펼치지 않아도 핵심 Profile 차이를 볼 수 있다.
+Summary는 20/40/60년 checkpoint와 Final 상태를 한 파일에 모은다. Hotfix 1 이후 70년에 도달한 런은 export 시점이 72년·76년이어도 자동 저장된 **70년 exact Final**을 사용한다. 여러 런을 비교할 때 거대한 전체 devlog를 먼저 펼치지 않아도 핵심 Profile 차이를 볼 수 있다.
 
 전체 Snapshot CSV와 Devlog JSON도 기존처럼 그대로 제공된다.
 
