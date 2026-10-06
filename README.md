@@ -1,4 +1,216 @@
-# Village Observer V0.33G2B
+# Village Observer V0.33G3 — AI Behaviour Anchor Validation
+
+> **버전 성격:** V0.33G3는 AI 밸런스 조정판이 아니라 **AIProfile 검증판**이다. 기준선은 V0.33G2B + AI Editor Hotfix 1이며, G3는 전쟁·경제·연구·개척 공식의 수치를 바꾸지 않는다.
+>
+> **0.33G 종료 목표:** 임의의 Custom AIProfile이 하드코딩 없이 저장·적용되고, 동일한 시작 조건의 통제실험에서 설정값에 따른 행동 차이가 반복적으로 관측되면 0.33G를 종료한다.
+
+---
+
+## 1. 이번 버전의 목적
+
+G2B 자연주행까지 다음 기반은 통과했다.
+
+- 직접 `brain.type` 결정 분기 제거 계열
+- AIProfile JSON v1 import/export/save/load
+- 임의 Profile ID의 실제 행동 경로 연결
+- Custom 국가명 / fillColor / borderColor / 문화 / 성별 이름풀
+- Recovery Formation churn 안정화
+- 36개 기술 트리 및 신규 기술의 실제 효과 연결
+
+G3에서는 더 이상 기능을 넓히지 않고 **Profile 차이가 실제 행동 차이를 만드는지** 검증한다.
+
+---
+
+## 2. 표준 Anchor Profile 5종
+
+패키지의 `ai-profiles/`에 독립 JSON으로도 포함되어 있다.
+
+### `g3_balanced_control`
+
+중립 대조군. 기존 balanced preset과 같은 중립값을 사용한다.
+
+### `g3_expansion_anchor`
+
+핵심값:
+
+- expansion 2.50
+- risk 1.70
+- territorialExpansion 1.00
+- EXPAND +40
+- technology 0.70
+- fiscalConservatism 0.60
+
+기대 방향: 더 많은 Frontier start/claim, 더 넓은 영토, 상대적으로 공격적인 War Intent.
+
+### `g3_technology_anchor`
+
+핵심값:
+
+- technology 2.50
+- production 2.00
+- research.industry 2.50
+- research.knowledge 2.50
+- expansion 0.55
+
+기대 방향: 높은 Knowledge/인구, 빠른 후기기술, 연구·생산 투자 증가.
+
+### `g3_merchant_anchor`
+
+핵심값:
+
+- trade 2.50
+- tradeDiplomacy 1.00
+- research.commerce 2.50
+- construction.commerce 2.50
+- TRADE +40
+
+기대 방향: 국제교역 횟수/물량, 상업시설 투자, 연결성 증가.
+
+### `g3_defensive_anchor`
+
+핵심값:
+
+- survival 2.50
+- expansion 0.25
+- risk 0.25
+- fiscalConservatism 2.00
+- survivalPriority 1.00
+- EXPAND -40
+- MAINTAIN / FOOD +40
+
+기대 방향: 낮은 확장·전쟁빈도, 더 큰 식량/재정 안전마진, 안정 지향.
+
+---
+
+## 3. G3 Behaviour Anchor Lab
+
+World 탭에 `G3 AI Behaviour Anchor Lab` 패널을 추가한다.
+
+표준 실험은 항상 **국가 #0 하나만** Anchor Profile로 교체한다. 나머지 6개 국가는 기존 built-in Profile을 그대로 유지한다.
+
+표준 seed:
+
+- `g3-alpha-19x19`
+- `g3-beta-19x19`
+- `g3-gamma-19x19`
+
+`검증 세계 시작`을 누르면 현재 세계를 종료하고 19×19 새 검증 세계를 만든다.
+
+### 재현성
+
+G3 검증 세계는 다음 둘을 저장한다.
+
+- deterministic natural-map seed
+- simulation RNG state
+
+따라서 **같은 Profile + 같은 seed** 런은 재실행/저장-불러오기 후에도 동일한 난수 흐름을 이어갈 수 있다.
+
+단, Profile이 달라지면 행동 분기가 달라져 난수 호출 횟수 자체가 달라질 수 있다. 따라서 서로 다른 Profile을 한 seed에서 1:1 완전 동일 random shock으로 비교한다고 가정하지 않는다. 최종 판단은 3개 표준 seed에서 방향이 반복되는지로 한다.
+
+---
+
+## 4. 자동 Checkpoint
+
+검증 모드에서는 다음 연도에 전용 snapshot을 자동 저장한다.
+
+- 20년
+- 40년
+- 60년
+
+권장 최종 관측시점은 **70년**이다.
+
+Checkpoint에는 시험국의 다음 지표를 요약한다.
+
+- 인구 / 영토 / 정착지 수
+- 기술 수 / 총 Knowledge / Knowledge per capita
+- 교역 횟수 / 수출입 물량 / Trade volume per capita
+- Gold / Gold per capita / 식량 비축일
+- 도시화 비율 / 정착지 인구 Gini / 통근 비율
+- 실제 Frontier start / claim 누적
+- War Intent / PREPARING / READY / 선전포고 누적
+- Recovery / Survival 진입 및 누적 calendar days
+- 국제교역 실행 횟수·물량
+- 생산 / 상업 / 연구 / 군사시설 착공 관측
+- AI focus 선택 누적
+
+기존 Snapshot CSV에도 `...33G3` 컬럼이 추가된다.
+
+---
+
+## 5. G3 전용 Summary Export
+
+World 탭 G3 패널에서 별도 파일을 받을 수 있다.
+
+- `G3 Summary JSON`
+- `G3 Summary CSV`
+
+Summary는 20/40/60년 checkpoint와 현재 Final 상태를 한 파일에 모은다. 여러 런을 비교할 때 거대한 전체 devlog를 먼저 펼치지 않아도 핵심 Profile 차이를 볼 수 있다.
+
+전체 Snapshot CSV와 Devlog JSON도 기존처럼 그대로 제공된다.
+
+---
+
+## 6. PASS / FAIL 기준
+
+G3의 기준은 “특정 AI가 항상 1등”이 아니다.
+
+### 1차 Signal
+
+한 seed에서 주 성향 핵심 지표가 Balanced보다 약 **20~30% 이상** 갈리면 강한 signal로 본다. 이것은 밸런스 목표나 절대 통과선은 아니다.
+
+### 최종 방향성
+
+각 Anchor에서 관련 핵심 지표 최소 2개가 기대 방향으로 움직이고, 그 방향이 **3개 seed 중 최소 2개**에서 반복되는지를 본다.
+
+예:
+
+- Expansion → Frontier start + territory 증가
+- Technology → Knowledge/capita + 후기기술 속도 증가
+- Merchant → international trade + commerce investment 증가
+- Defensive → declaration/expansion 감소 + safety margin 증가
+
+### 종료
+
+- G3가 명확히 PASS → **V0.33G CLOSED**
+- 특정 연결만 약함 → **V0.33G3A Behaviour Connection Calibration**에서 해당 연결만 보정 후 동일 실험 재실행
+
+G3 자체에서는 행동 가중치 공식을 수정하지 않는다.
+
+---
+
+## 7. 패키지 파일
+
+```text
+index.html
+ai-editor.html
+README.md
+example-joseon-nation.json
+g3-validation-manifest.json
+ai-profiles/
+  g3-balanced-control.json
+  g3-expansion-anchor.json
+  g3-technology-anchor.json
+  g3-merchant-anchor.json
+  g3-defensive-anchor.json
+```
+
+`g3-validation-manifest.json`에는 표준 seed, checkpoint, 권장 종료연도와 판정 원칙을 별도로 기록한다.
+
+---
+
+# 이전 V0.33G2B 기술 문서
+
+아래는 G3 기준선인 G2B + Editor Hotfix 1의 상세 구현 문서다.
+
+# Village Observer V0.33G2B — AI Editor Hotfix 1
+
+> **Hotfix 범위:** 본편 시뮬레이션 `index.html`은 V0.33G2B 그대로이며, `ai-editor.html`의 초기화 런타임 오류만 수정합니다. 기존 G2B 세이브/자연주행은 그대로 이어서 사용할 수 있습니다.
+>
+> 원인: G2B Editor 확장 과정에서 동적 Behavior control helper인 `createControl`, `buildControls`, `setPath`, `getPath`가 누락되어 `init()`이 `buildControls()` 호출에서 중단되었습니다. 그 결과 Behavior Parameters, Profile Summary, JSON Preview가 비어 있고 Import/색상 이벤트도 등록되지 않았습니다.
+>
+> 수정: 네 helper 복구 + 초기화 실패 시 Validation 영역에 오류를 표시하는 fail-visible 처리. 런타임 모의 테스트에서 기본 초기화, 36개 Behavior controls, G2B 조선 JSON Import, trait 값 반영, fill/border 색상 동기화와 JSON Preview 반영을 확인했습니다.
+
+---
 
 ## Identity/Gender + Recovery Stabilization + Technology Expansion
 
