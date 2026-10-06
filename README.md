@@ -1,4 +1,28 @@
-# Village Observer V0.33G3 — AI Behaviour Anchor Validation
+# Village Observer V0.33G3A — War Aggression Connection Calibration
+
+> **기준선:** V0.33G3 Hotfix 1. G3 검증에서 Expansion→개척/영토, Technology→연구/후기기술, Merchant→교역/상업, Defensive→저확장/비공격은 종료 기준을 충족했다. G3A는 유일한 미통과 축인 **Expansion → 실제 전쟁 공격성**만 보정한다.
+>
+> **비범위:** Frontier, 연구, 생산, 상업, Defensive, 전투력, 사상, 점령, 평화협정, 경제·가격·Gold 공식은 재조정하지 않는다.
+
+## G3A 핵심 변경
+
+- `warDispositionModifier` 표현 범위를 `-8..+8` → **`-12..+12`**로 넓힌다. G3 Expansion Anchor의 raw 약 +20 신호가 +8에서 잘리던 손실을 줄인다.
+- War Intent band 자체는 유지한다: `<63 CANCEL / 63~67 WEAK / 67~71 STRONG / >=71 PREPARE`.
+- 양수 전쟁성향만 `warCommitment`(0~1)로 D2 준비목표에 연결한다. 최대 commitment에서 첫 전쟁 기준은 **식량 45→41일 / Readiness 62→58 / 전력비 0.90→0.84 / War Chest 8→7G**가 된다. Balanced 및 음수 성향은 완화되지 않는다.
+- true Survival / Recovery / 작전경로 / 최소 야전병력 / 최종 Food 28일·Readiness 52 hard floor는 그대로 둔다.
+- G3A Summary/CSV에는 raw·effective disposition, commitment, PREPARE-band intent, PREPARING/READY/Declaration, 현재/최근 D2 목표와 blocker를 추가한다.
+- `requestedProfileId`는 실제 적용 Profile ID와 동기화한다.
+- World 탭에 **G3A 전쟁 연결 Fixture** 버튼을 추가한다. 동일한 비Profile base score에서 Balanced와 Expansion의 band 및 첫 전쟁 D2 목표가 예상대로 분리되는지 JSON으로 회귀검사한다.
+
+## G3A 권장 검증
+
+1차는 **Alpha Balanced + Expansion, Beta Balanced + Expansion = 4런**만 실시한다. 두 seed 모두 전쟁 파이프라인 분리가 재현되면 G3A PASS다. 한 seed만 분리되면 Gamma Balanced + Expansion 2런을 추가해 2/3을 판정한다.
+
+PASS는 단순 선전포고 총횟수만으로 판정하지 않는다. `PREPARE band → PREPARING → READY → Declaration`의 진행률이 Balanced보다 Expansion에서 명확히 높아야 하며, Survival/Recovery/route/manpower 안전 게이트를 우회한 개전이 없어야 한다.
+
+---
+
+## Historical baseline — V0.33G3 AI Behaviour Anchor Validation
 
 > **Hotfix 1 (2026-10-06): G3 Validation Harness 관측 수정**
 >
