@@ -1,4 +1,214 @@
-# Village Observer V0.33H2 — Formation Overlay + Tile Inspector Consolidation
+# Village Observer V0.33I1 — Person Equipment + Military Inventory Foundation
+
+> **기준선:** V0.33H2. H 계열의 Formation Combat Power/지도 렌더링/전쟁 규칙을 유지하면서, V0.32C 이후의 추상 `equipmentStock`을 실제 Person 장비와 지역별 군수 재고로 전환하는 I 계열 첫 단계다.
+>
+> **I1 범위:** 장비 Registry, Person `weapon/armor` 슬롯, 정수 재고, 실제 자원+Person 노동 기반 제작, 지역 배급/회수, H2 save migration, telemetry. **무기/갑옷의 질적 전투효과와 OPENING/CONTACT/MELEE는 I2에서 활성화한다.**
+
+## 1. I1 핵심 구조
+
+I1의 군수 흐름은 다음으로 바뀐다.
+
+`실제 자원 → Equipment Work Order → 실제 Person 노동 → 지역별 정수 장비 재고 → 실제 Person 지급 → Formation 집계`
+
+기존의 국가 단일 `v32cMilitary.equipmentStock` 신규 생산 경로는 I1 활성 상태에서 중지한다. 과거 C/F/H 계열의 Cohort `equipment` 필드는 호환 목적으로 남지만, 값의 출처는 더 이상 추상 stock이 아니다.
+
+### Person 장비 슬롯
+
+현역 Person은 다음 두 슬롯을 가진다.
+
+```js
+militaryEquipment33I1: {
+  weaponId: "iron_spear",
+  armorId: "padded_armor"
+}
+```
+
+무기 슬롯이 `null`이면 생산/재고 아이템을 만들지 않고 전투상 **`improvised_club`(임시 곤봉)** fallback을 사용한다. 곤봉은 정식 무기 보급률에 포함되지 않는다. 갑옷 슬롯이 `null`이면 무갑 상태다.
+
+장비 schema는 `slot` 기반 Registry이므로 향후 `shield / mount / ammo / support / siege` 같은 슬롯을 추가할 수 있다.
+
+## 2. I1 장비 Registry
+
+| 장비 | 슬롯 | 생산 계열 | 해금 | Wood | Iron | Tools | 노동일 |
+|---|---|---|---|---:|---:|---:|---:|
+| 임시 곤봉 | weapon | fallback | 자동 | - | - | - | - |
+| 기초 창 | weapon | 수공/목공 | 기본 | 0.60 | - | 0.02 | 10 |
+| 투창 | weapon | 수공/목공 | 기본 | 0.40 | - | 0.02 | 8 |
+| 활 | weapon | 목공 | CARPENTRY | 0.70 | - | 0.05 | 18 |
+| 철제 창 | weapon | Smithy | IRONWORKING | 0.50 | 0.30 | 0.05 | 20 |
+| 철제 검 | weapon | Smithy | IRONWORKING | 0.10 | 0.55 | 0.08 | 28 |
+| 철제 도끼 | weapon | Smithy | IRONWORKING | 0.25 | 0.50 | 0.07 | 24 |
+| 직물 방어구 | armor | 수공 | 기본 | - | - | 0.03 | 16 |
+| 보강 경갑 | armor | Smithy | IRONWORKING | 0.15 | 0.20 | 0.05 | 24 |
+| 철제 찰갑·비늘갑 | armor | Smithy | IRONWORKING | - | 0.60 | 0.10 | 38 |
+| 초기 사슬갑옷 | armor | Smithy | ADVANCED_FORGING | - | 1.00 | 0.16 | 60 |
+
+`melee / ranged / penetration / reach / rangedSustain / protection / mobility` 값도 Registry에 이미 기록되어 있지만 **I1 전투 계산에서는 사용하지 않는다.** 이 값들은 I2의 타일 내부 전투 입력으로 예약되어 있다.
+
+## 3. 지역별 군수 재고
+
+장비는 국가 전체에서 순간적으로 공유되지 않고 supply-node별 정수 재고로 저장된다. 현재 I1의 supply node는 자국의 인구가 있는 정착 타일, 수도, 병영/무기고가 있는 타일이다.
+
+저장 용량은 다음과 같다.
+
+- 일반 정착 supply node: 기본 **6 item**
+- 고대 병영: **+12 item**
+- 고대 무기고: **+72 item**
+
+기존 `Armory 36 abstract kits`를 무기+갑옷 두 physical item으로 해석해 `+72`로 전환했다.
+
+무기고가 있는 경우, 30 calendar-day 저빈도 군수 pulse에서 다른 정착지 재고를 **source당 최대 4 item**까지 실제 재고 이동으로 집중할 수 있다. 경로가 없는 장비는 이동하지 않는다. 이 이동은 장비의 소유권만 보존적으로 바꾸며 새 장비를 생성하지 않는다.
+
+## 4. 실제 Person 노동 기반 제작
+
+I1은 V0.32C의 별도 generic equipment 생산 함수를 중지한다. 과거에는 Smithy 노동자가 평소 도구를 만들면서 별도 군수 provision도 동시에 제공할 수 있었지만, I1에서는 장비 자체가 Work Order를 가진다.
+
+- 기초 창/투창/직물 방어구: 해당 정착지의 목수 또는 건축가가 제작 가능
+- 활: 목수 제작
+- 철제 무기/갑옷: Smithy에 실제 근무하는 철공이 제작
+- 작업 1회는 기존 calendar 모델과 맞춰 **3 adult-days**의 노동을 누적
+- 장비 제작에 참여한 Person은 그 cycle 동안 기존 목재 채취/도구 생산을 하지 않는다
+- 필요한 실제 Wood/Iron/Tools는 주문 시작 시 network에서 보존적으로 확보
+- 주문이 완성되면 장비 **정수 1개**가 해당 생산지 재고에 생성
+- 작업자가 720 calendar-day 동안 전혀 없어 주문이 고착되면 예약 자원을 반환하고 주문을 취소
+
+따라서 Smithy가 철제 창을 만드는 동안 해당 철공의 도구 생산량이 실제로 줄어든다.
+
+## 5. 공통 AI 군수정책
+
+I1에서는 아직 AIProfile별 무기 doctrine을 만들지 않는다. 모든 국가는 공통 기본 목표를 사용한다.
+
+- 정식 무기 목표: 예상 현역 목표의 약 **115%**
+- 갑옷 목표: 예상 현역 목표의 약 **75%**
+- 대략적인 무기 구성 목표: 근접 65~70% / 원거리 약 22% / Hybrid 약 12%
+- 철기 이전: 기초 창 + 활 + 투창
+- 철기 이후: 철제 창 중심, 일부 철제 검/철제 도끼
+- 갑옷은 직물 → 보강 경갑 → 철제 찰갑/비늘갑 → 제한적 초기 사슬갑옷 순으로 실제 자원 여건에 따라 생산
+
+목표를 충족한 뒤에도 legacy/기초 장비가 많이 남고 저장 여유가 있으면 제한적으로 상위 장비 교체 생산을 진행한다. Profile별 장비 선호는 I3 범위다.
+
+## 6. 배급·재장비·회수
+
+현역 Person은 **현재 물리적으로 위치한 자국 supply node**의 재고만 지급받을 수 있다. 적지 깊숙한 Formation은 본국에서 장비가 완성됐다고 즉시 장비가 바뀌지 않는다.
+
+- 정식 무기가 없는 현역은 재고가 없으면 임시 곤봉 fallback
+- local inventory에 장비가 있으면 무기/갑옷 지급
+- 상위 장비로 교체하면 기존 장비는 같은 지역 재고로 회수
+- 원거리/Hybrid 무기는 가능하면 역할을 유지한 채 교체
+- 전사/부상/동원해제 Person의 장비는 I1에서는 유실시키지 않고 회수 가능한 자국 재고로 반환
+
+전장 유실, 노획, 파손/내구도는 이번 범위가 아니다.
+
+## 7. H2 Combat Power 호환 bridge
+
+I1에서는 H2 전투 공식을 아직 제거하지 않는다.
+
+기존 H2:
+
+`manpower × (0.42 + training/250 + equipment/250 + supply/280 + morale/400) × commander multiplier`
+
+여기서 Cohort `equipment` 값만 **해당 Cohort 실제 memberIds의 Person 장착률**에서 다시 계산한다. 국가 요약 UI는 동일 공식을 전체 현역에 적용한 값을 사용한다.
+
+`Compatibility Equipment Coverage = 0.65 × Formal Weapon Coverage + 0.35 × Armor Coverage`
+
+예:
+
+- 정식 무기 100%, 갑옷 0% → Equipment 65
+- 정식 무기 100%, 갑옷 100% → Equipment 100
+- 무기 없음(곤봉 fallback)은 Formal Weapon Coverage 0
+
+따라서 **I1은 실물 장비 경제를 먼저 검증하는 단계**다. 철제 검과 기초 창의 질적 전투력 차이는 아직 없으며 I2에서 `equipment/250` bridge를 제거한다.
+
+## 8. H2 Save migration
+
+H2 이하 save의 `v32cMilitary.equipmentStock`은 I1 최초 attach에서 한 번만 migration한다.
+
+- generic stock을 가장 가까운 정수 kit로 결정적 반올림
+- 1 kit = `legacy_weapon` 1 + `legacy_armor` 1
+- 기존 현역에게 kit 단위로 우선 지급
+- 남는 kit는 수도/무기고 supply inventory에 저장
+- migration 후 옛 `equipmentStock`은 0으로 정리
+- 반올림 차이는 `migrationRoundingDelta33I1`에 기록하며 nation당 최대 ±0.5 kit
+- 새 게임은 legacy item을 절대 생산하지 않는다
+
+legacy weapon/armor는 실제 신형 장비가 생산되면 자연스럽게 회수·교체된다.
+
+## 9. 관측 UI / Telemetry
+
+군사 탭 최상단에 **`🗡 I1 실제 군사 장비`** 블록을 추가한다.
+
+- 정식 무기 보급률
+- 갑옷 보급률
+- H2 호환 Equipment Coverage
+- 곤봉 fallback 현역 수
+- 재고 item / 총 저장용량
+- 진행 중 Work Order
+- 현역 무기/갑옷 구성
+- 종류별 재고
+- 누적 제작/지급/회수/재장비/legacy migration
+- 보존 오류 수
+
+H2 타일 Formation 카드에도 실제 무기/갑옷 구성을 한 줄 추가한다.
+
+주요 telemetry:
+
+- `formalWeaponCoverage33I1`
+- `armorCoverage33I1`
+- `compatEquipmentCoverage33I1`
+- `clubFallback33I1`
+- `equipmentProduced33I1`
+- `equipmentIssued33I1`
+- `equipmentReturned33I1`
+- `equipmentReequipped33I1`
+- `equipmentInventory33I1`
+- `equipmentInventoryItems33I1`
+- `equipmentWorkOrders33I1`
+- `equipmentLogisticsMoves33I1`
+- `legacyKitsMigrated33I1`
+- `migrationRoundingDelta33I1`
+- `equipmentConservationErrors33I1`
+
+I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 검사한다.
+
+`누적 실제 생산 + legacy migration = 현재 Person 장착 + 현재 inventory`
+
+## 10. I1에서 의도적으로 하지 않는 것
+
+- OPENING / CONTACT / MELEE
+- 활의 선제사격 및 지속 지원사격
+- Reach / Screen
+- Penetration / Protection
+- 무기 종류별 실제 공격력 차이
+- 갑옷 종류별 실제 사상률 차이
+- Composite Combat Power
+- shield / mount / ammo / support / siege 슬롯의 실제 활성화
+- 장비 내구도 / 전장 유실 / 노획
+- AIProfile별 무기 선호
+- 중세 장비
+
+이 항목들은 I1 군수경제가 보존적으로 작동하는지 확인한 뒤 I2/I3에서 단계적으로 활성화한다.
+
+## Save / compatibility
+
+- 현재 save key: `village-observer-v0-33i1`
+- fallback: `0.33H2` → `0.33H1` → `0.33H` → `0.33G3A`
+- `ai-editor.html`과 AIProfile JSON v1은 변경하지 않는다.
+
+## I1 검증 포인트
+
+- H2 save generic equipment가 legacy kit로 변환된 뒤 기존 장비 coverage가 대략 보존되는가.
+- 정식 무기 미보급 현역이 곤봉 fallback으로 표시되는가.
+- Smithy/목공 노동자가 장비 제작 중 기존 생산을 동시에 하지 않는가.
+- 생산비가 실제 Wood/Iron/Tools에서 차감되고 장비는 정수 1개 단위로 생성되는가.
+- 원거리 Formation이 자국 supply node에 도착하기 전에는 신형 장비가 순간 지급되지 않는가.
+- 재장비 시 구형 장비가 삭제되지 않고 local inventory로 회수되는가.
+- 부상/전사/동원해제 장비가 I1 규칙대로 회수되는가.
+- 장기 run에서 `equipmentConservationErrors33I1 = 0`을 유지하는가.
+- H2의 Formation Combat Power/전쟁/Engagement 자체 공식은 그대로 유지되는가.
+
+---
+
+## Historical baseline — V0.33H2
 
 > **기준선:** V0.33H1. H/H1의 canonical Formation Combat Power와 전투 공식은 그대로 유지하고, H1 PC 자연주행에서 확인된 평시 reference manpower 오판정·지도 라벨 미세배치·타일 Inspector 누적 UI를 정리하는 후속 패치다.
 >
