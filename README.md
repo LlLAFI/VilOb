@@ -1,9 +1,38 @@
-# Village Observer V0.33I1A — Equipment Logistics + Military Craft Access Fix
+# Village Observer V0.33I1A1 — Battlefield Equipment Recovery & Loss
 
-> **기준선:** V0.33I1. I1의 Person별 무기/갑옷, 정수 재고, Work Order, H2 호환 Combat Power를 그대로 유지하면서 자연주행에서 확인된 장비 고립과 제작 인력 접근 병목만 수정하는 안정화 패치다.
+> **기준선:** V0.33I1A. I1A의 Person 장비·지역 재고·실제 노동·군수 물류·임시 군수 제작을 유지하면서, 전투 사망자의 장비가 설명 없이 ledger에서 사라지던 경로를 정식 전장 회수/유실 lifecycle로 전환하는 후속 패치다.
 >
-> **I1A 범위:** Armory가 없어도 작동하는 저용량 근거리 장비 물류, Armory의 광역·대량 양방향 군수 허브화, 현역 장비 수요 기반 수송, 실제 민간 Person의 임시 군수 제작 배정, stranded-weapon/물류 blocker telemetry. **무기/갑옷의 질적 전투효과와 OPENING/CONTACT/MELEE는 여전히 I2 범위다.**
+> **I1A1 범위:** BATTLE33 전사 장비 분리, 라운드 결과/후퇴 상태 기반 item별 회수 판정, Formation recovery cache, 자국 supply node 입고, 부대 붕괴 시 공식 유실, I1/I1A legacy 결손 1회 분리, 확장된 conservation telemetry. **적 장비 노획·내구도와 I2의 무기/갑옷 질적 전투효과는 아직 활성화하지 않는다.**
 
+## 0. I1A 자연주행 결과와 I1A1 교정
+
+I1A 자연주행에서는 Armory가 없는 국가도 실제 장비 물류를 사용했고, 임시 군수 제작도 작동했다. 장기적으로 현역 정식 무기/갑옷 보급률이 정상적으로 수렴하고 `stranded weapon`도 해소되어 I1A의 핵심 목표는 통과했다.
+
+반면 실제 BATTLE33 사망과 정확히 맞물려 장비 4개가 기존 conservation ledger에서 사라지는 사례가 확인됐다. 문제는 전사 장비가 반드시 100% 회수되어야 한다는 것이 아니라, **장비의 세계 이탈 원인이 어떤 공식 sink에도 기록되지 않았다는 점**이다. I1A1은 이를 다음 lifecycle로 바꾼다.
+
+`전사 → 장착 장비 분리 → 라운드 결과 확정 → 회수 또는 공식 유실 → Formation이 회수품 운반 → 자국 supply node 입고`
+
+### 전장 회수율 V1
+
+| 전사한 측의 라운드 상태 | item별 회수 확률 |
+|---|---:|
+| 라운드 승리 | 85% |
+| 무승부 / 결과 불명 | 65% |
+| 패배했으나 전열 유지 | 55% |
+| RETREATING / 정상 패퇴 | 35% |
+| DEEP_RECOVERY급 붕괴 | 20% |
+
+무기와 갑옷은 각각 독립적으로 판정한다. `LOST`는 적에게 자동으로 넘어간다는 뜻이 아니라 파손·유기·회수불가·분실을 통합한 공식 sink다. 노획은 아직 구현하지 않는다. 점령 securing 중 defensive-fire 사망도 설명 없는 장비 증발을 막기 위해 동일 lifecycle에 들어가며, 별도 승패가 없는 attrition의 기본 회수율은 55%다.
+
+### Formation recovery cache
+
+야전 Formation이 회수한 장비는 곧바로 수도나 국가 공용재고로 순간이동하지 않는다. `recoveryCaches`에 실제 item 수량으로 보관되고, 살아 있는 Formation이 자국 supply node에 도착했을 때 그 지역 inventory로 입고된다.
+
+전쟁 중 Formation에 장비를 운반할 active Person이 한 명도 남지 않으면 cache 전체는 `FORMATION_NO_SURVIVORS_WARTIME` 사유로 공식 유실된다. Core Garrison처럼 별도 Formation이 없는 전투 병력은 원래 자국 supply node에서 싸우므로 회수 성공 시 해당 지역 inventory에 직접 입고할 수 있다.
+
+### I1/I1A legacy 결손
+
+과거 I1/I1A save에서 이미 발생한 양의 ledger 결손은 새 회수 확률을 사후 적용하지 않는다. 로드 시 한 번만 `legacyUntrackedLoss`로 분리 기록하며 **아이템을 새로 생성하지도 않고 전장유실 통계에 소급 편입하지도 않는다.** 반대로 ledger보다 실물이 더 많은 복제성 음의 결손은 자동으로 숨기지 않고 conservation error로 남긴다.
 
 ## 0. I1 자연주행 결과와 I1A 교정
 
@@ -123,9 +152,12 @@ I1에서는 아직 AIProfile별 무기 doctrine을 만들지 않는다. 모든 �
 - local inventory에 장비가 있으면 무기/갑옷 지급
 - 상위 장비로 교체하면 기존 장비는 같은 지역 재고로 회수
 - 원거리/Hybrid 무기는 가능하면 역할을 유지한 채 교체
-- 전사/부상/동원해제 Person의 장비는 I1에서는 유실시키지 않고 회수 가능한 자국 재고로 반환
+- 부상자는 살아 있으므로 장비를 그대로 유지한다.
+- 일반 동원해제/비전투 사망의 장비는 기존처럼 자국 재고로 반환한다.
+- **BATTLE33 전사자의 장비는 I1A1에서 item별 회수 판정을 거친다.** 회수 성공한 야전 장비는 Formation recovery cache에 들어가고 자국 supply node 도착 시 정식 재고가 된다.
+- 회수 실패나 전쟁 중 운반자 없는 Formation의 cache는 공식 `battleLost` sink로 기록한다.
 
-전장 유실, 노획, 파손/내구도는 이번 범위가 아니다.
+적 장비 노획, 파손 단계별 내구도/수리, 현장 즉시 재장비는 이번 범위가 아니다.
 
 ## 7. H2 Combat Power 호환 bridge
 
@@ -208,9 +240,11 @@ H2 타일 Formation 카드에도 실제 무기/갑옷 구성을 한 줄 추가�
 - `temporaryMilitaryCraftWorkCycles33I1A`
 - `equipmentLogisticsBlocked33I1A`
 
-I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 검사한다.
+I1A1에서는 전장 유실과 회수 중 물자를 공식 ledger에 포함해 아이템별로 다음 invariant를 검사한다.
 
-`누적 실제 생산 + legacy migration = 현재 Person 장착 + 현재 inventory`
+`누적 실제 생산 + legacy migration = 현재 Person 장착 + 현재 inventory + 회수판정 대기 + Formation recovery cache + 공식 전장유실 + legacy 미추적 결손`
+
+따라서 전장에서 장비가 실제로 사라지는 것은 정상일 수 있지만, 원인 없이 사라지거나 복제되는 잔여 delta만 conservation error다.
 
 ## 10. I1에서 의도적으로 하지 않는 것
 
@@ -222,7 +256,7 @@ I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 �
 - 갑옷 종류별 실제 사상률 차이
 - Composite Combat Power
 - shield / mount / ammo / support / siege 슬롯의 실제 활성화
-- 장비 내구도 / 전장 유실 / 노획
+- 장비 내구도 / 적 장비 노획 / 현장 즉시 재무장
 - AIProfile별 무기 선호
 - 중세 장비
 
@@ -230,11 +264,11 @@ I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 �
 
 ## Save / compatibility
 
-- 현재 save key: `village-observer-v0-33i1a`
-- fallback: `0.33I1` → `0.33H2` → `0.33H1` → `0.33H` → `0.33G3A`
+- 현재 save key: `village-observer-v0-33i1a1`
+- fallback: `0.33I1A` → `0.33I1` → `0.33H2` → `0.33H1` → `0.33H` → `0.33G3A`
 - `ai-editor.html`과 AIProfile JSON v1은 변경하지 않는다.
 
-## I1A 검증 포인트
+## I1A1 검증 포인트
 
 - H2 save generic equipment가 legacy kit로 변환된 뒤 기존 장비 coverage가 대략 보존되는가.
 - 정식 무기 미보급 현역이 곤봉 fallback으로 표시되는가.
@@ -247,8 +281,12 @@ I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 �
 - 생산비가 실제 Wood/Iron/Tools에서 차감되고 장비는 정수 1개 단위로 생성되는가.
 - 원거리 Formation이 자국 supply node에 도착하기 전에는 신형 장비가 순간 지급되지 않는가.
 - 재장비 시 구형 장비가 삭제되지 않고 local inventory로 회수되는가.
-- 부상/전사/동원해제 장비가 I1 규칙대로 회수되는가.
-- 장기 run에서 `equipmentConservationErrors33I1 = 0`을 유지하는가.
+- 부상자는 장비를 유지하고, 전사자 장비만 라운드 결과/후퇴 상태에 따라 회수 또는 공식 유실되는가.
+- 승전측의 장비 회수율이 패퇴측보다 높게 나타나는가.
+- 야전 회수품이 적지에서 국가 재고로 순간이동하지 않고 Formation recovery cache를 거쳐 자국 supply node에 입고되는가.
+- 전쟁 중 생존 운반자가 0인 Formation의 회수 cache가 공식 유실로 전환되는가.
+- I1/I1A save의 기존 양의 ledger 결손이 새 아이템 생성 없이 `legacyUntrackedLoss33I1A1`로 1회 분리되는가.
+- 장기 run에서 `equipmentConservationErrors33I1A1 = 0`을 유지하는가.
 - `equipmentStrandedWeapons33I1A`가 일시적으로 발생하더라도 군수 pulse와 재장비를 통해 감소하는가.
 - 물류 실패가 `PATH/RANGE/CAPACITY/NO_STOCK`으로 관측 가능하게 분리되는가.
 - H2의 Formation Combat Power/전쟁/Engagement 자체 공식은 그대로 유지되는가.
