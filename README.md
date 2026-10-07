@@ -1,8 +1,36 @@
-# Village Observer V0.33I1 — Person Equipment + Military Inventory Foundation
+# Village Observer V0.33I1A — Equipment Logistics + Military Craft Access Fix
 
-> **기준선:** V0.33H2. H 계열의 Formation Combat Power/지도 렌더링/전쟁 규칙을 유지하면서, V0.32C 이후의 추상 `equipmentStock`을 실제 Person 장비와 지역별 군수 재고로 전환하는 I 계열 첫 단계다.
+> **기준선:** V0.33I1. I1의 Person별 무기/갑옷, 정수 재고, Work Order, H2 호환 Combat Power를 그대로 유지하면서 자연주행에서 확인된 장비 고립과 제작 인력 접근 병목만 수정하는 안정화 패치다.
 >
-> **I1 범위:** 장비 Registry, Person `weapon/armor` 슬롯, 정수 재고, 실제 자원+Person 노동 기반 제작, 지역 배급/회수, H2 save migration, telemetry. **무기/갑옷의 질적 전투효과와 OPENING/CONTACT/MELEE는 I2에서 활성화한다.**
+> **I1A 범위:** Armory가 없어도 작동하는 저용량 근거리 장비 물류, Armory의 광역·대량 양방향 군수 허브화, 현역 장비 수요 기반 수송, 실제 민간 Person의 임시 군수 제작 배정, stranded-weapon/물류 blocker telemetry. **무기/갑옷의 질적 전투효과와 OPENING/CONTACT/MELEE는 여전히 I2 범위다.**
+
+
+## 0. I1 자연주행 결과와 I1A 교정
+
+I1 장기 자연주행에서는 장비 생산·지급·회수·재장비와 item conservation 자체는 정상 작동했지만, 국가 전체에 충분한 정식 무기가 있어도 현역이 곤봉을 드는 사례가 다수 나타났다. 핵심 원인은 두 가지였다.
+
+1. I1 군수 이동은 Armory가 있어야만 시작되고, 방향도 일반 재고 → Armory 집중에 치우쳐 있었다. 따라서 Armory가 없는 국가에는 지역 간 장비 이동이 없고, Armory가 있어도 전방 현역 supply node로 되돌려 보내는 단계가 약했다.
+2. Work Order가 기존 목수/건축가/철공 직업의 존재에 지나치게 의존했다. 장비 부족이 심해도 해당 직업이 없으면 실제 성인 노동력을 군수 제작으로 재배치할 수 없었다.
+
+I1A는 장비 생성량이나 전투력을 직접 버프하지 않고 이 두 병목만 수정한다. 장비는 여전히 실제 자원과 실제 Person 노동을 요구하며, 현역은 실제 자국 supply node에서만 장비를 지급받는다.
+
+### I1A 기본 군수망
+
+- **Armory 없음:** 30 calendar-day pulse마다 국가 전체 최대 **2 item**, 근거리 경로(`route cost <= 4.5`)만 이동 가능.
+- **Armory 있음:** pulse 최대 **6 item**. Armory가 출발지 또는 목적지인 이동은 `route cost <= 12`까지 허용한다.
+- 장비 수송은 우선 현역이 실제 위치한 supply node의 `weapon/armor deficit`을 채운다. Field Formation/전쟁 배정/Core Garrison 등 기존 군사 우선순위를 목적지 우선순위에도 사용한다.
+- 수요를 채운 뒤 여유가 있으면 비-Armory 지역의 초과 재고를 Armory로 집중한다. 이후 pulse에서 Armory → 현역 supply node 방향으로 다시 나갈 수 있다.
+- 경로가 없거나 범위를 초과하거나 목적지 저장공간이 없으면 장비를 생성/삭제하지 않고 `PATH / RANGE / CAPACITY / NO_STOCK` blocker로 기록한다.
+
+### Temporary Military Craft Assignment
+
+장비 수요가 있는데 기존 전문 직업이 부족한 경우 Work Order가 실제 민간 성인 Person을 임시 군수 제작자로 지정할 수 있다.
+
+- 기초 창/투창/직물 방어구: 일반 성인도 임시 제작 가능. 전문 목수/건축가보다 효율이 낮다.
+- 활: 목수가 우선이며, 없으면 인근 일반 성인이 더 낮은 효율로 대체 제작할 수 있다.
+- 철제 무기/갑옷: **Smithy 시설은 반드시 필요**하다. 철공 직업이 없어도 Smithy 인근의 적합한 성인을 임시 배정할 수 있다.
+- 임시 제작자는 해당 Person의 `act` cycle을 군수 Work Order에 사용하므로 그 cycle의 원래 민간 생산을 하지 않는다.
+- 곤봉 사용자가 있거나 정식 무기 보급률이 낮을 때는 갑옷/고급 업그레이드보다 **정식 무기 수량 확보를 먼저** 시도한다.
 
 ## 1. I1 핵심 구조
 
@@ -57,15 +85,15 @@ militaryEquipment33I1: {
 
 기존 `Armory 36 abstract kits`를 무기+갑옷 두 physical item으로 해석해 `+72`로 전환했다.
 
-무기고가 있는 경우, 30 calendar-day 저빈도 군수 pulse에서 다른 정착지 재고를 **source당 최대 4 item**까지 실제 재고 이동으로 집중할 수 있다. 경로가 없는 장비는 이동하지 않는다. 이 이동은 장비의 소유권만 보존적으로 바꾸며 새 장비를 생성하지 않는다.
+I1A에서는 Armory 없이도 근거리 지역 군수 이동이 가능하다. Armory가 없으면 30 calendar-day pulse당 국가 전체 최대 2 item만 짧은 경로로 이동한다. Armory가 있으면 pulse 한도를 6 item으로 높이고 Armory가 참여하는 장거리 경로를 허용한다. 장비는 우선 실제 현역이 있는 supply node의 weapon/armor deficit로 이동하고, 남는 capacity로 Armory에 재고를 집중한다. 어떤 경우에도 이동 과정에서 새 장비를 생성하지 않는다.
 
 ## 4. 실제 Person 노동 기반 제작
 
 I1은 V0.32C의 별도 generic equipment 생산 함수를 중지한다. 과거에는 Smithy 노동자가 평소 도구를 만들면서 별도 군수 provision도 동시에 제공할 수 있었지만, I1에서는 장비 자체가 Work Order를 가진다.
 
-- 기초 창/투창/직물 방어구: 해당 정착지의 목수 또는 건축가가 제작 가능
-- 활: 목수 제작
-- 철제 무기/갑옷: Smithy에 실제 근무하는 철공이 제작
+- 기초 창/투창/직물 방어구: 목수/건축가가 우선 제작하며 I1A에서는 적합한 일반 성인도 낮은 효율로 임시 제작 가능
+- 활: 목수 우선. I1A에서는 인근 일반 성인의 저효율 대체 제작 가능
+- 철제 무기/갑옷: Smithy 시설 필수. 실제 철공이 우선하며 I1A에서는 Smithy 인근 적합 성인을 임시 배정 가능
 - 작업 1회는 기존 calendar 모델과 맞춰 **3 adult-days**의 노동을 누적
 - 장비 제작에 참여한 Person은 그 cycle 동안 기존 목재 채취/도구 생산을 하지 않는다
 - 필요한 실제 Wood/Iron/Tools는 주문 시작 시 network에서 보존적으로 확보
@@ -135,7 +163,7 @@ legacy weapon/armor는 실제 신형 장비가 생산되면 자연스럽게 회�
 
 ## 9. 관측 UI / Telemetry
 
-군사 탭 최상단에 **`🗡 I1 실제 군사 장비`** 블록을 추가한다.
+군사 탭 최상단의 **`🗡 I1A 실제 군사 장비`** 블록은 I1 장비 상태에 I1A 군수 진단을 추가한다.
 
 - 정식 무기 보급률
 - 갑옷 보급률
@@ -146,6 +174,9 @@ legacy weapon/armor는 실제 신형 장비가 생산되면 자연스럽게 회�
 - 현역 무기/갑옷 구성
 - 종류별 재고
 - 누적 제작/지급/회수/재장비/legacy migration
+- 고립 무기수요(stranded weapon)
+- 현재 임시 군수 제작자 수
+- 누적 실제 장비 물류 item 수
 - 보존 오류 수
 
 H2 타일 Formation 카드에도 실제 무기/갑옷 구성을 한 줄 추가한다.
@@ -167,6 +198,15 @@ H2 타일 Formation 카드에도 실제 무기/갑옷 구성을 한 줄 추가�
 - `legacyKitsMigrated33I1`
 - `migrationRoundingDelta33I1`
 - `equipmentConservationErrors33I1`
+- `equipmentLogisticsMoves33I1A`
+- `equipmentLogisticsItems33I1A`
+- `equipmentDemandWeapon33I1A`
+- `equipmentDemandArmor33I1A`
+- `equipmentStrandedWeapons33I1A`
+- `temporaryMilitaryCrafters33I1A`
+- `temporaryMilitaryCraftAssignments33I1A`
+- `temporaryMilitaryCraftWorkCycles33I1A`
+- `equipmentLogisticsBlocked33I1A`
 
 I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 검사한다.
 
@@ -190,20 +230,27 @@ I1에서는 전장 손실이 없으므로 아이템별로 다음 invariant를 �
 
 ## Save / compatibility
 
-- 현재 save key: `village-observer-v0-33i1`
-- fallback: `0.33H2` → `0.33H1` → `0.33H` → `0.33G3A`
+- 현재 save key: `village-observer-v0-33i1a`
+- fallback: `0.33I1` → `0.33H2` → `0.33H1` → `0.33H` → `0.33G3A`
 - `ai-editor.html`과 AIProfile JSON v1은 변경하지 않는다.
 
-## I1 검증 포인트
+## I1A 검증 포인트
 
 - H2 save generic equipment가 legacy kit로 변환된 뒤 기존 장비 coverage가 대략 보존되는가.
 - 정식 무기 미보급 현역이 곤봉 fallback으로 표시되는가.
-- Smithy/목공 노동자가 장비 제작 중 기존 생산을 동시에 하지 않는가.
+- Armory가 없는 국가에서도 가까운 supply node 사이에 실제 장비 이동이 발생하는가.
+- Armory가 있는 국가는 없는 국가보다 더 많은 item과 더 먼 경로를 실제로 처리하는가.
+- 국가 inventory에 정식 무기가 충분한데 현역 과반이 장기간 곤봉으로 남는 현상이 해소되는가.
+- 전문 직업이 부족한 국가에서 `temporaryMilitaryCrafters33I1A`가 실제로 발생하고, 해당 Person이 그 cycle의 기존 생산을 동시에 하지 않는가.
+- Smithy가 없는 상태에서 철제 장비가 임시 제작으로 우회 생산되지 않는가.
+- Smithy/목공/임시 군수 노동자가 장비 제작 중 기존 생산을 동시에 하지 않는가.
 - 생산비가 실제 Wood/Iron/Tools에서 차감되고 장비는 정수 1개 단위로 생성되는가.
 - 원거리 Formation이 자국 supply node에 도착하기 전에는 신형 장비가 순간 지급되지 않는가.
 - 재장비 시 구형 장비가 삭제되지 않고 local inventory로 회수되는가.
 - 부상/전사/동원해제 장비가 I1 규칙대로 회수되는가.
 - 장기 run에서 `equipmentConservationErrors33I1 = 0`을 유지하는가.
+- `equipmentStrandedWeapons33I1A`가 일시적으로 발생하더라도 군수 pulse와 재장비를 통해 감소하는가.
+- 물류 실패가 `PATH/RANGE/CAPACITY/NO_STOCK`으로 관측 가능하게 분리되는가.
 - H2의 Formation Combat Power/전쟁/Engagement 자체 공식은 그대로 유지되는가.
 
 ---
