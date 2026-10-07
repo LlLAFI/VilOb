@@ -1,4 +1,115 @@
-# Village Observer V0.33G3A — War Aggression Connection Calibration
+# Village Observer V0.33H — Formation Combat Power Overlay + Battle Readability V1
+
+> **기준선:** V0.33G3A Hotfix 1. 0.33G AIProfile 행동 검증은 CLOSED 상태이며, H는 AI/경제/전쟁 밸런스를 재조정하지 않는 **군사 렌더링·전투 가독성 패치**다.
+>
+> **핵심 원칙:** 지도에 표시하는 Combat Power는 새 점수 체계가 아니라 실제 `BATTLE33` 교전의 `unitPowerD()`가 사용하는 **지형/요새/RNG 적용 전 Formation 자체 전투력**과 동일하다.
+
+## H 핵심 변경
+
+### 1. Canonical Formation Combat Power
+
+실제 전투의 Formation 자체 전투력을 다음 식으로 명시한다.
+
+`manpower × (0.42 + training/250 + equipment/250 + supply/280 + morale/400) × commander multiplier`
+
+- 포함: 실제 active Person 병력, Training, Equipment, Supply, Morale, Commander combat multiplier.
+- 제외: Forest/Rock/Mountain, Watchtower/Fortification/Barracks, 수도 방어, 전투 라운드의 `0.92..1.08` 순간 난수.
+- 실제 전투력 관계는 `Actual Battle Power = displayed intrinsic power × battlefield defense factor × 0.92..1.08`이다.
+- 기존 D 전투 `unitPowerD()`가 H helper를 직접 호출하도록 연결하여 지도 표시와 실제 교전의 기본 전투력 공식을 한 곳에서 공유한다. 가중치 자체는 변경하지 않는다.
+
+### 2. Military map Formation stack
+
+- 기존 군사 레이어의 `▲ Person 수` 합산 라벨을 **Formation별 Combat Power** 표시로 교체한다.
+- 동일 타일은 Formation별 작은 세로 stack으로 표시하며 최대 3개를 직접 노출한다. 4개 이상은 `+N`으로 요약한다.
+- 각 Formation은 국가색 outline을 유지하며 저하 상태에서는 노랑/빨강 `!` 경고를 우선 표시한다.
+- D3 이동 흔적/앞 5칸 chevron/목표 `◎`, D 다중전선, E5 지휘관 ★ 표시는 유지한다.
+
+### 3. Degraded state
+
+H는 전투력과 별도로 **부대 상태 경고**를 계산한다. 이 경고는 전투 공식을 추가 변경하지 않는다.
+
+- `referenceManpower`: 교전 시작 시 편제를 기준값으로 고정한다. 전사·부상으로 실제 active Person이 빠지면 `현재/기준편제` 비율이 하락한다.
+- Formation gap: 80% 미만 경고, 60% 미만 심각 경고.
+- Battle Morale: -8 이하 경고, -18 이하 심각 경고.
+- Equipment: 60% 미만 경고, 35% 미만 심각 경고.
+- Supply: 55% 미만 경고, 30% 미만 심각 경고.
+- `RETREATING / REGROUPING / POST_BATTLE_RECOVERY / WITHDRAWING / DEEP_RECOVERY` 등도 상태 경고에 포함한다.
+- 기준편제는 전투 후 병력이 회복될 때까지 유지하며, 회복/재편으로 현재 병력이 기준에 도달하면 새 정상 상태로 갱신된다.
+
+### 4. Battle Delta FX
+
+- `BATTLE33` 라운드 시작 전 Formation별 intrinsic power를 캡처하고, 사상자 처리 + Battle Morale 갱신 뒤 다시 계산한다.
+- 변화가 있으면 지도에서 `-2.4`, `+0.8` 형태의 짧은 floating delta와 label pulse를 표시한다.
+- 같은 Formation의 변화가 약 260ms 안에 연속 발생하면 하나의 delta로 합산하여 고배속 시 시각적 스팸을 줄인다.
+- FX queue는 런타임 렌더 상태이며 Save에 저장하지 않는다. 렌더러는 `Math.random()`을 호출하지 않으므로 시뮬레이션 RNG 흐름을 바꾸지 않는다.
+- `prefers-reduced-motion` 환경에서는 이동폭을 줄인다.
+
+### 5. Inspector / military panel
+
+선택 타일과 국가 군사 패널에서 Formation별 다음 정보를 확인할 수 있다.
+
+- Combat Power
+- Person manpower / reference manpower
+- Training / Equipment / Supply / Morale
+- Battle Morale
+- Commander multiplier
+- 현재 degraded reason
+
+지도 숫자에는 지형·요새·순간 전투 난수가 포함되지 않는다는 설명을 함께 표시한다.
+
+### 6. Telemetry
+
+`BATTLE33` payload에 다음을 추가한다.
+
+- `aIntrinsicPower33H`
+- `bIntrinsicPower33H`
+
+Snapshot/CSV에는 다음을 추가한다.
+
+- global: `formationPowerCount33H`, `formationPowerAverage33H`, `formationPowerMax33H`, `degradedFormations33H`, `severeFormations33H`, `battlePowerDeltaEvents33H`
+- nation: `formationCombatPower33H`, `formationCombatPowerAvg33H`, `degradedFormations33H`, `severeFormations33H`
+
+### 7. Save / compatibility
+
+- 새 save key: `village-observer-v0-33h`
+- 직전 `village-observer-v0-33g3a` save를 fallback load한다.
+- Formation별 `referenceManpower` 관측 상태만 `v33h.formationState`에 저장한다. FX는 저장하지 않는다.
+- AI Editor와 G3 Anchor JSON은 변경하지 않는다.
+
+## H 완료 검증 포인트
+
+1. 표시 Power와 `BATTLE33.aIntrinsicPower33H / bIntrinsicPower33H`의 기반 공식이 동일할 것.
+2. 지형/요새만 달라져도 지도 Power는 변하지 않을 것.
+3. manpower/훈련/장비/보급/사기/지휘관이 달라지면 Power가 변할 것.
+4. 사상자·Battle Morale 변화가 발생한 라운드에서 delta FX가 발생할 것.
+5. Formation gap 및 저사기/저장비/저보급 상태가 노랑/빨강 경고로 구분될 것.
+6. 렌더링이 전투 RNG·AI 의사결정·사상률을 바꾸지 않을 것.
+7. 기존 D3 경로/흔적, D 다중전선, E5 지휘관, G3A 동작이 회귀하지 않을 것.
+
+---
+
+## Historical baseline — V0.33G3A Hotfix 1
+
+> **기준선:** V0.33G3A. Gamma Expansion 자연주행에서 실제 `declarations=2`, `readyIntentsG3A=2`가 발생했지만 `declaredIntentsG3A=0`으로 남는 관측 누락을 확인했다. 이 Hotfix는 **G3A telemetry/summary observer만 수정**하며 AI 판단, 전쟁 준비, 안전 게이트, 전투·경제·연구 밸런스는 변경하지 않는다.
+>
+> **검증 결론:** G3A의 Expansion→군사 공격성 연결은 Alpha/Gamma에서 기대 방향으로 재현되어 **2/3 PASS**. 따라서 **V0.33G 계열은 CLOSED**로 본다. Hotfix 자체 때문에 기존 Alpha/Beta/Gamma를 다시 돌릴 필요는 없다.
+
+## G3A Hotfix 1 변경
+
+- `declaredIntentsG3A`가 기존 `WAR_PREPARATION_DECLARED33D2`만 보던 문제를 수정한다.
+- 다음 선언 경로를 모두 intent-level declaration으로 인식한다: `WAR_PREPARATION_DECLARED33D2`, `WAR_PREPARATION_DECLARED33D2A`, `WAR_INTENT_DECLARED33D1`, `WAR_INTENT_DECLARED33F1`, `WAR_INTENT_PHASE_CHANGED33D1(phase=DECLARED)`.
+- 동일 선언이 여러 계층에서 연속 기록되어도 `intentId` 기준으로 dedupe하여 **한 intent당 1회**만 `declaredIntentsG3A`를 증가시킨다.
+- `WAR_PREPARATION_DECLARATION_BLOCKED33D2A`도 `lastDeclarationBlockerG3A`에 반영한다.
+- Summary JSON에 `g3aHotfix: 1`, `g3a.observerHotfix: 1`을 기록한다.
+- UI 표기는 `V0.33G3A H1`로 갱신한다. 직렬화/save 호환을 위해 world version key는 `0.33G3A`를 유지한다.
+
+## 재검증 필요 여부
+
+**없음.** Gamma에서 일반 G3 counter의 `declarations=2`가 실제 전쟁 선언을 이미 기록했고, G3A의 READY 전환도 2건 잡혔다. Hotfix는 그 동일한 선언을 G3A 전용 intent counter가 놓친 부분만 보완한다.
+
+---
+
+## Historical baseline — V0.33G3A War Aggression Connection Calibration
 
 > **기준선:** V0.33G3 Hotfix 1. G3 검증에서 Expansion→개척/영토, Technology→연구/후기기술, Merchant→교역/상업, Defensive→저확장/비공격은 종료 기준을 충족했다. G3A는 유일한 미통과 축인 **Expansion → 실제 전쟁 공격성**만 보정한다.
 >
