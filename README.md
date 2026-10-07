@@ -1,4 +1,108 @@
-# Village Observer V0.33H1 — Formation Overlay Readability Fix
+# Village Observer V0.33H2 — Formation Overlay + Tile Inspector Consolidation
+
+> **기준선:** V0.33H1. H/H1의 canonical Formation Combat Power와 전투 공식은 그대로 유지하고, H1 PC 자연주행에서 확인된 평시 reference manpower 오판정·지도 라벨 미세배치·타일 Inspector 누적 UI를 정리하는 후속 패치다.
+>
+> **밸런스 원칙:** `BATTLE33` 전투력, 지형/요새/순간 난수, 사상률, Engagement, War Intent, AIProfile, 경제·연구 공식은 변경하지 않는다.
+
+## H1 자연주행 피드백 근거
+
+H1 PC 자연주행은 약 79년까지 진행되었고, 해당 런에서는 실제 선전포고/전투가 발생하지 않았다. 따라서 H1의 전투 중 `±Δ` 효과는 이번 런에서 추가 자연검증되지는 않았지만, 평시 Formation 상태와 지도/Inspector 표현을 장기간 관찰할 수 있었다.
+
+- H에서 사실상 전 Formation이 빨간 `!`이던 문제는 H1에서 해소되었고, 장기 snapshot 관측의 다수는 정상(초록) 상태로 분리되었다.
+- 다만 일부 국가의 Formation은 전투가 전혀 없었는데도 과거의 더 큰 `referenceManpower`가 남아 평시 동원해제/군축을 전투 손실처럼 해석했다.
+- 지도에서 병력 수와 Combat Power의 분리는 읽기 좋아졌지만, 병력 수가 단순 텍스트라 규모 정보의 시각적 우선순위가 약했고 상태 원이 Combat Power 숫자와 다소 가까웠다.
+- 타일 Inspector에는 0.32D~0.33H 동안 추가된 `행정권`, `행정 상태`, `이동 관측`, `D3 공간·확장 진단`, `Formation D3`, `야전대`, `지휘 체계`, `지휘관 상세`, `Formation Combat Power`가 누적되어 같은 정보를 여러 블록에서 반복 표시하고 있었다.
+
+## H2 변경
+
+### 1. Formation 지도 라벨 미세조정
+
+- 병력 수는 다시 **작은 직사각형 badge** 안에 표시한다.
+- 병력 숫자는 해당 국가의 **territory fill color**, badge 테두리는 해당 국가의 **border color**를 사용한다.
+- Combat Power 숫자도 기존과 같이 국가 fill color를 유지한다.
+- 병력 badge와 Combat Power 묶음을 H1보다 약간 위로 이동한다.
+- 정상/저하 상태의 초록·주황 원은 H1 대비 약 20% 축소하고 Combat Power 숫자와의 간격을 늘린다.
+- 빨간 `!`은 심각 상태 식별성을 위해 원보다 약간 크게 유지한다.
+- 지휘관 ★, 전선, 도로, Formation 본체의 국가색은 상태 경고와 독립적으로 유지된다.
+
+### 2. Reference Manpower lifecycle 수정
+
+H1의 Formation gap은 `현재 병력 / referenceManpower`로 계산했지만, 평시 동원해제 후 reference가 과거 최대치에 남을 수 있었다.
+
+H2 규칙:
+
+- **평시 + 비전쟁:** `referenceManpower = 현재 정식 Formation 병력`으로 재동기화한다.
+- **활성 전쟁 중:** 이전 기준편제를 유지한다. 단, 실제 증원으로 현재 병력이 기준을 넘으면 기준을 상향한다.
+- **Engagement 시작:** 교전 시작 병력을 기준편제로 다시 고정한다.
+- **DORMANT / INACTIVE:** 현재 값으로 정리한다.
+
+따라서 정상적인 평시 4→1명 군축은 빨간 편제손실로 남지 않지만, 실제 전쟁/교전에서 4→2명으로 손실되면 기존 H1 상태 경고가 계속 작동한다.
+
+추가 telemetry: `peacetimeReferenceSyncs33H2`.
+
+### 3. 타일 Inspector 통합
+
+타일을 선택했을 때 다음 구형 관측 블록은 **표시만 제거**한다. 내부 시뮬레이션, Devlog, telemetry 로직은 유지한다.
+
+- `이동 관측`
+- `D3 공간·확장 진단`
+- `Formation D3`
+
+행정 정보는 다음처럼 통합한다.
+
+- 기존 `행정권` + `행정 상태` → 하나의 행정 블록
+- 행정권 코드/중심지/지속기간과 제도화 상태/행정 효율/행정청 상태를 한 곳에서 표시
+
+군사 정보는 기존 중복 블록을 하나로 합친다.
+
+- `이 타일의 Formation`
+- 야전대 상태/사기
+- 지휘 체계
+- Formation 지휘관 상세
+- Formation Combat Power
+
+새 **`⚔ Formation`** 블록은 타일 Inspector 최상단에 배치하며 Formation별로 다음을 한 카드에 표시한다.
+
+- 국가 / Formation 이름 / 정상·저하·심각 상태
+- 실제 Person 병력 수 / Combat Power
+- 훈련 / 장비 coverage / 보급 / 사기 / Battle Morale
+- 현재 Formation status / mission / target
+- reference manpower 및 실제 저하 원인
+- 지휘관 이름 / Command Score / 전투·사기손실·재편 modifier
+
+### 4. H/H1 기능 유지
+
+다음은 변경하지 않는다.
+
+- intrinsic Combat Power 공식
+- 지도 Combat Power = 지형·요새·순간 난수 적용 전 전투력이라는 정의
+- H1의 초록 `●` / 주황 `●` / 빨간 `!` 의미
+- display-value 기반 `±Δ` FX 및 1.25초 표시
+- 장비 부족 자체는 상태 경고가 아니라 Combat Power에만 반영
+- `BATTLE33`, 사상률, Retreat/Regroup, 전쟁/점령/평화 공식
+
+## Save / compatibility
+
+- 현재 save key: `village-observer-v0-33h2`
+- fallback: `0.33H1` → `0.33H` → `0.33G3A`
+- AI Editor와 G3 Anchor profile JSON은 변경하지 않는다.
+
+## H2 검증 포인트
+
+- 평시 동원해제 후 현재 병력이 줄어도 Formation gap 경고가 남지 않는가.
+- 실제 전쟁/교전 손실에서는 reference manpower가 고정되어 주황/빨간 경고가 유지되는가.
+- 병력 수 badge의 숫자는 nation fill color, 테두리는 nation border color로 보이는가.
+- 병력 badge/Combat Power가 H1보다 약간 위에 있고 지휘관 ★와 충돌하지 않는가.
+- 초록/주황 원이 H1보다 작고 Combat Power와 적당히 떨어져 있는가.
+- 타일 Inspector에서 Formation 통합 블록이 최상단에 위치하는가.
+- 이동 관측 / D3 공간·확장 진단 / Formation D3가 더 이상 표시되지 않는가.
+- 행정권과 행정 상태가 하나의 블록으로 표시되는가.
+- 기존 전쟁·AI·경제·연구 결과가 H1과 동일한 규칙을 유지하는가.
+
+---
+
+## Historical baseline — V0.33H1
+
 
 > **기준선:** V0.33H. H의 canonical Combat Power/실제 전투 연결은 유지하고, 첫 자연주행에서 확인된 표시 겹침·상태 경고 과민·작은 증가 FX 가독성 문제만 수정하는 **렌더링/관측 Hotfix 성격의 후속 패치**다.
 >
