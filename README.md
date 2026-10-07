@@ -1,4 +1,92 @@
-# Village Observer V0.33H — Formation Combat Power Overlay + Battle Readability V1
+# Village Observer V0.33H1 — Formation Overlay Readability Fix
+
+> **기준선:** V0.33H. H의 canonical Combat Power/실제 전투 연결은 유지하고, 첫 자연주행에서 확인된 표시 겹침·상태 경고 과민·작은 증가 FX 가독성 문제만 수정하는 **렌더링/관측 Hotfix 성격의 후속 패치**다.
+>
+> **밸런스 원칙:** `BATTLE33` 전투 공식, 지형/요새/난수, 사상률, AIProfile, 전쟁 의사결정, 경제/연구 공식은 변경하지 않는다.
+
+## H1 피드백 근거
+
+V0.33H PC 자연주행에서 다음을 확인했다.
+
+- H의 `aIntrinsicPower33H / bIntrinsicPower33H`는 실제 `BATTLE33` 모든 관측 라운드에 정상 기록되어 canonical Combat Power 연결 자체는 유지 가능하다.
+- 기존 H 지도 라벨이 이전 Formation 병력 라벨과 같은 중심 위치를 점유해 국가색 Formation 마커/지휘관 ★와 겹쳤다.
+- 현역 Formation의 Equipment가 0%인 시대/경제 상태가 흔했는데 H가 `<35%`를 무조건 severe로 분류하여 사실상 모든 Formation이 빨간 `!` 상태가 되는 문제가 있었다.
+- 전투력 상승은 raw 값으로는 여러 번 발생했지만 표시가 소수점 1자리라 `+0.02~0.04` 같은 변화가 보이지 않고 누적 뒤 3.9→4.1처럼 건너뛰어 보일 수 있었다.
+
+## H1 변경
+
+### 1. Formation 라벨 2줄 구조
+
+- H1은 B1의 기존 중앙 `▲ Person` 라벨을 중복 렌더하지 않는다.
+- 각 Formation 아래에 **위: 현재 병력 수 / 아래: `⚔ Combat Power + 상태기호`** 순서로 표시한다.
+- 하나의 타일에 여러 Formation이 있으면 최대 3개를 가로 mini-column으로 나란히 표시한다. 추가 Formation은 `+N`으로 요약한다.
+- 큰 검은 pill 배경을 제거하고 숫자 자체에 검은 outline을 사용하여 Formation 마커, 지휘관 ★, 전선/도로와의 시각 충돌을 줄인다.
+- 적대 Formation이 같은 타일에 있으면 중앙에 작은 `⚔` 표식을 유지한다.
+
+### 2. 국가색과 상태색 분리
+
+병력 수와 Combat Power는 상태와 무관하게 항상 **해당 국가 고유색**을 사용한다.
+
+상태는 별도 기호로만 표시한다.
+
+- 초록 `●`: 정상
+- 주황 `●`: 저하
+- 빨간 `!`: 심각
+
+따라서 손상된 티아 Formation도 티아 국가색 자체는 유지한다.
+
+### 3. 상태 경고 재정의
+
+H1의 상태 기호는 **현재 부대가 평소보다 실제로 손상/교란된 상태인지**를 보여준다. 기본 장비 수준은 더 이상 경고색의 기준이 아니다.
+
+- Formation gap: 교전 기준편제의 80% 미만 → 주황, 60% 미만 → 빨강.
+- Battle Morale: -8 이하 → 주황, -18 이하 → 빨강.
+- 실제 Supply 단절 수준(<=5%)만 상태 경고. <=1%는 빨강.
+- `POST_BATTLE_RECOVERY / WITHDRAWING / POSTWAR_WITHDRAWAL` → 주황.
+- `RETREATING / REGROUPING / DEEP_RECOVERY` → 빨강.
+- Equipment와 통상적인 낮은 Supply는 **Combat Power 계산에는 계속 그대로 반영**되지만 그것만으로 `!`를 발생시키지는 않는다.
+
+기존 전투력 식은 그대로다.
+
+`manpower × (0.42 + training/250 + equipment/250 + supply/280 + morale/400) × commander multiplier`
+
+### 4. 표시값 기반 Battle Delta FX
+
+- H의 raw power delta 대신 **지도에서 실제 보이는 소수점 1자리 Combat Power 값**을 기준으로 FX를 생성한다.
+- 예: 3.9→4.0은 `+0.1`, 4.0→4.1은 다시 `+0.1`로 표시된다.
+- `BATTLE33` 라운드 전후뿐 아니라 교전 중 렌더 사이에 보이는 표시값이 바뀌는 경우도 보완 감지한다.
+- 같은 Formation의 변화는 350ms 안에서 합산한다.
+- FX 표시 수명은 850ms → **1250ms**로 늘렸다.
+- 렌더링은 여전히 simulation RNG를 사용하지 않는다.
+
+### 5. Inspector / telemetry
+
+- 타일/국가 군사 패널도 병력 수와 Combat Power를 함께 표시한다.
+- 상태 설명은 정상/저하/심각과 실제 원인을 분리한다.
+- 기존 H 필드는 호환을 위해 유지한다.
+- 추가 관측값:
+  - global: `normalFormations33H1`, `warningFormations33H1`, `criticalFormations33H1`, `displayPowerDeltaEvents33H1`
+  - nation: `normalFormations33H1`, `warningFormations33H1`, `criticalFormations33H1`
+
+### 6. Save / compatibility
+
+- 새 save key: `village-observer-v0-33h1`
+- `0.33H` 및 `0.33G3A` save를 fallback load한다.
+- AI Editor와 G3 Anchor profile 파일은 변경하지 않는다.
+
+## H1 검증 포인트
+
+- 평시의 장비 0% Formation도 편제/사기/상태가 정상이라면 초록 `●`로 보이는가.
+- 사상자로 4명→3명이 되면 주황 상태, 4명→2명이 되면 빨간 상태가 되는가.
+- Formation 국가색은 정상/저하/심각 어느 상태에서도 변하지 않는가.
+- 지도에서 병력 수가 위, Combat Power가 아래에 보이고 기존 중앙 라벨과 겹치지 않는가.
+- 지휘관 ★가 H1 라벨에 가려지지 않는가.
+- 교전 중 3.9→4.0→4.1 변화에서 각각의 `+0.1`이 가시적으로 나타나는가.
+- H와 동일한 입력에서 intrinsic/BATTLE33 전투력 값이 달라지지 않는가.
+
+---
+
+## Historical baseline — V0.33H
 
 > **기준선:** V0.33G3A Hotfix 1. 0.33G AIProfile 행동 검증은 CLOSED 상태이며, H는 AI/경제/전쟁 밸런스를 재조정하지 않는 **군사 렌더링·전투 가독성 패치**다.
 >
