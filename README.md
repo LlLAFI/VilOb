@@ -1,3 +1,48 @@
+# V0.34A — Structural Audit & Baseline
+
+정식 앞선 버전 **V0.33I3C-HF2**로부터 개발을 이어받은 V0.34의 첫 실행 가능한 계측 릴리스다. **새 Settlement의 게임 플레이 동작은 아직 없다.**
+
+## 사용자에게 바뀌는 것
+
+- 게임 헤더와 패치노트의 버전 `V0.34A` 표시.
+- `V0.34A` 형식 세이브 및 기존 HF2 저장 데이터 로드 호환 브리지.
+- 개발자가 선택적으로 호출할 수 있는 구조 진단 `VSim.V034A.inspect(world)`.
+- 그 외 경제·식량·Recovery·전투·AI·기술·교역·건설의 처리 수식은 **HF2 그대로** 유지.
+
+## 개발자용 진단 예시
+
+브라우저 개발자 도구에서 다음을 실행한다.
+
+```javascript
+const world = window.villageObserver.world;
+const report = VSim.V034A.inspect(world);
+console.table(report.errors);
+console.log(report.ok, report.counts);
+```
+
+오류가 발생한 경우 각 진단 항목에는 code, tileId, nationId, personId 등의 식별자가 포함된다. 이 함수는 읽기 전용으로 설계했으며 자동으로 매일 실행되지 않는다. 과거 버전의 실제 장비 회계는 `VSim.V033I1.audit`도 확인한다.
+
+## 이 프로젝트에 포함된 것
+
+- `index.html`: 실행 본편.
+- `README.md`: HF2까지의 역사적 세부 설명을 보존하고, 34A 최신 설명을 머리말에 추가.
+- `V034A-STRUCTURAL-AUDIT.md`: A1~A6 구조 감사 보고서.
+- `V034B-MIGRATION-CONTRACT.md`: 다음 34B 정착지 엔티티 사양과 마이그레이션 계약.
+- `TEST-REPORT.md`: 실제 Chromium 기능 회귀시험 및 성능 계측 한계.
+- `DEPENDENCY-INDEX.json`: 131개 스크립트 단위의 소유권·엔티티 식별자 정적 의존성 색인.
+- `tests/`: 재현 가능한 회귀시험. `baseline/`: 원본 HF2를 변경 없이 동봉하여 비교 가능.
+- `scenarios/`: 기존 B/C/D 격리 전투 테스트 예제.
+- `ai-editor.html`: 기존 AI 에디터 (변경 없음).
+
+## 예정된 다음 작업
+
+34B는 **Tile 1개 ↔ Settlement 1개** 대응 레지스트리를 신설하는 *데이터 계층 작업*이다. 34C부터 여러 타일이 하나의 Settlement에 소속되도록 단계적으로 확장한다. 이전 HF2 세이브를 실제로 이관하는 작업 전에는 문서의 미완료 회귀항목을 확인해야 한다.
+
+
+---
+
+# 이하: V0.33I3C-HF2까지의 누적 변경 이력 (역사적 문서; 최신 규칙은 상단 참조)
+
 # Village Observer — V0.33I3C 상세 README
 
 - **버전:** V0.33I3C — Sequential Combat Resolution V1 / 단계별 실제 사상자 정산
@@ -662,3 +707,36 @@ I1A1 전장 회수 로직은 다음과 같이 불변이다.
 `index.html`을 일반 데스크톱 브라우저에서 열어 실행한다. `ai-editor.html`은 별도의 독립 HTML 도구이며 게임 본편의 **세계 → AI / 국가 Profile** JSON Import 흐름에 맞춘다. ZIP에는 두 HTML과 이 README를 포함한다.
 
 **검증 자료 권고:** `devlog JSON`과 `snapshots CSV`를 같은 세션에서 Export하고 오류 발생 시 첫 관측 연도 및 관련 `MILITARY_EQUIPMENT_*` 이벤트를 대조한다. I1A2 기준으로 다음 변경은 원인 확인 후 진행하며, I2 전투 품질 효과는 I1A2 보존 안정화 이후로 보류한다.
+
+
+## V0.33I3C-HF2 — 멸망국 장비·지휘관 상실 사건 핫픽스 (2026-10-09)
+
+### 적용 범위
+- 정식 V0.33I3C를 기준으로 한 호환성 핫픽스입니다. Scale Lab 전용 게임 파일이 아닙니다.
+- 멸망한 국가의 국가별 무기·방어구 재고, Person 장비 및 Formation 회수 캐시를 실존 타일의 `ruinEquipment33I3CH2`에 보존합니다. 기존 `ruinGold30B2`는 유지합니다.
+- 각 장비의 원 소속 국가 생산/이주 원장을 보존한 채, 폐허에서 재영유하는 국가로 물리적 장비와 회계상 출처를 함께 이전합니다.
+- 부상·전사 등 지휘관이 유효성을 잃는 Person 사건을 즉시 검출하여 `FORMATION_COMMANDER_LOST33E1`을 같은 날짜에 기록합니다. 기존 지휘관 공석 30일 규칙은 변경하지 않습니다.
+- 기존 세이브에 멸망국 재고가 남았다면 불러오기 시 실제 존재하는 물품만 폐허로 이전합니다. 이미 사라진 물건은 생성하지 않습니다.
+
+### 데이터 구조 및 보존 회계
+- `Tile.ruinEquipment33I3CH2`: 물리적 잔존 군사장비의 `{nationId, items}` 목록. Tile 기본 직렬화에 포함되며 폐허 표시 소멸 이후에도 소실되지 않습니다.
+- `v33i1Equipment.stats.ruinHeldByItem`: 원래 국가에서 폐허에 남긴 물품 (RHS).
+- `v33i1Equipment.stats.ruinTransferredOutByItem`: 회수국으로 물리적으로 이전된 원 출처 물품 (RHS).
+- `v33i1Equipment.stats.ruinAcquiredByItem`: 다른 국가 폐허에서 취득한 장비 (LHS).
+- 수정 보존식: 생산 + 과거 변환 + 폐허 취득 = 재고 + Person 장착 + Formation 회수 캐시 + 공식 전장유실 + 과거 결손 + 폐허 현물 + 폐허 이전 완료.
+- 작업 중이던 미완료 제작 주문은 완료 장비로 간주하지 않고 중단하며, 저장되어 있던 실물 예약 자원은 반환합니다.
+- 계측: `MILITARY_EQUIPMENT_RUIN_STASHED33I3CH2`, `MILITARY_EQUIPMENT_RUIN_RECOVERED33I3CH2`, `MILITARY_EQUIPMENT_EXTINCTION_SETTLED33I3CH2`, `equipmentRuin*33I3CH2`.
+
+### 범위 제외 (변경하지 않음)
+- 라엔의 기아 원인 연구·식량 분배·Survival/Recovery 관련 모든 수치와 규칙.
+- I3C OPENING/CONTACT/MELEE 전투 수식, 방호력, 병력당 사상률, 30% 상한과 전장 장비 손실 확률.
+- Scale Lab HF1 전용 병력 명부 변경사항은 정식 본편에 병합하지 않음.
+
+### 호환성
+- 정식 I3C 세이브를 가져올 수 있습니다. HF2 세이브에는 별도 `v33i3ch2` 메타데이터가 기록됩니다.
+- 반대로 HF2 세이브의 폐허 물품 출처 원장은 이전 버전에서 이해하지 못하므로 역방향 로드는 지원하지 않습니다.
+- `index.html`, `README.md`, `TEST-REPORT.md`를 개별로도 배포합니다.
+
+- 장기 성능: 폐허 장비 존재 타일의 ID만 메모리 인덱스로 검사하며, 평상시에는 전체 지도를 매일 스캔하지 않습니다.
+- 재영유 장비는 소유국의 가까운 실물 보급 거점(없으면 영유한 타일)에 입고하며, 새로운 물자를 만들지 않습니다.
+- 군사 Formation 저장 구조의 지휘관 Person/공석 만료일 필드가 구형 복원 생성자에서 누락될 수 있어 해당 필드도 저장·불러오기 시 보존하도록 수정합니다.
