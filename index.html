@@ -4914,7 +4914,15 @@ function deactivate32B(v,w,p,toReserve=true){ensurePerson32B(p);if(p.militarySta
 function reserve32B(p,w){ensurePerson32B(p);if(p.militaryStatus32A==='civilian'){p.militaryStatus32A='reserve';p.militaryReserveSince32B=CAL32B(w);return true;}return false;}
 function unreserve32B(p){ensurePerson32B(p);if(p.militaryStatus32A==='reserve'){p.militaryStatus32A='civilian';p.militaryReserveSince32B=0;return true;}return false;}
 function cohort32B(v,w){NS.V032A.ensureMilitary(v,w);let c=(v.military32A.cohorts||[]).find(x=>x.role32B==='CORE_GARRISON'||x.id===`mc32b-${v.id}-1`);if(!c){c=new NS.MilitaryCohort({id:`mc32b-${v.id}-1`,nationId:v.id,name:`${v.name} 제1주둔대`,memberIds:[],tileId:v.coreTileId,homeTileId:v.coreTileId,status:'GARRISONED',training:0,morale:0,equipment:0,supply:0,fortification:0,createdDay:w.ordinalDay()});c.role32B='CORE_GARRISON';v.military32A.cohorts.push(c);ensureStats32B(v).cohortsFormed++;w.telemetry?.record?.('MILITARY_COHORT_FORMED32B',w,{village:v.name,cohortId:c.id,name:c.name,tileId:c.tileId,personBacked:true});}return c;}
-function syncFormation32B(v,w){NS.V032A.ensureMilitary(v,w);const active=activePeople32B(v),c=active.length?cohort32B(v,w):null;if(c){c.tileId=v.coreTileId;c.homeTileId=v.coreTileId;c.memberIds=active.map(p=>p.id);c.status='GARRISONED';const avg=(f)=>active.length?active.reduce((a,p)=>a+Number(f(p)||0),0)/active.length:0;c.training=+clamp32B(18+avg(p=>p.skills?.combat)*.52+Math.min(18,avg(p=>p.militaryServiceDays32A)/180*3),0,100).toFixed(1);c.v33c1BaseMorale=+clamp32B(avg(p=>p.happiness),0,100).toFixed(1);c.v33c1BattleMorale=Number(c.v33c1BattleMorale||0);c.morale=+clamp32B(c.v33c1BaseMorale+c.v33c1BattleMorale,0,100).toFixed(1);c.equipment=0;c.supply=+clamp32B(Number(v.foodReserveDays?.()||0)/55*100,0,100).toFixed(1);let g=(v.military32A.garrisons||[]).find(x=>x.id===`gar32b-${v.id}-${v.coreTileId}`||Number(x.tileId)===Number(v.coreTileId));if(!g){g=new NS.Garrison({id:`gar32b-${v.id}-${v.coreTileId}`,nationId:v.id,tileId:v.coreTileId,cohortIds:[c.id],status:'ACTIVE',fortification:0,createdDay:w.ordinalDay()});v.military32A.garrisons.push(g);ensureStats32B(v).garrisonsFormed++;w.telemetry?.record?.('GARRISON_ESTABLISHED32B',w,{village:v.name,tileId:v.coreTileId,cohortId:c.id});}g.cohortIds=[c.id];g.status='ACTIVE';}else{v.military32A.cohorts=(v.military32A.cohorts||[]).filter(x=>x.role32B!=='CORE_GARRISON'&&x.id!==`mc32b-${v.id}-1`);v.military32A.garrisons=(v.military32A.garrisons||[]).filter(x=>x.id!==`gar32b-${v.id}-${v.coreTileId}`);}}
+function syncFormation32B(v,w){NS.V032A.ensureMilitary(v,w);
+// Scale Lab HF1: this legacy sync historically put *all* active Persons in
+// CORE_GARRISON. In isolated 12v12/20v20 fixtures the active FIELD_FORCE
+// cohorts are authoritative: exclude their actual Person IDs from core.
+// Limit this exception to the six I3C Scale Lab fixtures only.
+const scaleFixture=NS.V033I3A?.isFixture?.(w)&&/^I3C-[BCD](?:12|20)-scale-/.test(String(w?.testScenario?.id||''));
+const activeAll=activePeople32B(v);
+const fieldIds=scaleFixture?new Set((v.military32A?.cohorts||[]).filter(x=>x.role32D1==='FIELD_FORCE').flatMap(x=>x.memberIds||[]).map(String)):null;
+const active=scaleFixture?activeAll.filter(p=>!fieldIds.has(String(p.id))):activeAll,c=active.length?cohort32B(v,w):null;if(c){c.tileId=v.coreTileId;c.homeTileId=v.coreTileId;c.memberIds=active.map(p=>p.id);c.status='GARRISONED';const avg=(f)=>active.length?active.reduce((a,p)=>a+Number(f(p)||0),0)/active.length:0;c.training=+clamp32B(18+avg(p=>p.skills?.combat)*.52+Math.min(18,avg(p=>p.militaryServiceDays32A)/180*3),0,100).toFixed(1);c.v33c1BaseMorale=+clamp32B(avg(p=>p.happiness),0,100).toFixed(1);c.v33c1BattleMorale=Number(c.v33c1BattleMorale||0);c.morale=+clamp32B(c.v33c1BaseMorale+c.v33c1BattleMorale,0,100).toFixed(1);c.equipment=0;c.supply=+clamp32B(Number(v.foodReserveDays?.()||0)/55*100,0,100).toFixed(1);let g=(v.military32A.garrisons||[]).find(x=>x.id===`gar32b-${v.id}-${v.coreTileId}`||Number(x.tileId)===Number(v.coreTileId));if(!g){g=new NS.Garrison({id:`gar32b-${v.id}-${v.coreTileId}`,nationId:v.id,tileId:v.coreTileId,cohortIds:[c.id],status:'ACTIVE',fortification:0,createdDay:w.ordinalDay()});v.military32A.garrisons.push(g);ensureStats32B(v).garrisonsFormed++;w.telemetry?.record?.('GARRISON_ESTABLISHED32B',w,{village:v.name,tileId:v.coreTileId,cohortId:c.id});}g.cohortIds=[c.id];g.status='ACTIVE';}else{v.military32A.cohorts=(v.military32A.cohorts||[]).filter(x=>x.role32B!=='CORE_GARRISON'&&x.id!==`mc32b-${v.id}-1`);v.military32A.garrisons=(v.military32A.garrisons||[]).filter(x=>x.id!==`gar32b-${v.id}-${v.coreTileId}`);}}
 function cleanup32B(v,w){NS.V032A.ensureMilitary(v,w);for(const p of v.residents||[]){ensurePerson32B(p);if(!p.alive)continue;if(p.militaryStatus32A==='active'&&!serviceEligible32B(p)){deactivate32B(v,w,p,false);}else if(p.militaryStatus32A==='active'){p._v32bMilitaryAssignment=true;p.assignment='PIONEER';}else if(p._v32bMilitaryAssignment){p.assignment=p._v32bPreviousAssignment??null;p._v32bMilitaryAssignment=false;}}
  const alive=new Set((v.residents||[]).filter(p=>p.alive).map(p=>String(p.id)));for(const c of v.military32A.cohorts||[])c.memberIds=(c.memberIds||[]).filter(id=>alive.has(String(id)));}
 function planMilitary32B(v,w,force=false){NS.V032A.ensureMilitary(v,w);cleanup32B(v,w);const st=ensureStats32B(v),now=CAL32B(w);if(!force&&now-Number(st.lastPlanDay||-99999)<80)return;st.lastPlanDay=now;const t=target32B(v,w),prepSumF2=NS.V033D2?.prepSummary?.(v,w),prepMinF2=Math.max(0,Number(prepSumF2?.pr?.goals?.active||0));if(prepMinF2>t.active){const beforeF2=t.active;t.active=Math.min(t.eligible,prepMinF2);NS.V033F2?.notePreparationFloor?.(v,w,beforeF2,t.active,prepSumF2);}const graceFloorF3=Math.max(0,Number(NS.V033F3?.demobilizationFloor?.(v,w,t.active)||0));if(graceFloorF3>t.active)t.active=Math.min(t.eligible,graceFloorF3);const lifecycleFloorA2=Math.max(0,Number(NS.V033F5A2?.demobilizationFloor?.(v,w,activePeople32B(v).length,t.active)||0));if(lifecycleFloorA2>t.active)t.active=Math.min(t.eligible,lifecycleFloorA2);st.targetActive=t.active;st.targetReserve=t.reserve;st.lastConcern=t.concern;v.military32A.doctrine=doctrine32B(v);v.military32A.mobilizationLevel=t.level;let active=activePeople32B(v),reserve=reservePeople32B(v),mobilized=[],demobilized=[],reserved=[],released=[];
@@ -11600,7 +11608,7 @@ try{const ui=window.villageObserver;if(ui){state(ui.world);ui.renderHeader?.();u
    but original V0.33D engagementRoundD retains all tactical/casualty/equipment effects. */
 window.VSim=window.VSim||{};(function(NS){'use strict';
 const VERSION='0.33I3A',REV='combat-scenario-isolation-v1';
-const isFixture=w=>w?.v33i3a?.mode==='ISOLATED_NATIVE_COMBAT'&&w?.testScenario?.category==='combat-regression'&&/^I3[AB]-/.test(String(w.testScenario.id||''));
+const isFixture=w=>w?.v33i3a?.mode==='ISOLATED_NATIVE_COMBAT'&&w?.testScenario?.category==='combat-regression'&&/^I3[ABC]-/.test(String(w.testScenario.id||''));
 const num=x=>Number(x)||0;
 function getEng(w){const z=w.v33i3a,war=(NS.V033D?.activeWars?.(w)||[]).find(x=>String(x.id)===String(z?.warId));const eng=(war?.engagements33D||[]).find(x=>String(x.id)===String(z?.engagementId));return{war,eng};}
 function delayOpening(w,war,eng){return isFixture(w)&&String(w.v33i3a.warId)===String(war.id)&&num(w.v33i3a.tileId)===num(eng.tileId)&&w.v33i3a.stage==='READY';}
@@ -11616,16 +11624,16 @@ function validate(w){const z=w.v33i3a,issues=[];if(!isFixture(w))return{ok:false
   const equipped=active.map(p=>p.militaryEquipment33I1||{});
   const expected=z.equipment[side]||[];
   const expectedById=new Map((z.rosters[side]||[]).map((id,i)=>[String(id),expected[i]]));
-  const ok=persons.length===6&&active.length===6&&equipped.length===expected.length&&active.every(p=>{const e=p.militaryEquipment33I1||{},want=expectedById.get(String(p.id));return !!want&&e.weaponId===want.weaponId&&e.armorId===want.armorId;});
-  if(z.stage==='READY'&&!ok)issues.push(`${side}_NOT_EXACT_SIX_EQUIPPED`);
+  const wantCount=ids.size;const ok=wantCount>=1&&wantCount<=40&&persons.length===wantCount&&active.length===wantCount&&equipped.length===expected.length&&active.every(p=>{const e=p.militaryEquipment33I1||{},want=expectedById.get(String(p.id));return !!want&&e.weaponId===want.weaponId&&e.armorId===want.armorId;});
+  if(z.stage==='READY'&&!ok)issues.push(`${side}_NOT_EXPECTED_ROSTER_EQUIPPED`);
   const all=(nation?.military32A?.cohorts||[]).filter(c=>c.role32B!=='CORE_GARRISON');
   const activeAtTile=new Set();
   for(const c of all)if(Number(c.tileId)===Number(z.tileId))for(const pid of c.memberIds||[])if((nation?.residents||[]).some(p=>String(p.id)===String(pid)&&p.alive&&p.militaryStatus32A==='active'))activeAtTile.add(String(pid));
-  if(z.stage==='READY'&&(activeAtTile.size!==6||[...activeAtTile].some(id=>!ids.has(id))))issues.push(`${side}_FORMATION_ROSTER_MISMATCH`);
-  bySide[side]={actual:active.length,expected:6,weapons:Object.fromEntries(expected.reduce((m,x)=>(m.set(x.weaponId,(m.get(x.weaponId)||0)+1),m),new Map()))};
+  if(z.stage==='READY'&&(activeAtTile.size!==ids.size||[...activeAtTile].some(id=>!ids.has(id))))issues.push(`${side}_FORMATION_ROSTER_MISMATCH`);
+  bySide[side]={actual:active.length,expected:ids.size,weapons:Object.fromEntries(expected.reduce((m,x)=>(m.set(x.weaponId,(m.get(x.weaponId)||0)+1),m),new Map()))};
  }
  const rec=NS.V033I3?.records?.(w,z.tileId)?.find(x=>String(x.id)===String(z.engagementId));
- if(z.stage==='READY'&&(eng.rounds!==0||!rec||rec.initial?.A?.manpower!==6||rec.initial?.B?.manpower!==6))issues.push('OPENING_ALREADY_EXECUTED_OR_UNBALANCED');
+ if(z.stage==='READY'&&(eng.rounds!==0||!rec||rec.initial?.A?.manpower!==z.rosters.A.length||rec.initial?.B?.manpower!==z.rosters.B.length))issues.push('OPENING_ALREADY_EXECUTED_OR_UNBALANCED');
  return{ok:issues.length===0,issues,bySide,rounds:num(eng.rounds),engagementStatus:eng.status,historyRounds:rec?.rounds?.length||0};
 }
 function isolatedDay(w){const z=w.v33i3a;if(z.stage==='READY'){
@@ -11692,9 +11700,9 @@ const prevToJSON=NS.Telemetry.prototype.toJSON;
 NS.Telemetry.prototype.toJSON=function(w){const d=prevToJSON.call(this,w);d.version=VERSION;Object.assign(d.worldSummary||{},{v33I3ARevision:REV,nativeCombatFixture33I3A:isFixture(w),nativeCombatFixtureState33I3A:isFixture(w)?w.v33i3a.stage:null,nativeCombatFixtureRoundCount33I3A:isFixture(w)?num(w.v33i3a.lastObservedRounds):0});return d;};
 if(NS.UI){const oldSetWorld=NS.UI.prototype.setWorld;NS.UI.prototype.setWorld=function(w){this._i3aBatchBaseline=null;this._i3aBatchResult=null;return oldSetWorld.call(this,w);};const oldHeader=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(){const r=oldHeader.call(this);document.title='Village Observer V0.33I3A';const b=this.q?.('versionBadge')||document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>V0.33I3A</strong>';if(isFixture(this.world)){
  let box=document.getElementById('i3aFixtureStatus');const parent=document.getElementById('v33i3LabPanel')||document.getElementById('v32e11ScenarioPanel');if(!box&&parent){box=document.createElement('div');box.id='i3aFixtureStatus';box.className='i3a-fixture-status';parent.insertAdjacentElement('beforebegin',box);}if(box){const z=this.world.v33i3a;if(z.stage==='READY'&&!this._i3aBatchBaseline)this._i3aBatchBaseline=JSON.stringify(this.world.serialize());
- box.innerHTML='<strong>⚔ I3B 격리 실전</strong> · '+String(this.world.testScenario.title||'')+'<div>상태: '+z.stage+' · 전투 라운드 '+num(z.lastObservedRounds)+' · 경과 '+num(z.elapsedCalendarDays)+'일</div><div class="muted small">일반 AI·인구·경제 정지, 실제 D 전투/장비 정산만 진행 · 타일 #'+num(z.tileId)+'</div>'+(this._i3aBatchBaseline?'<div><label>독립 재실행 <select id="i3aBatchCount"><option>10</option><option selected>30</option><option>100</option><option>300</option></select>회</label> <button id="i3aBatchRun" type="button">실전 엔진 반복</button> <button id="i3aBatchExport" type="button" '+(!this._i3aBatchResult?'disabled':'')+'>결과 JSON 내보내기</button></div>':'')+'<div id="i3aBatchStatus" class="muted small">'+(this._i3aBatchResult?('최근 결과 '+this._i3aBatchResult.iterations+'회 · A '+this._i3aBatchResult.summary.A+'승 / B '+this._i3aBatchResult.summary.B+'승 · 평균 '+this._i3aBatchResult.summary.avgRounds+'라운드'):'전투 첫 라운드가 시작되기 전 상태를 복원해 반복합니다.')+'</div>';
+ box.innerHTML='<strong>⚔ I3C 대규모 격리 실전</strong> · '+String(this.world.testScenario.title||'')+'<div>상태: '+z.stage+' · 전투 라운드 '+num(z.lastObservedRounds)+' · 경과 '+num(z.elapsedCalendarDays)+'일</div><div class="muted small">일반 AI·인구·경제 정지, 실제 D 전투/장비 정산만 진행 · 타일 #'+num(z.tileId)+'</div>'+(this._i3aBatchBaseline?'<div><label>독립 재실행 <select id="i3aBatchCount"><option>10</option><option selected>30</option><option>100</option><option>300</option></select>회</label> <button id="i3aBatchRun" type="button">실전 엔진 반복</button> <button id="i3aBatchExport" type="button" '+(!this._i3aBatchResult?'disabled':'')+'>결과 JSON 내보내기</button></div>':'')+'<div id="i3aBatchStatus" class="muted small">'+(this._i3aBatchResult?('최근 결과 '+this._i3aBatchResult.iterations+'회 · A '+this._i3aBatchResult.summary.A+'승 / B '+this._i3aBatchResult.summary.B+'승 · 평균 '+this._i3aBatchResult.summary.avgRounds+'라운드'):'전투 첫 라운드가 시작되기 전 상태를 복원해 반복합니다.')+'</div>';
  const run=box.querySelector('#i3aBatchRun'),status=box.querySelector('#i3aBatchStatus');if(run)run.onclick=async()=>{run.disabled=true;try{const count=Number(box.querySelector('#i3aBatchCount').value),result=await runNativeBatch(this._i3aBatchBaseline,count,12345,(n,total)=>{if(status?.isConnected)status.textContent=`실전 교전 반복 ${n}/${total}회 완료`;});this._i3aBatchResult=result;if(status?.isConnected)status.textContent=`${count}회 · A ${result.summary.A}승 / B ${result.summary.B}승 · 평균 ${result.summary.avgRounds}라운드 · 장비 오류 0`;const e=box.querySelector('#i3aBatchExport');if(e)e.disabled=false;}catch(e){if(status?.isConnected)status.textContent='반복 검증 실패: '+e.message;}finally{if(run.isConnected)run.disabled=false;}};
- const exportBtn=box.querySelector('#i3aBatchExport');if(exportBtn)exportBtn.onclick=()=>{if(this._i3aBatchResult)dl('village-observer-v033I3B-native-batch.json',JSON.stringify(this._i3aBatchResult,null,2));};}
+ const exportBtn=box.querySelector('#i3aBatchExport');if(exportBtn)exportBtn.onclick=()=>{if(this._i3aBatchResult)dl('village-observer-v033I3C-scale-native-batch.json',JSON.stringify(this._i3aBatchResult,null,2));};}
  }else{document.getElementById('i3aFixtureStatus')?.remove();}return r;};}
 const prevSave=NS.SaveSystem;
 function dl(name,text,type='application/json'){const a=document.createElement('a'),blob=new Blob([text],{type});a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
@@ -11860,5 +11868,48 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33I3C'
 try{window.villageObserver?.renderHeader?.();}catch(e){console.warn('I3C initial render',e);}
 })(window.VSim);
 
+</script>
+
+<script>
+/* I3C Scale Lab: restore a scenario's exact Person-backed field roster after
+ * legacy version loaders have run their ordinary peacetime mobilization attach.
+ * Combat power, phase casualty formulas and war rules are not touched. */
+(function(NS){'use strict';
+const prev=NS.World.from;
+NS.World.from=function(source){
+  const w=prev.call(this,source),z=w?.v33i3a;
+  if(!(z?.mode==='ISOLATED_NATIVE_COMBAT'&&(z.stage==='READY'||z.stage==='FIGHTING')&&
+       /^I3C-[BCD](?:12|20)-scale-/.test(String(w?.testScenario?.id||''))))return w;
+  for(const side of ['A','B']){
+    const v=(w.villages||[]).find(v=>Number(v.id)===Number(z.nations?.[side]));
+    const sv=(source?.villages||[]).find(v=>Number(v.id)===Number(z.nations?.[side]));
+    if(!v||!sv)continue;
+    const srcCoh=sv.military32A?.cohorts||[];
+    const srcById=new Map(srcCoh.map(c=>[String(c.id),c]));
+    const assigned=new Set();
+    for(const c of v.military32A?.cohorts||[]){
+      const original=srcById.get(String(c.id));if(!original)continue;
+      c.memberIds=[...(original.memberIds||[])];
+      if(c.role32B!=='CORE_GARRISON'){
+        c.tileId=Number(z.tileId);c.status='FIELD';
+        for(const id of c.memberIds)assigned.add(String(id));
+      }
+    }
+    for(const p of v.residents||[]){
+      if(!assigned.has(String(p.id)))continue;
+      const coh=(v.military32A?.cohorts||[]).find(c=>c.role32B!=='CORE_GARRISON'&&(c.memberIds||[]).includes(p.id));
+      p.militaryStatus32A='active';p.militaryCohortId32A=coh?.id||p.militaryCohortId32A;
+    }
+    for(const f of v.v32dMilitary?.formations||[]){
+      if(!(f.cohortIds||[]).some(cid=>(v.military32A?.cohorts||[]).some(c=>String(c.id)===String(cid)&&c.role32B!=='CORE_GARRISON')))continue;
+      f.tileId=Number(z.tileId);f.targetTileId=Number(z.tileId);f.status='ENGAGED';
+      const cohort=(v.military32A?.cohorts||[]).find(c=>(f.cohortIds||[]).includes(c.id));
+      if(z.stage==='READY')f.v33hReferenceManpower=cohort?.memberIds?.length||0;
+    }
+  }
+  return w;
+};
+NS.V033I3CScaleLab={fixtureSizes:[12,20],phaseRules:'0.33I3C-unmodified',hotfix:'HF1-core-field-roster-exclusivity'};
+})(window.VSim);
 </script>
 </body></html>
