@@ -1,3 +1,13 @@
+# Village Observer V0.34B-HF1 — 종전 후 철수 통행권 안정화
+
+**릴리스:** 2026-10-09 · **기준:** V0.34B · **범위:** 종전 후 군사 철수와 구조 관측만 변경, Settlement 1:1 유지
+
+- 최종 패치 세부 규칙, 보존성, 검증 범위: [`README-34B-HF1.md`](README-34B-HF1.md)
+- 브라우저 시작: `index.html` · 오프라인 대용량 세이브 구조 검사: `save-validator.html`
+- 기존 92년 자연주행에서 확인된 카이렌 `frm32d1-6-field1` / `war33-1` 장기 고립을 목표로 한 **철수 통행권과 목표 경쟁 방지 패치**다. 실제 92년 사용자 세이브 자체에서의 재현·해결 확인은 아직 남아 있다.
+
+---
+
 # Village Observer V0.34B — Settlement Entity V1
 
 **Release:** 2026-10-09  

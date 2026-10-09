@@ -7580,13 +7580,109 @@ function fieldFormsA(v,w){return formationsA(v,w).filter(f=>Array.isArray(f.coho
 function withdrawalA(f){return f?.v33aWithdrawal&&f.v33aWithdrawal.active?f.v33aWithdrawal:null;}
 function withdrawingCountA(v,w){return fieldFormsA(v,w).filter(f=>withdrawalA(f)).length;}
 function peacetimeForeignRowsA(v,w){if(activeWarA(w,v.id))return[];return fieldFormsA(v,w).filter(f=>{const t=w.map.get(Number(f.tileId));return t&&t.ownerId!=null&&!sameA(t.ownerId,v.id);});}
-function lastEndedWarWithA(w,a,b){return warsA(w).filter(x=>x.status==='ENDED'&&((sameA(x.attackerId,a)&&sameA(x.defenderId,b))||(sameA(x.attackerId,b)&&sameA(x.defenderId,a)))).sort((x,y)=>Number(y.endCal||0)-Number(x.endCal||0))[0]||null;}
+function participantIds34BHF1(war){
+ const ids=[...(war?.sideAIds||[]),...(war?.sideBIds||[])];
+ if(!ids.length)ids.push(war?.attackerId,war?.defenderId);
+ return [...new Set(ids.filter(x=>x!==null&&x!==undefined&&Number.isSafeInteger(Number(x))).map(Number))];
+}
+function endedWar34BHF1(w,id){return warsA(w).find(x=>String(x.id)===String(id)&&x.status==='ENDED')||null;}
+function lastEndedWarWithA(w,a,b){return warsA(w).filter(x=>x.status==='ENDED'&&participantIds34BHF1(x).includes(Number(a))&&participantIds34BHF1(x).includes(Number(b))).sort((x,y)=>Number(y.endCal||0)-Number(x.endCal||0))[0]||null;}
+function passport34BHF1(v,w,f,enemyId,oldState=null){
+ const d=f?.v33dReturnState, preferred=endedWar34BHF1(w,d?.warId||oldState?.warId),war=preferred&&participantIds34BHF1(preferred).includes(Number(v.id))?preferred:lastEndedWarWithA(w,v.id,enemyId);
+ const members=war?participantIds34BHF1(war):[];
+ const carried=(d?.warId&&String(d.warId)===String(war?.id))?d?.allowedOwnerIds:[];
+ const previous=(oldState?.warId&&String(oldState.warId)===String(war?.id))?oldState?.allowedOwnerIds:[];
+ const allowed=[...new Set([...members,...(carried||[]),...(previous||[])].map(Number).filter(x=>Number.isSafeInteger(x)&&x!==Number(v.id)))];
+ // No unrelated historical treaties: an unknown war retains only the original opposite owner.
+ if(!war&&!allowed.length&&Number.isSafeInteger(Number(enemyId)))allowed.push(Number(enemyId));
+ return {warId:war?.id||d?.warId||oldState?.warId||null,allowedOwnerIds:allowed,participants:war?members:[],sourceWarEndCal:war?Number(war.endCal||0):null};
+}
 function cohortA(v,id){return(v.military32A?.cohorts||[]).find(c=>String(c.id)===String(id));}
-function markWithdrawalA(v,w,f,source='POSTWAR'){if(!f||activeWarA(w,v.id))return false;const t=w.map.get(Number(f.tileId));if(!t||t.ownerId==null||sameA(t.ownerId,v.id)){if(f.v33aWithdrawal)delete f.v33aWithdrawal;return false;}const enemyId=Number(t.ownerId),war=lastEndedWarWithA(w,v.id,enemyId),now=CALA(w);if(withdrawalA(f))return true;f.v33aWithdrawal={active:true,opponentId:enemyId,warId:war?.id||null,startedCal:now,lastMoveCal:now-15,source};if(f.v33dReturnState){NS.V033F5A2?.noteWithdrawalOwnershipTransfer?.(v,w,f,f.v33dReturnState);delete f.v33dReturnState;}f.status='POSTWAR_WITHDRAWAL';f.targetReason='POSTWAR_WITHDRAWAL';w.telemetry?.record?.(source==='INVARIANT_RECOVERY'?'FOREIGN_FORMATION_RECOVERY33A':'POSTWAR_WITHDRAWAL_STARTED33A',w,{warId:war?.id||null,village:v.name,villageId:v.id,formationId:f.id,fromTileId:Number(f.tileId),foreignOwnerId:enemyId,foreignOwner:villageA(w,enemyId)?.name||null,source});return true;}
-function ensureWithdrawalsA(w,source='INVARIANT_RECOVERY'){let started=0;for(const v of w.activeVillages||[]){if(activeWarA(w,v.id))continue;for(const f of fieldFormsA(v,w)){const t=w.map.get(Number(f.tileId));if(t&&t.ownerId!=null&&!sameA(t.ownerId,v.id)&&!withdrawalA(f)){if(markWithdrawalA(v,w,f,source))started++;}else if(t&&sameA(t.ownerId,v.id)&&withdrawalA(f)){completeWithdrawalA(v,w,f,'ALREADY_HOME');}}}return started;}
-function pathHomeA(v,w,f,st){const from=Number(f.tileId),allowed=new Set([Number(v.id),Number(st.opponentId)]),dist=new Map([[from,0]]),prev=new Map(),open=[[0,from]];let goal=null;while(open.length){open.sort((a,b)=>a[0]-b[0]);const[d,id]=open.shift();if(d!==dist.get(id))continue;const t=w.map.get(id);if(t&&sameA(t.ownerId,v.id)){goal=id;break;}for(const n of w.map.neighbors4(id)){if(!n||!NS.TERRAIN?.[n.terrain]?.passable||(n.ownerId!=null&&!allowed.has(Number(n.ownerId))))continue;let step=Number(NS.TERRAIN?.[n.terrain]?.tradeCost||1);if((n.buildings||[]).includes('road'))step*=.72;const nd=d+step;if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);prev.set(n.id,id);open.push([nd,n.id]);}}}if(goal==null)return[];const p=[goal];let cur=goal;while(cur!==from){cur=prev.get(cur);if(cur==null)return[];p.push(cur);}return p.reverse();}
-function completeWithdrawalA(v,w,f,reason='REACHED_HOME'){const st=withdrawalA(f);if(!st)return false;const now=CALA(w),tile=Number(f.tileId);w.telemetry?.record?.('POSTWAR_WITHDRAWAL_COMPLETED33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,tileId:tile,durationCalendarDays:Math.max(0,now-Number(st.startedCal||now)),reason});delete f.v33aWithdrawal;f.status='RETURNED';f.targetReason='HOME_RETURNED';f.targetTileId=Number(f.homeTileId??v.coreTileId);f._v33LastMoveCal=now;return true;}
-function moveWithdrawalA(v,w,f){const st=withdrawalA(f);if(!st)return false;const now=CALA(w),here=w.map.get(Number(f.tileId));if(here&&sameA(here.ownerId,v.id))return completeWithdrawalA(v,w,f);const path=pathHomeA(v,w,f,st);if(path.length<2){st.lastMoveCal=now;if(now-Number(st.lastBlockedLogCal||-99999)>=90){st.lastBlockedLogCal=now;w.telemetry?.record?.('POSTWAR_WITHDRAWAL_BLOCKED33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,tileId:Number(f.tileId),opponentId:st.opponentId,reason:'NO_RETURN_PATH'});}return false;}const from=Number(f.tileId),to=Number(path[1]),info=NS.V033?.militaryMoveDays?.(v,w,f,from,to,'WITHDRAWAL')||{days:10};if(now-Number(st.lastMoveCal??-99999)<Number(info.days||10))return false;f.tileId=to;f.targetTileId=Number(path[path.length-1]);f.targetReason='POSTWAR_WITHDRAWAL';f.status='POSTWAR_WITHDRAWAL';f.lastMoveCal=now;f._v33LastMoveCal=now;f.v33c1NextMoveCal=now+Number(info.days||10);f.moveCount=Number(f.moveCount||0)+1;st.lastMoveCal=now;for(const cid of f.cohortIds||[]){const c=cohortA(v,cid);if(c){c.tileId=to;c.status='FIELD';}}w.telemetry?.record?.('POSTWAR_WITHDRAWAL_MOVE33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,fromTileId:from,toTileId:to,returnTileId:Number(path[path.length-1]),remainingSteps:Math.max(0,path.length-2),nonCombat:true,moveDays33C1:Number(info.days||10),mobility33C1:info});const dest=w.map.get(to);if(dest&&sameA(dest.ownerId,v.id))completeWithdrawalA(v,w,f);return true;}
+function markWithdrawalA(v,w,f,source='POSTWAR'){
+ if(!f||activeWarA(w,v.id))return false;
+ const t=w.map.get(Number(f.tileId));if(!t||t.ownerId==null||sameA(t.ownerId,v.id)){if(f.v33aWithdrawal)delete f.v33aWithdrawal;return false;}
+ const enemyId=Number(t.ownerId),now=CALA(w),existing=withdrawalA(f),passport=passport34BHF1(v,w,f,enemyId,existing);
+ if(existing){
+   const before=JSON.stringify(existing.allowedOwnerIds||[]);
+   if(passport.warId&&(!existing.warId||String(existing.warId)===String(passport.warId))){existing.warId=passport.warId;existing.allowedOwnerIds=passport.allowedOwnerIds;existing.participants=passport.participants;}
+   else if(!Array.isArray(existing.allowedOwnerIds))existing.allowedOwnerIds=[Number(existing.opponentId)];
+   if(before!==JSON.stringify(existing.allowedOwnerIds||[]))w.telemetry?.record?.('POSTWAR_ACCESS_RESTORED34BHF1',w,{warId:existing.warId,villageId:v.id,formationId:f.id,allowedOwnerIds:existing.allowedOwnerIds});
+   if(f.v33dReturnState){NS.V033F5A2?.noteWithdrawalOwnershipTransfer?.(v,w,f,f.v33dReturnState);delete f.v33dReturnState;}
+   return true;
+ }
+ f.v33aWithdrawal={active:true,opponentId:enemyId,warId:passport.warId,allowedOwnerIds:passport.allowedOwnerIds,participants:passport.participants,startedCal:now,lastMoveCal:now-15,accessSoftExpiryCal:now+360,source};
+ if(f.v33dReturnState){NS.V033F5A2?.noteWithdrawalOwnershipTransfer?.(v,w,f,f.v33dReturnState);delete f.v33dReturnState;}
+ f.status='POSTWAR_WITHDRAWAL';f.targetReason='POSTWAR_WITHDRAWAL';
+ w.telemetry?.record?.(source==='INVARIANT_RECOVERY'?'FOREIGN_FORMATION_RECOVERY33A':'POSTWAR_WITHDRAWAL_STARTED33A',w,{warId:passport.warId,village:v.name,villageId:v.id,formationId:f.id,fromTileId:Number(f.tileId),foreignOwnerId:enemyId,foreignOwner:villageA(w,enemyId)?.name||null,source});
+ w.telemetry?.record?.('POSTWAR_ACCESS_GRANTED34BHF1',w,{warId:passport.warId,villageId:v.id,formationId:f.id,allowedOwnerIds:passport.allowedOwnerIds,graceDays:360,withdrawalOnly:true});
+ return true;
+}
+function ensureWithdrawalsA(w,source='INVARIANT_RECOVERY'){
+ let started=0;
+ for(const v of w.activeVillages||[]){
+  if(activeWarA(w,v.id))continue;
+  for(const f of fieldFormsA(v,w)){
+   const t=w.map.get(Number(f.tileId));
+   if(t&&t.ownerId!=null&&!sameA(t.ownerId,v.id)){
+    const was=!!withdrawalA(f);if(markWithdrawalA(v,w,f,source)&&!was)started++;
+   }else if(t&&sameA(t.ownerId,v.id)&&withdrawalA(f))completeWithdrawalA(v,w,f,'ALREADY_HOME');
+  }
+ }
+ return started;
+}
+function pathHomeA(v,w,f,st){
+ const from=Number(f.tileId),allowed=new Set([Number(v.id),...(st.allowedOwnerIds||[st.opponentId]).map(Number)]),dist=new Map([[from,0]]),prev=new Map(),open=[[0,from]];
+ let goal=null;
+ while(open.length){
+  open.sort((a,b)=>a[0]-b[0]);const[d,id]=open.shift();if(d!==dist.get(id))continue;
+  const t=w.map.get(id);if(t&&sameA(t.ownerId,v.id)){goal=id;break;}
+  for(const n of w.map.neighbors4(id)){
+   if(!n||!NS.TERRAIN?.[n.terrain]?.passable||(n.ownerId!=null&&!allowed.has(Number(n.ownerId))))continue;
+   let step=Number(NS.TERRAIN?.[n.terrain]?.tradeCost||1);if((n.buildings||[]).includes('road'))step*=.72;
+   const nd=d+step;if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);prev.set(n.id,id);open.push([nd,n.id]);}
+  }
+ }
+ if(goal==null)return[];
+ const p=[goal];let cur=goal;while(cur!==from){cur=prev.get(cur);if(cur==null)return[];p.push(cur);}return p.reverse();
+}
+function completeWithdrawalA(v,w,f,reason='REACHED_HOME'){
+ const st=withdrawalA(f);if(!st)return false;
+ const now=CALA(w),tile=Number(f.tileId);
+ w.telemetry?.record?.('POSTWAR_WITHDRAWAL_COMPLETED33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,tileId:tile,durationCalendarDays:Math.max(0,now-Number(st.startedCal??now)),reason});
+ w.telemetry?.record?.('POSTWAR_ACCESS_REVOKED34BHF1',w,{warId:st.warId||null,villageId:v.id,formationId:f.id,reason});
+ delete f.v33aWithdrawal;delete f.v33dReturnState;
+ f.status='RETURNED';f.targetReason='HOME_RETURNED';f.targetTileId=Number(f.homeTileId??v.coreTileId);f._v33LastMoveCal=now;
+ return true;
+}
+function moveWithdrawalA(v,w,f){
+ const st=withdrawalA(f);if(!st)return false;
+ const now=CALA(w),here=w.map.get(Number(f.tileId));if(here&&sameA(here.ownerId,v.id))return completeWithdrawalA(v,w,f);
+ if(now>Number(st.accessSoftExpiryCal??(Number(st.startedCal||now)+360))&&now>=Number(st.lastExtensionCal||0)+360){st.lastExtensionCal=now;w.telemetry?.record?.('POSTWAR_ACCESS_EXTENDED34BHF1',w,{warId:st.warId,villageId:v.id,formationId:f.id,withdrawalOnly:true});}
+ const path=pathHomeA(v,w,f,st);
+ if(path.length<2){
+  if(st.blockedSinceCal==null)st.blockedSinceCal=now;
+  st.lastMoveCal=now;
+  if(now-Number(st.lastBlockedLogCal??-99999)>=90){st.lastBlockedLogCal=now;w.telemetry?.record?.('POSTWAR_WITHDRAWAL_BLOCKED33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,tileId:Number(f.tileId),opponentId:st.opponentId,allowedOwnerIds:st.allowedOwnerIds,blockedDays:now-st.blockedSinceCal,reason:'NO_RETURN_PATH'});}
+  // A long, verified physical dead end is resolved as noncombat diplomatic repatriation.
+  // No synthetic Person or equipment; this is explicitly NOT path-based military access.
+  const validWar=endedWar34BHF1(w,st.warId),home=w.map.get(Number(v.coreTileId))?.ownerId==v.id?w.map.get(Number(v.coreTileId)):(w.map.tiles||[]).find(t=>sameA(t.ownerId,v.id)&&NS.TERRAIN?.[t.terrain]?.passable);
+  if(validWar&&participantIds34BHF1(validWar).includes(Number(v.id))&&home&&now-Number(st.blockedSinceCal)>=720&&now-Number(st.startedCal)>=720){
+   const from=Number(f.tileId);f.tileId=Number(home.id);f.lastMoveCal=now;f._v33LastMoveCal=now;f.v33c1NextMoveCal=now;
+   for(const cid of f.cohortIds||[]){const c=cohortA(v,cid);if(c){c.tileId=Number(home.id);c.status='FIELD';}}
+   w.telemetry?.record?.('POSTWAR_DIPLOMATIC_REPATRIATION34BHF1',w,{warId:st.warId,villageId:v.id,formationId:f.id,fromTileId:from,toTileId:Number(home.id),blockedDays:now-st.blockedSinceCal,nonCombat:true,noNewPersons:true,noEquipmentTransfer:true});
+   completeWithdrawalA(v,w,f,'DIPLOMATIC_REPATRIATION');return true;
+  }
+  return false;
+ }
+ if(st.blockedSinceCal!=null){w.telemetry?.record?.('POSTWAR_PATH_REOPENED34BHF1',w,{warId:st.warId,villageId:v.id,formationId:f.id,blockedDays:now-Number(st.blockedSinceCal),pathSteps:path.length-1});delete st.blockedSinceCal;}
+ const from=Number(f.tileId),to=Number(path[1]),info=NS.V033?.militaryMoveDays?.(v,w,f,from,to,'WITHDRAWAL')||{days:10};
+ // D and A return handlers can run in the same day. Never grant two moves.
+ if(Number(f._v33LastMoveCal)===now||now-Number(st.lastMoveCal??-99999)<Number(info.days||10))return false;
+ f.tileId=to;f.targetTileId=Number(path[path.length-1]);f.targetReason='POSTWAR_WITHDRAWAL';f.status='POSTWAR_WITHDRAWAL';f.lastMoveCal=now;f._v33LastMoveCal=now;f.v33c1NextMoveCal=now+Number(info.days||10);f.moveCount=Number(f.moveCount||0)+1;st.lastMoveCal=now;
+ for(const cid of f.cohortIds||[]){const c=cohortA(v,cid);if(c){c.tileId=to;c.status='FIELD';}}
+ w.telemetry?.record?.('POSTWAR_WITHDRAWAL_MOVE33A',w,{warId:st.warId||null,village:v.name,villageId:v.id,formationId:f.id,fromTileId:from,toTileId:to,returnTileId:Number(path[path.length-1]),remainingSteps:Math.max(0,path.length-2),nonCombat:true,moveDays33C1:Number(info.days||10),mobility33C1:info,allowedOwnerIds:st.allowedOwnerIds});
+ const dest=w.map.get(to);if(dest&&sameA(dest.ownerId,v.id))completeWithdrawalA(v,w,f);return true;
+}
 function withdrawalPulseA(w){ensureWithdrawalsA(w);for(const v of w.activeVillages||[]){if(activeWarA(w,v.id))continue;for(const f of fieldFormsA(v,w))if(withdrawalA(f))moveWithdrawalA(v,w,f);}}
 function snapshotWithdrawalFormsA(v,w){const rows=fieldFormsA(v,w).filter(f=>withdrawalA(f));if(!rows.length)return null;return rows.map(f=>({f,id:f.id,state:{tileId:f.tileId,targetTileId:f.targetTileId,status:f.status,lastMoveCal:f.lastMoveCal,lastPlanCal:f.lastPlanCal,moveCount:f.moveCount,targetReason:f.targetReason,recentTrail:cloneA(f.recentTrail||[])},coh:(f.cohortIds||[]).map(id=>{const c=cohortA(v,id);return c?{c,tileId:c.tileId,status:c.status}:null;}).filter(Boolean)}));}
 function restoreWithdrawalFormsA(rows){for(const x of rows||[]){Object.assign(x.f,cloneA(x.state));for(const q of x.coh){q.c.tileId=q.tileId;q.c.status=q.status;}}}
@@ -7631,6 +7727,7 @@ const savePrevA=NS.SaveSystem;(function(){const KEY='village-observer-v0-33a',fa
 if(typeof document!=='undefined'){const st=document.createElement('style');st.textContent=`.v33a-banner{display:none;margin:0 0 8px;padding:9px 11px;border:1px solid rgba(255,90,90,.65);border-radius:11px;background:rgba(150,35,35,.18);box-shadow:0 0 0 1px rgba(255,70,70,.08) inset}.v33a-banner>div{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.v33a-banner b{color:#ffb0b0}.v33a-banner span{font-size:11px;color:#ffd0d0}.v33a-history{display:grid;gap:8px;max-height:58vh;overflow:auto}.v33a-warcard,.v33a-recent{border:1px solid rgba(120,150,190,.3);border-radius:11px;padding:9px;background:rgba(255,255,255,.025)}.v33a-warcard.active{border-color:rgba(255,90,90,.55);background:rgba(145,45,45,.08)}.v33a-wargrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.v33a-wargrid span,.v33a-miniwar{font-size:11px;padding:6px 7px;border-radius:8px;background:rgba(255,255,255,.04)}.v33a-miniwar{margin-top:5px}@media(max-width:760px){.v33a-wargrid{grid-template-columns:repeat(2,minmax(0,1fr))}}`;document.head.appendChild(st);}
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33A'))NS.PATCH_NOTES.unshift({version:'V0.33A',date:'2026-09-28',title:'Post-war Withdrawal + War Observer',summary:'첫 자연전쟁에서 발견된 종전 후 외국 영토 Formation 고립을 수정하고, 현재 전쟁을 지도에서 놓치지 않도록 전쟁 배너/전선 표시를 추가하며, 종료된 전쟁을 통계·국가 군사 탭에서 다시 볼 수 있게 합니다.',sections:[['종전 후 철군',['평화 상태에서 외국 영토에 남은 Field Formation은 POSTWAR_WITHDRAWAL 상태로 자동 전환됩니다.','철군 중에는 직전 교전국 영토를 비전투로 통과하며 기존 15 calendar-day/1 tile 속도로 가장 가까운 자국 영토까지 귀환합니다.','철군 중 Formation은 평시 BORDER/RESOURCE planner의 목표 변경과 이동에서 보호되며 점령·전투를 수행하지 않습니다.','평화+외국 영토 Formation invariant가 매일 복구를 시도하고 저장/불러오기 후에도 철군 상태를 유지합니다.']],['지도 전쟁 가시성',['전쟁 중에는 지도 상단에 교전국과 전쟁 경과일을 표시하는 붉은 배너를 노출합니다.','교전국 사이 실제 국경을 붉은 점선 전선으로 강조하고 전쟁 참가 Field Formation 위치에 붉은 링을 표시합니다.','기존 임시 점령 사선 표시는 그대로 유지합니다.']],['War History',['World v33War.wars의 현재/과거 전쟁을 통계 탭의 전쟁 기록 패널에서 시간순으로 열람할 수 있습니다.','국가 군사 탭에는 해당 국가의 최근 전쟁을 간단히 표시합니다.','누적 점령 타일, 최대 동시 점령, 수도 점령 여부를 전쟁 이력에 보존하며 기존 0.33 저장은 남아 있는 war telemetry에서 가능한 범위까지 자동 보강합니다.']],['관측·회귀',['CSV에 철군 Formation 수와 평시 외국군 invariant를 추가합니다.','철군 중에는 새 전쟁 선포 대상에서 제외해 전후 복귀가 끝나기 전에 다른 전쟁으로 재진입하는 것을 막습니다.','승전 보상·배상·영구 영토 할양 등 Peace Outcome 시스템은 이번 A에 추가하지 않습니다.']]]});
 NS.V033A={revision:REV33A,attachWorld:attachA,withdrawalPulse:withdrawalPulseA,withdrawingCount:withdrawingCountA,foreignRows:peacetimeForeignRowsA,history:historyObjA,combat:true};
+NS.V034BHF1Core=Object.freeze({passport:passport34BHF1,pathHome:pathHomeA,mark:markWithdrawalA,move:moveWithdrawalA,ensure:ensureWithdrawalsA,participantIds:participantIds34BHF1});
 try{const ui=window.villageObserver;if(ui){ui.world=attachA(ui.world);withdrawalPulseA(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33A startup attach failed',e);}
 })(window.VSim);
 </script>
@@ -12190,6 +12287,51 @@ NS.Telemetry.prototype.toJSON=function(w){const d=oldToJSON.call(this,w);d.versi
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-09',title:'Settlement Entity V1',summary:'독립 Settlement 레지스트리를 도입했습니다. 현 버전은 영유 타일과 Settlement를 1:1로 대응시키고 경제·전투·물류 규칙을 유지합니다.',sections:[['정착지 구조',['World.v34b.settlements[]에 영속 ID, 국가 ID, 중심 타일, 타일 목록, 상태와 생성일을 기록합니다.','정착지에 자원·건물·Gold를 복제하지 않고 타일의 실제 데이터가 계속 권위를 가집니다.']],['영토 이벤트',['개척 및 신규 영유에 새 Settlement를 생성합니다.','영토 양도 시 Settlement ID를 보존한 채 nationId를 바꾸고, 영유 상실 시 역사 기록을 ABANDONED 처리합니다.']],['호환성·검증',['34A/HF2 구세이브를 기존 World.from 복원 후 자동 이관합니다.','VSim.V034B.inspect(world)에서 독립 관계·1:1 대응·이력 ID 재사용을 검사할 수 있습니다.']],['후속 계획',['여러 타일의 물류 1일 접근권 병합은 0.34C에서 다룹니다.']]]});
 NS.V034B=Object.freeze({version:VERSION,schema:SCHEMA,attach,inspect,createdCount:w=>w?.v34b?.settlements?.length||0,settlementForTile:(w,id)=>{attach(w,null);const t=w.map.get(Number(id));return w._v34bActive.get(String(t?.settlementId))||null;}});
 try{if(window.villageObserver?.world)attach(window.villageObserver.world,null);window.villageObserver?.renderHeader?.();}catch(e){console.warn('V034B initial attach',e);}
+})(window.VSim);
+</script>
+<script>
+/* V0.34B-HF1 — noncombat postwar access and target-owner guard. */
+(function(NS){'use strict';
+const VERSION='V0.34B-HF1', PREV='V0.34B';
+const CAL=w=>Number(w?.calendarOrdinalDay?.()??0);
+const forms=(v,w)=>v?.v32dMilitary?.formations||[];
+const withdrawing=f=>!!(f?.v33aWithdrawal?.active||f?.v33dReturnState||String(f?.status||'').includes('POSTWAR_WITHDRAWAL'));
+function liveWars(w,id){return(NS.V033D?.warsForNation?.(w,id)||[]).filter(x=>x.status==='ACTIVE');}
+function guarded(v,w){if(!w||liveWars(w,v.id).length)return[];return forms(v,w).filter(f=>withdrawing(f)).map(f=>({f,tileId:f.tileId,targetTileId:f.targetTileId,targetReason:f.targetReason,status:f.status,lastPlanCal:f.lastPlanCal,lastMoveCal:f.lastMoveCal,nextMove:f.v33c1NextMoveCal,trail:f.recentTrail,moveCount:f.moveCount,coh:(f.cohortIds||[]).map(cid=>(v.military32A?.cohorts||[]).find(c=>String(c.id)===String(cid))).filter(Boolean).map(c=>({c,tileId:c.tileId,status:c.status}))}));}
+function restore(rows){for(const o of rows){const f=o.f;f.tileId=o.tileId;f.targetTileId=o.targetTileId;f.targetReason=o.targetReason;f.status=o.status;f.lastPlanCal=o.lastPlanCal;f.lastMoveCal=o.lastMoveCal;f.v33c1NextMoveCal=o.nextMove;f.recentTrail=o.trail;f.moveCount=o.moveCount;for(const x of o.coh){x.c.tileId=x.tileId;x.c.status=x.status;}}}
+// Outer guard catches planners added after V0.33A's original daily/seasonal protection.
+for(const key of ['dailyTick','seasonalTick']){const previous=NS.Village.prototype[key];NS.Village.prototype[key]=function(w,...args){const rows=guarded(this,w);if(!rows.length)return previous.call(this,w,...args);const keyset=new Set(rows.map(o=>String(o.f.id)));const prevGuard=w._v34bHF1Guard;w._v34bHF1Guard={nationId:Number(this.id),formationIds:keyset};try{return previous.call(this,w,...args);}finally{restore(rows);w._v34bHF1Guard=prevGuard;}};}
+const oldRecord=NS.Telemetry.prototype.record;
+NS.Telemetry.prototype.record=function(type,w,payload={}){
+ const guard=w?._v34bHF1Guard;
+ if(guard&&['FORMATION_TARGET_CHANGED32D','FORMATION_MOVEMENT32D'].includes(type)&&Number(payload?.villageId)===guard.nationId&&guard.formationIds.has(String(payload?.formationId)))return null;
+ return oldRecord.call(this,type,w,payload);
+};
+function inspect(w){const z=NS.V034B.inspect(w,{baseline:false});let withdrawingCount=0,blocked=0,badAccess=0;
+ for(const v of w.activeVillages||[])for(const f of forms(v,w)){if(!withdrawing(f))continue;withdrawingCount++;const st=f.v33aWithdrawal;if(st?.blockedSinceCal!=null)blocked++;if(st&&st.allowedOwnerIds&&!st.allowedOwnerIds.every(x=>Number.isSafeInteger(Number(x))))badAccess++;}
+ return {ok:z.ok&&badAccess===0,settlements:z.counts,registryErrors:z.errors.length,withdrawing:withdrawingCount,blockedWithdrawals:blocked,badPassports:badAccess};}
+const oldSnapshot=NS.Telemetry.prototype.snapshot;
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){const row=oldSnapshot.call(this,w,reason,note);if(row){const a=inspect(w);Object.assign(row.global,{activeSettlements34B:a.settlements?.activeSettlements??0,abandonedSettlements34B:a.settlements?.abandonedSettlements??0,settlementRegistryErrors34B:a.registryErrors,postwarWithdrawing34BHF1:a.withdrawing,postwarBlocked34BHF1:a.blockedWithdrawals});}return row;};
+const previousCSV=NS.Telemetry.prototype.snapshotsCSV;
+NS.Telemetry.prototype.snapshotsCSV=function(){const lines=previousCSV.call(this).split('\n');if(lines.length<2)return lines.join('\n');const keys=['activeSettlements34B','abandonedSettlements34B','settlementRegistryErrors34B','postwarWithdrawing34BHF1','postwarBlocked34BHF1'];const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';lines[0]+=','+keys.map(q).join(',');let i=1;for(const s of this.snapshots||[])for(const row of s.villages||[]){if(i<lines.length)lines[i++]+=','+keys.map(k=>q(s.global?.[k])).join(',');}return lines.join('\n');};
+const oldToJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldToJSON.call(this,w);d.version=VERSION;d.worldSummary.v034bHF1Revision='postwar-coalition-passport-and-target-guard';d.worldSummary.v034bHF1State=inspect(w);return d;};
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;d.v34bHF1={revision:'postwar-coalition-passport-and-target-guard'};return d;};
+NS.World.from=function(data){return oldFrom(String(data?.version||'')===VERSION?{...data,version:PREV}:data);};
+const prevSave=NS.SaveSystem;
+function dl(name,content,mime='application/json'){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type:mime}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+NS.SaveSystem={...prevSave,
+ save(w){const s=JSON.stringify(w.serialize());try{localStorage.setItem('village-observer-v034b-hf1',s);}catch(e){throw Error('로컬 저장 공간 부족: 세이브 JSON 파일로 내보내세요. '+String(e.message||e));}},
+ load(){const s=localStorage.getItem('village-observer-v034b-hf1');return s?NS.World.from(JSON.parse(s)):prevSave.load?.();},
+ export(w){dl('village-observer-v034B-HF1-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
+ exportDevJSON(w){dl('village-observer-v034B-HF1-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));},
+ exportDevCSV(w){const csv=w.telemetry.snapshotsCSV(),v=NS.V032E14?.validateCSV?.(csv);if(v&&!v.ok)throw Error('V034B-HF1 CSV schema mismatch '+JSON.stringify(v.bad?.slice(0,4)));dl('village-observer-v034B-HF1-snapshots-'+w.telemetry.sessionId+'.csv','\ufeff'+csv,'text/csv;charset=utf-8');}
+};
+if(NS.UI){const oldHead=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(){const r=oldHead.call(this);document.title='Village Observer '+VERSION;const el=document.getElementById('versionBadge');if(el)el.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';return r;};}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-09',title:'종전 후 연합군 철수 통행권 안정화',summary:'종전 후 참전국 전체에 철수 전용 통행권을 유지하고, 평시 AI 목표가 철수 중 Formation을 덮어쓰는 문제를 막습니다. 다중 타일 Settlement는 변경하지 않습니다.',sections:[['철수 전용 통행권',['종전 당시 같은 편과 상대편의 모든 참여국 영토를 철군 중에만 통과할 수 있습니다.','최초 유예 360일이 지나도 철수가 완료되지 않으면 철수 권한을 연장하되 전투·점령·일반 군사이동에 사용할 수 없습니다.','참전하지 않은 제3국 영토는 일반적으로 통과할 수 없습니다.']],['경로 실패',['물리적 철수 경로가 720일 연속 없는 경우, 실제 참전 기록을 가진 Formation만 외교 송환으로 자국으로 돌려보냅니다.','외교 송환은 전투 이동이 아닌 추상화된 비전투 송환이며 Person·장비·Gold를 생성하거나 소멸시키지 않습니다.']],['군사 제어권',['철수 중 Formation에 대한 평시 국경/자원 목표 갱신을 차단하고 관련 중복 로그를 억제합니다.','철수 시작·통행 복원·유예 연장·송환·귀환·권한 해제 이벤트를 기록합니다.']],['Settlement 관측',['Snapshot/CSV에 ACTIVE/ABANDONED Settlement 수와 레지스트리 오류 수, 철수·경로 고착 수를 추가합니다.','전쟁 승패·전투·경제·생애 계산식은 변경하지 않습니다.']]]});
+NS.V034BHF1=Object.freeze({version:VERSION,inspect,passport:NS.V034BHF1Core?.passport,pathHome:NS.V034BHF1Core?.pathHome,mark:NS.V034BHF1Core?.mark,move:NS.V034BHF1Core?.move});
+try{window.villageObserver?.renderHeader?.();}catch(e){console.warn('V0.34B HF1 header',e);}
 })(window.VSim);
 </script>
 </body></html>
