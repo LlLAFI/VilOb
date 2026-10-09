@@ -1,3 +1,15 @@
+# Village Observer V0.34C1 — Spatial Simulation Optimization V1
+
+**릴리스:** 2026-10-09 · **기준선:** V0.34C
+
+- **실행:** [`index.html`](index.html)
+- **이번 패치 구현·호환성·주의사항:** [`README-34C1.md`](README-34C1.md)
+- **테스트 결과:** [`TEST-34C1.md`](TEST-34C1.md)
+- **오프라인 저장 검사:** [`save-validator.html`](save-validator.html) (34B v1/34C·C1 v2)
+- **성능 판정:** 유지보수 계획 일부 최적화, 전체 SIM 10~20% 개선은 **미확인**. 기존 Person·경제·군사 규칙 유지.
+
+---
+
 # Village Observer V0.34B-HF1 — 종전 후 철수 통행권 안정화
 
 **릴리스:** 2026-10-09 · **기준:** V0.34B · **범위:** 종전 후 군사 철수와 구조 관측만 변경, Settlement 1:1 유지
