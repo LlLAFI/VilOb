@@ -1,4 +1,6 @@
-# Village Observer V0.34C1 — Spatial Simulation Optimization V1
+# Village Observer V0.34C1A — Seasonal Hotpath Optimization V1
+
+> **최신 안정화 패치:** [V0.34C1A 분기 유지보수 병목 최적화](README-34C1A.md). 이전 34C1 변경 사항과 별도로 100일 결정론적 비교시험으로 물리 상태를 검증했습니다.
 
 **릴리스:** 2026-10-09 · **기준선:** V0.34C
 
