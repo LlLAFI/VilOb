@@ -1,3 +1,62 @@
+# Village Observer V0.34B — Settlement Entity V1
+
+**Release:** 2026-10-09  
+**Base:** V0.34A · Structural Audit & Baseline  
+**Scope:** Independent Settlement registry, 1:1 tile migration, lifecycle and ownership synchronization. **Not** multi-tile settlement merging.
+
+## 구현
+
+1. `World.v34b = {schema, schemaVersion, revision, nextSettlementSeq, settlements[]}` 신설.
+2. 각 ACTIVE Settlement에 `id=st-NNNNNNN`, `nationId`, `coreTileId`, `tileIds:[tileId]`, `lifecycle`, `createdCalendarDay` 저장. `Tile.settlementId`는 역방향 참조.
+3. 34A/HF2의 완전 복원 완료 후, 기존 영유 타일을 **타일 ID 오름차순**으로 이관한다. 1:1 대응이며 국가·타일·Person 물리 자산을 옮기지 않는다.
+4. 타일 영유권 setter 관찰을 통해 개척/멸망/재영유/영토 양도를 감지한다. 영유국 A→B 직접 전환은 Settlement ID를 **보존**하고, 소유→무소유는 해당 ID를 ABANDONED로 남기며 재영유 시 **새 ID**를 발급한다. 단일 타일 정착지 정책에만 적용한다.
+5. 저장 시 `V0.34B`, `v34b` 및 타일의 `settlementId`를 직렬화한다. 로드 시 기존 34A 체인을 통과한 다음 기록 및 역방향 참조를 감사한다. 불일치한 34B 세이브는 **오류를 보고하며 로드를 거부**한다. 원본 저장 파일 자체를 수정하지 않는다.
+6. 내장 읽기 전용 검사: `VSim.V034B.inspect(world)`. 정상인 경우 `{ok:true, errors:[]}` 반환. `VSim.V034B.settlementForTile(world,tileId)`로 해당 타일의 Settlement 조회.
+7. 34A 로더 계열에서 관측된 **저장된 `birthOrdinal24` 재생성 문제**를 이관 시 원본 저장값 복원으로 보완. 이미 있는 유효한 출생일 값만 복원하며 출산·성장 수식은 변경하지 않는다. 이 수정으로 기존 34A 로더의 무작위 재구성 동작과 비교하면 이후 생애 이벤트가 달라질 수 있다.
+
+## 불변조건
+
+- 영유 타일 **정확히 하나** ↔ ACTIVE Settlement 정확히 하나.
+- 무주지/수역 `settlementId=null`.
+- ACTIVE Settlement 소유국 `nationId === Tile.ownerId`; `tileIds=[coreTileId]`.
+- ABANDONED 기록은 `tileIds=[]`이므로 물리 타일에 더 이상 연결되지 않음.
+- `nextSettlementSeq > max(existing settlement ID sequence)`.
+- `Tile.ownerId`는 여전히 영유권만 표현한다. `v33OccupierId`는 별도 일시 점령.
+- Person `homeTileId`, `workTileId`, `villageId`, 시설, 재고, 경제, 전쟁 및 AI 의사결정 경로 자체는 유지.
+
+## 대용량 사용자 저장 파일
+
+사용자의 **67년 1분기 15일 / Person 854 / 영유 타일 276 / 96.80MB** 원본 파일은 전달받지 못했으며 아직 34B 로더에서 실제로 불러오지 않았다. 해당 상태를 **34B에서도 읽어 검증했다고 주장하지 않는다.**
+
+1. 34A 원본 세이브는 별도로 보관한다(덮어쓰지 않음).
+2. **34B `index.html`에서 기존 세이브 가져오기** → 날짜 진행 전에 새 34B 파일로 내보내기.
+3. **34B `save-validator.html`**로 새 파일을 검사해 경량 `v034B-audit-...json` 보고서 다운로드.
+4. **34B 검사기의 보고서 비교 UI**에서 이미 받은 34A 보고서(`v034A-audit-67y-...json`)와 이번 보고서를 비교한다.
+5. 기대: ACTIVE 276, ABANDONED 0, Nation/Tile/Person 지문 불일치 0건, 구조 오류 0건. 한 항목이라도 다르면 실행을 계속하지 말고 원본을 유지해 원인 파악.
+6. 세이브 96.80MB의 약 87%를 차지하는 Telemetry는 이번 패치에서 절대 삭제·압축하지 않는다. localStorage 용량 한계를 넘으면 **파일 다운로드** 방식을 이용한다.
+
+## 검증 및 제외
+
+- 브라우저 테스트: 34A 소형 세이브 이관/재저장, 소유권 lifecycle 네 경로, 고의 오류, 같은 세이브 60일 결정적 비교, 전투 시나리오 B/C/D 각 45일, 실제 멸망·재영유, 19·50·100 크기 맵 각 30일.
+- 검사기: 34A↔34B 원본 주요 물리 지문 3종 일치, 34B 정착지 데이터 고의 훼손 탐지.
+- 모든 테스트는 **소형 또는 통제 세계**의 결과. 실제 854명 사용자 세이브의 복원·장기 자연주행·종전 자동 영토 양도, 2,000 Person 성능/모든 스폰맵 호환성까지 검증한 것은 아니다.
+- 실제 다중 타일 결합, 중심지 기준 **물류시간 1일 이내** 조건은 **V0.34C**.
+- 물류, 생산, 출산/사망 수식, 전쟁·군사/장비 생산, AI 행동 계수, Telemetry 데이터 압축은 변경하지 않는다.
+
+## 패키지 주요 파일
+
+- `index.html`: 실행 본편 V0.34B
+- `save-validator.html`: 대용량 오프라인 세이브 검증기 V2 (34B Registry 추가 검증 및 34A↔34B 지문 비교)
+- `README.md`: 전체 개발 문서 (누적 역사)
+- `TEST-REPORT.md`: 최신 결과 및 34A 역사 보고
+- `scenarios/`: 기존 I3C B/C/D 회귀용 저장 시나리오
+- `TEST-RESULTS.json`, `EXTENDED-RESULTS.json`, `SCENARIO-RESULTS.json`, `VALIDATOR-RESULTS.json`: 재현 결과
+
+
+---
+
+## 이전 버전 전체 변경 이력 (V0.34A 및 이전)
+
 # V0.34A — Structural Audit & Baseline
 
 정식 앞선 버전 **V0.33I3C-HF2**로부터 개발을 이어받은 V0.34의 첫 실행 가능한 계측 릴리스다. **새 Settlement의 게임 플레이 동작은 아직 없다.**
@@ -740,3 +799,20 @@ I1A1 전장 회수 로직은 다음과 같이 불변이다.
 - 장기 성능: 폐허 장비 존재 타일의 ID만 메모리 인덱스로 검사하며, 평상시에는 전체 지도를 매일 스캔하지 않습니다.
 - 재영유 장비는 소유국의 가까운 실물 보급 거점(없으면 영유한 타일)에 입고하며, 새로운 물자를 만들지 않습니다.
 - 군사 Formation 저장 구조의 지휘관 Person/공석 만료일 필드가 구형 복원 생성자에서 누락될 수 있어 해당 필드도 저장·불러오기 시 보존하도록 수정합니다.
+
+---
+
+## V0.34A 추가 도구: 대용량 세이브 로컬 검증 (2026-10-09)
+
+`save-validator.html`은 **별도 실행하는 오프라인 정적 HTML 도구**다. 본편 `index.html`의 시뮬레이션 규칙·루프·저장 데이터 버전은 변경하지 않는다.
+
+1. 압축파일을 푼 뒤 `save-validator.html`을 브라우저에서 직접 연다. 본편은 실행하지 않아도 된다.
+2. 로컬 PC의 `village-observer-v034A-save-...json`을 선택하고 **구조 검사 시작**을 누른다. 파일은 브라우저의 독립 Worker에서 읽고 JSON 파싱 및 검사한다.
+3. **경량 JSON 보고서 다운로드**를 눌러 결과를 저장한다. 원본 세이브는 수정·재저장·외부 전송하지 않는다.
+4. 대규모 성장 세계 검증은 보고서만 공유할 수 있다. 0.34B 변환 시 동일 날짜의 변환 전후 보고서 두 개를 비교한다.
+
+**검사 범위**: `map.tiles[]`, `villages[]`, `residents[]`, 영토/ownerId 양방향 일치, Nation/Tile/Person ID 중복, 거주·근무 타일의 존재, 음수·비유한 타일 재고, 타일별 폐허 실물 장비와 Nation 폐허 잔존 원장 합계. 엔티티 상태의 SHA-256 128비트 지문과 JSON 최상위 영역별 저장 바이트 수도 출력한다. 지문은 비교 편의를 위해 34B의 신규 `settlementId`/`v34b` 필드를 제외한다.
+
+**불포함**: `World.from()`으로 재불러오기 및 저장 왕복, 날짜 진행, 기존 정식 I1 장비 전량 보존식 감사, 세계 전체 Gold 유량 감사, 모든 물류 경로의 정상성 및 0.34B Settlement 스키마 검증. 0건 오류는 **정적 구조 검사 통과**만 의미한다. 대용량 JSON 파싱에 충분한 브라우저 메모리가 필요하며 실제 사용자 96.80MB 세이브에 대한 검증 결과는 사용자 로컬 검사 전까지 알 수 없다.
+
+세부 사용법·검증 범위: `LOCAL-SAVE-VALIDATOR.md`, 통제 검증 결과: `TEST-LOCAL-SAVE-VALIDATOR.md`.
