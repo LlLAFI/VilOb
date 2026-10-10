@@ -1,3 +1,15 @@
+# Village Observer V0.34C1H — 마지막 C1 성능 최적화 후보
+
+V0.34C1H는 V0.34C1G를 기준으로 분기 유지보수 정산의 행정 조회 중복을 줄이고 새 성능 계측을 추가한 버전입니다. **게임 밸런스 변경 없이 정산/난수 보존을 우선합니다.**
+
+최신 상세: [`README-34C1H.md`](README-34C1H.md)  
+검증 내역: [`TEST-34C1H.md`](TEST-34C1H.md)  
+C 계열 마감 준비: [`C-SERIES-CLOSURE-34C1H.md`](C-SERIES-CLOSURE-34C1H.md)
+
+**C 계열 마감은 C1H 실주행 검증 후 확정합니다.**
+
+---
+
 # 최신 릴리스 — V0.34C1G (2026-10-10)
 
 **Survival30 / Legacy Diagnostics Hotpath Optimization V1**. V0.30A 연간 고급 시설 진단의 타일별 반복 Devlog 검색을 국가·진단 1회짜리 거래 흐름 인덱스로 최적화했습니다. 조회가 적은 국가에는 기존 검색을 사용합니다. 시설 판단·진단 결과·난수·생존 및 Recovery 규칙은 변경하지 않았으며 C1F의 교역망 최적화도 유지합니다. CSV는 **1,671열**입니다.
