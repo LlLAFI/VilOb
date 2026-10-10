@@ -1,3 +1,13 @@
+# 최신 릴리스 — V0.34C1F (2026-10-10)
+
+**Trade Intent Hotpath Optimization V1**. V0.34C1E-HF1의 패치노트·버전 표기·CSV 수정 사항을 유지한 채 V0.32E4 교역망 신규 계획 1회에서 **국가별 교역소 목록**과 **활성 도로 시그니처**의 반복 조회를 제거했습니다. 실제 외교/시장 `routeInfo()` 및 `assessTrade()` 호출, 점수·후보·Gold·난수 규칙은 그대로입니다. C1B 정밀 계측 ON 시 C1F 세부 계측이 활성화됩니다. Snapshot CSV 1,659열.
+
+- 상세: [README-34C1F.md](README-34C1F.md)
+- 검증: [TEST-34C1F.md](TEST-34C1F.md) / [TEST-RESULTS-34C1F.json](TEST-RESULTS-34C1F.json)
+- 전체 패키지 ZIP과 독립 실행 가능한 index.html, README.md를 각각 배포합니다.
+
+---
+
 # Village Observer V0.34C1E-HF1 — UI + CSV Integrity Hotfix
 
 **최신 기준:** V0.34C1E-HF1 (2026-10-10). C1E의 AI 점수·난수·전투·경제·Settlement 규칙은 변경하지 않고 **초기 버전 배지 / 패치노트 창 / C1E 신규 CSV 카운터 시간축**만 수정했습니다.

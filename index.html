@@ -1124,7 +1124,7 @@ function roadLevel(v){return NS.V010?.roadLevel?NS.V010.roadLevel(v):(v.hasTech(
 function baseRoadFactor(level){return level>=1?.62:1;}
 function roadFactorAt(t,w){if(!t||t.ownerId==null)return 1;const e=typeEff(t,'road');if(e<=0)return 1;const base=baseRoadFactor(roadLevel(w.villages[t.ownerId]));return 1-(1-base)*e;}
 function pathSearch(w,sourceIds,targetIds,ownerId=null){const targets=new Set(targetIds),dist=new Map(),heap=[];const push=item=>{heap.push(item);let i=heap.length-1;while(i){const p=(i-1)>>1;if(heap[p][0]<=item[0])break;heap[i]=heap[p];i=p;}heap[i]=item;};const pop=()=>{if(!heap.length)return null;const root=heap[0],last=heap.pop();if(heap.length){let i=0;while(true){let l=i*2+1,r=l+1;if(l>=heap.length)break;let c=r<heap.length&&heap[r][0]<heap[l][0]?r:l;if(heap[c][0]>=last[0])break;heap[i]=heap[c];i=c;}heap[i]=last;}return root;};for(const id of sourceIds){dist.set(id,0);push([0,id,id]);}while(heap.length){const [d,id,origin]=pop();if(d!==dist.get(id))continue;if(targets.has(id))return{cost:d,sourceId:origin,targetId:id};for(const n of w.map.neighbors4(id)){if(!NS.TERRAIN[n.terrain].passable)continue;if(ownerId!=null&&n.ownerId!==ownerId)continue;const nd=d+NS.TERRAIN[n.terrain].tradeCost*roadFactorAt(n,w);if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);push([nd,n.id,origin]);}}}return{cost:Infinity,sourceId:null,targetId:null};}
-function roadSignature(w){return w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|');}
+function roadSignature(w){if(NS.V034C1F?.inPlan(w))return NS.V034C1F.roadSignature(w,()=>w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|'));return w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|');}
 NS.World.prototype.routeInfo=function(a,b){const A=a.tradingPosts(),B=b.tradingPosts(),range=Math.min(a.tradeRange(this),b.tradeRange(this));if(!A.length||!B.length)return{reachable:false,cost:Infinity,range,aId:a.id,bId:b.id,aTileId:null,bTileId:null,sourceTileId:null,targetTileId:null};let minMan=Infinity,minPair=[null,null];for(const x of A)for(const y of B){const md=this.map.distance(x,y);if(md<minMan){minMan=md;minPair=[x,y];}}if(minMan*.48>range)return{reachable:false,cost:minMan,range,aId:a.id,bId:b.id,aTileId:minPair[0],bTileId:minPair[1],sourceTileId:minPair[0],targetTileId:minPair[1],lowerBoundOnly:true};const key=[a.id,b.id].sort((x,y)=>x-y).join('-'),sig=`${a.id}:${A.join('.')}|${b.id}:${B.join('.')}|${roadSignature(this)}`,day=this.ordinalDay();this.tradeRouteCache=this.tradeRouteCache||{};const cached=this.tradeRouteCache[key];if(cached&&cached.sig===sig&&day-cached.day<20){const info={...cached.info,range};info.reachable=Number.isFinite(info.cost)&&info.cost<=range;return info;}const p=pathSearch(this,A,B,null),info={cost:p.cost,aTileId:p.sourceId,bTileId:p.targetId,aId:a.id,bId:b.id,range,reachable:Number.isFinite(p.cost)&&p.cost<=range,sourceTileId:p.sourceId,targetTileId:p.targetId};this.tradeRouteCache[key]={day,sig,info:{...info}};return info;};
 NS.Village.prototype.internalPathCost=function(fromId,toId){const w=this._world;if(!w)return Infinity;const bucket=Math.floor(w.ordinalDay()/5);if(!w._v11InternalPathCache||w._v11InternalPathCache.bucket!==bucket)w._v11InternalPathCache={bucket,map:new Map()};const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${this.id}:${a}:${b}:${roadLevel(this)}`;if(w._v11InternalPathCache.map.has(key))return w._v11InternalPathCache.map.get(key);const cost=pathSearch(w,[fromId],[toId],this.id).cost;w._v11InternalPathCache.map.set(key,cost);return cost;};
 const deal10=NS.World.prototype.dealCandidate;
@@ -6691,7 +6691,7 @@ function partnerOpportunity32E4(v,o,w){
  return{score,calls};
 }
 function roadOwners32E4(w){return new Set((w.activeVillages||[]).filter(v=>v.hasTech?.('ROADS')).map(v=>v.id));}
-function landCost32E4(w,A,B,roads){if(!A?.length||!B?.length)return Infinity;return Number(w.map.tradePathCost?.(A,B,roads));}
+function landCost32E4(w,A,B,roads){if(!A?.length||!B?.length)return Infinity;const calc=()=>Number(w.map.tradePathCost?.(A,B,roads));return NS.V034C1F?.time(w,'landCost',()=>NS.V034C1F.time(w,'tradePath',calc))??calc();}
 function remainingSpace32E4(v,t){const x=NS.V017?.remainingSpace?.(v,t);return Number.isFinite(Number(x))?Number(x):999;}
 function potentialSpace32E4(v,t){const x=NS.V017?.accessiblePotential?.(v,t);return Number.isFinite(Number(x))?Number(x):remainingSpace32E4(v,t);}
 function footprint32E4(){return Number(NS.V017?.buildingFootprint?.('trading_post')||1);}
@@ -6711,9 +6711,9 @@ function candidateShortlist32E4(v,w,partners,ownPosts){
 function partnerRows32E4(v,w){
  const own=tpTiles32E4(v,w),roads=roadOwners32E4(w),rows=[],blockers={NO_ROUTE_MARKET:0,NO_ROUTE_RANGE:0,NO_ROUTE_PATH:0};
  for(const o of w.activeVillages||[]){
-  if(o.id===v.id)continue;const posts=tpTiles32E4(o,w),route=w.routeInfo?.(v,o)||{},reason=routeReason32E4(route);
+  if(o.id===v.id)continue;const posts=tpTiles32E4(o,w),route=NS.V034C1F?.time(w,'routeInfo',()=>w.routeInfo?.(v,o))||{},reason=routeReason32E4(route);
   if(blockers[reason]!=null)blockers[reason]++;
-  const currentLand=landCost32E4(w,own,posts,roads),op=partnerOpportunity32E4(v,o,w);
+  const currentLand=landCost32E4(w,own,posts,roads),op=NS.V034C1F?.time(w,'opportunity',()=>partnerOpportunity32E4(v,o,w))??partnerOpportunity32E4(v,o,w);
   rows.push({o,posts,route,reason,currentLand,opportunity:op.score,assessCalls:op.calls,range:Math.min(Number(v.tradeRange?.(w)||0),Number(o.tradeRange?.(w)||0))});
  }
  return{rows,own,roads,blockers};
@@ -6721,8 +6721,9 @@ function partnerRows32E4(v,w){
 function plan32E4(v,w){
  const s=state32E4(v),st=stats32E4(w),now=cal32E4(w);st.plannerRuns++;s.lastPlanCal=now;
  if(v.status!=='active'||!v.hasTech?.('BARTER')){s.routeBlockers={NO_ROUTE_MARKET:0,NO_ROUTE_RANGE:0,NO_ROUTE_PATH:0};return null;}
- const pr=partnerRows32E4(v,w);s.routeBlockers=pr.blockers;st.routeChecks+=pr.rows.length+pr.rows.reduce((a,r)=>a+Number(r.assessCalls||0),0);
- const candidates=candidateShortlist32E4(v,w,pr.rows,pr.own);if(!candidates.length)return null;let best=null;
+ const fScope=NS.V034C1F?.beginPlan(w,v);try{
+ const pr=NS.V034C1F?.time(w,'partners',()=>partnerRows32E4(v,w))??partnerRows32E4(v,w);s.routeBlockers=pr.blockers;st.routeChecks+=pr.rows.length+pr.rows.reduce((a,r)=>a+Number(r.assessCalls||0),0);
+ const candidates=NS.V034C1F?.time(w,'shortlist',()=>candidateShortlist32E4(v,w,pr.rows,pr.own))??candidateShortlist32E4(v,w,pr.rows,pr.own);if(!candidates.length)return null;let best=null;const candidateStart=NS.V034C1F?.mark(w);
  for(const c of candidates){
   st.candidateEvaluations++;let newPartners=0,costSaved=0,opp=0;const targets=[];
   for(const r of pr.rows){
@@ -6737,10 +6738,12 @@ function plan32E4(v,w){
   const row={tileId:c.id,score,newPartners,costSaved,opportunity:opp,targetNames:targets.slice(0,4),reason:restore?'RESTORE_NODE':newPartners>0&&costSaved>0?'NEW_PARTNER_AND_ROUTE':newPartners>0?'NEW_PARTNER':'ROUTE_COST',space:c.space,potential:c.potential,pop:c.pop,baselineReachable:pr.rows.filter(r=>r.route?.reachable).length};
   if(!best||row.score>best.score)best=row;
  }
+ NS.V034C1F?.endMark(w,'candidates',candidateStart);
  if(!best)return null;const threshold=(NS.AIProfileCompat(v,'tradeDiplomacy')>.5||w.ordinalDay?.()<=Number(v.tradePolicyUntil||0))?28:42;if(best.score<threshold)return null;
  s.intent={...best,createdCal:now,updatedCal:now,expiresCal:now+720,status:'PLANNED',blocker:'NONE'};st.intents++;
  w.telemetry?.record?.('TRADE_NETWORK_INTENT32E4',w,{village:v.name,villageId:v.id,tileId:best.tileId,reason:best.reason,score:+best.score.toFixed(1),newPartners:best.newPartners,routeCostSavedEst:+best.costSaved.toFixed(2),opportunity:+best.opportunity.toFixed(1),targetPartners:best.targetNames});
  return s.intent;
+ }finally{NS.V034C1F?.endPlan(w,fScope);}
 }
 function countBlock32E4(w,b){const st=stats32E4(w);if(b==='PROJECT_CAP')st.blockedProject++;else if(b==='FINANCE')st.blockedFinance++;else if(b==='MATERIALS')st.blockedMaterials++;else if(b==='SPACE'||b==='SPACE_PREP')st.blockedSpace++;else st.blockedOther++;NS.V032E6?.countTradeBlock?.(w,b);}
 function completeIntent32E4(v,w,intent){
@@ -13153,6 +13156,65 @@ NS.V034C1EHF1={version:VERSION,scope:'patch notes, initial header, C1E CSV row a
 // Critical: initial UI instance was created long before C1E/C1E-HF1 scripts.
 // Re-render the final header *after* installing the last version wrapper.
 try{window.villageObserver?.renderHeader?.();}catch(e){console.error('C1E-HF1 initial version header',e);}
+})(window.VSim);
+</script>
+
+<script>
+/* V0.34C1F — Trade Intent Hotpath Optimization V1
+ * Short lived per-plan read-only memoization. All physical/quote/diplomatic calls remain.
+ * The V0.10 road signature is computed once per E4 plan and V0.33E9 semantic
+ * trading posts are filtered once per nation per E4 plan. No cache survives a plan.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34C1F',PREVIOUS='V0.34C1E-HF1';
+const active=new WeakMap(),stats=new WeakMap();
+const now=()=>typeof performance!=='undefined'&&performance.now?performance.now():Date.now();
+const round=n=>Math.round((Number(n)||0)*1000)/1000;
+const timeKeys=['partners','opportunity','shortlist','candidates','landCost','tradePath','routeInfo','tradingPosts','roadSignature'];
+const freshTimes=()=>Object.fromEntries(timeKeys.map(k=>[k,0]));
+const freshCalls=()=>Object.fromEntries(timeKeys.map(k=>[k,0]));
+const get=w=>{let s=stats.get(w);if(!s){s={plans:0,postBuilds:0,postHits:0,roadBuilds:0,roadHits:0,history:[],last:null};stats.set(w,s);}return s;};
+function beginPlan(w,v){if(!w)return null;const prev=active.get(w)||null,enabled=!!NS.V034C1B?.isActive(w),f={w,v,prev,enabled,started:enabled?now():0,posts:new Map(),roadReady:false,road:null,times:freshTimes(),calls:freshCalls(),builds:0,hits:0,roadBuilds:0,roadHits:0};active.set(w,f);get(w).plans++;return f;}
+function endPlan(w,f){if(!f)return;const s=get(w);s.postBuilds+=f.builds;s.postHits+=f.hits;s.roadBuilds+=f.roadBuilds;s.roadHits+=f.roadHits;
+ if(f.enabled){const row={year:Number(w.year||0),season:Number(w.season||0),calendarDay:Number(w.calendarOrdinalDay?.()||0),nationId:String(f.v?.id),name:String(f.v?.name||''),totalMs:round(now()-f.started),times:Object.fromEntries(timeKeys.map(k=>[k,round(f.times[k])])),calls:{...f.calls},postBuilds:f.builds,postHits:f.hits,roadBuilds:f.roadBuilds,roadHits:f.roadHits};s.last=row;s.history.push(row);if(s.history.length>56)s.history.shift();}
+ if(f.prev)active.set(w,f.prev);else active.delete(w);
+}
+function time(w,key,fn){const f=active.get(w);if(!f?.enabled)return fn();const t=now();try{return fn();}finally{f.times[key]+=now()-t;f.calls[key]++;}}
+function mark(w){const f=active.get(w);return f?.enabled?now():null;}
+function endMark(w,k,t){const f=active.get(w);if(f?.enabled&&t!=null){f.times[k]+=now()-t;f.calls[k]++;}}
+function roadSignature(w,calc){const f=active.get(w);if(!f)return calc();if(f.roadReady){f.roadHits++;return f.road;}const value=time(w,'roadSignature',calc);f.road=value;f.roadReady=true;f.roadBuilds++;return value;}
+const oldPosts=NS.Village.prototype.tradingPosts;
+NS.Village.prototype.tradingPosts=function(...args){const w=this._world,f=w&&active.get(w);if(!f)return oldPosts.apply(this,args);if(f.posts.has(this)){f.hits++;return f.posts.get(this).slice();}
+ const values=time(w,'tradingPosts',()=>oldPosts.apply(this,args));f.posts.set(this,values.slice());f.builds++;return values;};
+function inPlan(w){return !!active.get(w);}
+function summarize(w){const s=get(w),enabled=!!NS.V034C1B?.isActive(w),q=s.history.at(-1);return{enabled,hasProfile:!!q,plans:s.plans,postBuilds:s.postBuilds,postHits:s.postHits,roadBuilds:s.roadBuilds,roadHits:s.roadHits,last:q||null,historyCount:s.history.length,notes:'Nested routeInfo/landCost/tradePath/opportunity times must not be added to parent partners or candidates.'};}
+NS.V034C1F={version:VERSION,beginPlan,endPlan,time,mark,endMark,roadSignature,inPlan,summarize,history:w=>get(w).history.slice()};
+const oldSer=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSer.call(this);d.version=VERSION;return d;};
+NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREVIOUS}:d);};
+const oldSnap=NS.Telemetry.prototype.snapshot;
+const fields=['tradeFPlans','tradeFPostBuilds','tradeFPostHits','tradeFRoadBuilds','tradeFRoadHits','tradeFProfileEnabled','tradeFLastPlanMs','tradeFLastPartnersMs','tradeFLastOpportunityMs','tradeFLastShortlistMs','tradeFLastCandidatesMs','tradeFLastRouteInfoMs','tradeFLastLandCostMs','tradeFLastTradePathMs'];
+function values(w){const s=summarize(w),q=s.last||{},t=q.times||{};return{tradeFPlans:s.plans,tradeFPostBuilds:s.postBuilds,tradeFPostHits:s.postHits,tradeFRoadBuilds:s.roadBuilds,tradeFRoadHits:s.roadHits,tradeFProfileEnabled:s.enabled?1:0,tradeFLastPlanMs:q.totalMs||0,tradeFLastPartnersMs:t.partners||0,tradeFLastOpportunityMs:t.opportunity||0,tradeFLastShortlistMs:t.shortlist||0,tradeFLastCandidatesMs:t.candidates||0,tradeFLastRouteInfoMs:t.routeInfo||0,tradeFLastLandCostMs:t.landCost||0,tradeFLastTradePathMs:t.tradePath||0};}
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){const sn=oldSnap.call(this,w,reason,note);if(sn?.global)Object.assign(sn.global,values(w));return sn;};
+const oldCSV=NS.Telemetry.prototype.snapshotsCSV;
+NS.Telemetry.prototype.snapshotsCSV=function(){const lines=oldCSV.call(this).split('\n');if(lines.length<2)return lines.join('\n');const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';lines[0]+=','+fields.map(q).join(',');let i=1;for(const snap of this.snapshots||[])for(const row of snap.villages||[]){if(i>=lines.length)break;lines[i++]+=','+fields.map(k=>q(snap.global?.[k])).join(',');}return lines.join('\n');};
+const oldJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary.v034c1fRevision='trade-intent-scoped-posts-and-road-signature-v1';d.worldSummary.v034c1fPerformance=summarize(w);d.worldSummary.v034c1fQuarterHistory=NS.V034C1F.history(w);return d;};
+const oldSave=NS.SaveSystem;
+function download(name,content,mime='application/json'){const url=URL.createObjectURL(new Blob([content],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...oldSave,
+ save(w){try{localStorage.setItem('village-observer-v034c1f',JSON.stringify(w.serialize()));}catch(e){throw Error('세이브 저장에 실패했습니다: '+e.message);}},
+ load(){const data=localStorage.getItem('village-observer-v034c1f');return data?NS.World.from(JSON.parse(data)):oldSave.load?.();},
+ export(w){download(`village-observer-v034C1F-save-${w.year}y.json`,JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download(`village-observer-v034C1F-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},
+ exportDevCSV(w){const csv=w.telemetry.snapshotsCSV(),check=NS.V032E14?.validateCSV?.(csv);if(check&&!check.ok)throw Error('C1F CSV schema mismatch '+JSON.stringify(check.bad?.slice(0,3)));download(`village-observer-v034C1F-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8');}
+};
+if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader,oldWorld=NS.UI.prototype.renderWorld;
+ NS.UI.prototype.renderHeader=function(){const ret=oldHeader.call(this);document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const status=this.q?.('runtimeStatus');if(status)status.textContent='✓ '+VERSION+' · 교역망 반복 조회 최적화';return ret;};
+ NS.UI.prototype.renderWorld=function(){const ret=oldWorld.call(this),panel=document.querySelector('.v034c1b-profiler'),w=this.world;if(!panel||!w)return ret;let el=panel.querySelector('.v034c1f-summary');if(!el){el=document.createElement('div');el.className='v034c1f-summary small muted';el.style.cssText='margin-top:4px;font-size:11px;line-height:1.6;';panel.appendChild(el);}const s=summarize(w),q=s.last;el.textContent=q?`C1F 마지막 계획(${q.name}, ${q.year}년 Q${q.season+1}): ${q.totalMs.toFixed(1)}ms · 상대 평가 ${q.times.partners.toFixed(1)}ms · 교역소 재사용 누적 ${s.postHits}회 · 도로정보 재사용 ${s.roadHits}회${s.enabled?'':' · 계측 OFF (지난 결과)'}`:'C1F 교역망 세부 계측 없음 · C1B 정밀 계측을 켜고 다음 분기까지 진행하세요.';return ret;};
+}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-10',title:'Trade Intent Hotpath Optimization V1',summary:'V0.32E4 교역망 계획 내에서 교역소 목록과 도로 시그니처의 반복 순회를 없애고, C1B 계측을 활용해 세부 처리시간을 기록합니다. 교역 및 외교 결과는 변경하지 않습니다.',sections:[['최적화',['교역망 계획 1회 동안 국가별 활성 교역소 목록을 단 한 번 조회하고 나머지 호출에 재사용합니다. 반환 배열은 별도 복사하여 기존 호출 계약을 유지합니다.','실제 교역 경로 조회 routeInfo와 D5 assessTrade 호출 및 캐시 갱신은 생략하지 않습니다.','도로 시그니처는 동일 계획 동안 한 번 평가하며 계획 종료 시 임시 자료를 폐기합니다.']],['성능 분석',['C1B 토글 ON 상태에서 partnerRows, opportunity, candidate, routeInfo, tradePath 등의 중첩시간과 호출 횟수를 관찰할 수 있습니다.','Devlog JSON과 Snapshot CSV에 C1F 통계를 추가했습니다.']],['호환성',['HF1의 버전 표시·패치노트·CSV 수정은 유지합니다. 기존 C1E-HF1 및 더 이전 세이브를 지원합니다.','실제 교역, 시장 Gold, 외교, 개척, 전투, AI 점수, 난수 사용량을 변경하지 않습니다.']]]});
+try{window.villageObserver?.renderHeader?.();}catch(e){console.error('C1F initial header',e);}
 })(window.VSim);
 </script>
 </body></html>
