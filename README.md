@@ -1,3 +1,13 @@
+# Village Observer V0.34C1B — Seasonal Legacy Profiling V1
+
+> **현재 버전:** [V0.34C1B 개발자 정밀 계측 패치 설명](README-34C1B.md) · [검증 보고](TEST-34C1B.md). C1A 대비 게임 규칙/물리 자원/전쟁/난수 변경 없이, 기본 OFF인 분기 성능 관측 기능만 추가했습니다.
+
+- `index.html`의 세계 성능 패널에서 `C1B 정밀 분기 프로파일링`을 ON으로 한 다음 분기 3~4개를 실행하고 Snapshot CSV + Devlog JSON을 내보내세요.
+- 시간 합계는 C1B 21개 구간끼리만 더해야 하며, 기존 E9/E10 시간계열과 **중복 계산하면 안 됩니다.**
+- 기존 `README-34C1A.md`, `TEST-34C1A.md`는 역사 기록으로 유지합니다.
+
+---
+
 # Village Observer V0.34C1A — Seasonal Hotpath Optimization V1
 
 > **최신 안정화 패치:** [V0.34C1A 분기 유지보수 병목 최적화](README-34C1A.md). 이전 34C1 변경 사항과 별도로 100일 결정론적 비교시험으로 물리 상태를 검증했습니다.
