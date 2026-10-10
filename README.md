@@ -1,3 +1,14 @@
+# 최신 릴리스 — V0.34C1G (2026-10-10)
+
+**Survival30 / Legacy Diagnostics Hotpath Optimization V1**. V0.30A 연간 고급 시설 진단의 타일별 반복 Devlog 검색을 국가·진단 1회짜리 거래 흐름 인덱스로 최적화했습니다. 조회가 적은 국가에는 기존 검색을 사용합니다. 시설 판단·진단 결과·난수·생존 및 Recovery 규칙은 변경하지 않았으며 C1F의 교역망 최적화도 유지합니다. CSV는 **1,671열**입니다.
+
+- 상세: [README-34C1G.md](README-34C1G.md)
+- 검증: [TEST-34C1G.md](TEST-34C1G.md) / [TEST-RESULTS-34C1G.json](TEST-RESULTS-34C1G.json)
+- 성능 패널에서 C1B 정밀 분기 프로파일링을 **ON**으로 켠 뒤, 동일 61년 세이브의 61-Q3·62-Q1 `survival30`과 C1G 진단시간을 비교하세요.
+- 기존 C1F 이하 버전 세이브 호환; ZIP, index.html, README.md를 각각 배포합니다.
+
+---
+
 # 최신 릴리스 — V0.34C1F (2026-10-10)
 
 **Trade Intent Hotpath Optimization V1**. V0.34C1E-HF1의 패치노트·버전 표기·CSV 수정 사항을 유지한 채 V0.32E4 교역망 신규 계획 1회에서 **국가별 교역소 목록**과 **활성 도로 시그니처**의 반복 조회를 제거했습니다. 실제 외교/시장 `routeInfo()` 및 `assessTrade()` 호출, 점수·후보·Gold·난수 규칙은 그대로입니다. C1B 정밀 계측 ON 시 C1F 세부 계측이 활성화됩니다. Snapshot CSV 1,659열.
