@@ -1,3 +1,14 @@
+# Village Observer V0.34C1E — AI Scoring Hotpath Optimization V1
+
+최신 기준: **V0.34C1E** (2026-10-10). AI 점수 평가 내부의 중복 교역 접근성 및 V0.24 지역 후보 조회를 범위 제한 캐시로 최적화합니다. **점수·난수·AI 행동·게임 규칙은 유지**하며 실제 브라우저 성능 검증은 이후 동일 세이브 실측으로 실시합니다.
+
+- 최신 상세: `README-34C1E.md`
+- 검증: `TEST-34C1E.md`
+- 기본 게임: `index.html`
+- 기존 C1B/C1D 상세 분기 프로파일링은 기본 OFF, 성능 패널에서 ON
+
+---
+
 # Village Observer · V0.34C1D (2026-10-10)
 
 **최신 패치:** [V0.34C1D — Legacy Core Hotpath Profiling V1](README-34C1D.md)

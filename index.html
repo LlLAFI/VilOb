@@ -3252,7 +3252,40 @@ function frontierReserved24(w,id){return w.activeVillages.some(v=>(v.frontierPro
 function shelter24(t){if(!t)return false;return (t.buildings||[]).some((b,i)=>['outpost','house','row_house','collective_house','town_hall'].includes(b)&&Number(t.buildingCondition?.[i]??100)>0);}
 function regionalPool24(v,w,sourceId){const src=w.map.get(sourceId),radius=v.hasTech?.('FRONTIER_LOGISTICS')?5:v.hasTech?.('ROADS')?4:3,byHome=new Map();if(!src)return[];for(const p of v.residents)if(p.alive&&p.age>=16&&p.age<=60&&p.assignment!=='PIONEER'){const t=w.map.get(p.homeTileId);if(!t||t.ownerId!==v.id||w.map.distance(sourceId,t.id)>radius)continue;const a=byHome.get(t.id)||[];a.push(p);byHome.set(t.id,a);}const rows=[];for(const [home,people] of byHome){const residentCount=v.tileResidents(home).filter(p=>p.alive).length,keep=home===v.coreTileId?2:(residentCount<=1?1:0),available=Math.max(0,people.length-keep);for(const p of people.slice().sort((a,b)=>(b.skills?.building||0)+(b.skills?.hunting||0)-(a.skills?.building||0)-(a.skills?.hunting||0)).slice(0,available))rows.push({person:p,home,distance:w.map.distance(sourceId,home)});}return rows.sort((a,b)=>a.distance-b.distance||((b.person.skills?.building||0)+(b.person.skills?.hunting||0))-((a.person.skills?.building||0)+(a.person.skills?.hunting||0)));}
 function regionPopulation24(v,w,sourceId,r=3){let n=0;for(const p of v.residents)if(p.alive&&w.map.distance(sourceId,p.homeTileId)<=r)n++;return n;}
-function candidateRows24(v,w){const rr=v.resourceRatios(w),need={food:Math.max(0,.42-rr.food),wood:Math.max(0,.34-rr.wood),stone:Math.max(0,.28-rr.stone)},rows=[];for(const sourceId of v.territory){const s=w.map.get(sourceId),pop=v.tileResidents(sourceId).filter(p=>p.alive).length;if(!s||(sourceId!==v.coreTileId&&!shelter24(s))||pop<1)continue;const founded=Number(s.frontierFoundedDay||0);if(sourceId!==v.coreTileId&&founded&&w.ordinalDay()-founded<55)continue;if((v.frontierProjects||[]).some(p=>p.sourceTileId===sourceId))continue;const pool=regionalPool24(v,w,sourceId),regionalPop=regionPopulation24(v,w,sourceId,3);if(pool.length<2||regionalPop<7)continue;const reserve=Math.max(v.settlementReserveDays(sourceId),v.foodReserveDays()*.55);if(reserve<20)continue;for(const t of w.map.neighbors4(sourceId)){if(t.ownerId!==null||!NS.TERRAIN[t.terrain]?.passable||frontierReserved24(w,t.id))continue;const adj=w.map.ownedNeighborCount(t.id,v.id);let nearOwned=0,nearPop=0;for(const q of v.territory){const d=w.map.distance(q,t.id);if(d<=2){nearOwned++;nearPop+=v.tileResidents(q).filter(p=>p.alive).length;}}let score=adj*34+nearOwned*4.5+Math.min(18,nearPop*1.2)+Math.min(18,pool.length*3);if(adj>=2)score+=20;if(adj===1&&nearOwned<2)score-=10;score+=(Number(t.resourceCap?.food||0)/1700)*14*(.7+need.food*1.8)+(Number(t.resourceCap?.wood||0)/2350)*12*(.6+need.wood*2)+(Number(t.resourceCap?.stone||0)/3350)*10*(.55+need.stone*2.2);if(t.ruin)score+=22;if(NS.AIProfileCompat(v,'territorialExpansion')>.5)score+=12;if(NS.AIProfileCompat(v,'resourceSeeking')>.5)score+=6;if(NS.AIProfileCompat(v,'urbanConcentration')>.5)score+=adj*5-5;if(NS.AIProfileCompat(v,'survivalPriority')>.5)score-=2;score+=Math.random()*1.2;rows.push({sourceId,source:s,tile:t,pool,regionalPop,score,adj,nearOwned});}}
+function candidateRows24(v,w){
+ // V0.34C1E: only optimize long-lived multi-tile nations. Early nations retain the original code path.
+ if(v.territory.size<8||v.residents.length<35)return candidateRows24LegacyC1E(v,w);
+ const aliveCountCache=new Map(),nearCache=new Map(),adultByHome=new Map(),living=[];
+ let cachedFoodDays,hasFoodDays=false;const foodDays=()=>{if(!hasFoodDays){cachedFoodDays=v.foodReserveDays();hasFoodDays=true;}return cachedFoodDays;};
+ const countAlive=id=>{if(aliveCountCache.has(id))return aliveCountCache.get(id);const count=v.tileResidents(id).filter(p=>p.alive).length;aliveCountCache.set(id,count);return count;};
+ // Preserve Person iteration order, per-home insertion order, and all eligibility gates.
+ for(const p of v.residents){if(p.alive)living.push(p);if(!p.alive||p.age<16||p.age>60||p.assignment==='PIONEER')continue;const t=w.map.get(p.homeTileId);if(!t||t.ownerId!==v.id)continue;let a=adultByHome.get(t.id);if(!a){a=[];adultByHome.set(t.id,a);}a.push(p);}
+ const nearby=t=>{let cached=nearCache.get(t.id);if(cached)return cached;let owned=0,pop=0;for(const q of v.territory){if(w.map.distance(q,t.id)<=2){owned++;pop+=countAlive(q);}}cached={owned,pop};nearCache.set(t.id,cached);return cached;};
+ const poolAt=sourceId=>{const radius=v.hasTech?.('FRONTIER_LOGISTICS')?5:v.hasTech?.('ROADS')?4:3,byHome=new Map();if(!w.map.get(sourceId))return[];
+  for(const [home,people] of adultByHome){if(w.map.distance(sourceId,home)<=radius)byHome.set(home,people);}
+  const result=[];for(const [home,people] of byHome){const n=countAlive(home),keep=home===v.coreTileId?2:(n<=1?1:0),available=Math.max(0,people.length-keep);for(const person of people.slice().sort((a,b)=>(b.skills?.building||0)+(b.skills?.hunting||0)-(a.skills?.building||0)-(a.skills?.hunting||0)).slice(0,available))result.push({person,home,distance:w.map.distance(sourceId,home)});}
+  return result.sort((a,b)=>a.distance-b.distance||((b.person.skills?.building||0)+(b.person.skills?.hunting||0))-((a.person.skills?.building||0)+(a.person.skills?.hunting||0)));
+ };
+ const rr=v.resourceRatios(w),need={food:Math.max(0,.42-rr.food),wood:Math.max(0,.34-rr.wood),stone:Math.max(0,.28-rr.stone)},rows=[];
+ for(const sourceId of v.territory){const s=w.map.get(sourceId),pop=countAlive(sourceId);if(!s||(sourceId!==v.coreTileId&&!shelter24(s))||pop<1)continue;
+  const founded=Number(s.frontierFoundedDay||0);if(sourceId!==v.coreTileId&&founded&&w.ordinalDay()-founded<55)continue;
+  if((v.frontierProjects||[]).some(p=>p.sourceTileId===sourceId))continue;
+  const pool=poolAt(sourceId);let regionalPop=0;for(const p of living)if(w.map.distance(sourceId,p.homeTileId)<=3)regionalPop++;
+  if(pool.length<2||regionalPop<7)continue;
+  const reserve=Math.max(v.settlementReserveDays(sourceId),foodDays()*.55);if(reserve<20)continue;
+  for(const t of w.map.neighbors4(sourceId)){
+   if(t.ownerId!==null||!NS.TERRAIN[t.terrain]?.passable||frontierReserved24(w,t.id))continue;
+   const adj=w.map.ownedNeighborCount(t.id,v.id),nearbyRow=nearby(t),nearOwned=nearbyRow.owned,nearPop=nearbyRow.pop;
+   let score=adj*34+nearOwned*4.5+Math.min(18,nearPop*1.2)+Math.min(18,pool.length*3);if(adj>=2)score+=20;if(adj===1&&nearOwned<2)score-=10;
+   score+=(Number(t.resourceCap?.food||0)/1700)*14*(.7+need.food*1.8)+(Number(t.resourceCap?.wood||0)/2350)*12*(.6+need.wood*2)+(Number(t.resourceCap?.stone||0)/3350)*10*(.55+need.stone*2.2);
+   if(t.ruin)score+=22;if(NS.AIProfileCompat(v,'territorialExpansion')>.5)score+=12;if(NS.AIProfileCompat(v,'resourceSeeking')>.5)score+=6;if(NS.AIProfileCompat(v,'urbanConcentration')>.5)score+=adj*5-5;if(NS.AIProfileCompat(v,'survivalPriority')>.5)score-=2;
+   score+=Math.random()*1.2;rows.push({sourceId,source:s,tile:t,pool,regionalPop,score,adj,nearOwned});
+  }
+ }
+ NS.V034C1E?.record?.(w,{scopes:1,territory:v.territory.size,residentRows:v.residents.length,aliveChecks:aliveCountCache.size,nearbyChecks:nearCache.size,candidates:rows.length});
+ return rows.sort((a,b)=>b.score-a.score);
+}
+function candidateRows24LegacyC1E(v,w){const rr=v.resourceRatios(w),need={food:Math.max(0,.42-rr.food),wood:Math.max(0,.34-rr.wood),stone:Math.max(0,.28-rr.stone)},rows=[];for(const sourceId of v.territory){const s=w.map.get(sourceId),pop=v.tileResidents(sourceId).filter(p=>p.alive).length;if(!s||(sourceId!==v.coreTileId&&!shelter24(s))||pop<1)continue;const founded=Number(s.frontierFoundedDay||0);if(sourceId!==v.coreTileId&&founded&&w.ordinalDay()-founded<55)continue;if((v.frontierProjects||[]).some(p=>p.sourceTileId===sourceId))continue;const pool=regionalPool24(v,w,sourceId),regionalPop=regionPopulation24(v,w,sourceId,3);if(pool.length<2||regionalPop<7)continue;const reserve=Math.max(v.settlementReserveDays(sourceId),v.foodReserveDays()*.55);if(reserve<20)continue;for(const t of w.map.neighbors4(sourceId)){if(t.ownerId!==null||!NS.TERRAIN[t.terrain]?.passable||frontierReserved24(w,t.id))continue;const adj=w.map.ownedNeighborCount(t.id,v.id);let nearOwned=0,nearPop=0;for(const q of v.territory){const d=w.map.distance(q,t.id);if(d<=2){nearOwned++;nearPop+=v.tileResidents(q).filter(p=>p.alive).length;}}let score=adj*34+nearOwned*4.5+Math.min(18,nearPop*1.2)+Math.min(18,pool.length*3);if(adj>=2)score+=20;if(adj===1&&nearOwned<2)score-=10;score+=(Number(t.resourceCap?.food||0)/1700)*14*(.7+need.food*1.8)+(Number(t.resourceCap?.wood||0)/2350)*12*(.6+need.wood*2)+(Number(t.resourceCap?.stone||0)/3350)*10*(.55+need.stone*2.2);if(t.ruin)score+=22;if(NS.AIProfileCompat(v,'territorialExpansion')>.5)score+=12;if(NS.AIProfileCompat(v,'resourceSeeking')>.5)score+=6;if(NS.AIProfileCompat(v,'urbanConcentration')>.5)score+=adj*5-5;if(NS.AIProfileCompat(v,'survivalPriority')>.5)score-=2;score+=Math.random()*1.2;rows.push({sourceId,source:s,tile:t,pool,regionalPop,score,adj,nearOwned});}}
  return rows.sort((a,b)=>b.score-a.score);
 }
 function maxProjects24(v){let n=1,p=v.population();if(p>=28)n++;if(p>=55)n++;if(p>=95)n++;if(v.hasTech?.('ADMINISTRATION'))n++;if(v.hasTech?.('FRONTIER_LOGISTICS'))n++;n+=Number(NS.V033F5A7?.frontierProjectDelta24?.(v)??(NS.AIProfileCompat(v,'territorialExpansion')>.5?1:0));return clamp24(n,1,6);}
@@ -13025,6 +13058,64 @@ if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader,oldWorld=NS.UI.prototype.
  return ret;};
 }
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-10',title:'Legacy Core Hotpath Profiling V1',summary:'C1C 이후 남은 core07 고정 병목을 AI 결정, 점수, 전략 로그 조회, 자동 기반시설, 정착지 개발로 세분화한 관측 전용 패치입니다.',sections:[['핵심 계측',['C1B 프로파일 ON에서만 core07 내부를 관측하며 기본 OFF를 유지합니다.','AI seasonalDecision과 baseScores, V33C2 전략 프로그램의 최신 AI_DECISION 역순 로그 조회를 개별 계측합니다.','자동 기반시설, 정착지 개발, 주택·방어·개척 정책의 호출 수·시간을 국가별로 기록합니다.']],['해석 주의',['AI 판단 시간은 점수/로그 조회를 포함합니다. 하위 시간과 부모 시간을 더하지 않습니다.','core07 내 최상위 함수 시간만 합산하고 나머지는 미분류 잔여로 남깁니다.','영토 검사량 proxy는 함수 진입 시 영토 수이며 실제 타일 검사 횟수를 뜻하지 않습니다.','C1B core07과 C1D core 측정은 타이머 시작/종료 경계가 조금 다르므로 소량의 계측 오차가 생길 수 있습니다.']],['규칙·호환',['AI 점수·전략 로그 역순 조회 알고리즘·개척 RNG·경제 및 전쟁 규칙은 변경하지 않습니다.','임시 계측은 WeakMap 전용이며 저장 파일에 들어가지 않습니다.','기존 C1C 및 이전 세이브를 기존 로더 체인으로 읽습니다.']]]});
+})(window.VSim);
+</script>
+
+<script>
+/* Village Observer V0.34C1E — AI Scoring Hotpath Optimization V1.
+   Optimization is local to each V0.24 candidateRows invocation: no RNG or physical-state caching.
+   Legacy candidate eligibility, scoring formula and RNG draw order retained. */
+(function(NS){'use strict';
+const VERSION='V0.34C1E',PREVIOUS='V0.34C1D';
+const states=new WeakMap(),scoringScopes=new WeakMap();
+const st=w=>{let s=states.get(w);if(!s){s={scopes:0,territorySum:0,residentRows:0,aliveChecks:0,nearbyChecks:0,candidates:0,scoringScopes:0,tradeAccessBuilds:0,tradeAccessHits:0};states.set(w,s);}return s;};
+const record=(w,x)=>{const s=st(w);s.scopes+=x.scopes;s.territorySum+=x.territory;s.residentRows+=x.residentRows;s.aliveChecks+=x.aliveChecks;s.nearbyChecks+=x.nearbyChecks;s.candidates+=x.candidates;};
+const summarize=w=>({...st(w)});
+// C1E: Only within one synchronous baseScores(v,w) evaluation, re-use the
+// read-only strategic trade-access report. Every distinct baseScores evaluation
+// (including TRADE -> physical choice re-evaluation) gets a fresh scope.
+// No cached result can survive an AI decision or enter the serialized world.
+const oldBase=NS.VillageBrain.prototype.baseScores,oldAccess=NS.Village.prototype.tradeAccess;
+NS.VillageBrain.prototype.baseScores=function(v,w){
+ if(!v||!w||v.territory?.size<8||v.residents?.length<35)return oldBase.call(this,v,w);
+ const prev=scoringScopes.get(v),frame={world:w,has:false,report:null};scoringScopes.set(v,frame);
+ st(w).scoringScopes++;
+ try{return oldBase.call(this,v,w);}finally{if(prev)scoringScopes.set(v,prev);else scoringScopes.delete(v);}
+};
+NS.Village.prototype.tradeAccess=function(w){
+ const frame=scoringScopes.get(this);
+ if(!frame||frame.world!==w)return oldAccess.call(this,w);
+ if(frame.has){st(w).tradeAccessHits++;return frame.report;}
+ const report=oldAccess.call(this,w);
+ frame.report=report;frame.has=true;st(w).tradeAccessBuilds++;
+ return report;
+};
+NS.V034C1E={version:VERSION,record,summarize};
+const oldSer=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSer.call(this);d.version=VERSION;return d;};
+NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREVIOUS}:d);};
+const oldSnap=NS.Telemetry.prototype.snapshot;
+const FIELDS=['scoringEScopes','scoringETerritorySum','scoringEResidentRows','scoringEAliveChecks','scoringENearbyChecks','scoringECandidates','scoringEBaseScopes','scoringETradeAccessBuilds','scoringETradeAccessHits'];
+function values(w){const x=summarize(w);return{scoringEScopes:x.scopes,scoringETerritorySum:x.territorySum,scoringEResidentRows:x.residentRows,scoringEAliveChecks:x.aliveChecks,scoringENearbyChecks:x.nearbyChecks,scoringECandidates:x.candidates,scoringEBaseScopes:x.scoringScopes,scoringETradeAccessBuilds:x.tradeAccessBuilds,scoringETradeAccessHits:x.tradeAccessHits};}
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){const sn=oldSnap.call(this,w,reason,note);if(sn?.global)Object.assign(sn.global,values(w));return sn;};
+const oldCSV=NS.Telemetry.prototype.snapshotsCSV;
+NS.Telemetry.prototype.snapshotsCSV=function(){const lines=oldCSV.call(this).split('\n');if(lines.length<2)return lines.join('\n');const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';lines[0]+=','+FIELDS.map(q).join(',');for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const sn=this.snapshots?.[i-1],x=sn?.global||{};lines[i]+=','+FIELDS.map(k=>q(x[k]??0)).join(',');}return lines.join('\n');};
+const oldJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary.v034c1eRevision='ai-scoring-scoped-trade-access-and-v24-candidate-index-v1';d.worldSummary.v034c1ePerformance=summarize(w);d.worldSummary.v034c1eScope='Read-only tradeAccess memoized only within a single baseScores call, plus local CandidateRows24 residence/nearby caching for mature nations. No RNG/action/score formula changes.';return d;};
+const oldSave=NS.SaveSystem;
+function download(name,content,mime='application/json'){const url=URL.createObjectURL(new Blob([content],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...oldSave,
+ save(w){try{localStorage.setItem('village-observer-v034c1e',JSON.stringify(w.serialize()));}catch(e){throw Error('세이브 저장에 실패했습니다: '+e.message);}},
+ load(){const data=localStorage.getItem('village-observer-v034c1e');return data?NS.World.from(JSON.parse(data)):oldSave.load?.();},
+ export(w){download(`village-observer-v034C1E-save-${w.year}y.json`,JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download(`village-observer-v034C1E-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},
+ exportDevCSV(w){const csv=w.telemetry.snapshotsCSV(),test=NS.V032E14?.validateCSV?.(csv);if(test&&!test.ok)throw Error('V0.34C1E CSV schema mismatch '+JSON.stringify(test.bad?.slice(0,3)));download(`village-observer-v034C1E-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8');}
+};
+if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader,oldWorld=NS.UI.prototype.renderWorld;
+ NS.UI.prototype.renderHeader=function(){const ret=oldHeader.call(this);document.title='Village Observer '+VERSION;const el=document.getElementById('versionBadge');if(el)el.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';return ret;};
+ NS.UI.prototype.renderWorld=function(){const ret=oldWorld.call(this);const panel=document.querySelector('.v034c1b-profiler'),w=this.world;if(!panel||!w)return ret;let el=panel.querySelector('.v034c1e-summary');if(!el){el=document.createElement('div');el.className='v034c1e-summary small muted';el.style.marginTop='4px';panel.appendChild(el);}const s=summarize(w);el.textContent='C1E AI 조회 재사용 · 교역 접근성 '+s.tradeAccessHits+'회 · 지역 후보 '+s.scopes+'회';return ret;};
+}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-10',title:'AI Scoring Hotpath Optimization V1',summary:'baseScores 내 반복되는 교역 접근성 조회를 호출 단위로 재사용하고, V0.24 지역 후보의 주민·인접 정보를 중복 계산하지 않습니다. AI 점수 공식·TRADE 물리 재평가·개척 후보 난수·게임 밸런스를 유지합니다.',sections:[['핵심','AI 점수 내 교역 접근성 단일 조회, 지역 후보 주민/인접 정보 단일 탐색. 국가 8타일·거주민 35명 이상에만 적용'],['보존','후보 수, 계산 순서, 난수 소비, Devlog·CSV·세이브 호환'],['성능','C1D core07 / baseScores 실주행 A/B 검증 필요']]});
 })(window.VSim);
 </script>
 </body></html>
