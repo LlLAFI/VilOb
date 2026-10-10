@@ -1,3 +1,14 @@
+# Village Observer V0.34C1E-HF1 — UI + CSV Integrity Hotfix
+
+**최신 기준:** V0.34C1E-HF1 (2026-10-10). C1E의 AI 점수·난수·전투·경제·Settlement 규칙은 변경하지 않고 **초기 버전 배지 / 패치노트 창 / C1E 신규 CSV 카운터 시간축**만 수정했습니다.
+
+- 상세 내용: [README-34C1E-HF1.md](README-34C1E-HF1.md)
+- 검증 결과: [TEST-34C1E-HF1.md](TEST-34C1E-HF1.md)
+- 기존 C1E·하위 버전 세이브와 호환, HF1 전용 세이브 키 사용(구버전 키 폴백)
+- C1B/C1D 정밀 분기 프로파일링 기본 OFF: 다음 브라우저 실측에서는 성능 패널에서 ON 설정
+
+---
+
 # Village Observer V0.34C1E — AI Scoring Hotpath Optimization V1
 
 최신 기준: **V0.34C1E** (2026-10-10). AI 점수 평가 내부의 중복 교역 접근성 및 V0.24 지역 후보 조회를 범위 제한 캐시로 최적화합니다. **점수·난수·AI 행동·게임 규칙은 유지**하며 실제 브라우저 성능 검증은 이후 동일 세이브 실측으로 실시합니다.
