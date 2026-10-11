@@ -13,7 +13,7 @@ with sync_playwright() as p:
   page.wait_for_timeout(150)
   info=page.evaluate('''() => {
     const NS=window.VSim,w=window.villageObserver?.world||new NS.World(19,19);
-    const a=NS.V034D3.audit(w),csv=NS.V034D3.csv(w),flow=NS.V034D3A.foodCSV(w),save=w.serialize();
+    const a=NS.V034D3.audit(w),csv=NS.V034D3.csv(w),flow=NS.V034D3A2.foodCSV(w),save=w.serialize();
     const loaded=NS.World.from(JSON.parse(JSON.stringify(save)));
     const ui=window.villageObserver, first=NS.V034D3.economyRows(w)[0];
     if(ui&&first){w.selectedTileId=first.tileIds[0];ui.renderTile();}
@@ -25,10 +25,10 @@ with sync_playwright() as p:
   }''')
   info['pageErrors']=errors[:8]
   print(name,json.dumps(info,ensure_ascii=False),flush=True)
-  assert info['version']=='V0.34D3A1' and info['roundtrip']=='V0.34D3A1'
+  assert info['version']=='V0.34D3A2' and info['roundtrip']=='V0.34D3A2'
   assert info['auditErrors']==[] and info['pageErrors']==[]
   assert info['economyColumns']==24 and info['snapshotCols']==1683
-  assert info['foodButton'] and info['foodColumns']==46
-  assert info['btn'] and info['inspector'] and info['patch']=='V0.34D3A1'
+  assert info['foodButton'] and info['foodColumns']==48
+  assert info['btn'] and info['inspector'] and info['patch']=='V0.34D3A2'
   page.close()
  browser.close()

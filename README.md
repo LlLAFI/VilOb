@@ -1,3 +1,9 @@
+## 최신 버전: V0.34D3A2 (2026-10-11)
+
+**Frontier Food Accounting Hotfix:** V20 개척 진행 식량 유지비와 보급 사고의 실제 물리 식량 차감을 기록합니다. Food Flow 30일 CSV는 **48개 고유 열**이며, 기존 수지의 `frontierFoodSpent`에 누적되므로 유지비·사고비를 다시 빼지 않습니다. 개척 및 식량 밸런스는 변경하지 않았습니다.
+
+상세 변경점: [README-34D3A2.md](README-34D3A2.md) / [검증 기록](TEST-34D3A2.md)
+
 # Village Observer V0.34D3A1
 
 최신: **V0.34D3A1 — Food Flow Calendar & Audit Hotfix**. D3A Food Flow 관측을 **실제 30달력일** 기준으로 수정하고, 중복된 CSV 열을 제거했습니다. 고비축 식량 부패와 개척 식량 지출을 **물리 재고 차감 시점**에 별도로 관측하며, Settlement 구성 변경 시 미설명 수지를 확정 판정하지 않습니다. 지형별 식량 회복·농업 효율·주민 소비·부패율·개척 비용은 그대로 유지합니다.

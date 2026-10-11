@@ -1,0 +1,62 @@
+{
+  "version": "V0.34D3A2",
+  "date": "2026-10-11",
+  "baseline": "V0.34D3A1",
+  "patch": "Frontier Food Accounting Hotfix",
+  "scope": [
+    "physical V20 upkeep food tracking",
+    "physical V20 frontier supply-loss tracking",
+    "48-column Food Flow CSV",
+    "save/import compatibility"
+  ],
+  "unchanged": [
+    "resource production",
+    "food demand",
+    "frontier cost and accident probability",
+    "physical stock",
+    "random sequence"
+  ],
+  "build": {
+    "version": "V0.34D3A2",
+    "baselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+    "sourceBlocks": 169,
+    "scriptBlocks": 165,
+    "styleBlocks": 4,
+    "hostedBytes": 14941,
+    "standaloneBytes": 3543158,
+    "hostedIndexSHA256": "67bc14a2becebb118481c98d8d3cc4743459a5ee3a4b082393ca97f97a7e7f90",
+    "standaloneIndexSHA256": "69a5a6e79fa81d01cdd459d574d8314ba60a5190502455f3cd04470598d6be3c",
+    "csvColumns": 1683,
+    "csvDuplicateExtraColumnsFixed": 72
+  },
+  "checks": {
+    "baselineProtected169": true,
+    "snapshotCSV1683": true,
+    "foodFlowColumns": 48,
+    "foodFlowUniqueNames": 48,
+    "housingCSV11": true,
+    "settlementCSV48": true,
+    "economyCSV24": true,
+    "browserDesktop": true,
+    "browserMobile": true,
+    "browserPageErrors": 0,
+    "actualV20FrontierHooks": true,
+    "D3A1VsD3A2SameSeed70CalendarDays": true,
+    "oldRNGCalls": 32041,
+    "newRNGCalls": 32041,
+    "npmTestSingleRun": "not confirmed due environment runtime limits",
+    "60to75Year": "untested"
+  },
+  "files": {
+    "standalone": "dist/standalone/index.html",
+    "hosted": "index.html",
+    "readme": "README.md",
+    "changes": "README-34D3A2.md",
+    "tests": "TEST-34D3A2.md"
+  },
+  "sha256": {
+    "standalone": "69a5a6e79fa81d01cdd459d574d8314ba60a5190502455f3cd04470598d6be3c",
+    "readme": "2fb656a6f74e8c3c21745108bf3da444a6a9a7aedef4dab34269257d0f0e4ed5",
+    "bootstrap": "308b10a3e3f009a9fdbdd629d15cc55634e080bbd6f48cdab7ed2d6e3e2ca702"
+  }
+}

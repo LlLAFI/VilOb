@@ -82,5 +82,11 @@ const d3a1Hooks={
  'src/legacy/031.js':[["v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;", "const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);"]],
  'src/legacy/099.js':[["v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;", "const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);"]]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+const d3a2Hooks={
+ 'src/legacy/029.js':[
+  ["v.food=Math.max(0,v.food-.032*pioneers.length);", "const _d3a2UpkeepBefore=NS.V034D3A2?.frontierBefore?.(v,w,p.sourceTileId);v.food=Math.max(0,v.food-.032*pioneers.length);NS.V034D3A2?.frontierAfter?.(v,w,_d3a2UpkeepBefore,'upkeep',.032*pioneers.length,p.id);"],
+  ["else if(r<.14){v.food=Math.max(0,v.food-4);v.wood=Math.max(0,v.wood-2);", "else if(r<.14){const _d3a2AccidentBefore=NS.V034D3A2?.frontierBefore?.(v,w,p.sourceTileId);v.food=Math.max(0,v.food-4);NS.V034D3A2?.frontierAfter?.(v,w,_d3a2AccidentBefore,'accident',4,p.id);v.wood=Math.max(0,v.wood-2);"]
+ ]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}
