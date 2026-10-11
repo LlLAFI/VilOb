@@ -109,7 +109,7 @@ NS.World.prototype.processInternalLogistics=function(){
   const receivers=occupied.filter(id=>v.settlementReserveDays(id)<EMERGENCY_FOOD_DAYS).sort((a,b)=>v.settlementReserveDays(a)-v.settlementReserveDays(b));
   for(const rid of receivers){const rpop=v.tileResidents(rid).filter(p=>p.alive).length;if(!rpop)continue;const donors=occupied.filter(id=>id!==rid&&v.settlementReserveDays(id)>70).map(id=>({id,days:v.settlementReserveDays(id),...v.internalLogisticsCapacity(id,rid,'food',false)})).filter(x=>x.capacity>0).sort((a,b)=>b.days-a.days||a.cost-b.cost);if(!donors.length)continue;
    const q=donors[0],donorPop=v.tileResidents(q.id).filter(p=>p.alive).length,need=Math.max(0,rpop*.36*EMERGENCY_TARGET_DAYS-v.stockAt(rid,'food')),surplus=Math.max(0,v.stockAt(q.id,'food')-donorPop*.36*60),qty=Math.min(q.capacity*1.5,need,surplus);if(qty<1)continue;
-   const took=v.withdrawAt(q.id,'food',qty),put=v.depositAt(rid,'food',took);if(put<took)v.depositAt(q.id,'food',took-put);if(put<=0)continue;v.logisticsStats.moves++;v.logisticsStats.foodMoved=(v.logisticsStats.foodMoved||0)+put;v.foodBalanceStats.emergencyMoved+=put;v.foodBalanceStats.emergencyMoves++;
+   const {took,put}=NS.V034D3A.transferWithReturn(v,q.id,rid,'food',qty);if(put<=0)continue;v.logisticsStats.moves++;v.logisticsStats.foodMoved=(v.logisticsStats.foodMoved||0)+put;v.foodBalanceStats.emergencyMoved+=put;v.foodBalanceStats.emergencyMoves++;
    this.telemetry.record('INTERNAL_LOGISTICS',this,{village:v.name,resource:'food',qty:+put.toFixed(1),fromTileId:q.id,toTileId:rid,routeCost:+q.cost.toFixed(2),capacity:+(q.capacity*1.5).toFixed(2),reason:'EMERGENCY_FOOD'});
   }
  }

@@ -1,0 +1,67 @@
+{
+  "version": "V0.34D3A",
+  "status": "implementation complete; individual regressions pass; long-run pending",
+  "baseline": "V0.34D3",
+  "buildVersion": "0.34.0-d3a",
+  "sourceProtection": {
+    "legacyBlocks": 169,
+    "originalHashIntegrity": "PASS",
+    "reconstruction": "PASS"
+  },
+  "build": {
+    "hostedIndex": "dist/hosted/index.html",
+    "standaloneIndex": "dist/standalone/index.html",
+    "hostedAssets": "dist/hosted/assets"
+  },
+  "compatibility": {
+    "saveKey": "village-observer-v034d3a",
+    "saveImport": "D3A ONLY",
+    "snapshotsV2Columns": 1683,
+    "settlementColumns": 48,
+    "housingColumns": 11,
+    "economyColumns": 24,
+    "foodFlow30DayColumns": 45
+  },
+  "verifiedTests": {
+    "sourceAndBuild": "PASS",
+    "existingD2B": "PASS",
+    "existingD2BFocus": "PASS",
+    "existingD3": "PASS",
+    "newD3A": "PASS individual",
+    "determinism": "80 actual calendar days × 2; 240 advanceOneDay calls each; PASS",
+    "saveRoundtrip": "PASS",
+    "desktopChromium": "PASS",
+    "mobileChromium": "PASS",
+    "browserErrors": 0,
+    "singleCommandNpmTest": "TIMEOUT after existing D3 test; no all-in-one PASS",
+    "real370CalendarDaysBy2": "NOT RUN TO COMPLETION",
+    "real60-75Years": "NOT RUN",
+    "warOccupation": "NOT VALIDATED",
+    "849DayFixedSeedHang": "UNRESOLVED"
+  },
+  "tests": {
+    "details": "TEST-34D3A.md"
+  },
+  "artifacts": {
+    "dist/standalone/index.html": {
+      "bytes": 3528728,
+      "sha256": "af6ec44972e5a5f792b500c07cdcc6f9e888769d752f8ed3127d1e6c2659151c"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14834,
+      "sha256": "8bf43d61cd9ea174b6495867ee96872c0c88a7bae2c5100470f1e723e0dcdfb6"
+    },
+    "README.md": {
+      "bytes": 12306,
+      "sha256": "1d06fe05aad7affba88a1ca8eb9a600814b2dbe716eb1840f5bc2f05d7de67c2"
+    },
+    "README-34D3A.md": {
+      "bytes": 5568,
+      "sha256": "ec596ef2df97ba727e46d98403443d0f6f6877bce834a4cd0313e8d6b31d2bb6"
+    },
+    "TEST-34D3A.md": {
+      "bytes": 2547,
+      "sha256": "dfde03d4339544f8e923bcb5d35d33f4da86741cdb51d1609afec1b969c5851b"
+    }
+  }
+}

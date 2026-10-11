@@ -1,3 +1,9 @@
+# Village Observer V0.34D3A
+
+최신: **V0.34D3A — Food Supply & Storage Stabilization**. 일반 식량·목재·석재 채취의 창고 미입고분을 자연 원료로 복구하고, Settlement별 30일 Food Flow CSV(45열) 및 실제 원격 인출·일부 물류 반환 진단을 제공합니다. 기본 생산·소비·재생 수치는 변경하지 않습니다. 상세 내용: [README-34D3A.md](README-34D3A.md), 검증: [TEST-34D3A.md](TEST-34D3A.md).
+
+---
+
 # Village Observer V0.34D3 — Settlement Economy Integration V1
 
 **최신 개발 기준선: V0.34D3 (2026-10-11).** 동일 활성 Settlement 안의 여러 타일은 민간 식량·목재·석재·철광석·철·도구 재고, 실제 저장 공간 및 Market Gold 접근을 공동 생활권으로 처리합니다. 재고·건물·군사 이동의 물리 위치는 보존하고, 서로 다른 Settlement 및 국가 간에는 기존 실제 물류·거래를 사용합니다.

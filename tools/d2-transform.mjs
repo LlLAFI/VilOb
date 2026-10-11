@@ -63,5 +63,18 @@ const d3hooks={
  ],
  'src/legacy/068.js':[["const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);","NS.V034D3?.fundMarketGold?.(buyer,w,bt.id,total-Number(be.marketGold||0));const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);"]]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+const d3aHooks={
+ 'src/legacy/010.js':[
+  ["got=t.harvest('food',.9+this.skills.farming/70,day)*v.harvestMultiplier('food',t);v.depositAt(t.id,'food',got);", "got=NS.V034D3A.harvestAndStore(this,v,w,t,'food',.9+this.skills.farming/70,day);"],
+  ["got=t.harvest('food',.5+this.skills.hunting/100,day)*v.harvestMultiplier('food',t);v.depositAt(t.id,'food',got);", "got=NS.V034D3A.harvestAndStore(this,v,w,t,'food',.5+this.skills.hunting/100,day);"],
+  ["got=t.harvest('wood',.55+this.skills.building/78,day)*v.harvestMultiplier('wood',t);v.depositAt(t.id,'wood',got);", "got=NS.V034D3A.harvestAndStore(this,v,w,t,'wood',.55+this.skills.building/78,day);"],
+  ["got=t.harvest('stone',.42+this.skills.mining/85,day)*v.harvestMultiplier('stone',t);v.depositAt(t.id,'stone',got);", "got=NS.V034D3A.harvestAndStore(this,v,w,t,'stone',.42+this.skills.mining/85,day);"],
+ ],
+ 'src/legacy/040.js':[["const took=v.withdrawAt(s.id,resource,qty),put=v.depositAt(b.id,resource,took);if(put<=0){if(took>0)v.depositAt(s.id,resource,took);return 0;}if(put<took)v.depositAt(s.id,resource,took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,s.id,b.id,resource,qty);if(put<=0)return 0;"]],
+ 'src/legacy/015.js':[["v.withdrawAt(d.id,'food',qty);const put=v.depositAt(rid,'food',qty);if(put<qty)v.depositAt(d.id,'food',qty-put);", "const {put}=NS.V034D3A.transferWithReturn(v,d.id,rid,'food',qty);"]],
+ 'src/legacy/021.js':[["const took=v.withdrawAt(q.id,'food',qty),put=v.depositAt(rid,'food',took);if(put<took)v.depositAt(q.id,'food',took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,q.id,rid,'food',qty);"]],
+ 'src/legacy/068.js':[["const took=v.withdrawAt(best.d.id,'food',qty),put=v.depositAt(r.id,'food',took);if(put<took)v.depositAt(best.d.id,'food',took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,best.d.id,r.id,'food',qty);"]],
+ 'src/legacy/069.js':[["const took=v.withdrawAt(best.d.id,'food',qty),put=v.depositAt(r.id,'food',took);if(put<took)v.depositAt(best.d.id,'food',took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,best.d.id,r.id,'food',qty);"]]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

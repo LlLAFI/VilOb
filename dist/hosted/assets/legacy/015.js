@@ -151,7 +151,7 @@ NS.World.prototype.processInternalLogistics=function(){
   for(const rid of occupied){const rdays=v.settlementReserveDays(rid);if(rdays>=24)continue;
    const donorRows=occupied.filter(id=>id!==rid&&v.settlementReserveDays(id)>55).map(id=>({id,...logisticsCapacity(v,this,id,rid,'food',false),days:v.settlementReserveDays(id)})).filter(x=>x.capacity>0).sort((a,b)=>(b.days-a.days)||a.cost-b.cost);
    if(!donorRows.length)continue;const d=donorRows[0],donor=v.stockAt(d.id,'food'),needPop=v.tileResidents(rid).length,need=Math.max(0,needPop*.36*38-v.stockAt(rid,'food')),surplus=Math.max(0,donor-v.tileResidents(d.id).length*.36*45),qty=Math.min(d.capacity,need,surplus);if(qty<1)continue;
-   v.withdrawAt(d.id,'food',qty);const put=v.depositAt(rid,'food',qty);if(put<qty)v.depositAt(d.id,'food',qty-put);
+   const {put}=NS.V034D3A.transferWithReturn(v,d.id,rid,'food',qty);
    v.logisticsStats.moves++;v.logisticsStats.foodMoved+=put;if(put>=3)this.telemetry.record('INTERNAL_LOGISTICS',this,{village:v.name,resource:'food',qty:+put.toFixed(1),fromTileId:d.id,toTileId:rid,routeCost:+d.cost.toFixed(2),capacity:+d.capacity.toFixed(2)});
   }
  }

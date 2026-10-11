@@ -51,7 +51,7 @@ D.harmonizeMarketRows(v,w,new Map([[r1.id,r1],[r2.id,r2]]));assert.equal(r1.rati
 const y=boot(0x3d4929),z=y.NS,world=new z.World(19,19);y.setSeed(0x42776);for(let i=0;i<200;i++)world.advanceOneDay();
 const verify=z.V034D3.audit(world);assert(verify.ok,verify.errors.join('|'));
 assert(z.V034D2A.audit(world).ok);assert(z.V034D1.audit(world).ok);
-const sav=world.serialize();assert.equal(sav.version,'V0.34D3');const restored=z.World.from(JSON.parse(JSON.stringify(sav)));assert(z.V034D3.audit(restored).ok);
+const sav=world.serialize();assert.equal(sav.version,'V0.34D3A');const restored=z.World.from(JSON.parse(JSON.stringify(sav)));assert(z.V034D3.audit(restored).ok);
 assert.equal(z.V034D0.csvV2(world.telemetry.snapshotsCSV()).split('\n')[0].split(',').length,1683);
 assert.equal(z.V034D1A.csv(world).split('\n')[0].split(',').length,48);
 assert.equal(z.V034D2.csv(world).split('\n')[0].split(',').length,11);
