@@ -9,6 +9,7 @@ const template=get('src/template.html').toString('utf8');
 const schema=JSON.parse(get('src/csv/schema-v2.json'));
 const runtimeSchema={columnCount:schema.columnCount,duplicateNames:schema.duplicateNames,duplicateExtraColumns:schema.duplicateExtraColumns,originalColumns:schema.originalColumns,renames:schema.columns.filter(c=>c.original!==c.v2).map(c=>[c.index,c.v2])};
 const bootstrap=get('src/bootstrap/v034d0.js').toString('utf8').replace('__D0_CSV_SCHEMA__',JSON.stringify(runtimeSchema));
+const d1=get('src/bootstrap/v034d1.js').toString('utf8');
 if(!template.includes('<!-- VILOB_D0_BLOCK_000 -->'))throw Error('bad template');
 const mode=process.argv.includes('--check-only')?'check-only':'build';
 function render(flavor,assetPrefix='assets/'){
@@ -23,9 +24,9 @@ function render(flavor,assetPrefix='assets/'){
   out=out.replace(block.marker,()=>entry);
  }
  if(flavor==='baseline')return out;
- out=out.replace('<title>Village Observer V0.34C1H</title>','<title>Village Observer V0.34D0</title>');
- const tag=flavor==='standalone'?'<script>\n'+bootstrap+'\n</script>':
-  '<script src="'+assetPrefix+'bootstrap/v034d0.js"></script>';
+ out=out.replace('<title>Village Observer V0.34C1H</title>','<title>Village Observer V0.34D1</title>');
+ const tag=flavor==='standalone'?'<script>\n'+bootstrap+'\n</script>\n<script>\n'+d1+'\n</script>':
+  '<script src="'+assetPrefix+'bootstrap/v034d0.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d1.js"></script>';
  if(!out.includes('</body>'))throw Error('Missing closing body');
  return out.replace('</body>',tag+'\n</body>');
 }
@@ -47,8 +48,9 @@ for(const block of manifest.blocks){
 }
 fs.mkdirSync(path.join(dist,'hosted','assets','bootstrap'),{recursive:true});
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d0.js'),bootstrap);
+fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d1.js'),d1);
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
 fs.writeFileSync(path.join(root,'index-standalone.html'),standalone);
-const result={version:'V0.34D0',baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
+const result={version:'V0.34D1',baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
 fs.writeFileSync(path.join(dist,'build-manifest.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));

@@ -9,7 +9,7 @@ const digest=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('he
 function host(file,seed){
  let rand=seed>>>0,calls=0;const M=Object.create(Math);M.random=()=>{calls++;rand^=rand<<13;rand^=rand>>>17;rand^=rand<<5;return (rand>>>0)/4294967296;};
  const storage=new Map();const el=()=>({style:{},addEventListener(){},appendChild(){},insertAdjacentElement(){},classList:{add(){},remove(){}},querySelector(){return null},querySelectorAll(){return []}});
- const ctx={console,Math:M,Date,Set,Map,WeakMap,WeakSet,JSON,TextEncoder,TextDecoder,URL,Blob,Uint8Array,Uint32Array,ArrayBuffer,structuredClone,
+ const ctx={console,Math:M,Date:class FixedDate extends Date{static now(){return 1760101000000;}},Set,Map,WeakMap,WeakSet,JSON,TextEncoder,TextDecoder,URL,Blob,Uint8Array,Uint32Array,ArrayBuffer,structuredClone,
   crypto:crypto.webcrypto,performance:require('perf_hooks').performance,alert:()=>{},confirm:()=>false,requestAnimationFrame:()=>{},setTimeout:()=>{},clearTimeout:()=>{},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
   document:{head:el(),documentElement:el(),body:el(),getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[],addEventListener:()=>{},createElement:el}};
@@ -27,10 +27,9 @@ function clean(w){const x=JSON.parse(JSON.stringify(w.serialize()));delete x.ver
  x.villages?.forEach(v=>{delete v.v034c1gPerformance;});
  return x;}
 function run(days,profile){const seed=0x7811aa77;const a=host(prev,seed),b=host(curr,seed);
- a.reset(seed);const original=new a.NS.World(19,19);const source=JSON.parse(JSON.stringify(original.serialize()));
- a.reset(0x71dead23);b.reset(0x71dead23);
- const wa=a.NS.World.from(JSON.parse(JSON.stringify(source)));
- const wb=b.NS.World.from({...JSON.parse(JSON.stringify(source)),version:'V0.34D0'});
+ a.reset(seed);b.reset(seed);
+ const wa=new a.NS.World(19,19);
+ const wb=new b.NS.World(19,19);
  a.NS.V034C1B?.setEnabled?.(wa,profile);b.NS.V034C1B?.setEnabled?.(wb,profile);
  assert.equal(digest(clean(wa)),digest(clean(wb)),'initial world state mismatch');
  a.reset(0x28a13789);b.reset(0x28a13789);
@@ -45,9 +44,8 @@ function run(days,profile){const seed=0x7811aa77;const a=host(prev,seed),b=host(
 }
 function maintenance(profile){
  const seed=0x7811aa77,a=host(prev,seed),b=host(curr,seed);
- a.reset(seed);const src=JSON.parse(JSON.stringify(new a.NS.World(19,19).serialize()));
- a.reset(0x123987ab);b.reset(0x123987ab);
- const wa=a.NS.World.from(JSON.parse(JSON.stringify(src))),wb=b.NS.World.from({...JSON.parse(JSON.stringify(src)),version:'V0.34D0'});
+ a.reset(seed);b.reset(seed);
+ const wa=new a.NS.World(19,19),wb=new b.NS.World(19,19);
  a.NS.V034C1B?.setEnabled?.(wa,profile);b.NS.V034C1B?.setEnabled?.(wb,profile);
  a.reset(0x88a73341);b.reset(0x88a73341);
  for(let round=0;round<3;round++){

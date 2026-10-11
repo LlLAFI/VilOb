@@ -1,4 +1,4 @@
-# V0.34D0 빌드 및 게시 안내
+# V0.34D1 빌드 및 게시 안내
 
 ## 로컬 빌드
 
@@ -31,3 +31,6 @@ npm test
 - `src/legacy/`의 파일명 순서가 아니라 `src/manifest.json`의 배열 순서가 유일한 실행 순서입니다.
 - 기존 패치의 `script` 경계가 변수 스코프에 영향을 줄 수 있으므로 파일들을 직접 이어붙이거나 무검증으로 `type="module"`로 바꾸지 마세요.
 - `tests/legacy/`는 과거 C1H 참고 테스트로, 절대경로 의존성이 일부 존재합니다. `npm test`는 경로가 현재 프로젝트로 수정된 D0 공식 테스트만 사용합니다.
+
+
+D1 관측 Bootstrap: `src/bootstrap/v034d1.js` — 빌드 시 D0 Bootstrap 다음에 순차 실행됩니다.

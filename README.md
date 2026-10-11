@@ -1,3 +1,15 @@
+# Village Observer V0.34D1
+
+**새 개발 기준선은 V0.34D1 Settlement Aggregate V1입니다.** 다중 파일 소스/이중 배포는 D0를 유지하고, 최신 정착지 읽기 전용 집계·독립 검산·세부 UI·32열 Settlement CSV를 추가했습니다.
+
+- 독립형 게임: `dist/standalone/index.html` (또는 `index-standalone.html`)
+- GitHub Pages: `dist/hosted/index.html` + 동일 폴더의 `assets/`
+- 전체 프로젝트: 루트에서 `npm run build`, `npm test`; `.github/workflows/pages.yml`은 `dist/hosted` 배포
+- D1 문서: `README-34D1.md`, `TEST-34D1.md`, `SETTLEMENT-AGGREGATE-D1-SCHEMA.md`
+- 이전 버전의 세이브 파일 하위 호환은 필수 지원 대상이 아니며, D1의 저장키는 `village-observer-v034d1`입니다.
+
+---
+
 # Village Observer V0.34D0
 
 **Multi-file Foundation & Regression Baseline** · 2026-10-11
