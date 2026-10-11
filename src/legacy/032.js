@@ -1,0 +1,87 @@
+
+window.VSim=window.VSim||{};
+(function(NS){
+'use strict';
+const clamp22=(v,a,b)=>Math.max(a,Math.min(b,v));
+const REV22='contact-demography-frontier-visuals';
+const CONTACT_LABEL22=['미발견','문명 발견','시장 정보','교역 가능'];
+function ensureNation22(v){
+ if(!v.contactNetwork22||typeof v.contactNetwork22!=='object')v.contactNetwork22={};
+ if(!v.demographyStats22||typeof v.demographyStats22!=='object')v.demographyStats22={births:0,childDeaths:0,starvationDeaths:0,illnessDeaths:0,oldAgeDeaths:0};
+ return v;
+}
+function attachV22World(w){NS.V021.attachWorld(w);for(const v of w.villages){v._world=w;ensureNation22(v);}return w;}
+function settlementDistance22(w,a,b){
+ const A=(a.tradingPosts?.()||[]).length?a.tradingPosts():[...a.territory],B=(b.tradingPosts?.()||[]).length?b.tradingPosts():[...b.territory];let best=Infinity,pa=null,pb=null;
+ for(const x of A)for(const y of B){const d=w.map.distance(x,y);if(d<best){best=d;pa=x;pb=y;}}
+ return{distance:best,aTileId:pa,bTileId:pb};
+}
+function discoveryRange22(v,w){let r=12;if(v.hasTech?.('BARTER'))r+=2;if(v.hasTech?.('ENVOYS'))r+=7;if(v.hasTech?.('CART'))r+=2;if(v.hasTech?.('LONG_DISTANCE_TRADE'))r+=22;if(v.hasTech?.('SEAFARING'))r+=10;if(v.hasTech?.('OCEAN_NAVIGATION'))r+=20;return r;}
+function marketRange22(v,w){let r=8;if(v.hasTech?.('BARTER'))r+=2;if(v.hasTech?.('CART'))r+=3;if(v.hasTech?.('MARKET'))r+=2;if(v.hasTech?.('ENVOYS'))r+=5;if(v.hasTech?.('LONG_DISTANCE_TRADE'))r+=18;if(v.hasTech?.('SEAFARING'))r+=8;if(v.hasTech?.('OCEAN_NAVIGATION'))r+=16;return r;}
+function contactState22(w,a,b){
+ const q=settlementDistance22(w,a,b),discover=Math.max(discoveryRange22(a,w),discoveryRange22(b,w)),market=Math.max(7,Math.min(marketRange22(a,w),marketRange22(b,w)));let level=0;
+ if(q.distance<=discover){level=1;if(q.distance<=market)level=2;}
+ return{...q,level,discoverRange:discover,marketRange:market};
+}
+function setContactLevel22(w,a,b,state,tradeReachable=false){
+ ensureNation22(a);ensureNation22(b);const now=w.ordinalDay(),level=tradeReachable?3:state.level;
+ const apply=(x,y)=>{const old=x.contactNetwork22[y.id]||{level:0,firstDay:null,marketDay:null,tradeDay:null};if(level<=old.level)return old;const n={...old,level,lastDay:now,distance:state.distance};if(level>=1&&n.firstDay==null)n.firstDay=now;if(level>=2&&n.marketDay==null)n.marketDay=now;if(level>=3&&n.tradeDay==null)n.tradeDay=now;x.contactNetwork22[y.id]=n;return{old,n};};
+ const aa=apply(a,b),bb=apply(b,a);if(aa?.old&&level>aa.old.level){if(aa.old.level<1&&level>=1)w.telemetry.record('CIVILIZATION_DISCOVERED',w,{village:a.name,foreignNation:b.name,distance:state.distance});if(aa.old.level<2&&level>=2)w.telemetry.record('FOREIGN_MARKET_CONTACT',w,{village:a.name,foreignNation:b.name,distance:state.distance});}
+ if(bb?.old&&level>bb.old.level){if(bb.old.level<1&&level>=1)w.telemetry.record('CIVILIZATION_DISCOVERED',w,{village:b.name,foreignNation:a.name,distance:state.distance});if(bb.old.level<2&&level>=2)w.telemetry.record('FOREIGN_MARKET_CONTACT',w,{village:b.name,foreignNation:a.name,distance:state.distance});}
+}
+function updateContacts22(w){const vs=w.activeVillages||[];for(let i=0;i<vs.length;i++)for(let j=i+1;j<vs.length;j++){const a=vs[i],b=vs[j],st=contactState22(w,a,b);setContactLevel22(w,a,b,st,false);}}
+function contactCounts22(v,w){let discovered=0,market=0,trade=0;for(const o of w.activeVillages){if(o.id===v.id)continue;const n=ensureNation22(v).contactNetwork22[o.id];if((n?.level||0)>=1)discovered++;if((n?.level||0)>=2)market++;const r=w.routeInfo(v,o);if(r.reachable)trade++;}return{discovered,market,trade};}
+
+/* B: modestly longer ordinary reach, large technology-driven extension. */
+const tradeRange21=NS.Village.prototype.tradeRange;
+NS.Village.prototype.tradeRange=function(w){let r=tradeRange21.call(this,w)*1.34;if(this.hasTech?.('ENVOYS'))r*=1.05;if(this.hasTech?.('LONG_DISTANCE_TRADE'))r*=1.46;return r;};
+const route21=NS.World.prototype.routeInfo;
+NS.World.prototype.routeInfo=function(a,b){const raw=route21.call(this,a,b),st=contactState22(this,a,b),marketReady=st.level>=2||st.distance<=7;let reachable=!!raw.reachable&&marketReady;setContactLevel22(this,a,b,st,reachable);return{...raw,reachable,contactLevel:reachable?3:st.level,contactLabel:CONTACT_LABEL22[reachable?3:st.level],contactDistance:st.distance,discoveryRange:st.discoverRange,marketContactRange:st.marketRange};};
+const advance21=NS.World.prototype.advanceOneDay;
+NS.World.prototype.advanceOneDay=function(){advance21.call(this);if(this.ordinalDay()%30===1)updateContacts22(this);};
+
+/* Demographic transition foundation: high births + high early mortality; technology lowers death first. */
+function deathTechFactors22(v){let starvation=1,illness=1;if(v.hasTech?.('CART'))starvation*=.93;if(v.hasTech?.('ROADS'))starvation*=.78;if(v.hasTech?.('FRONTIER_LOGISTICS'))starvation*=.82;if(v.hasTech?.('FOOD_PRESERVATION'))starvation*=.90;if(v.hasTech?.('PUBLIC_WORKS')){starvation*=.94;illness*=.90;}if(v.hasTech?.('SANITATION'))illness*=.52;if(v.hasTech?.('EDUCATION'))illness*=.92;if(v.hasTech?.('URBANIZATION'))illness*=.90;return{starvation,illness};}
+function localCapacity22(v,w,id){const t=w.map.get(id);if(!t)return 1;return Math.max(1,(t.buildings||[]).reduce((s,b)=>s+(NS.BUILDINGS[b]?.capacity||0),0));}
+function killPerson22(v,w,p,code,reason){p.alive=false;const st=ensureNation22(v).demographyStats22;if(code==='DEATH_STARVATION')st.starvationDeaths++;else if(code==='DEATH_ILLNESS')st.illnessDeaths++;else if(code==='DEATH_OLD_AGE')st.oldAgeDeaths++;if(p.age<=14)st.childDeaths++;w.log(`${v.name}의 ${p.name}이(가) ${reason}으로 세상을 떠났습니다.`,true,code,{village:v.name,person:p.name,age:p.age,health:+Number(p.health||0).toFixed(1),hunger:+Number(p.hunger||0).toFixed(1),homeTileId:p.homeTileId,demographyModel:'V0.22_HIGH_BIRTH_HIGH_MORTALITY'});}
+function annualMortality22(v,w){const f=deathTechFactors22(v);for(const p of v.residents.filter(x=>x.alive)){
+  p.age++;const home=p.homeTileId??v.coreTileId,localDays=Math.max(0,v.settlementReserveDays(home)),localPop=v.tileResidents(home).filter(x=>x.alive).length,cap=localCapacity22(v,w,home),occ=localPop/cap;
+  let starve=localDays<5?.15:localDays<12?.075:localDays<24?.032:localDays<40?.010:.0015;starve+=(p.hunger>85?.13:p.hunger>70?.065:p.hunger>55?.018:0);if(p.age<=5)starve*=1.25;else if(p.age>=65)starve*=1.18;starve*=f.starvation;
+  let illness=p.age<=1?.14:p.age<=5?.070:p.age<=14?.024:p.age<=59?.012:p.age<=68?.021:.032;illness*=1+Math.max(0,occ-.75)*.55;illness*=1+Math.max(0,60-Number(p.health||60))*.012;if(localDays<18)illness*=1.22;illness*=f.illness;
+  let old=0;if(p.age>=66)old=Math.min(.42,.008+(p.age-65)*.012);
+  let r=Math.random();if(r<clamp22(starve,0,.55)){killPerson22(v,w,p,'DEATH_STARVATION',p.age<=5?'영양실조와 식량 부족':'영양실조');continue;}r=Math.random();if(r<clamp22(illness,0,.48)){killPerson22(v,w,p,'DEATH_ILLNESS',p.age<=5?'감염병과 쇠약':'질병과 쇠약');continue;}r=Math.random();if(r<old){killPerson22(v,w,p,'DEATH_OLD_AGE',`${p.age}세의 노환`);continue;}
+ }}
+function annualBirths22(v,w){const now=w.ordinalDay(),men=v.residents.filter(p=>p.alive&&p.sex==='남'&&p.age>=17&&p.age<=55);if(!men.length)return;const women=v.residents.filter(p=>p.alive&&p.sex==='여'&&p.age>=17&&p.age<=42&&(p.birthCooldownUntilDay||-99999)<=now).sort(()=>Math.random()-.5),st=ensureNation22(v).demographyStats22;
+ for(const mother of women){let home=mother.homeTileId??v.bestBirthTile(w),localDays=v.settlementReserveDays(home),occ=v.tileResidents(home).filter(p=>p.alive).length/localCapacity22(v,w,home),national=v.foodReserveDays();let chance=national>=60?.43:national>=35?.36:national>=18?.25:.11;if(localDays<10)chance*=.48;else if(localDays<22)chance*=.72;if(mother.health<50)chance*=.58;else if(mother.health<65)chance*=.78;if(mother.happiness<45)chance*=.78;if(occ>1.15)chance*=.72;else if(occ>1)chance*=.86;if(v.capacity(w)<v.population()*1.02)chance*=.80;if(Math.random()>=chance)continue;
+  const father=men[Math.floor(Math.random()*men.length)],b=new NS.Person(v.id,`v22baby-${now}-${Math.random().toString(36).slice(2)}`,{age:0,job:'아이',health:88+Math.random()*8,hunger:14,energy:80,homeTileId:home,workTileId:home,familyName:father?.familyName||mother.familyName,motherId:mother.id,fatherId:father?.id||null});NS.V020.ensurePerson(b);b.currentAction='가족의 보호를 받고 있음';v.residents.push(b);mother.birthCooldownUntilDay=now+105+Math.floor(Math.random()*46);st.births++;w.log(`${v.name}의 (${w.map.get(home)?.x},${w.map.get(home)?.y}) 정착지에서 ${b.name}이(가) 태어났습니다.`,true,'BIRTH',{village:v.name,person:b.name,homeTileId:home,mother:mother.name,father:father?.name||null,demographyModel:'V0.22_HIGH_BIRTH_HIGH_MORTALITY'});
+ }}
+NS.Village.prototype.yearlyTick=function(w){ensureNation22(this);annualMortality22(this,w);this.residents=this.residents.filter(p=>p.alive);annualBirths22(this,w);};
+
+/* V0.22 save / telemetry */
+const villageSer21=NS.Village.prototype.serialize;
+NS.Village.prototype.serialize=function(){const d=villageSer21.call(this);ensureNation22(this);d.contactNetwork22=this.contactNetwork22;d.demographyStats22=this.demographyStats22;return d;};
+const worldSer21=NS.World.prototype.serialize,worldFrom21=NS.World.from;
+NS.World.prototype.serialize=function(){const d=worldSer21.call(this);d.version='0.22';d.v22={longDistanceContact:true,contactStages:['undiscovered','discovered','market','trade'],demographicTransition:true,highBirthHighMortality:true,frontierProjectVisualization:true,blueLogisticsFlow:true,revision:REV22};return d;};
+NS.World.from=function(d){if(d.version==='0.22'){const w=worldFrom21({...d,version:'0.21'});for(const v of w.villages){const src=(d.villages||[]).find(x=>x.id===v.id)||{};v.contactNetwork22=src.contactNetwork22||{};v.demographyStats22=src.demographyStats22||{births:0,childDeaths:0,starvationDeaths:0,illnessDeaths:0,oldAgeDeaths:0};}return attachV22World(w);}return attachV22World(worldFrom21(d));};
+const snap21=NS.Telemetry.prototype.snapshot;
+NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){const s=snap21.call(this,w,reason,note);if(!s)return s;for(const r of s.villages||[]){const v=w.villages.find(x=>x.id===r.id);if(!v)continue;const c=contactCounts22(v,w),d=ensureNation22(v).demographyStats22;r.discoveredNations22=c.discovered;r.marketContactNations22=c.market;r.reachableTradeNations22=c.trade;r.births22=d.births;r.childDeaths22=d.childDeaths;r.starvationDeaths22=d.starvationDeaths;r.illnessDeaths22=d.illnessDeaths;r.oldAgeDeaths22=d.oldAgeDeaths;}return s;};
+const csv21=NS.Telemetry.prototype.snapshotsCSV;
+NS.Telemetry.prototype.snapshotsCSV=function(){const extra=['discoveredNations22','marketContactNations22','reachableTradeNations22','births22','childDeaths22','starvationDeaths22','illnessDeaths22','oldAgeDeaths22'],base=csv21.call(this),lines=base.split('\n');if(!lines.length)return base;const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;lines[0]+=','+extra.map(esc).join(',');let i=1;for(const s of this.snapshots||[])for(const v of s.villages||[]){if(i>=lines.length)break;lines[i++]+=','+extra.map(k=>esc(v[k])).join(',');}return lines.join('\n');};
+const json21=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=json21.call(this,w);d.version='0.22';d.worldSummary.contactModel='undiscovered -> civilization discovered -> market information -> actual trade';d.worldSummary.longDistanceTrade='base range modestly wider; ENVOYS/LONG_DISTANCE_TRADE and navigation technologies extend discovery, market contact and actual reach';d.worldSummary.demographyModel='high births + high infant/child/adult mortality; logistics/sanitation technologies reduce mortality before fertility declines';d.worldSummary.frontierVisualization='all frontierProjects rendered as dashed source-target projects with target progress';d.worldSummary.logisticsFlowColor='sky-blue / blue family';return d;};
+NS.V022={attachWorld:attachV22World,ensureNation:ensureNation22,contactState:contactState22,updateContacts:updateContacts22,contactCounts:contactCounts22,revision:REV22};
+
+(function(){const KEY='village-observer-v0-22',fallback=['village-observer-v0-21','village-observer-v0-20','village-observer-v0-19','village-observer-v0-18','village-observer-v0-17','village-observer-v0-16','village-observer-v0-15','village-observer-v0-14','village-observer-v0-13','village-observer-v0-12','village-observer-v0-11','village-observer-v0-10','village-observer-v0-9','village-observer-v0-8'];function dl(name,text,type='application/json'){const blob=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}NS.SaveSystem={save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},load(){let r=localStorage.getItem(KEY);for(const k of fallback)if(!r)r=localStorage.getItem(k);return r?NS.World.from(JSON.parse(r)):null;},export(w){dl(`village-observer-v022-save-${w.year}y.json`,JSON.stringify(w.serialize()));},exportDevJSON(w){dl(`village-observer-v022-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},exportDevCSV(w){dl(`village-observer-v022-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+w.telemetry.snapshotsCSV(),'text/csv;charset=utf-8');},async import(file){return NS.World.from(JSON.parse(await file.text()));},async importMap(file){return attachV22World(NS.V019.worldFromMapData(JSON.parse(await file.text())));}};})();
+
+/* Frontier visuals: render every parallel frontier project instead of obsolete expansionProject. */
+function drawFrontierProjects22(ui){const g=ui._mapGeom,c=ui.q('worldCanvas');if(!g||!c)return;const ctx=c.getContext('2d'),{cell,ox,oy}=g;ctx.save();for(const v of ui.world.activeVillages){const color=NS.NATION_COLORS?.[v.id%NS.NATION_COLORS.length]||'#8ecbff';for(const p of v.frontierProjects||[]){const a=ui.world.map.get(p.sourceTileId),b=ui.world.map.get(p.targetTileId);if(!a||!b)continue;const ax=ox+(a.x+.5)*cell,ay=oy+(a.y+.5)*cell,bx=ox+(b.x+.5)*cell,by=oy+(b.y+.5)*cell,prog=clamp22(Number(p.progress||0)/Math.max(1,Number(p.duration||1)),0,1);ctx.strokeStyle=color;ctx.globalAlpha=.92;ctx.lineWidth=Math.max(1.5,cell*.055);ctx.setLineDash([Math.max(4,cell*.20),Math.max(3,cell*.12)]);ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.strokeRect(ox+b.x*cell+Math.max(1,cell*.06),oy+b.y*cell+Math.max(1,cell*.06),cell-Math.max(2,cell*.12),cell-Math.max(2,cell*.12));ctx.setLineDash([]);const h=Math.max(2,cell*.08),x=ox+b.x*cell+cell*.12,y=oy+(b.y+1)*cell-h-cell*.10,w=cell*.76;ctx.fillStyle='rgba(7,16,29,.72)';ctx.fillRect(x,y,w,h);ctx.fillStyle=color;ctx.fillRect(x,y,w*prog,h);}}
+ctx.restore();}
+if(NS.UI){const setWorld21=NS.UI.prototype.setWorld,header21=NS.UI.prototype.renderHeader,map21=NS.UI.prototype.renderMap,tile21=NS.UI.prototype.renderTile,content21=NS.UI.prototype.renderVillageContent;
+ NS.UI.prototype.setWorld=function(w){return setWorld21.call(this,attachV22World(w));};
+ NS.UI.prototype.renderHeader=function(){header21.call(this);this.q('runtimeStatus').textContent='✓ V0.22 장거리 접촉·교역 · 고출산/고사망 인구동학 · 개척 시각화';document.title='Village Observer V0.22';const eye=document.querySelector('.eyebrow');if(eye)eye.textContent='Village Observer · V0.22';};
+ NS.UI.prototype.renderMap=function(){map21.call(this);drawFrontierProjects22(this);const legend=this.q('v15LayerLegend');if(legend&&this.mapLayer==='logistics')legend.textContent=legend.textContent.replace('자원색','파란색 계열');};
+ NS.UI.prototype.renderTile=function(){tile21.call(this);const t=this.world.map.get(this.world.selectedTileId),el=this.q('tileInspector');if(!t||!el)return;const found=[];for(const v of this.world.activeVillages)for(const p of v.frontierProjects||[])if(p.targetTileId===t.id)found.push({v,p});if(found.length){el.insertAdjacentHTML('beforeend',found.map(({v,p})=>{const src=this.world.map.get(p.sourceTileId),pct=Math.round(clamp22(Number(p.progress||0)/Math.max(1,Number(p.duration||1)),0,1)*100);return`<div class="v22-frontier-inspector"><strong>🧭 ${v.name} 개척 진행 ${pct}%</strong><div class="small muted">출발 (${src?.x},${src?.y}) → 목표 (${t.x},${t.y}) · ${Math.round(p.progress||0)}/${Math.round(p.duration||0)}일 상당 진행도</div></div>`;}).join(''));}};
+ NS.UI.prototype.renderVillageContent=function(){content21.call(this);const v=this.world.selectedNation,el=this.q('villageContent');if(!v||!el||this.sub!=='overview')return;const c=contactCounts22(v,this.world),d=ensureNation22(v).demographyStats22,grid=el.querySelector('.grid');if(grid&&!el.querySelector('.v22-contact'))grid.insertAdjacentHTML('beforeend',`<div class="info v22-contact">🕊️ 접촉망<div class="big">${c.discovered}/${c.market}/${c.trade}</div><div class="small muted">발견 / 시장정보 / 실제 교역가능</div></div><div class="info v22-demography">👶 인구동학<div class="big">+${d.births} / -${d.starvationDeaths+d.illnessDeaths+d.oldAgeDeaths}</div><div class="small muted">누적 출생 / 사망 · 아동사망 ${d.childDeaths}</div></div>`);};
+}
+if(typeof document!=='undefined'){const st=document.createElement('style');st.textContent=`.v22-frontier-inspector{margin-top:8px;padding-top:8px;border-top:1px dashed #4c729e}.v22-contact .big,.v22-demography .big{font-size:17px}`;document.head.appendChild(st);}
+})(window.VSim);

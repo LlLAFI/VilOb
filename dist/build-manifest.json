@@ -1,0 +1,13 @@
+{
+  "version": "V0.34D0",
+  "baselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "sourceBlocks": 169,
+  "scriptBlocks": 165,
+  "styleBlocks": 4,
+  "hostedBytes": 14472,
+  "standaloneBytes": 3410938,
+  "hostedIndexSHA256": "c6562da03782eee46b3f59889e311a08f3c657043dc119cc07b95b34416dc3e2",
+  "standaloneIndexSHA256": "2718f7c6ef6d84f62f06f24d6dbda3438ecb38be24a0fafa2d05b00440a2ad95",
+  "csvColumns": 1683,
+  "csvDuplicateExtraColumnsFixed": 72
+}

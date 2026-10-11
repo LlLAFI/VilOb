@@ -1,0 +1,263 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34C1H</title><!-- VILOB_D0_BLOCK_000 --></head><body>
+<!-- VILOB_D0_BLOCK_001 -->
+
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.33F</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div id="runtimeStatus" class="runtime">초기화 중…</div>
+<main>
+<section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
+<section id="view-village" class="main-view"><div class="village-switch"><div id="villageCards" class="village-strip"></div></div><div class="subtabs" id="villageSubtabs"><button data-sub="overview" class="active">개요</button><button data-sub="settlements">정착지</button><button data-sub="residents">주민</button><button data-sub="economy">경제</button><button data-sub="trade">교역</button></div><div id="villageContent" class="panel"></div></section>
+<section id="view-tech" class="main-view"><div class="panel"><div class="section-head"><div><h2>기술</h2><div class="muted small">기술을 누르면 정확한 효과 수치를 볼 수 있습니다.</div></div></div><div id="researchSummary"></div><div id="techTree"></div></div></section>
+<section id="view-codex" class="main-view"><div class="panel"><div class="section-head"><div><h2>밸런스 백과</h2><div class="muted small">현재 버전의 비용·생산·유지·물류·도로·기술 수치를 한곳에서 확인합니다.</div></div></div><div id="codexContent"></div></div></section>
+<section id="view-stats" class="main-view"><div class="panel"><div class="section-head"><div><h2>통계</h2><div class="muted small">세계·국가·정착지의 장기 변화를 연간 기록으로 확인합니다.</div></div></div><div class="stats-controls"><select id="statsScope"><option value="world">세계</option><option value="nation" selected>국가</option><option value="settlement">정착지</option></select><select id="statsNation"></select><select id="statsSettlement"></select><select id="statsMetric"></select><select id="statsPeriod"><option value="0">전체 기간</option><option value="10">최근 10년</option><option value="25">최근 25년</option><option value="50">최근 50년</option></select></div><div id="statsNote" class="small muted" style="margin-bottom:8px"></div><div class="stats-chart-wrap"><canvas id="statsCanvas" width="900" height="350"></canvas></div></div></section><section id="view-world" class="main-view"><div class="panel"><h2>관찰자 개입</h2><div class="button-grid"><button id="foodBtn">🌾 중심지 식량 +50</button><button id="woodBtn">🪵 중심지 목재 +30</button><button id="goldBtn">🪙 Gold +25</button><button id="moraleBtn">✨ 사기 +8</button><button id="stormBtn" class="danger">⛈️ 폭풍</button></div></div><div class="panel"><div class="section-head"><div><h2>개발 로그</h2><div class="muted small">현재 상태와 메모 저장</div></div><span id="devLogCount" class="tag"></span></div><textarea id="devNote" rows="3" placeholder="밸런스 피드백 메모"></textarea><div class="button-grid"><button id="captureBtn">📌 기록</button><button id="exportLogJsonBtn">로그 JSON</button><button id="exportLogCsvBtn">스냅샷 CSV</button><button id="clearLogBtn">비우기</button></div><div id="devLogPreview"></div></div><div class="panel"><h2>세이브</h2><div class="button-grid"><button id="saveBtn">저장</button><button id="loadBtn">불러오기</button><button id="exportBtn">세이브 JSON</button><label class="file-btn">가져오기<input id="importInput" type="file" accept=".json"></label></div><div id="saveMessage" class="muted small"></div></div><div class="panel"><h2>세계 연대기</h2><div id="chronicle" class="chronicle"></div></div></section>
+</main>
+<nav class="bottom-nav"><button data-view="map" class="active">🗺️<span>지도</span></button><button data-view="village">🏛️<span>국가</span></button><button data-view="tech">🧠<span>기술</span></button><button data-view="codex">📚<span>백과</span></button><button data-view="stats">📊<span>통계</span></button><button data-view="world">🌐<span>세계</span></button></nav></div>
+<div id="techModal" class="modal"><div class="modal-card"><button id="techModalClose" class="modal-close">✕</button><div id="techModalBody"></div></div></div>
+<!-- VILOB_D0_BLOCK_002 --><!-- VILOB_D0_BLOCK_003 --><!-- VILOB_D0_BLOCK_004 --><!-- VILOB_D0_BLOCK_005 --><!-- VILOB_D0_BLOCK_006 --><!-- VILOB_D0_BLOCK_007 --><!-- VILOB_D0_BLOCK_008 --><!-- VILOB_D0_BLOCK_009 --><!-- VILOB_D0_BLOCK_010 --><!-- VILOB_D0_BLOCK_011 -->
+<!-- VILOB_D0_BLOCK_012 --><!-- VILOB_D0_BLOCK_013 --><!-- VILOB_D0_BLOCK_014 --><!-- VILOB_D0_BLOCK_015 --><!-- VILOB_D0_BLOCK_016 --><!-- VILOB_D0_BLOCK_017 -->
+<!-- VILOB_D0_BLOCK_018 --><!-- VILOB_D0_BLOCK_019 --><!-- VILOB_D0_BLOCK_020 --><!-- VILOB_D0_BLOCK_021 --><!-- VILOB_D0_BLOCK_022 --><!-- VILOB_D0_BLOCK_023 --><!-- VILOB_D0_BLOCK_024 --><!-- VILOB_D0_BLOCK_025 --><!-- VILOB_D0_BLOCK_026 --><!-- VILOB_D0_BLOCK_027 -->
+<!-- VILOB_D0_BLOCK_028 --><!-- VILOB_D0_BLOCK_029 --><!-- VILOB_D0_BLOCK_030 -->
+<!-- VILOB_D0_BLOCK_031 --><!-- VILOB_D0_BLOCK_032 --><!-- VILOB_D0_BLOCK_033 --><!-- VILOB_D0_BLOCK_034 --><!-- VILOB_D0_BLOCK_035 -->
+<!-- VILOB_D0_BLOCK_036 --><!-- VILOB_D0_BLOCK_037 -->
+<!-- VILOB_D0_BLOCK_038 -->
+<!-- VILOB_D0_BLOCK_039 -->
+<!-- VILOB_D0_BLOCK_040 -->
+
+<!-- VILOB_D0_BLOCK_041 -->
+
+<!-- VILOB_D0_BLOCK_042 -->
+
+<!-- VILOB_D0_BLOCK_043 -->
+
+<!-- VILOB_D0_BLOCK_044 -->
+
+<!-- VILOB_D0_BLOCK_045 -->
+
+<!-- VILOB_D0_BLOCK_046 -->
+<!-- VILOB_D0_BLOCK_047 -->
+
+<!-- VILOB_D0_BLOCK_048 -->
+<!-- VILOB_D0_BLOCK_049 -->
+<!-- VILOB_D0_BLOCK_050 -->
+<!-- VILOB_D0_BLOCK_051 -->
+<!-- VILOB_D0_BLOCK_052 -->
+<!-- VILOB_D0_BLOCK_053 -->
+<!-- VILOB_D0_BLOCK_054 -->
+<!-- VILOB_D0_BLOCK_055 -->
+<!-- VILOB_D0_BLOCK_056 -->
+<!-- VILOB_D0_BLOCK_057 -->
+<!-- VILOB_D0_BLOCK_058 -->
+<!-- VILOB_D0_BLOCK_059 -->
+<!-- VILOB_D0_BLOCK_060 -->
+<!-- VILOB_D0_BLOCK_061 -->
+<!-- VILOB_D0_BLOCK_062 -->
+<!-- VILOB_D0_BLOCK_063 -->
+<!-- VILOB_D0_BLOCK_064 -->
+
+<!-- VILOB_D0_BLOCK_065 -->
+
+<!-- VILOB_D0_BLOCK_066 -->
+<!-- VILOB_D0_BLOCK_067 -->
+
+<!-- VILOB_D0_BLOCK_068 -->
+<!-- VILOB_D0_BLOCK_069 -->
+
+<!-- VILOB_D0_BLOCK_070 -->
+
+<!-- VILOB_D0_BLOCK_071 -->
+
+<!-- VILOB_D0_BLOCK_072 -->
+<!-- VILOB_D0_BLOCK_073 -->
+
+<!-- VILOB_D0_BLOCK_074 -->
+<!-- VILOB_D0_BLOCK_075 -->
+
+
+<!-- VILOB_D0_BLOCK_076 -->
+
+<!-- VILOB_D0_BLOCK_077 -->
+
+<!-- VILOB_D0_BLOCK_078 -->
+<!-- VILOB_D0_BLOCK_079 -->
+
+
+<!-- VILOB_D0_BLOCK_080 -->
+
+
+<!-- VILOB_D0_BLOCK_081 -->
+<!-- VILOB_D0_BLOCK_082 -->
+
+<!-- VILOB_D0_BLOCK_083 -->
+
+\n<!-- VILOB_D0_BLOCK_084 -->\n
+
+<!-- VILOB_D0_BLOCK_085 -->
+
+<!-- VILOB_D0_BLOCK_086 -->
+<!-- VILOB_D0_BLOCK_087 -->
+
+<!-- VILOB_D0_BLOCK_088 -->
+<!-- VILOB_D0_BLOCK_089 -->
+
+
+<!-- VILOB_D0_BLOCK_090 -->
+
+<!-- VILOB_D0_BLOCK_091 -->
+
+
+<!-- VILOB_D0_BLOCK_092 -->
+
+<!-- VILOB_D0_BLOCK_093 -->
+
+<!-- VILOB_D0_BLOCK_094 -->
+
+
+<!-- VILOB_D0_BLOCK_095 -->
+<!-- VILOB_D0_BLOCK_096 -->
+
+
+
+<!-- VILOB_D0_BLOCK_097 -->
+
+
+<!-- VILOB_D0_BLOCK_098 -->
+
+
+<!-- VILOB_D0_BLOCK_099 -->
+
+
+
+<!-- VILOB_D0_BLOCK_100 -->
+<!-- VILOB_D0_BLOCK_101 -->
+
+<!-- VILOB_D0_BLOCK_102 -->
+
+
+<!-- VILOB_D0_BLOCK_103 -->
+
+
+<!-- VILOB_D0_BLOCK_104 -->
+
+<!-- VILOB_D0_BLOCK_105 -->
+\n<!-- VILOB_D0_BLOCK_106 -->
+<!-- VILOB_D0_BLOCK_107 -->
+
+<!-- VILOB_D0_BLOCK_108 -->
+
+<!-- VILOB_D0_BLOCK_109 -->
+
+<!-- VILOB_D0_BLOCK_110 -->
+
+<!-- VILOB_D0_BLOCK_111 -->
+
+
+
+
+
+
+
+<!-- VILOB_D0_BLOCK_112 -->
+
+
+<!-- VILOB_D0_BLOCK_113 -->
+
+
+
+<!-- VILOB_D0_BLOCK_114 -->
+
+<!-- VILOB_D0_BLOCK_115 -->
+
+<!-- VILOB_D0_BLOCK_116 -->
+
+<!-- VILOB_D0_BLOCK_117 -->
+
+
+<!-- VILOB_D0_BLOCK_118 -->
+
+<!-- VILOB_D0_BLOCK_119 -->
+
+<!-- VILOB_D0_BLOCK_120 -->
+
+
+<!-- VILOB_D0_BLOCK_121 -->
+
+
+<!-- VILOB_D0_BLOCK_122 -->
+
+
+<!-- VILOB_D0_BLOCK_123 -->
+
+<!-- VILOB_D0_BLOCK_124 -->
+
+<!-- VILOB_D0_BLOCK_125 -->
+<!-- VILOB_D0_BLOCK_126 -->
+
+<!-- VILOB_D0_BLOCK_127 -->
+<!-- VILOB_D0_BLOCK_128 -->
+
+<!-- VILOB_D0_BLOCK_129 -->
+
+<!-- VILOB_D0_BLOCK_130 -->
+
+<!-- VILOB_D0_BLOCK_131 -->
+
+
+<!-- VILOB_D0_BLOCK_132 -->
+<!-- VILOB_D0_BLOCK_133 -->
+
+
+
+<!-- VILOB_D0_BLOCK_134 -->
+
+
+<!-- VILOB_D0_BLOCK_135 -->
+<!-- VILOB_D0_BLOCK_136 -->
+<!-- VILOB_D0_BLOCK_137 -->
+
+
+<!-- VILOB_D0_BLOCK_138 -->
+
+<!-- VILOB_D0_BLOCK_139 -->
+
+<!-- VILOB_D0_BLOCK_140 -->
+
+
+<!-- VILOB_D0_BLOCK_141 -->
+
+<!-- VILOB_D0_BLOCK_142 -->
+
+<!-- VILOB_D0_BLOCK_143 -->
+<!-- VILOB_D0_BLOCK_144 -->
+
+<!-- VILOB_D0_BLOCK_145 -->
+<!-- VILOB_D0_BLOCK_146 -->
+
+<!-- VILOB_D0_BLOCK_147 -->
+<!-- VILOB_D0_BLOCK_148 -->
+
+<!-- VILOB_D0_BLOCK_149 -->
+<!-- VILOB_D0_BLOCK_150 -->
+
+<!-- VILOB_D0_BLOCK_151 -->
+<!-- VILOB_D0_BLOCK_152 -->
+<!-- VILOB_D0_BLOCK_153 -->
+<!-- VILOB_D0_BLOCK_154 -->
+<!-- VILOB_D0_BLOCK_155 -->
+<!-- VILOB_D0_BLOCK_156 -->
+<!-- VILOB_D0_BLOCK_157 -->
+<!-- VILOB_D0_BLOCK_158 -->
+<!-- VILOB_D0_BLOCK_159 -->
+
+<!-- VILOB_D0_BLOCK_160 -->
+<!-- VILOB_D0_BLOCK_161 -->
+
+<!-- VILOB_D0_BLOCK_162 -->
+<!-- VILOB_D0_BLOCK_163 -->
+
+<!-- VILOB_D0_BLOCK_164 -->
+
+<!-- VILOB_D0_BLOCK_165 -->
+
+<!-- VILOB_D0_BLOCK_166 -->
+<!-- VILOB_D0_BLOCK_167 -->
+<!-- VILOB_D0_BLOCK_168 -->
+</body></html>

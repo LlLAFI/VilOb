@@ -1,0 +1,2 @@
+
+window.VSim=window.VSim||{};(function(NS){NS.Relationships={adjust(a,b,d){a.relations[b.id]=(a.relations[b.id]||0)+d;b.relations[a.id]=(b.relations[a.id]||0)+d;},initializeVillage(v){const p=v.residents;for(const a of p){const others=[...p].filter(x=>x.id!==a.id).sort(()=>Math.random()-.5).slice(0,Math.min(6,p.length-1));for(const b of others)if(a.relations[b.id]===undefined)a.relations[b.id]=Math.floor(Math.random()*61)-10;}}};})(window.VSim);

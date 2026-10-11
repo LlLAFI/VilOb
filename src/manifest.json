@@ -1,0 +1,1700 @@
+{
+  "version": "V0.34D0",
+  "sourceBaseline": "V0.34C1H",
+  "sourceSha256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "manifestVersion": 1,
+  "blocks": [
+    {
+      "sequence": 0,
+      "type": "style",
+      "path": "src/styles/00.css",
+      "openTag": "<style>",
+      "closeTag": "</style>",
+      "sha256": "5fbe6b2a3f858cf46284dbb48adf55c9eb31e4aea12dd13f0aaf847c7ae8c751",
+      "bytes": 7209,
+      "marker": "<!-- VILOB_D0_BLOCK_000 -->"
+    },
+    {
+      "sequence": 1,
+      "type": "script",
+      "path": "src/legacy/000.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "4fe4db6c635620c8d238cba28a082e8d79f0a905a071a9f13b64fae2eb671848",
+      "bytes": 330,
+      "marker": "<!-- VILOB_D0_BLOCK_001 -->"
+    },
+    {
+      "sequence": 2,
+      "type": "script",
+      "path": "src/legacy/001.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "cb5797315ce8dd092f18d41efd5685516f78341873a84f4a37e230c4245d8334",
+      "bytes": 4819,
+      "marker": "<!-- VILOB_D0_BLOCK_002 -->"
+    },
+    {
+      "sequence": 3,
+      "type": "script",
+      "path": "src/legacy/002.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9af26da3f8388f7098d60c65d689ea9d76ef7b2bdc33b517df6afc7ab1d266a0",
+      "bytes": 450,
+      "marker": "<!-- VILOB_D0_BLOCK_003 -->"
+    },
+    {
+      "sequence": 4,
+      "type": "script",
+      "path": "src/legacy/003.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e1483affa3a78b1cb5a17eb80fa1dcbafd3bac628d378a61268739a88714a78f",
+      "bytes": 6649,
+      "marker": "<!-- VILOB_D0_BLOCK_004 -->"
+    },
+    {
+      "sequence": 5,
+      "type": "script",
+      "path": "src/legacy/004.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "10afaf7c3ea595b9ba2461901cf1ff703683797d5a610ce7d29e832fb258db29",
+      "bytes": 3370,
+      "marker": "<!-- VILOB_D0_BLOCK_005 -->"
+    },
+    {
+      "sequence": 6,
+      "type": "script",
+      "path": "src/legacy/005.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "a0062fd01accffaede7993376bd16782a678c50b24568ca484086d732a60d021",
+      "bytes": 9880,
+      "marker": "<!-- VILOB_D0_BLOCK_006 -->"
+    },
+    {
+      "sequence": 7,
+      "type": "script",
+      "path": "src/legacy/006.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "21d3d1c70fbda9180302d1689bbd84f7cccf76f02d2809b5c8bd71fe461af866",
+      "bytes": 2024,
+      "marker": "<!-- VILOB_D0_BLOCK_007 -->"
+    },
+    {
+      "sequence": 8,
+      "type": "script",
+      "path": "src/legacy/007.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "48164677353cfedbb695fc580673a0bd667eabdad462861d85e75fd5c84ef36f",
+      "bytes": 856,
+      "marker": "<!-- VILOB_D0_BLOCK_008 -->"
+    },
+    {
+      "sequence": 9,
+      "type": "script",
+      "path": "src/legacy/008.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "b73b898f005c155016592a8087a11ce60234b17ba01426092b8576aadf04e393",
+      "bytes": 23704,
+      "marker": "<!-- VILOB_D0_BLOCK_009 -->"
+    },
+    {
+      "sequence": 10,
+      "type": "script",
+      "path": "src/legacy/009.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3fae38816cc4c72d15d3b56f68ffc5aa6714e841d7c4818a309c15eccd1a76c6",
+      "bytes": 11879,
+      "marker": "<!-- VILOB_D0_BLOCK_010 -->"
+    },
+    {
+      "sequence": 11,
+      "type": "script",
+      "path": "src/legacy/010.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3048128fa5e7761909e6b51c4d028986ad3c317e004a09f2de017fd2e6c405a3",
+      "bytes": 16926,
+      "marker": "<!-- VILOB_D0_BLOCK_011 -->"
+    },
+    {
+      "sequence": 12,
+      "type": "script",
+      "path": "src/legacy/011.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"core07\">",
+      "closeTag": "</script>",
+      "sha256": "5cd20f6cb887b3644a398b9843b07aae27578de9c27ae9aaba1e0a9d5b7e1182",
+      "bytes": 457,
+      "marker": "<!-- VILOB_D0_BLOCK_012 -->"
+    },
+    {
+      "sequence": 13,
+      "type": "script",
+      "path": "src/legacy/012.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "67525a27b5c751a5fa578c7595eff7b2d0f6800d7a3a46168466f70667395636",
+      "bytes": 927,
+      "marker": "<!-- VILOB_D0_BLOCK_013 -->"
+    },
+    {
+      "sequence": 14,
+      "type": "script",
+      "path": "src/legacy/013.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "2d0639da70273c36252cd48c1c5e7095f7d9f46147a2f9fbbb30a19572c4694f",
+      "bytes": 16172,
+      "marker": "<!-- VILOB_D0_BLOCK_014 -->"
+    },
+    {
+      "sequence": 15,
+      "type": "script",
+      "path": "src/legacy/014.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "da919b08bfe18024d90ad0bdd2f06bb7d0328d3cda690a4502667f65e291622c",
+      "bytes": 32062,
+      "marker": "<!-- VILOB_D0_BLOCK_015 -->"
+    },
+    {
+      "sequence": 16,
+      "type": "script",
+      "path": "src/legacy/015.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e7ed2d46f7966439df4cc36acdb96d75bd05c61dccbd7b0331d5daf63519a26c",
+      "bytes": 34847,
+      "marker": "<!-- VILOB_D0_BLOCK_016 -->"
+    },
+    {
+      "sequence": 17,
+      "type": "script",
+      "path": "src/legacy/016.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3a3b5247b0e27bd080a50185313d0bcf7ed850b06960c10c3796326ebc47d1bb",
+      "bytes": 26809,
+      "marker": "<!-- VILOB_D0_BLOCK_017 -->"
+    },
+    {
+      "sequence": 18,
+      "type": "script",
+      "path": "src/legacy/017.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"maintenance08\">",
+      "closeTag": "</script>",
+      "sha256": "81a62b8a56bb969d568c6c06fc21986d55aec7a53039a7c1469e1a4a26dc8781",
+      "bytes": 397,
+      "marker": "<!-- VILOB_D0_BLOCK_018 -->"
+    },
+    {
+      "sequence": 19,
+      "type": "script",
+      "path": "src/legacy/018.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "195db3398a1229a09c17d6ec72988792c2c31c00b7fb4d99796b12333911fd8b",
+      "bytes": 34735,
+      "marker": "<!-- VILOB_D0_BLOCK_019 -->"
+    },
+    {
+      "sequence": 20,
+      "type": "script",
+      "path": "src/legacy/019.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "22bc77e1fb76f3ba07470f6837f519f28775e4db3533d52da7ec25d7a8ce5367",
+      "bytes": 40385,
+      "marker": "<!-- VILOB_D0_BLOCK_020 -->"
+    },
+    {
+      "sequence": 21,
+      "type": "script",
+      "path": "src/legacy/020.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "eedc87fc1ba73d31e9deea22493517044bb5ee7137f63063b326bc6c0aff486e",
+      "bytes": 9006,
+      "marker": "<!-- VILOB_D0_BLOCK_021 -->"
+    },
+    {
+      "sequence": 22,
+      "type": "script",
+      "path": "src/legacy/021.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "638cbf5a12b69fe288206800b18d06628b603a582150892f7e60662fe229df1b",
+      "bytes": 20338,
+      "marker": "<!-- VILOB_D0_BLOCK_022 -->"
+    },
+    {
+      "sequence": 23,
+      "type": "script",
+      "path": "src/legacy/022.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "b4d3a27c10eadd69b7d2a6ed52bc46aca972a45713ed6765e60df072b93de0d9",
+      "bytes": 36116,
+      "marker": "<!-- VILOB_D0_BLOCK_023 -->"
+    },
+    {
+      "sequence": 24,
+      "type": "script",
+      "path": "src/legacy/023.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7b200691e694afda7144579d13c59f181330ecbe7aa852e7aa86f0c21045d488",
+      "bytes": 37916,
+      "marker": "<!-- VILOB_D0_BLOCK_024 -->"
+    },
+    {
+      "sequence": 25,
+      "type": "script",
+      "path": "src/legacy/024.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "0e0bcaa8cad5aa5193e319d54320b762afdeff124f0cc9acba2a1e4c00d2b771",
+      "bytes": 26603,
+      "marker": "<!-- VILOB_D0_BLOCK_025 -->"
+    },
+    {
+      "sequence": 26,
+      "type": "script",
+      "path": "src/legacy/025.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3976f847d923b9ba8248d629be3e88680f794dd9613589075fecb6e45d9821cb",
+      "bytes": 50399,
+      "marker": "<!-- VILOB_D0_BLOCK_026 -->"
+    },
+    {
+      "sequence": 27,
+      "type": "script",
+      "path": "src/legacy/026.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3f70311087833c9235ffee801b284e809b606258f3f1bfe1e9d9913c0ad61d37",
+      "bytes": 22376,
+      "marker": "<!-- VILOB_D0_BLOCK_027 -->"
+    },
+    {
+      "sequence": 28,
+      "type": "script",
+      "path": "src/legacy/027.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"society18\">",
+      "closeTag": "</script>",
+      "sha256": "9f8ea6cc5fb4e28bdc25bd20070da5e838090a4c7fa99309f3e4ea5be40f8f90",
+      "bytes": 387,
+      "marker": "<!-- VILOB_D0_BLOCK_028 -->"
+    },
+    {
+      "sequence": 29,
+      "type": "script",
+      "path": "src/legacy/028.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "2d1dd8c6f981c223908d7115c1961c022b2732d338eabfc065fe079d31298419",
+      "bytes": 36067,
+      "marker": "<!-- VILOB_D0_BLOCK_029 -->"
+    },
+    {
+      "sequence": 30,
+      "type": "script",
+      "path": "src/legacy/029.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "8af6d86c11ef4604535f232f0e5013f058f4bd3da644d6c6807138a162b1ce7e",
+      "bytes": 40743,
+      "marker": "<!-- VILOB_D0_BLOCK_030 -->"
+    },
+    {
+      "sequence": 31,
+      "type": "script",
+      "path": "src/legacy/030.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"frontier20\">",
+      "closeTag": "</script>",
+      "sha256": "19b986ccaa79c0fb11c25239a7e13366e0f24ca364db1433663c586d71b5d4d6",
+      "bytes": 388,
+      "marker": "<!-- VILOB_D0_BLOCK_031 -->"
+    },
+    {
+      "sequence": 32,
+      "type": "script",
+      "path": "src/legacy/031.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e9b24d6cefa03922a2481c91c18d8c715fec73867b6889cce4ea932e27a90611",
+      "bytes": 30674,
+      "marker": "<!-- VILOB_D0_BLOCK_032 -->"
+    },
+    {
+      "sequence": 33,
+      "type": "script",
+      "path": "src/legacy/032.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "61385e91a1c1dde88ed18a87b7dab7a7662033233ced3ea83f55da34a19d496f",
+      "bytes": 17501,
+      "marker": "<!-- VILOB_D0_BLOCK_033 -->"
+    },
+    {
+      "sequence": 34,
+      "type": "script",
+      "path": "src/legacy/033.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7fbf84afdb1427a31e5778ccfaa5b9fc47b4d776335f2799769c14737f5420d1",
+      "bytes": 19508,
+      "marker": "<!-- VILOB_D0_BLOCK_034 -->"
+    },
+    {
+      "sequence": 35,
+      "type": "script",
+      "path": "src/legacy/034.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "69993339838707aa4fb98c7553749a773ceabca49f5fd7e9fd614ba5ae5fb81c",
+      "bytes": 45059,
+      "marker": "<!-- VILOB_D0_BLOCK_035 -->"
+    },
+    {
+      "sequence": 36,
+      "type": "script",
+      "path": "src/legacy/035.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"frontier24\">",
+      "closeTag": "</script>",
+      "sha256": "84c7f9f446648e4e0a15863bf24fa6c25f6debc9e6748f6925e57e2d5673dcfd",
+      "bytes": 388,
+      "marker": "<!-- VILOB_D0_BLOCK_036 -->"
+    },
+    {
+      "sequence": 37,
+      "type": "script",
+      "path": "src/legacy/036.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "f41ce1771cd227459fe18b447672785959db50ededbdbeeedb951dce9ade2ef3",
+      "bytes": 50621,
+      "marker": "<!-- VILOB_D0_BLOCK_037 -->"
+    },
+    {
+      "sequence": 38,
+      "type": "script",
+      "path": "src/legacy/037.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "96ae68ba2caa184a3d32c69a50e0371cb34ced3c923dd9ff6323c76c6d67e567",
+      "bytes": 17589,
+      "marker": "<!-- VILOB_D0_BLOCK_038 -->"
+    },
+    {
+      "sequence": 39,
+      "type": "script",
+      "path": "src/legacy/038.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "bfced8eca444851fa1b280c4edef88634269d3f05573ada6c8d9e2f127634659",
+      "bytes": 26415,
+      "marker": "<!-- VILOB_D0_BLOCK_039 -->"
+    },
+    {
+      "sequence": 40,
+      "type": "script",
+      "path": "src/legacy/039.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e29f37f6195c9f19f57c297f151bbeb9465349a6d642e4866a66621332ad4b85",
+      "bytes": 44164,
+      "marker": "<!-- VILOB_D0_BLOCK_040 -->"
+    },
+    {
+      "sequence": 41,
+      "type": "script",
+      "path": "src/legacy/040.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "47c8c4107a32cc988f5be9cc4095471f183b8f05df2b2a8363439ac390af2d0a",
+      "bytes": 57796,
+      "marker": "<!-- VILOB_D0_BLOCK_041 -->"
+    },
+    {
+      "sequence": 42,
+      "type": "script",
+      "path": "src/legacy/041.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "0cbd205a0c51446a71506e17ca9a91380285f835f62e20d8214e7aaeebeb9948",
+      "bytes": 27174,
+      "marker": "<!-- VILOB_D0_BLOCK_042 -->"
+    },
+    {
+      "sequence": 43,
+      "type": "script",
+      "path": "src/legacy/042.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "c0edfe6429e236590e6376acca5bcbfe1655306e535a4061c7b9044f6bf6bce4",
+      "bytes": 25978,
+      "marker": "<!-- VILOB_D0_BLOCK_043 -->"
+    },
+    {
+      "sequence": 44,
+      "type": "script",
+      "path": "src/legacy/043.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "62331a4396673e0acf3459e596c0f721d27ebae0aa916cc92a238bad15fde87b",
+      "bytes": 29188,
+      "marker": "<!-- VILOB_D0_BLOCK_044 -->"
+    },
+    {
+      "sequence": 45,
+      "type": "script",
+      "path": "src/legacy/044.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "b98ca7bd679e4a5616b2d983c543c96f5ef71cf1c1b0dfcd1a182425f3e16161",
+      "bytes": 17023,
+      "marker": "<!-- VILOB_D0_BLOCK_045 -->"
+    },
+    {
+      "sequence": 46,
+      "type": "script",
+      "path": "src/legacy/045.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9395b22d204b3b336fe37ab6b39e36a89ba1000bc833e18dbdfecdfe21a1db2f",
+      "bytes": 13562,
+      "marker": "<!-- VILOB_D0_BLOCK_046 -->"
+    },
+    {
+      "sequence": 47,
+      "type": "script",
+      "path": "src/legacy/046.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"survival30\">",
+      "closeTag": "</script>",
+      "sha256": "0932fc4d4ceb1ed3036c219bf6361995921c2131d4115a12a4319c0612350099",
+      "bytes": 391,
+      "marker": "<!-- VILOB_D0_BLOCK_047 -->"
+    },
+    {
+      "sequence": 48,
+      "type": "script",
+      "path": "src/legacy/047.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "186d7dc4fcbeea63f2464b32539349ade6eacf2a6751675df81f337d97a2703d",
+      "bytes": 37371,
+      "marker": "<!-- VILOB_D0_BLOCK_048 -->"
+    },
+    {
+      "sequence": 49,
+      "type": "script",
+      "path": "src/legacy/048.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "135bf7ff9cd99902c1075c547cb77734b9042380726cd45dd723438c2bc44709",
+      "bytes": 6597,
+      "marker": "<!-- VILOB_D0_BLOCK_049 -->"
+    },
+    {
+      "sequence": 50,
+      "type": "script",
+      "path": "src/legacy/049.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "752d02a10e86da2c833a4a98e6eea73754f094fea440f00d3ec0281f4c1fc0fe",
+      "bytes": 10300,
+      "marker": "<!-- VILOB_D0_BLOCK_050 -->"
+    },
+    {
+      "sequence": 51,
+      "type": "script",
+      "path": "src/legacy/050.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "28a69e635b1a84677b343826ae2c6bd2d64937fee629607494a74406df26e897",
+      "bytes": 16246,
+      "marker": "<!-- VILOB_D0_BLOCK_051 -->"
+    },
+    {
+      "sequence": 52,
+      "type": "script",
+      "path": "src/legacy/051.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "eb27cd4387a443feb48cabf9665067e913b598d2d06b20f635605bd757be46de",
+      "bytes": 23003,
+      "marker": "<!-- VILOB_D0_BLOCK_052 -->"
+    },
+    {
+      "sequence": 53,
+      "type": "script",
+      "path": "src/legacy/052.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"industry31\">",
+      "closeTag": "</script>",
+      "sha256": "63d6d97f7214e6612df5dcf2008ff94dd000b3c92bb15c7df384a17d81f1541d",
+      "bytes": 390,
+      "marker": "<!-- VILOB_D0_BLOCK_053 -->"
+    },
+    {
+      "sequence": 54,
+      "type": "script",
+      "path": "src/legacy/053.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7538e8c5e4290444354d700819c48640d4988ecc4496dff591596921aec98dfe",
+      "bytes": 13218,
+      "marker": "<!-- VILOB_D0_BLOCK_054 -->"
+    },
+    {
+      "sequence": 55,
+      "type": "script",
+      "path": "src/legacy/054.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "8a106cfd472115883d85b588bfe69687fc0fc5c62708a394e0aa48790e3f1ddd",
+      "bytes": 13612,
+      "marker": "<!-- VILOB_D0_BLOCK_055 -->"
+    },
+    {
+      "sequence": 56,
+      "type": "script",
+      "path": "src/legacy/055.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "ba77e943046abf56a0bff1bff5e0fc4c2aeb9139114ed4d2d5364aa325f2c4a2",
+      "bytes": 26252,
+      "marker": "<!-- VILOB_D0_BLOCK_056 -->"
+    },
+    {
+      "sequence": 57,
+      "type": "script",
+      "path": "src/legacy/056.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "acf9a19283ae25b676a964045e77bf57c3bb0fc769b5d70fc77f32f971e0038d",
+      "bytes": 24857,
+      "marker": "<!-- VILOB_D0_BLOCK_057 -->"
+    },
+    {
+      "sequence": 58,
+      "type": "script",
+      "path": "src/legacy/057.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"military32\">",
+      "closeTag": "</script>",
+      "sha256": "248ed3e8ffdbf2447f330d9df5f16a765fcfc861a8792065b34f3057d89b3da4",
+      "bytes": 395,
+      "marker": "<!-- VILOB_D0_BLOCK_058 -->"
+    },
+    {
+      "sequence": 59,
+      "type": "script",
+      "path": "src/legacy/058.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d1c3065ef37d7cbcd72df226121158ac6642c8ee7d2d7d79535f9fa401a84fe6",
+      "bytes": 137,
+      "marker": "<!-- VILOB_D0_BLOCK_059 -->"
+    },
+    {
+      "sequence": 60,
+      "type": "script",
+      "path": "src/legacy/059.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "78a59e1b0619d850512bda91718411af5bbe97f3699e8820c82634cc38190a4a",
+      "bytes": 27982,
+      "marker": "<!-- VILOB_D0_BLOCK_060 -->"
+    },
+    {
+      "sequence": 61,
+      "type": "script",
+      "path": "src/legacy/060.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "49b7b97aab8dba0fd4d9bbf395168ed11f3575333bae6a4125a9b1c7067823ec",
+      "bytes": 18072,
+      "marker": "<!-- VILOB_D0_BLOCK_061 -->"
+    },
+    {
+      "sequence": 62,
+      "type": "script",
+      "path": "src/legacy/061.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d7533205a5398801acd3607231e1e335652fb9c30b2c2cf6464040c322be0eed",
+      "bytes": 66212,
+      "marker": "<!-- VILOB_D0_BLOCK_062 -->"
+    },
+    {
+      "sequence": 63,
+      "type": "script",
+      "path": "src/legacy/062.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"administration32\">",
+      "closeTag": "</script>",
+      "sha256": "d73e042d39b4e274cf2bba633564d7e9246aa700961cba1fda0c5f6dca115938",
+      "bytes": 393,
+      "marker": "<!-- VILOB_D0_BLOCK_063 -->"
+    },
+    {
+      "sequence": 64,
+      "type": "script",
+      "path": "src/legacy/063.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "24692ee1be8e500f92d41c9db231daf61d0e1f47e0df468d3987c08950f03a6c",
+      "bytes": 12486,
+      "marker": "<!-- VILOB_D0_BLOCK_064 -->"
+    },
+    {
+      "sequence": 65,
+      "type": "script",
+      "path": "src/legacy/064.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "fb0bc6837ef83065ad84c9db7215cfe9198cde781b64e1c727d700a610cc7946",
+      "bytes": 24544,
+      "marker": "<!-- VILOB_D0_BLOCK_065 -->"
+    },
+    {
+      "sequence": 66,
+      "type": "script",
+      "path": "src/legacy/065.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e80c81f05884ec3092498159f2461b6e0fa2edd959c67f2d9501e774fb74ff54",
+      "bytes": 43701,
+      "marker": "<!-- VILOB_D0_BLOCK_066 -->"
+    },
+    {
+      "sequence": 67,
+      "type": "script",
+      "path": "src/legacy/066.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"housing32\">",
+      "closeTag": "</script>",
+      "sha256": "72d784d01aba795e8bab8ba2e9f430b181124af7c551f5d4b3e9b9a0e985730d",
+      "bytes": 390,
+      "marker": "<!-- VILOB_D0_BLOCK_067 -->"
+    },
+    {
+      "sequence": 68,
+      "type": "script",
+      "path": "src/legacy/067.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "ea4a4b26c2b0b15f19276bbaf779651dbf2801384e2fbc26933a6931ff4daf71",
+      "bytes": 33541,
+      "marker": "<!-- VILOB_D0_BLOCK_068 -->"
+    },
+    {
+      "sequence": 69,
+      "type": "script",
+      "path": "src/legacy/068.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "4c40ee8013129f20654f54ca69f429a6460a3ae4b0112fd0c6ad86d056146e39",
+      "bytes": 46650,
+      "marker": "<!-- VILOB_D0_BLOCK_069 -->"
+    },
+    {
+      "sequence": 70,
+      "type": "script",
+      "path": "src/legacy/069.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "398ac51475b154b7a0dcaca23f8f88932d242638d2b98fe1d6e08a0bd087c887",
+      "bytes": 26842,
+      "marker": "<!-- VILOB_D0_BLOCK_070 -->"
+    },
+    {
+      "sequence": 71,
+      "type": "script",
+      "path": "src/legacy/070.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "abfdf4f262efe97d099c6acf3bc8f35acc831f7750caaa2490edad312cda3ca5",
+      "bytes": 13434,
+      "marker": "<!-- VILOB_D0_BLOCK_071 -->"
+    },
+    {
+      "sequence": 72,
+      "type": "script",
+      "path": "src/legacy/071.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "ee217218f209f1fcc3e1a8cbf4cc726ade35e0711bbc46ebe9ed283798306949",
+      "bytes": 24972,
+      "marker": "<!-- VILOB_D0_BLOCK_072 -->"
+    },
+    {
+      "sequence": 73,
+      "type": "script",
+      "path": "src/legacy/072.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"tradeIntent32\">",
+      "closeTag": "</script>",
+      "sha256": "9c86a8f8dead8f3ce0c6012c3478ac6ec133754684f26733df47277066a22b96",
+      "bytes": 386,
+      "marker": "<!-- VILOB_D0_BLOCK_073 -->"
+    },
+    {
+      "sequence": 74,
+      "type": "script",
+      "path": "src/legacy/073.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "cf307fca222e005b58e6658aa26be029e511efffc3ee30a7d98b91b3b0798edb",
+      "bytes": 23546,
+      "marker": "<!-- VILOB_D0_BLOCK_074 -->"
+    },
+    {
+      "sequence": 75,
+      "type": "script",
+      "path": "src/legacy/074.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"tradeLifecycle32\">",
+      "closeTag": "</script>",
+      "sha256": "5bc0aed334c6694580fb8aa89f03d8e860ae15fcb413a8abebd3c10e6efee50c",
+      "bytes": 396,
+      "marker": "<!-- VILOB_D0_BLOCK_075 -->"
+    },
+    {
+      "sequence": 76,
+      "type": "script",
+      "path": "src/legacy/075.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "8ec450c66c76ac103894c3a598a0feccced479b5f7bbdce7ffce912a7d29ed51",
+      "bytes": 16246,
+      "marker": "<!-- VILOB_D0_BLOCK_076 -->"
+    },
+    {
+      "sequence": 77,
+      "type": "script",
+      "path": "src/legacy/076.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "2baa89b5cac5dcd0070db0edd32c894796e81b4597688816148c098164e28842",
+      "bytes": 27674,
+      "marker": "<!-- VILOB_D0_BLOCK_077 -->"
+    },
+    {
+      "sequence": 78,
+      "type": "script",
+      "path": "src/legacy/077.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "a3da481eadd3721ece69cb7956589b52f642056b01dc6617bea4cce090d036ec",
+      "bytes": 35553,
+      "marker": "<!-- VILOB_D0_BLOCK_078 -->"
+    },
+    {
+      "sequence": 79,
+      "type": "script",
+      "path": "src/legacy/078.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"commerce32\">",
+      "closeTag": "</script>",
+      "sha256": "9b68b509e6be0546da9535d67705cea3d4279060253c0a1c99e36135a9cbf4ac",
+      "bytes": 388,
+      "marker": "<!-- VILOB_D0_BLOCK_079 -->"
+    },
+    {
+      "sequence": 80,
+      "type": "script",
+      "path": "src/legacy/079.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7361d01154f1a294428955bdacc8604d84a91424244d0ab8cbf0308144f2865f",
+      "bytes": 19092,
+      "marker": "<!-- VILOB_D0_BLOCK_080 -->"
+    },
+    {
+      "sequence": 81,
+      "type": "script",
+      "path": "src/legacy/080.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "93c31408da8e5a9993ae5866b6bcb801f6ba35468faaeeacabb57f3affb4f48e",
+      "bytes": 16478,
+      "marker": "<!-- VILOB_D0_BLOCK_081 -->"
+    },
+    {
+      "sequence": 82,
+      "type": "script",
+      "path": "src/legacy/081.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"hunger32\">",
+      "closeTag": "</script>",
+      "sha256": "068a4277b4c7bfa52c420341fb01a74de96bc418c93bce378c87d9ef4ea5dad7",
+      "bytes": 385,
+      "marker": "<!-- VILOB_D0_BLOCK_082 -->"
+    },
+    {
+      "sequence": 83,
+      "type": "script",
+      "path": "src/legacy/082.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3d46fbeb0887a217bfecc715d120565f7fa3406475ee63324b1b0a3de7cac2e4",
+      "bytes": 13488,
+      "marker": "<!-- VILOB_D0_BLOCK_083 -->"
+    },
+    {
+      "sequence": 84,
+      "type": "script",
+      "path": "src/legacy/083.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3dc6936a63fc72531310f241042b6b766387d1a1b17e227c82df472c0e4e0f8a",
+      "bytes": 21833,
+      "marker": "<!-- VILOB_D0_BLOCK_084 -->"
+    },
+    {
+      "sequence": 85,
+      "type": "script",
+      "path": "src/legacy/084.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e3cfc8519a7aa3cb8bcb458aac46158ef42f2cec3daaa3969d3cc0d7f5920369",
+      "bytes": 20902,
+      "marker": "<!-- VILOB_D0_BLOCK_085 -->"
+    },
+    {
+      "sequence": 86,
+      "type": "script",
+      "path": "src/legacy/085.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "2af003f72cae2b7bc444a6965784002c08eaead4173bc08185ecc2fe0005f311",
+      "bytes": 28400,
+      "marker": "<!-- VILOB_D0_BLOCK_086 -->"
+    },
+    {
+      "sequence": 87,
+      "type": "script",
+      "path": "src/legacy/086.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"armory32\">",
+      "closeTag": "</script>",
+      "sha256": "bd4f51b9312833e72002e1e4748dfa82c955bc444ffc75ea1eb33dad92da201c",
+      "bytes": 382,
+      "marker": "<!-- VILOB_D0_BLOCK_087 -->"
+    },
+    {
+      "sequence": 88,
+      "type": "script",
+      "path": "src/legacy/087.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "484a3ca4c620afb2ef602f33bdfdb296b41caa8515437be8a326d23b08e5c0af",
+      "bytes": 79585,
+      "marker": "<!-- VILOB_D0_BLOCK_088 -->"
+    },
+    {
+      "sequence": 89,
+      "type": "script",
+      "path": "src/legacy/088.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"war33\">",
+      "closeTag": "</script>",
+      "sha256": "e7d80ef0cd2ea7297fdebd3c474cd89be14f17df5429b327e75aa75ceb218bf6",
+      "bytes": 383,
+      "marker": "<!-- VILOB_D0_BLOCK_089 -->"
+    },
+    {
+      "sequence": 90,
+      "type": "script",
+      "path": "src/legacy/089.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "8406803f8109425dfc6e836a3939121ccdd94af017c10ae62771e0341a93e66d",
+      "bytes": 30766,
+      "marker": "<!-- VILOB_D0_BLOCK_090 -->"
+    },
+    {
+      "sequence": 91,
+      "type": "script",
+      "path": "src/legacy/090.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "b27d237cfcf4a513e6015a1f711734583435260a9d8f5c3eaf1b306a0a1e3760",
+      "bytes": 24672,
+      "marker": "<!-- VILOB_D0_BLOCK_091 -->"
+    },
+    {
+      "sequence": 92,
+      "type": "script",
+      "path": "src/legacy/091.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "fbb891a195591900c83a50ff31eeb77df34eb5a110e1ebb37e0b5558f42946a1",
+      "bytes": 16198,
+      "marker": "<!-- VILOB_D0_BLOCK_092 -->"
+    },
+    {
+      "sequence": 93,
+      "type": "script",
+      "path": "src/legacy/092.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9e6b310afcc6986fa0b533ff3438a6cf07ef22910422514571a7af401e9888dd",
+      "bytes": 12457,
+      "marker": "<!-- VILOB_D0_BLOCK_093 -->"
+    },
+    {
+      "sequence": 94,
+      "type": "script",
+      "path": "src/legacy/093.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "47db6afacf143d962c8d0a400f4136b1e959d8a2380924d537a8ddb014944b20",
+      "bytes": 24076,
+      "marker": "<!-- VILOB_D0_BLOCK_094 -->"
+    },
+    {
+      "sequence": 95,
+      "type": "script",
+      "path": "src/legacy/094.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3ad2f147c13d52fbc782cc3c6fc92ad8f5381e1656f81d793ecfc642c34b2562",
+      "bytes": 23445,
+      "marker": "<!-- VILOB_D0_BLOCK_095 -->"
+    },
+    {
+      "sequence": 96,
+      "type": "script",
+      "path": "src/legacy/095.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d6ee19c61117a2a9547d5bd22e0ea55c755dad344a5376aef89406cc694498da",
+      "bytes": 81365,
+      "marker": "<!-- VILOB_D0_BLOCK_096 -->"
+    },
+    {
+      "sequence": 97,
+      "type": "script",
+      "path": "src/legacy/096.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e0f99c4fe0954239972bcd7ccdceaabe1d6b8ef09c4f02d9f2375e4686d6bfd4",
+      "bytes": 26307,
+      "marker": "<!-- VILOB_D0_BLOCK_097 -->"
+    },
+    {
+      "sequence": 98,
+      "type": "script",
+      "path": "src/legacy/097.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d20b73ba5b79fa9090280cce9787048aed52a489c8781995d7da35d8adb984d2",
+      "bytes": 20658,
+      "marker": "<!-- VILOB_D0_BLOCK_098 -->"
+    },
+    {
+      "sequence": 99,
+      "type": "script",
+      "path": "src/legacy/098.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "40669069f3f8d970510e691cccc8e24032d9c5183ff0f6c2490dd5c3525e6f24",
+      "bytes": 17840,
+      "marker": "<!-- VILOB_D0_BLOCK_099 -->"
+    },
+    {
+      "sequence": 100,
+      "type": "script",
+      "path": "src/legacy/099.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "5d9bc1bcf840e738209f649069b567d27e47427fd08c76eb443baee89757d9f0",
+      "bytes": 30072,
+      "marker": "<!-- VILOB_D0_BLOCK_100 -->"
+    },
+    {
+      "sequence": 101,
+      "type": "script",
+      "path": "src/legacy/100.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"warRecovery33\">",
+      "closeTag": "</script>",
+      "sha256": "5d33f65686ca1f3ec4b8799917f2178acae39fe7cde0731c899dd559015425d6",
+      "bytes": 395,
+      "marker": "<!-- VILOB_D0_BLOCK_101 -->"
+    },
+    {
+      "sequence": 102,
+      "type": "script",
+      "path": "src/legacy/101.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "6358024ba76582725e762b16a2385d28f0121c407814a56a287ed25812a335e6",
+      "bytes": 42568,
+      "marker": "<!-- VILOB_D0_BLOCK_102 -->"
+    },
+    {
+      "sequence": 103,
+      "type": "script",
+      "path": "src/legacy/102.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "5fdf72adf585e25cf0924bfd9f037109b5d947065e6ef073f4aba62b4b444f00",
+      "bytes": 29114,
+      "marker": "<!-- VILOB_D0_BLOCK_103 -->"
+    },
+    {
+      "sequence": 104,
+      "type": "script",
+      "path": "src/legacy/103.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "a29d6c964c97882953288fd298eae6bfc9287bf69b227d048eb2d398292fb34c",
+      "bytes": 48865,
+      "marker": "<!-- VILOB_D0_BLOCK_104 -->"
+    },
+    {
+      "sequence": 105,
+      "type": "script",
+      "path": "src/legacy/104.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "cc39ee5b657ecf918951cea81d02e0375147d066fb1109556e948e6fe4f5d1b7",
+      "bytes": 321,
+      "marker": "<!-- VILOB_D0_BLOCK_105 -->"
+    },
+    {
+      "sequence": 106,
+      "type": "script",
+      "path": "src/legacy/105.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7d8acf5cba16c56711b239841f1db0f0c0e7b5a36ba96f6f839ad9a51e019a41",
+      "bytes": 27515,
+      "marker": "<!-- VILOB_D0_BLOCK_106 -->"
+    },
+    {
+      "sequence": 107,
+      "type": "script",
+      "path": "src/legacy/106.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "4296b45c429b6f8495e5c87c84229b6a22a420f2367aba1aa5bcf32582b36493",
+      "bytes": 49298,
+      "marker": "<!-- VILOB_D0_BLOCK_107 -->"
+    },
+    {
+      "sequence": 108,
+      "type": "script",
+      "path": "src/legacy/107.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "c2bf6fecfecaa281e0577d2cb6c4a00a04252a30d697370184a5bd75f5a4a8a4",
+      "bytes": 24763,
+      "marker": "<!-- VILOB_D0_BLOCK_108 -->"
+    },
+    {
+      "sequence": 109,
+      "type": "script",
+      "path": "src/legacy/108.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "97eede4e66cbd8e6af30300044b6b64247f80719e161616f3d2afe859dacd25e",
+      "bytes": 35137,
+      "marker": "<!-- VILOB_D0_BLOCK_109 -->"
+    },
+    {
+      "sequence": 110,
+      "type": "script",
+      "path": "src/legacy/109.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "1c5b8029b9800a0f3d7eef816137df37257bc0d6b49c7f6477c3eb54ea544ee3",
+      "bytes": 26336,
+      "marker": "<!-- VILOB_D0_BLOCK_110 -->"
+    },
+    {
+      "sequence": 111,
+      "type": "script",
+      "path": "src/legacy/110.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "271feb38c83504de369533851858251bd86b52535d5a4e24152d30f3834054fc",
+      "bytes": 36812,
+      "marker": "<!-- VILOB_D0_BLOCK_111 -->"
+    },
+    {
+      "sequence": 112,
+      "type": "script",
+      "path": "src/legacy/111.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "44e42284e4eed89a7288c878d4a34ed83d6a33c35af78c915437560002bfde97",
+      "bytes": 8765,
+      "marker": "<!-- VILOB_D0_BLOCK_112 -->"
+    },
+    {
+      "sequence": 113,
+      "type": "script",
+      "path": "src/legacy/112.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "afa1a4be577a9b95604f8e4a18e8827066bc51d4e78bbf02e295f9fa3d18ada9",
+      "bytes": 14569,
+      "marker": "<!-- VILOB_D0_BLOCK_113 -->"
+    },
+    {
+      "sequence": 114,
+      "type": "script",
+      "path": "src/legacy/113.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "637b44a7b30ea41c2ceb82509b09aa87f632164adcc560c1bab3f38905b25a1b",
+      "bytes": 16636,
+      "marker": "<!-- VILOB_D0_BLOCK_114 -->"
+    },
+    {
+      "sequence": 115,
+      "type": "script",
+      "path": "src/legacy/114.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "00672609082e52e66f8fe7881aaa614248dc16eb75f6e7bd3fe27abe328c1c09",
+      "bytes": 41558,
+      "marker": "<!-- VILOB_D0_BLOCK_115 -->"
+    },
+    {
+      "sequence": 116,
+      "type": "script",
+      "path": "src/legacy/115.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "27bdbe9bb9ef814da9d5abc5e343010d3179ea197bbe80d552f68c0859f9052a",
+      "bytes": 34655,
+      "marker": "<!-- VILOB_D0_BLOCK_116 -->"
+    },
+    {
+      "sequence": 117,
+      "type": "script",
+      "path": "src/legacy/116.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "221d8a5f6195eda0c535792a7cfa7d8dcf1338fcf2c74e8e149f966fadbe22fd",
+      "bytes": 21075,
+      "marker": "<!-- VILOB_D0_BLOCK_117 -->"
+    },
+    {
+      "sequence": 118,
+      "type": "script",
+      "path": "src/legacy/117.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "de3ec24d9236e521e3fc3dc9e804c8a42abf6e01a30099723a55e030703d6eb0",
+      "bytes": 19620,
+      "marker": "<!-- VILOB_D0_BLOCK_118 -->"
+    },
+    {
+      "sequence": 119,
+      "type": "script",
+      "path": "src/legacy/118.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "5f2b48b02876287d85c15c949d2cc1ef48ec14b010afb93976ed20532c554057",
+      "bytes": 15917,
+      "marker": "<!-- VILOB_D0_BLOCK_119 -->"
+    },
+    {
+      "sequence": 120,
+      "type": "script",
+      "path": "src/legacy/119.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "640dac66b194277935e169cd7ca67afb37880f496b4363a7bcc6aee02785a091",
+      "bytes": 23310,
+      "marker": "<!-- VILOB_D0_BLOCK_120 -->"
+    },
+    {
+      "sequence": 121,
+      "type": "script",
+      "path": "src/legacy/120.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e8149f91646e78097440e2ebdd98692a477449e757bed03d37a2174264b367b5",
+      "bytes": 16720,
+      "marker": "<!-- VILOB_D0_BLOCK_121 -->"
+    },
+    {
+      "sequence": 122,
+      "type": "script",
+      "path": "src/legacy/121.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "8ba553bcaca798f73d408bf613d0e333923f66fce7f5d62c6e1f30908caf7f47",
+      "bytes": 15445,
+      "marker": "<!-- VILOB_D0_BLOCK_122 -->"
+    },
+    {
+      "sequence": 123,
+      "type": "script",
+      "path": "src/legacy/122.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3348442ee0254761b888722d54b0bbed2ad7b783298563e150251ff3b2c9b941",
+      "bytes": 18175,
+      "marker": "<!-- VILOB_D0_BLOCK_123 -->"
+    },
+    {
+      "sequence": 124,
+      "type": "script",
+      "path": "src/legacy/123.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "6b2d0b474bf1a6a1f7b807e49ef200785179ba3274dcb6f20d23df41c0c769a9",
+      "bytes": 10569,
+      "marker": "<!-- VILOB_D0_BLOCK_124 -->"
+    },
+    {
+      "sequence": 125,
+      "type": "script",
+      "path": "src/legacy/124.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "359f5192b246fbee8aa509d18c30ddeeb9fc30771843a414167ad5c660676095",
+      "bytes": 15726,
+      "marker": "<!-- VILOB_D0_BLOCK_125 -->"
+    },
+    {
+      "sequence": 126,
+      "type": "script",
+      "path": "src/legacy/125.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "0d93e4750bde941441583c9a26e1a0a1e46e4987f50a8bd607496ea66a31d6a4",
+      "bytes": 31568,
+      "marker": "<!-- VILOB_D0_BLOCK_126 -->"
+    },
+    {
+      "sequence": 127,
+      "type": "script",
+      "path": "src/legacy/126.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "12a86e65f24cd250caaee020b0b9eeab70f4bde9bffb0fe0ece29d587944a998",
+      "bytes": 36943,
+      "marker": "<!-- VILOB_D0_BLOCK_127 -->"
+    },
+    {
+      "sequence": 128,
+      "type": "script",
+      "path": "src/legacy/127.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"production33\">",
+      "closeTag": "</script>",
+      "sha256": "4f68579a4b59848106c60cc4daa77a41c8aac290c8b16e33a188c7f114a60c26",
+      "bytes": 383,
+      "marker": "<!-- VILOB_D0_BLOCK_128 -->"
+    },
+    {
+      "sequence": 129,
+      "type": "script",
+      "path": "src/legacy/128.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "0d1eb3c391a7da84a9ed79a0cfd04f533868b3b9b594a856519b701df12aaefa",
+      "bytes": 22969,
+      "marker": "<!-- VILOB_D0_BLOCK_129 -->"
+    },
+    {
+      "sequence": 130,
+      "type": "script",
+      "path": "src/legacy/129.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "dacc870ab6a82096116f51bd4ab5eaa116b4b178bfb978b45169704cb8d91581",
+      "bytes": 27828,
+      "marker": "<!-- VILOB_D0_BLOCK_130 -->"
+    },
+    {
+      "sequence": 131,
+      "type": "script",
+      "path": "src/legacy/130.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "6e698b71d74fdd21cbaf3f9a93ae2cf6fdafec9599a32e9ebb23be470aa21c49",
+      "bytes": 18706,
+      "marker": "<!-- VILOB_D0_BLOCK_131 -->"
+    },
+    {
+      "sequence": 132,
+      "type": "script",
+      "path": "src/legacy/131.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3e6347cff5ced2eeb9d94658042b5a647ecf06e16c618cb38e6ef41b685aa479",
+      "bytes": 16079,
+      "marker": "<!-- VILOB_D0_BLOCK_132 -->"
+    },
+    {
+      "sequence": 133,
+      "type": "script",
+      "path": "src/legacy/132.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"aiInvestment33\">",
+      "closeTag": "</script>",
+      "sha256": "a1c9a3296988d4fa4ceec67bb9d98787991ec0ad26316aa60ec10da61babd4ab",
+      "bytes": 395,
+      "marker": "<!-- VILOB_D0_BLOCK_133 -->"
+    },
+    {
+      "sequence": 134,
+      "type": "script",
+      "path": "src/legacy/133.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9161131568205af1fe7f598414238cae5b5c8c2d2fd748be73f0ee1f1dd66fb6",
+      "bytes": 7221,
+      "marker": "<!-- VILOB_D0_BLOCK_134 -->"
+    },
+    {
+      "sequence": 135,
+      "type": "script",
+      "path": "src/legacy/134.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "746690bb06889ca4066dbc75d4ef3a0bb95383590f2d44e29b06e8b1d6eb4177",
+      "bytes": 24344,
+      "marker": "<!-- VILOB_D0_BLOCK_135 -->"
+    },
+    {
+      "sequence": 136,
+      "type": "script",
+      "path": "src/legacy/135.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "676ee4d9a40b19e5dd0d3d9dc549ad0e93fbe23111d32cbf4da00d68b6daa87e",
+      "bytes": 18309,
+      "marker": "<!-- VILOB_D0_BLOCK_136 -->"
+    },
+    {
+      "sequence": 137,
+      "type": "script",
+      "path": "src/legacy/136.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7e6527dc7487811e854710bf080919bff5f3465809af3a1e1bc7d0871522a1fd",
+      "bytes": 11807,
+      "marker": "<!-- VILOB_D0_BLOCK_137 -->"
+    },
+    {
+      "sequence": 138,
+      "type": "script",
+      "path": "src/legacy/137.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "65e294c0b0a5017fb83193074314368c8218cd320ef1172fd4bb3730dee2aaf6",
+      "bytes": 29101,
+      "marker": "<!-- VILOB_D0_BLOCK_138 -->"
+    },
+    {
+      "sequence": 139,
+      "type": "script",
+      "path": "src/legacy/138.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "ee14f16a5c4ee5b87d32eec9522e970510fcba8c373c019e2f8a0f2e0996ce7f",
+      "bytes": 10374,
+      "marker": "<!-- VILOB_D0_BLOCK_139 -->"
+    },
+    {
+      "sequence": 140,
+      "type": "script",
+      "path": "src/legacy/139.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "f9b8483239f67069c872816565c11660ddf4f7cbae7223b06e3b5ae48c586b13",
+      "bytes": 32225,
+      "marker": "<!-- VILOB_D0_BLOCK_140 -->"
+    },
+    {
+      "sequence": 141,
+      "type": "script",
+      "path": "src/legacy/140.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9e47e9c84c8e137e5a3a130be056787fad51e6b5c6538dd0fc2644ee0f5a147b",
+      "bytes": 18319,
+      "marker": "<!-- VILOB_D0_BLOCK_141 -->"
+    },
+    {
+      "sequence": 142,
+      "type": "script",
+      "path": "src/legacy/141.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "ef81a63bb51199f4e79506c2ebdc0dd4cc6f7e755f973e2895ca08ee992902e1",
+      "bytes": 31983,
+      "marker": "<!-- VILOB_D0_BLOCK_142 -->"
+    },
+    {
+      "sequence": 143,
+      "type": "script",
+      "path": "src/legacy/142.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "cd860663176875215c03738a26d42245816a301348d8fa0d884af39426861ff5",
+      "bytes": 72322,
+      "marker": "<!-- VILOB_D0_BLOCK_143 -->"
+    },
+    {
+      "sequence": 144,
+      "type": "script",
+      "path": "src/legacy/143.js",
+      "openTag": "<script data-v034c1b-checkpoint=\"equipment33\">",
+      "closeTag": "</script>",
+      "sha256": "3ca6630b0774169d2db58946eea073291daa44d7754806c65f6965923c06e5ca",
+      "bytes": 390,
+      "marker": "<!-- VILOB_D0_BLOCK_144 -->"
+    },
+    {
+      "sequence": 145,
+      "type": "script",
+      "path": "src/legacy/144.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "30a860c8fcfe33479d626f2ef4c601e919d9208be3b35642dca079e0c7b670f3",
+      "bytes": 10098,
+      "marker": "<!-- VILOB_D0_BLOCK_145 -->"
+    },
+    {
+      "sequence": 146,
+      "type": "script",
+      "path": "src/legacy/145.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "f9e9d4447a5e032f45ad527e93f71de610bb16d2e01a2cb607ca0f6a77cc6234",
+      "bytes": 13098,
+      "marker": "<!-- VILOB_D0_BLOCK_146 -->"
+    },
+    {
+      "sequence": 147,
+      "type": "script",
+      "path": "src/legacy/146.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "65dc1cc31b1beafe8718b397dda0cfd81dd9720916c295bf33ae9bb7ff33dea2",
+      "bytes": 24628,
+      "marker": "<!-- VILOB_D0_BLOCK_147 -->"
+    },
+    {
+      "sequence": 148,
+      "type": "style",
+      "path": "src/styles/01.css",
+      "openTag": "<style>",
+      "closeTag": "</style>",
+      "sha256": "d893be42ebc307e1c413b7dfe03b56b8176a970e8aa4b22c209548d2a97b7cf9",
+      "bytes": 2233,
+      "marker": "<!-- VILOB_D0_BLOCK_148 -->"
+    },
+    {
+      "sequence": 149,
+      "type": "script",
+      "path": "src/legacy/147.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "7e98de78a6c5fbe407f2fd790d120558389d5f8e42e4e82ce4191ffabb54354b",
+      "bytes": 14880,
+      "marker": "<!-- VILOB_D0_BLOCK_149 -->"
+    },
+    {
+      "sequence": 150,
+      "type": "style",
+      "path": "src/styles/02.css",
+      "openTag": "<style>",
+      "closeTag": "</style>",
+      "sha256": "387f877c1ed974469a89e78f3c0537cffb3d20de3b1abab4e94b9b4f1f851fa5",
+      "bytes": 158,
+      "marker": "<!-- VILOB_D0_BLOCK_150 -->"
+    },
+    {
+      "sequence": 151,
+      "type": "script",
+      "path": "src/legacy/148.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d9c15d1255789203a2e132055a33bf1ee4a2a1d0fe05f86a85c2f72a52c40fe5",
+      "bytes": 10245,
+      "marker": "<!-- VILOB_D0_BLOCK_151 -->"
+    },
+    {
+      "sequence": 152,
+      "type": "style",
+      "path": "src/styles/03.css",
+      "openTag": "<style>",
+      "closeTag": "</style>",
+      "sha256": "d22cb844089d9a36699e947aff43a8ae3e96b5b2d0314810e8c064ce5ea18210",
+      "bytes": 164,
+      "marker": "<!-- VILOB_D0_BLOCK_152 -->"
+    },
+    {
+      "sequence": 153,
+      "type": "script",
+      "path": "src/legacy/149.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "faf53a82d7183af69c351040968e6b9ab951e6040e2401dfcadf5cf39d463e4a",
+      "bytes": 9579,
+      "marker": "<!-- VILOB_D0_BLOCK_153 -->"
+    },
+    {
+      "sequence": 154,
+      "type": "script",
+      "path": "src/legacy/150.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "d03d9d5b95b93ffd785a784897dd21b0c23f9462ed5d7403038c63cbcfa4d6e6",
+      "bytes": 16886,
+      "marker": "<!-- VILOB_D0_BLOCK_154 -->"
+    },
+    {
+      "sequence": 155,
+      "type": "script",
+      "path": "src/legacy/151.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "695dcdcde4da93822111b11c10943aaeeb3ff090f1e7efc8b26f5f286c345953",
+      "bytes": 7468,
+      "marker": "<!-- VILOB_D0_BLOCK_155 -->"
+    },
+    {
+      "sequence": 156,
+      "type": "script",
+      "path": "src/legacy/152.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "3b84819f0d2f72060198bbcafaf7b9d429f253c3df3e0e0475062cb41112f475",
+      "bytes": 12187,
+      "marker": "<!-- VILOB_D0_BLOCK_156 -->"
+    },
+    {
+      "sequence": 157,
+      "type": "script",
+      "path": "src/legacy/153.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "22fb74ba45955aa6f11579141a634532c83eef8f7fa9318d7e22f8e83f62d2b9",
+      "bytes": 7858,
+      "marker": "<!-- VILOB_D0_BLOCK_157 -->"
+    },
+    {
+      "sequence": 158,
+      "type": "script",
+      "path": "src/legacy/154.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "0358b908a33b1e27905cc048c62a266031d9e3e021633216fea5b1ce95a43e8c",
+      "bytes": 20900,
+      "marker": "<!-- VILOB_D0_BLOCK_158 -->"
+    },
+    {
+      "sequence": 159,
+      "type": "script",
+      "path": "src/legacy/155.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "82424314a9b075c1287f2841142f3c1d70191f2c0039b4708c42e62eaa992a1a",
+      "bytes": 8150,
+      "marker": "<!-- VILOB_D0_BLOCK_159 -->"
+    },
+    {
+      "sequence": 160,
+      "type": "script",
+      "path": "src/legacy/156.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "67458b3a677d93d116d8b040b936671c452072875173851bec9c69d7bf704005",
+      "bytes": 4473,
+      "marker": "<!-- VILOB_D0_BLOCK_160 -->"
+    },
+    {
+      "sequence": 161,
+      "type": "script",
+      "path": "src/legacy/157.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "17c36f35817e643f817bbacd5fba7e8d3e7ff3045821b2d22fa31e67b66e2262",
+      "bytes": 12078,
+      "marker": "<!-- VILOB_D0_BLOCK_161 -->"
+    },
+    {
+      "sequence": 162,
+      "type": "script",
+      "path": "src/legacy/158.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "9a5fc4995d2030cb7870cb8950549b6965dbfc20959ff6dd0ffa15ac1b8790d5",
+      "bytes": 9367,
+      "marker": "<!-- VILOB_D0_BLOCK_162 -->"
+    },
+    {
+      "sequence": 163,
+      "type": "script",
+      "path": "src/legacy/159.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "179a8fd96f5136aacb98bf74240528cab7305040ee13be785fb305f624ab7db4",
+      "bytes": 13508,
+      "marker": "<!-- VILOB_D0_BLOCK_163 -->"
+    },
+    {
+      "sequence": 164,
+      "type": "script",
+      "path": "src/legacy/160.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "da88e0ec3a0af2c6ee2cddc261b23485887b55913323da37921bc78e4d4e2505",
+      "bytes": 6776,
+      "marker": "<!-- VILOB_D0_BLOCK_164 -->"
+    },
+    {
+      "sequence": 165,
+      "type": "script",
+      "path": "src/legacy/161.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "64e70b71fb262213a815b66619d867dc33f6023a385e3336a6bc67bbe6ae77a2",
+      "bytes": 3880,
+      "marker": "<!-- VILOB_D0_BLOCK_165 -->"
+    },
+    {
+      "sequence": 166,
+      "type": "script",
+      "path": "src/legacy/162.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "bdfa23b06876d259aea1c91c5c0664f689ba05025b9feea752cf49ee9d999e82",
+      "bytes": 9487,
+      "marker": "<!-- VILOB_D0_BLOCK_166 -->"
+    },
+    {
+      "sequence": 167,
+      "type": "script",
+      "path": "src/legacy/163.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "e28e1ca0b773b638fa8d42cbbd2cdbe05cc8365ac4ea705fc52cc76d1d96ee51",
+      "bytes": 8305,
+      "marker": "<!-- VILOB_D0_BLOCK_167 -->"
+    },
+    {
+      "sequence": 168,
+      "type": "script",
+      "path": "src/legacy/164.js",
+      "openTag": "<script>",
+      "closeTag": "</script>",
+      "sha256": "c2f9b64ab0f28226f70ced4723d0c8bce5b5763990270c3191ac69fe0696741d",
+      "bytes": 9042,
+      "marker": "<!-- VILOB_D0_BLOCK_168 -->"
+    }
+  ],
+  "baseHtmlBytes": 3353228,
+  "date": "2026-10-11"
+}

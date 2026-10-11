@@ -1,0 +1,4 @@
+from pathlib import Path
+src=Path('/mnt/data/village-observer-v034C1H/index.html').read_text()
+script='''<script>document.addEventListener('DOMContentLoaded',()=>{const badge=document.getElementById('versionBadge');document.body.dataset.c1hBadge=badge?.textContent||'';try{badge?.click();document.body.dataset.c1hModalOpen=String(!!document.getElementById('patchNotesModal')?.classList?.contains('open'));document.body.dataset.c1hPatchItems=String(document.querySelectorAll('.patch-note-entry').length);const ns=window.VSim;const world=window.villageObserver?.world;document.body.dataset.c1hSave=world?.serialize()?.version||'none';document.body.dataset.c1hJSError='none';}catch(e){document.body.dataset.c1hJSError=String(e.message);}});</script>'''
+Path('/mnt/data/village-observer-v034C1H/tools/browser-check.html').write_text(src.replace('</body></html>',script+'</body></html>'))

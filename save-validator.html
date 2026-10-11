@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V0.34C1B | 오프라인 세이브 검사기</title>
+<style>
+:root{color-scheme:dark;--bg:#101826;--card:#17243a;--text:#e9f0fb;--muted:#adc0d6;--border:#334761;--accent:#80c9ff;--green:#75dfa7;--warn:#ffd18a;--danger:#ff9caa}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,'Malgun Gothic',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:28px 16px;line-height:1.55}
+main{max-width:920px;margin:auto}h1{font-size:clamp(1.5rem,3vw,2.2rem);margin:0 0 4px}h2{font-size:1.05rem;margin:0 0 12px}p{margin:5px 0 12px;color:var(--muted)}.eyebrow{color:var(--accent);font-size:.82rem;font-weight:700;letter-spacing:.03em}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:20px;margin-top:18px}.drop{display:block;border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s}.drop:hover,.drop.drag{border-color:var(--accent)}.drop input{display:none}.muted{color:var(--muted);font-size:.86rem}
+button{border:1px solid var(--border);background:#284363;color:var(--text);border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}button:hover:not(:disabled){background:#345777}button:disabled{opacity:.45;cursor:not-allowed}.buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}#status{color:var(--muted);min-height:28px}progress{width:100%;height:10px;accent-color:var(--accent)}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:12px 0}.metric{background:#101d30;border-radius:9px;padding:13px}.metric strong{font-size:1.33rem;display:block}.metric span{color:var(--muted);font-size:.78rem}.ok{color:var(--green)}.bad{color:var(--danger)}.warning{color:var(--warn)}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{padding:8px 7px;border-bottom:1px solid var(--border);text-align:left}th{color:var(--muted)}code,pre{font-size:.78rem;overflow-wrap:anywhere}pre{max-height:300px;overflow:auto;background:#0f1827;border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-word}details{margin-top:12px}.hide{display:none}a{color:var(--accent)}footer{font-size:.83rem;color:var(--muted);margin:24px 0}#compareSummary{font-weight:700}
+</style></head>
+<body><main>
+<div class="eyebrow">Village Observer · V0.34C1B / Local Save Audit V4</div>
+<h1>오프라인 대용량 세이브 검사기</h1>
+<p>전체 세이브 파일은 이 브라우저에서만 읽어. 게임 실행·날짜 진행·세이브 수정 없이 구조 검증과 경량 비교용 보고서를 생성해.</p>
+<section class="panel">
+<h2>① 원본 세이브 검사</h2>
+<label class="drop" id="drop">여기를 클릭하거나 JSON 세이브 파일을 끌어놓으세요.<br><span class="muted">예: village-observer-v034A-save-67y.json · 100MB 이상도 선택 가능</span><input id="saveFile" type="file" accept=".json,application/json"></label>
+<p id="picked" class="muted">선택된 파일 없음</p>
+<div class="buttons"><button id="run" disabled>구조 검사 시작</button><button id="cancel" disabled>검사 취소</button><button id="download" disabled>경량 JSON 보고서 다운로드</button></div>
+<p id="status" role="status" aria-live="polite"></p><progress id="progress" max="100" value="0"></progress>
+</section>
+<section id="results" class="panel hide"><h2>② 검사 결과</h2><div id="overall"></div><div id="metrics" class="metrics"></div><div id="nations"></div>
+<details><summary>발견된 오류·경고 (최대 100개씩)</summary><pre id="issues"></pre></details>
+<details><summary>세이브 파일 내부 용량 상위 항목</summary><div id="sections"></div></details>
+<details><summary>검사 범위와 제한</summary><p>이 도구는 원본 JSON만 읽어 Nation–Tile–Person 관계, 국가 영토, 타일 재고, 폐허 장비 잔존 원장을 검사해. 저장 데이터를 엔진으로 재불러오거나 하루 진행하지 않으며, 장비 전량의 공식 I1 감사 함수·국가 통화의 전체 회계 감사는 실행하지 않아. JSON 파싱·브라우저 메모리 부족 오류가 발생하면 오류로 표시하며 통과로 간주하지 않아.</p></details>
+</section>
+<section class="panel"><h2>③ 전후 보고서 비교 (34B → 34C → 34C1)</h2>
+<p>같은 저장 상태의 <strong>이관 전 보고서</strong>와 <strong>이관 후 보고서</strong>를 선택하면 국가·타일·Person별 물리적 데이터 지문을 비교해. 검사 보고서만 선택하며 96.8MB 세이브를 다시 올릴 필요는 없어.</p>
+<div class="buttons"><label>이관 전 <input id="before" type="file" accept=".json"></label><label>이관 후 <input id="after" type="file" accept=".json"></label><button id="compare">보고서 비교</button></div>
+<p id="compareSummary"></p><pre id="compareDetails" class="hide"></pre>
+</section>
+<footer>파일은 서버로 전송하지 않으며 원본 세이브를 덮어쓰지 않아. 브라우저가 이용할 수 있는 메모리에 따라 처리 가능 파일 크기가 달라질 수 있어. 검증 보고서는 엔티티의 이름·개인 보유 상태를 직접 출력하지 않고 개별 지문 및 집계만 기록해.</footer>
+</main>
+<script id="validatorWorker" type="text/plain">
+'use strict';
+const VERSION='V0.34C1B-local-validator-v4';
+const CAP=100, NATIVE_SHA=!!(self.crypto&&self.crypto.subtle);
+const natural=v=>v===null||v===undefined;
+const finite=n=>typeof n==='number'&&Number.isFinite(n);
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const cmp=(a,b)=>String(a).localeCompare(String(b),'en',{numeric:true});
+// Pure JS SHA-256 fallback for file:// and browsers without crypto.subtle.
+// Hashes remain identical across secure and offline contexts.
+function sha256Fallback(u){
+ const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+ const H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+ const n=Math.ceil((u.length+9)/64)*64,b=new Uint8Array(n),words=new Uint32Array(64);b.set(u);b[u.length]=0x80;
+ const bits=BigInt(u.length)*8n;for(let j=0;j<8;j++)b[n-j-1]=Number((bits>>BigInt(j*8))&255n);
+ const rot=(x,n)=>(x>>>n)|(x<<(32-n));
+ for(let off=0;off<n;off+=64){
+  for(let j=0;j<16;j++){let k=off+j*4;words[j]=((b[k]<<24)|(b[k+1]<<16)|(b[k+2]<<8)|b[k+3])>>>0;}
+  for(let j=16;j<64;j++){const a=words[j-15],c=words[j-2];words[j]=(words[j-16]+(rot(a,7)^rot(a,18)^(a>>>3))+words[j-7]+(rot(c,17)^rot(c,19)^(c>>>10)))>>>0;}
+  let [a,c,d,e,f,g,h,i]=H;
+  for(let j=0;j<64;j++){const s1=rot(f,6)^rot(f,11)^rot(f,25),ch=(f&g)^(~f&h),t1=(i+s1+ch+K[j]+words[j])>>>0,s0=rot(a,2)^rot(a,13)^rot(a,22),maj=(a&c)^(a&d)^(c&d),t2=(s0+maj)>>>0;
+   i=h;h=g;g=f;f=(e+t1)>>>0;e=d;d=c;c=a;a=(t1+t2)>>>0;}
+  const z=[a,c,d,e,f,g,h,i];for(let j=0;j<8;j++)H[j]=(H[j]+z[j])>>>0;
+ }
+ return [...H].map(t=>t.toString(16).padStart(8,'0')).join('');
+}
+function canonical(value){
+ if(value===undefined)return null;
+ if(Array.isArray(value))return value.map(canonical);
+ if(obj(value)){const r={};for(const k of Object.keys(value).sort()){
+  if(k==='settlementId'||k==='settlementIds'||k==='v34b'||k==='v034a')continue;
+  r[k]=canonical(value[k]);}return r;}
+ return value;
+}
+async function fingerprint(x){const s=JSON.stringify(canonical(x)),u=new TextEncoder().encode(s);
+ if(NATIVE_SHA){const b=await crypto.subtle.digest('SHA-256',u);return [...new Uint8Array(b)].map(t=>t.toString(16).padStart(2,'0')).join('').slice(0,32);}
+ return sha256Fallback(u).slice(0,32);
+}
+function sectionsOf(s){
+ // JSON lexical scan: measure raw spans of top-level keys without serializing large subobjects.
+ const n=s.length,result=[];let i=0;const ws=()=>{while(i<n&&/\s/.test(s[i]))i++;};
+ function string(){const start=i++;while(i<n){if(s[i]==='\\'){i+=2;continue;}if(s[i++]==='"')break;}return s.slice(start,i);}
+ function value(){const start=i;let inside=false,esc=false,level=0;
+ while(i<n){const ch=s[i];if(inside){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')inside=false;i++;continue;}
+ if(ch==='"'){inside=true;i++;continue;}if(ch==='{'||ch==='['){level++;i++;continue;}if(ch==='}'||ch===']'){if(level===0)break;level--;i++;continue;}if(level===0&&(ch===','||/\s/.test(ch)))break;i++;}return [start,i];}
+ ws();if(s[i++]!=='{')return [];
+ while(i<n){ws();if(s[i]==='}')break;if(s[i]!== '"')break;let key;try{key=JSON.parse(string());}catch(e){break;}ws();if(s[i++]!==':')break;ws();const [a,b]=value();result.push({name:key,start:a,end:b,approxCharacters:b-a});ws();if(s[i]===','){i++;continue;}break;}
+ return result;
+}
+function toBytes(s,a,b){let size=0;for(let i=a;i<b;i+=1_000_000)size+=new TextEncoder().encode(s.slice(i,Math.min(i+1_000_000,b))).length;return size;}
+function addIssue(target,code,detail){target.count++;if(target.rows.length<CAP)target.rows.push({code,...detail});}
+function sumNonneg(o){let n=0;for(const x of Object.values(obj(o)?o:{})){if(typeof x==='number'&&Number.isFinite(x)&&x>0)n+=x;}return n;}
+function pluck(src,keys){const out={};for(const k of keys){if(Object.prototype.hasOwnProperty.call(src||{},k))out[k]=src[k];}return out;}
+function compactTile(t){return pluck(t,['id','x','y','terrain','ownerId','coreVillageId','ruin','resources','resourceCap','stocks','buildings','marketState','v29Economy','v30Economy','v31Economy','buildingCondition','buildingRuins','developedBuildSpace','v33OccupierId','v33OccupationWarId','ruinEquipment33I3CH2']);}
+function compactPerson(p){return pluck(p,['id','name','givenName','familyName','villageId','alive','age','sex','homeTileId','workTileId','job','health','hunger','energy','happiness','gold29','income29','spending29','taxes29','cultureMix','militaryEquipment33I1','militaryStatus32A','militaryWoundedUntil32A','militaryCohortId32A','militaryCapturedBy32A','skills','birthOrdinal24']);}
+function compactNation(v){const o={};for(const k of Object.keys(v))if(k!=='residents'&&k!=='v34b'&&k!=='v034a'&&!k.startsWith('_v034'))o[k]=v[k];return o;}
+async function audit(d,fileInfo,sections,progress){
+ const errors={count:0,rows:[]},warnings={count:0,rows:[]};
+ if(d?.format==='village-observer-devlog')throw Error('Devlog가 아니라 게임의 World 세이브 JSON을 선택해야 합니다.');
+ let w=d?.world&&Array.isArray(d.world.villages)?d.world:d;
+ if(!Array.isArray(w?.villages)||!Array.isArray(w?.map?.tiles))throw Error('세이브 형식이 아닙니다. villages[]와 map.tiles[]가 필요합니다.');
+ const nations=w.villages,tiles=w.map.tiles,byNation=new Map(),byTile=new Map(),owners=new Map(),personIds=new Set(),nationOut=[],fingerprints={nation:{},tile:{},person:{}};
+ let alive=0,allPerson=0,claimed=0,ruinItems=0,ruinHeld=0,buildings=0,equipAudited=0;
+ const ruinByItem={};const nationSummary=[];
+ for(const v of nations){const key=String(v.id);if(byNation.has(key))addIssue(errors,'DUPLICATE_NATION_ID',{nationId:key});byNation.set(key,v);
+  if(!Array.isArray(v.territory))addIssue(errors,'TERRITORY_NOT_ARRAY',{nationId:key});}
+ for(const t of tiles){const key=String(t.id);
+  if(byTile.has(key))addIssue(errors,'DUPLICATE_TILE_ID',{tileId:key});byTile.set(key,t);
+  if(!natural(t.ownerId)){claimed++;const nk=String(t.ownerId);if(!byNation.has(nk))addIssue(errors,'OWNER_UNKNOWN',{tileId:t.id,ownerId:t.ownerId});else {if(!owners.has(nk))owners.set(nk,new Set());owners.get(nk).add(t.id);}}
+  for(const [res,n] of Object.entries(obj(t.stocks)?t.stocks:{}))if(typeof n!=='number'||!finite(n)||n<-0.00001)addIssue(errors,'INVALID_TILE_STOCK',{tileId:t.id,resource:res,value:n});
+  buildings+=Array.isArray(t.buildings)?t.buildings.length:0;
+  if(Array.isArray(t.ruinEquipment33I3CH2))for(const lot of t.ruinEquipment33I3CH2){
+    for(const [id,n] of Object.entries(obj(lot.items)?lot.items:{})){if(!Number.isInteger(n)||n<0)addIssue(errors,'INVALID_RUIN_ITEM',{tileId:t.id,item:id,value:n});else{ruinItems+=n;ruinByItem[id]=(ruinByItem[id]||0)+n;}}
+    if(!byNation.has(String(lot.nationId)))addIssue(warnings,'RUIN_SOURCE_NATION_UNKNOWN',{tileId:t.id,nationId:lot.nationId});}
+ }
+ for(const v of nations){const nk=String(v.id),real=owners.get(nk)||new Set(),tr=v.territory||[];
+  const uniq=new Set();for(const tid of tr){if(uniq.has(String(tid)))addIssue(errors,'DUPLICATE_TERRITORY_ENTRY',{nationId:nk,tileId:tid});uniq.add(String(tid));const tile=byTile.get(String(tid));if(!tile)addIssue(errors,'TERRITORY_TILE_MISSING',{nationId:nk,tileId:tid});else if(String(tile.ownerId)!==nk)addIssue(errors,'TERRITORY_OWNER_MISMATCH',{nationId:nk,tileId:tid,actualOwner:tile.ownerId});}
+  for(const tid of real)if(!uniq.has(String(tid)))addIssue(errors,'TERRITORY_OWNER_REVERSE_MISMATCH',{nationId:nk,tileId:tid});
+  if(v.status==='active'&&!byTile.has(String(v.coreTileId)))addIssue(errors,'CAPITAL_TILE_MISSING',{nationId:nk,coreTileId:v.coreTileId});
+  const vs=v.residents||[];if(!Array.isArray(vs)){addIssue(errors,'INVALID_RESIDENT_LIST',{nationId:nk});continue;}
+  let nac=0;for(const p of vs){allPerson++;const pk=String(p.id);if(personIds.has(pk))addIssue(errors,'DUPLICATE_PERSON_ID',{personId:pk});personIds.add(pk);
+   if(p.alive){alive++;nac++;if(String(p.villageId)!==nk)addIssue(errors,'PERSON_NATION_MISMATCH',{personId:pk,nationId:nk,actualNation:p.villageId});
+   if(natural(p.homeTileId)||!byTile.has(String(p.homeTileId)))addIssue(errors,'PERSON_HOME_TILE_MISSING',{personId:pk,nationId:nk,tileId:p.homeTileId});
+   if(!natural(p.workTileId)&&!byTile.has(String(p.workTileId)))addIssue(errors,'PERSON_WORK_TILE_MISSING',{personId:pk,nationId:nk,tileId:p.workTileId});}
+   fingerprints.person[pk]=await fingerprint(compactPerson(p));
+  }
+  const eq=v.v33i1Equipment,ruinStat=eq?.stats?.ruinHeldByItem;let rn=sumNonneg(ruinStat);ruinHeld+=rn;
+  if(eq){equipAudited++;if(eq.stats?.conservationErrors>0)addIssue(warnings,'HISTORICAL_EQUIPMENT_AUDIT_ERRORS',{nationId:nk,count:eq.stats.conservationErrors});}
+  const marketMoney= (w?.v30?.nations&& (w.v30.nations[nk]||w.v30.nations[v.id])) || null;
+  nationSummary.push({id:v.id,name:v.name,alivePersons:nac,storedPersons:vs.length,territory:tr.length,coreTileId:v.coreTileId,status:v.status,goldTreasury:finite(v.gold)?Number(v.gold.toFixed(4)):null,equipmentArchiveItems:rn,marketAuditAvailable:!!marketMoney});
+  fingerprints.nation[nk]=await fingerprint(compactNation(v));
+  progress('검증: 국가 및 Person '+nationSummary.length+'/'+nations.length,45+Math.round(nationSummary.length/nations.length*35));
+ }
+ if(ruinHeld!==ruinItems)addIssue(errors,'RUIN_LEDGER_MISMATCH',{nationRuinHeld:ruinHeld,tileRuinItems:ruinItems});
+ let settlementSummary=null;
+ if(w.version==='V0.34B'||w.v34b){
+  const z=w.v34b,claimedTiles=tiles.filter(t=>!natural(t.ownerId));let active=0,abandoned=0,merged=0,maxSeq=0,assigned=0,multi=0;
+  const schemaVersion=z?.schemaVersion;
+  if(!obj(z)||z.schema!=='village-observer-settlement'||![1,2].includes(schemaVersion)||!Array.isArray(z.settlements)){
+   addIssue(errors,'V034_REGISTRY_MISSING_OR_INVALID',{});
+  }else{
+   const bySt=new Map(),tileAssignments=new Set(),maxSize=schemaVersion===2?5:1;
+   for(const r of z.settlements){const sid=String(r.id||'');if(bySt.has(sid))addIssue(errors,'V034_DUPLICATE_SETTLEMENT_ID',{settlementId:sid});bySt.set(sid,r);
+    const match=/^st-(\d+)$/.exec(sid);if(!match)addIssue(errors,'V034_BAD_SETTLEMENT_ID',{settlementId:sid});else maxSeq=Math.max(maxSeq,Number(match[1]));
+    if(r.schema!=='village-observer-settlement'||r.schemaVersion!==schemaVersion)addIssue(errors,'V034_BAD_SETTLEMENT_SCHEMA',{settlementId:sid});
+    if(r.lifecycle==='MERGED'&&schemaVersion===2){merged++;if(r.tileIds?.length||!r.mergedIntoId)addIssue(errors,'V034_BROKEN_MERGE_HISTORY',{settlementId:sid});continue;}
+    if(r.lifecycle==='ABANDONED'){abandoned++;if(r.tileIds?.length)addIssue(errors,'V034_ABANDONED_OWNS_TILES',{settlementId:sid});continue;}
+    if(r.lifecycle!=='ACTIVE'){addIssue(errors,'V034_INVALID_LIFECYCLE',{settlementId:sid});continue;}
+    active++;if(!Array.isArray(r.tileIds)||!r.tileIds.length||r.tileIds.length>maxSize){addIssue(errors,'V034_INVALID_TILE_COUNT',{settlementId:sid,count:r.tileIds?.length});continue;}
+    if(r.tileIds.length>1)multi++;if(!r.tileIds.some(x=>String(x)===String(r.coreTileId)))addIssue(errors,'V034_CORE_NOT_MEMBER',{settlementId:sid});
+    const ids=new Set(r.tileIds.map(String));if(ids.size!==r.tileIds.length)addIssue(errors,'V034_DUPLICATE_TILES_WITHIN_SETTLEMENT',{settlementId:sid});assigned+=ids.size;
+    for(const id of ids){const t=byTile.get(id);if(tileAssignments.has(id))addIssue(errors,'V034_DUPLICATE_TILE_ASSIGNMENT',{tileId:id});tileAssignments.add(id);
+     if(!t||natural(t.ownerId)||String(t.ownerId)!==String(r.nationId))addIssue(errors,'V034_OWNER_MISMATCH',{settlementId:sid,tileId:id});
+     if(!t||String(t.settlementId)!==sid)addIssue(errors,'V034_LINK_MISMATCH',{settlementId:sid,tileId:id});
+    }
+    if(schemaVersion===2&&ids.size>1){const seen=new Set(),todo=[String(r.coreTileId)];while(todo.length){const id=todo.pop();if(seen.has(id)||!ids.has(id))continue;seen.add(id);const t=byTile.get(id);if(!t)continue;
+     for(const q of tiles)if(ids.has(String(q.id))&&Math.abs(Number(q.x)-Number(t.x))+Math.abs(Number(q.y)-Number(t.y))===1&&!seen.has(String(q.id)))todo.push(String(q.id));}
+     if(seen.size!==ids.size)addIssue(errors,'V034_DISCONNECTED',{settlementId:sid,reachable:seen.size,tiles:ids.size});}
+   }
+   for(const r of z.settlements)if(r.lifecycle==='MERGED'&&!bySt.has(String(r.mergedIntoId)))addIssue(errors,'V034_MERGED_TARGET_MISSING',{settlementId:r.id});
+   for(const t of tiles){if(!natural(t.ownerId)){
+    const r=bySt.get(String(t.settlementId||''));if(!r||r.lifecycle!=='ACTIVE'||!r.tileIds?.some(x=>String(x)===String(t.id)))addIssue(errors,'V034_CLAIMED_TILE_MISSING_SETTLEMENT',{tileId:t.id});
+   }else if(!natural(t.settlementId))addIssue(errors,'V034_UNCLAIMED_TILE_LINKED',{tileId:t.id});}
+   if(assigned!==claimedTiles.length)addIssue(errors,'V034_ASSIGNED_COUNT_MISMATCH',{assigned,claimed:claimedTiles.length});
+   if(!Number.isSafeInteger(z.nextSettlementSeq)||z.nextSettlementSeq<=maxSeq)addIssue(errors,'V034_NEXT_ID_REUSE',{next:z.nextSettlementSeq,maxSeq});
+   settlementSummary={schemaVersion,active,abandoned,merged,multi,assigned,records:z.settlements.length,nextSettlementSeq:z.nextSettlementSeq,claimed:claimedTiles.length};
+  }
+ }
+
+ for(let i=0;i<tiles.length;i++){
+  const t=tiles[i];fingerprints.tile[String(t.id)]=await fingerprint(compactTile(t));
+  if(i%60===0)progress('타일 물리 지문: '+(i+1)+'/'+tiles.length,80+Math.floor(i/Math.max(1,tiles.length)*14));
+ }
+ for(const [s,objv] of Object.entries(fingerprints))fingerprints[s]=Object.fromEntries(Object.entries(objv).sort(([a],[b])=>cmp(a,b)));
+ const digests={};for(const k of ['nation','tile','person'])digests[k]=await fingerprint(fingerprints[k]);
+ const report={format:'village-observer-local-audit',schemaVersion:1,validator:VERSION,createdAt:new Date().toISOString(),
+  input:{fileName:fileInfo.name,fileBytes:fileInfo.size,worldVersion:w.version,worldYear:w.year,worldSeason:w.season,worldDay:w.day,mapSize:[w.map.width,w.map.height],fingerprintAlgorithm:'SHA-256/128'},
+  verdict:errors.count===0?'STRUCTURE_PASS':'STRUCTURE_FAIL',errors:errors.rows,errorCount:errors.count,warnings:warnings.rows,warningCount:warnings.count,
+  summary:{nations:nations.length,activeNations:nations.filter(v=>v.status==='active').length,tiles:tiles.length,claimedTiles:claimed,storedPersons:allPerson,alivePersons:alive,buildings,ruinItemsOnTiles:ruinItems,ruinHeldInNationLedgers:ruinHeld,equipmentNationRecords:equipAudited,...(settlementSummary?{settlementsV34B:settlementSummary}:{})},
+  nations:nationSummary,sections:sections.sort((a,b)=>b.bytes-a.bytes).slice(0,35),fingerprintDigests:digests,fingerprints,
+  coverage:{worldFromExecuted:false,saveReloadRoundTrip:false,simulationRun:false,equipmentFullOfficialAudit:false,goldFlowFullOfficialAudit:false,postMigrationIdentityEligible:true,remarks:'저장 JSON의 정적 구조 검사. 34B 단일 타일 및 34C/C1 다중 타일 Registry의 소유국·유일성·공간 연결성 포함. 저장 파일을 수정하거나 World.from()을 호출하지 않음.'}}
+ return report;
+}
+self.onmessage=async e=>{const f=e.data.file;
+ try{
+  const progress=(msg,pct)=>self.postMessage({kind:'progress',msg,pct});
+  progress('로컬 파일 읽는 중',5);let s=await f.text();progress('JSON 내부 구간 분석',17);
+  const raw=sectionsOf(s);progress('JSON 파싱 중 — 대형 파일은 브라우저 메모리를 사용할 수 있음',28);
+  const d=JSON.parse(s);progress('저장 구간별 용량 계산',36);
+  let ranges=raw.map(z=>({name:z.name,bytes:toBytes(s,z.start,z.end)}));s=null;
+  const r=await audit(d,{name:f.name,size:f.size},ranges,progress);progress('완료',100);self.postMessage({kind:'result',report:r});
+ }catch(err){self.postMessage({kind:'error',message:String(err?.message||err),stack:String(err?.stack||'').slice(0,1500)});}
+};
+</script>
+<script>
+(()=>{'use strict';const $=s=>document.getElementById(s);let selected=null,worker=null,report=null;const fmt=n=>Number(n).toLocaleString('ko-KR');const mb=n=>(n/1024/1024).toFixed(2)+' MB';
+function pick(file){if(!file)return;selected=file;$('picked').textContent=file.name+' · '+mb(file.size);$('run').disabled=false;$('download').disabled=true;$('results').classList.add('hide');$('status').textContent='검사 준비 완료';$('progress').value=0;report=null;}
+$('saveFile').addEventListener('change',e=>pick(e.target.files[0]));for(const ev of ['dragenter','dragover'])$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('drag');});for(const ev of ['dragleave','drop'])$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('drag');});$('drop').addEventListener('drop',e=>pick(e.dataTransfer.files[0]));
+function end(){if(worker){worker.terminate();worker=null;}$('cancel').disabled=true;$('run').disabled=!selected;}
+$('cancel').onclick=()=>{end();$('status').textContent='사용자가 검사를 취소했어. 원본 파일은 변경되지 않았어.';};
+$('run').onclick=()=>{if(!selected||worker)return;$('run').disabled=true;$('cancel').disabled=false;$('download').disabled=true;$('progress').value=0;$('status').textContent='준비 중';
+ const src=$('validatorWorker').textContent,url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));
+ try{worker=new Worker(url);}catch(e){URL.revokeObjectURL(url);$('status').textContent='브라우저가 로컬 검사 작업자를 차단했어: '+e.message;end();return;}
+ URL.revokeObjectURL(url);
+ worker.onmessage=e=>{const v=e.data;if(v.kind==='progress'){$('progress').value=v.pct;$('status').textContent=v.msg;}if(v.kind==='error'){$('status').textContent='검사 실패: '+v.message;end();}if(v.kind==='result'){report=v.report;render(report);$('status').textContent='분석 완료 · 파일은 PC에서만 처리됨';$('download').disabled=false;end();}};
+ worker.onerror=e=>{$('status').textContent='검사 작업자 오류: '+(e.message||'알 수 없음');end();};worker.postMessage({file:selected});
+};
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function render(r){$('results').classList.remove('hide');$('overall').innerHTML='<strong class="'+(r.errorCount?'bad':'ok')+'">'+(r.errorCount?'STRUCTURE FAIL':'STRUCTURE PASS')+'</strong> · 오류 '+fmt(r.errorCount)+'건 / 경고 '+fmt(r.warningCount)+'건';
+ const m=r.summary;$('metrics').innerHTML=[['국가',m.activeNations+'/'+m.nations],['타일',m.tiles],['영유 타일',m.claimedTiles],['생존 Person',m.alivePersons],...(m.settlementsV34B?[['Settlement',m.settlementsV34B.active],['폐기 기록',m.settlementsV34B.abandoned]]:[]),['시설',m.buildings],['폐허 장비',m.ruinItemsOnTiles],['원본 세이브',mb(r.input.fileBytes)]].map(([k,v])=>'<div class="metric"><strong>'+escape(v)+'</strong><span>'+escape(k)+'</span></div>').join('');
+ $('nations').innerHTML='<h2>국가별 원본 상태</h2><table><thead><tr><th>국가</th><th>인구</th><th>영토</th><th>국고 Gold</th><th>폐허 원장</th></tr></thead><tbody>'+r.nations.map(n=>'<tr><td>'+escape(n.name)+'</td><td>'+fmt(n.alivePersons)+'</td><td>'+fmt(n.territory)+'</td><td>'+escape(n.goldTreasury??'—')+'</td><td>'+fmt(n.equipmentArchiveItems)+'</td></tr>').join('')+'</tbody></table>';
+ $('issues').textContent=JSON.stringify({errors:r.errors,warnings:r.warnings},null,2);
+ $('sections').innerHTML='<table><thead><tr><th>저장 데이터 영역</th><th>크기</th><th>비중</th></tr></thead><tbody>'+r.sections.map(s=>'<tr><td><code>'+escape(s.name)+'</code></td><td>'+mb(s.bytes)+'</td><td>'+(100*s.bytes/r.input.fileBytes).toFixed(1)+'%</td></tr>').join('')+'</tbody></table>';
+}
+function dl(data,name){const url=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+$('download').onclick=()=>{if(report)dl(report,'v034B-audit-'+(report.input.worldYear||'unknown')+'y-'+Date.now()+'.json');};
+async function json(f){if(!f)throw Error('이관 전후 보고서 파일을 모두 선택해야 해.');const d=JSON.parse(await f.text());if(d.format!=='village-observer-local-audit'||!d.fingerprints)throw Error(f.name+'은 검증 보고서 형식이 아니야.');return d;}
+$('compare').onclick=async()=>{try{const a=await json($('before').files[0]),b=await json($('after').files[0]);const changed={};let total=0;
+ for(const key of ['nation','tile','person']){const x=a.fingerprints[key],y=b.fingerprints[key];const union=new Set([...Object.keys(x),...Object.keys(y)]);let diff=[];for(const k of union)if(x[k]!==y[k])diff.push(k);changed[key]={count:diff.length,sample:diff.slice(0,30),leftCount:Object.keys(x).length,rightCount:Object.keys(y).length};total+=diff.length;}
+ const compatible=a.input.fingerprintAlgorithm===b.input.fingerprintAlgorithm;
+ const sameDay=a.input.worldYear===b.input.worldYear&&a.input.worldSeason===b.input.worldSeason&&a.input.worldDay===b.input.worldDay;
+ const auditClean=a.errorCount===0&&b.errorCount===0;
+ const eligible=compatible&&sameDay&&auditClean;
+ $('compareSummary').className=eligible&&total===0?'ok':'warning';
+ $('compareSummary').textContent='결과: '+(!compatible?'지문 알고리즘 불일치 — 비교 보류':!sameDay?'시뮬레이션 날짜 불일치 — 비교 보류':!auditClean?'구조 오류가 있는 보고서 — 비교 보류':total===0?'물리 지문 일치':'변경 또는 누락 엔티티 '+total+'개');
+ $('compareDetails').classList.remove('hide');$('compareDetails').textContent=JSON.stringify({before:{version:a.input.worldVersion,year:a.input.worldYear,errors:a.errorCount},after:{version:b.input.worldVersion,year:b.input.worldYear,errors:b.errorCount},sameSimulationDate:sameDay,fingerprintCompatible:compatible,eligible,changed},null,2);
+ }catch(e){$('compareSummary').className='bad';$('compareSummary').textContent='비교 실패: '+e.message;$('compareDetails').classList.add('hide');}};
+})();
+</script>
+</body></html>
