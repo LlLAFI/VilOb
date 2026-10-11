@@ -1,0 +1,88 @@
+{
+  "version": "V0.34D3",
+  "releaseDate": "2026-10-11",
+  "base": "V0.34D2B",
+  "patch": "Settlement Economy Integration V1 + Food Flow Observation",
+  "status": "Candidate — functional and 370-day deterministic regression PASS; 60-75y/war not closed",
+  "sourceBaselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "protectedLegacyBlocks": 169,
+  "tested": {
+    "staticBuild": true,
+    "sharedInventoryFixture": true,
+    "sharedConsumptionFixture": true,
+    "otherSettlementIsolationFixture": true,
+    "foreignNationIsolationFixture": true,
+    "conservedMarketGoldFixture": true,
+    "marketQuoteFixture": true,
+    "snapshotCSVColumns": 1683,
+    "settlementColumns": 48,
+    "housingColumns": 11,
+    "economyColumns": 24,
+    "naturalDaysRepeated": 370,
+    "naturalRepeatRuns": 2,
+    "naturalAuditCheckpoints": 13,
+    "desktopChromium": true,
+    "mobileChromium": true,
+    "longNaturalRunYears75": false,
+    "warOccupationRegressions": false,
+    "remoteGithubPagesHTTP": false
+  },
+  "knownOpenIssues": [
+    "Earlier fixed-seed progress stall around day 849 in D2A/D2B, exact cause not proven or resolved",
+    "D3 60-75 year multi-Settlement warfare / building deterioration not validated",
+    "Shared economy is a civilian stock/Market Gold transaction policy; individual physical Tile.stocks and historic reporting remain present",
+    "Food natural regeneration instrumentation counts observed code paths rather than a complete global resource balance",
+    "D3 counters are live-run telemetry and are not persisted across load; physical stocks and money are persisted"
+  ],
+  "notes": "No base terrain regen, worker harvest coefficient, food consumption or construction slot balance changed. Saved worlds are current-version-only.",
+  "artifacts": {
+    "dist/standalone/index.html": {
+      "bytes": 3511356,
+      "sha256": "ac07dd6b886b794fb11ba8e5aebddf60bad631885972d1b521ac562906369177"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14781,
+      "sha256": "be0119750b7c0afad3fef14e556300f5f634fd2b5fc44cd5f64f76cdfd232b34"
+    },
+    "index-standalone.html": {
+      "bytes": 3511356,
+      "sha256": "ac07dd6b886b794fb11ba8e5aebddf60bad631885972d1b521ac562906369177"
+    },
+    "index.html": {
+      "bytes": 16893,
+      "sha256": "5ba1bf390a0afbd86c81cdcf6aee815abba9ac016ca1e13ecfc55a01bab23090"
+    },
+    "README.md": {
+      "bytes": 11842,
+      "sha256": "4f967c441f90fc47a2ba1774a0ab579bf259f807e464e80661f1232ac3605152"
+    },
+    "README-34D3.md": {
+      "bytes": 7085,
+      "sha256": "2e3749bc996868b82da1135e094e438242f854e9af052f4ff921c69a76cf8663"
+    },
+    "TEST-34D3.md": {
+      "bytes": 2609,
+      "sha256": "d8d18b108f3b04f186f529783e8e5dd04ce57b6e14e4c0992928726da5ea2037"
+    },
+    "src/bootstrap/v034d3.js": {
+      "bytes": 20531,
+      "sha256": "0e01e8c00c78b4d66baaaa95f78fb26bb4ab6b434340c4ce411453f7fb8c159d"
+    },
+    "tools/d2-transform.mjs": {
+      "bytes": 12013,
+      "sha256": "8847def3fde6648bd5e6198f0abe4f4e44ba5544eb63994c6aaa0bf8db3f4680"
+    },
+    "tests/test-d3.cjs": {
+      "bytes": 7574,
+      "sha256": "7fb85aad8240e45ddab15bddb8e299ba1183e0c078b71a845ee7d6f3d604469f"
+    },
+    "tests/test-d3-year.cjs": {
+      "bytes": 3438,
+      "sha256": "a7d573f2eec0ffdad0f6ab76ac02bd0dc1b0c3b7539244e55c2db63f212af22d"
+    },
+    "tests/browser-d3-smoke.py": {
+      "bytes": 1930,
+      "sha256": "121a51b038f50fa45ab60d3fa69b7aa914f162e0914d976316995bb9921feb8c"
+    }
+  }
+}

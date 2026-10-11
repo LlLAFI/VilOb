@@ -1,3 +1,18 @@
+# Village Observer V0.34D3 — Settlement Economy Integration V1
+
+**최신 개발 기준선: V0.34D3 (2026-10-11).** 동일 활성 Settlement 안의 여러 타일은 민간 식량·목재·석재·철광석·철·도구 재고, 실제 저장 공간 및 Market Gold 접근을 공동 생활권으로 처리합니다. 재고·건물·군사 이동의 물리 위치는 보존하고, 서로 다른 Settlement 및 국가 간에는 기존 실제 물류·거래를 사용합니다.
+
+- **독립 실행:** `dist/standalone/index.html` (또는 `index-standalone.html`).
+- **GitHub Pages용:** 프로젝트 루트 `index.html` + `dist/hosted/assets/` 또는 `dist/hosted/index.html` + 동일 위치의 `assets/`.
+- **시장:** 같은 Settlement의 부족률과 가격 신호를 공유하고, 같은 공동경제권 내부에서 자기 자신과 거래하지 않습니다. 기존 Market Gold를 보존적으로 타일 간 이전할 수 있습니다.
+- **식량:** 자연회복·농업 채집·주민 소비량은 변경하지 않고, 실제 채집·보관·먹이 공급·입고 거절을 관측합니다. 자연 식량 회복 수치는 **3일 작업주기당**입니다.
+- **CSV:** Snapshot V2 1,683열 / Settlement 48열 / Housing 11열 유지, 신규 **Settlement Economy 24열**.
+- **저장:** V0.34D3 전용(`village-observer-v034d3`). 이전 D2B 세이브 자동 로딩은 지원하지 않습니다.
+- **검증:** `npm run build`, `npm test`, `npm run test:year`, `python tests/browser-d3-smoke.py`; 기본 회귀 및 370일 2회 결정론 PASS, 60~75년 장기 미검증. 과거 고정 시드 정지 이슈는 계속 OPEN.
+- **상세:** `README-34D3.md`, `TEST-34D3.md`, `RELEASE-MANIFEST-34D3.json`.
+
+---
+
 # Village Observer V0.34D2B — Civilian Settlement Consistency & Housing Diagnostics
 
 **개발 기준선: V0.34D2B (2026-10-11).** V0.34D2A의 공동 주거 핫픽스에 이어, V0.27 실제 Person 일일 주거 스트레스·행복도, V0.28 통계와 내부 민간 이주 후보를 Settlement 생활권에 연결했습니다.

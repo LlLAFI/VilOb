@@ -53,5 +53,15 @@ const hooks = {
   ["const home=w.map.get(this.homeTileId),ctx=sharedVillage27(v,w),people=ctx.byHome.get(this.homeTileId)||[];let activeCap=ctx.activeCaps.get(this.homeTileId);if(activeCap==null){activeCap=housingActiveCapacity27(home);ctx.activeCaps.set(this.homeTileId,activeCap);}const short=Math.max(0,people.length-activeCap),severity=people.length?short/people.length:0;","const home=w.map.get(this.homeTileId),ctx=sharedVillage27(v,w),shared=NS.V034D2A?.housingAt?.(v,w,this.homeTileId),people=ctx.byHome.get(this.homeTileId)||[],population=shared?shared.population:people.length;let activeCap=shared?shared.activeCapacity:ctx.activeCaps.get(this.homeTileId);if(activeCap==null){activeCap=housingActiveCapacity27(home);ctx.activeCaps.set(this.homeTileId,activeCap);}const short=Math.max(0,population-activeCap),severity=population?short/population:0;"],
  ],
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of hooks[src]||[]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+const d3hooks={
+ 'src/legacy/040.js':[
+  ["function routeCost29(v,w,a,b){","function routeCost29(v,w,a,b){if(NS.V034D3?.sameSettlement?.(w,a,b,v.id))return 0;"],
+  ["const cache={sig,rows,bucket,alive,adults,residentsBy,adultsBy,workersByTile:workers,jobsByTile};","NS.V034D3?.harmonizeMarketRows?.(v,w,rows);const cache={sig,rows,bucket,alive,adults,residentsBy,adultsBy,workersByTile:workers,jobsByTile};"],
+  ["if(s.id===b.id)continue;const se=ensureTile29(s.t)","if(s.id===b.id||NS.V034D3?.sameSettlement?.(w,b.id,s.id,v.id)){if(s.id!==b.id)NS.V034D3?.noteIgnoredTradePair?.(w);continue;}const se=ensureTile29(s.t)"],
+  ["let paid=Math.min(due,Number(e.marketGold||0));","NS.V034D3?.fundMarketGold?.(v,w,row.id,Math.max(0,due-Number(e.marketGold||0)));let paid=Math.min(due,Number(e.marketGold||0));"],
+  ["if(cash+1e-9<cost)return 0;const took=v.withdrawAt(s.id,resource,qty)","cash+=NS.V034D3?.fundMarketGold?.(v,w,b.id,cost-cash)||0;if(cash+1e-9<cost)return 0;const took=v.withdrawAt(s.id,resource,qty)"]
+ ],
+ 'src/legacy/068.js':[["const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);","NS.V034D3?.fundMarketGold?.(buyer,w,bt.id,total-Number(be.marketGold||0));const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);"]]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}
