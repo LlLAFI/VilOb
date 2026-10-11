@@ -32,8 +32,8 @@ with sync_playwright() as p:
   }''')
   info['pageErrors']=errors[:10]
   print(name,json.dumps(info,ensure_ascii=False))
-  assert info['version']=='V0.34D2A' and info['roundtrip']=='V0.34D2A'
-  assert info['loadedSave']=='V0.34D2A' and info['patch']=='V0.34D2A'
+  assert info['version']=='V0.34D2B' and info['roundtrip']=='V0.34D2B'
+  assert info['loadedSave']=='V0.34D2B' and info['patch']=='V0.34D2B'
   assert info['button'] and info['columns']==11 and info['header']==11
   assert info['inspector'] and info['labour'] and info['csvV2Unique']
   assert info['errors']==[] and info['pageErrors']==[]

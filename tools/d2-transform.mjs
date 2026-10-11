@@ -6,7 +6,9 @@ const hooks = {
   ["function maxProjects(v){let n=1;if(v.population()>=25)n++;if(v.population()>=60)n++;if(v.hasTech('ADMINISTRATION'))n++;return Math.min(5,n);}", "function maxProjects(v){return NS.V034D2?.projectCap?.(v)??(1+(v.population()>=25)+(v.population()>=60)+(v.hasTech('ADMINISTRATION')?1:0));}"],
   ["function happinessTarget(p,v,w){", "function happinessTarget(p,v,w){"],
   ["const t=w.map.get(p.homeTileId),pop=t?v.tileResidents(t.id).filter(x=>x.alive).length:0,cap=t?effectiveLocalCapacity(t):0,housing=pop?", "const t=w.map.get(p.homeTileId),shared=NS.V034D2?.housingAt?.(v,w,p.homeTileId),pop=shared?shared.population:(t?v.tileResidents(t.id).filter(x=>x.alive).length:0),cap=shared?shared.capacity:(t?effectiveLocalCapacity(t):0),housing=pop?"],
-  ["const pop=this.tileResidents(t.id).filter(x=>x.alive).length,cap=effectiveLocalCapacity(t);s+=(cap-pop)*3;", "const shared=NS.V034D2?.housingAt?.(this,w,t.id),pop=shared?shared.population:this.tileResidents(t.id).filter(x=>x.alive).length,cap=shared?shared.capacity:effectiveLocalCapacity(t);s+=(cap-pop)*3;"]
+  ["const pop=this.tileResidents(t.id).filter(x=>x.alive).length,cap=effectiveLocalCapacity(t);s+=(cap-pop)*3;", "const shared=NS.V034D2?.housingAt?.(this,w,t.id),pop=shared?shared.population:this.tileResidents(t.id).filter(x=>x.alive).length,cap=shared?shared.capacity:effectiveLocalCapacity(t);s+=(cap-pop)*3;"],
+  ["if(!t||t.ownerId!==this.id||physical(t,type)||pendingAt(this,tileId,type)||pendingAt(this,tileId)||projects.length>=maxProjects(this))return false;const cost=constructionCost(this,type);if(!cost||!reserveAllows(this,cost,type)||!this.payBuild(tileId,cost))return false;",
+   "if(!t){NS.V034D2B?.markGate?.(this,w,tileId,'NO_TILE');return false;}if(t.ownerId!==this.id){NS.V034D2B?.markGate?.(this,w,tileId,'FOREIGN_TILE');return false;}if(physical(t,type)){NS.V034D2B?.markGate?.(this,w,tileId,'ALREADY_BUILT');return false;}if(pendingAt(this,tileId,type)||pendingAt(this,tileId)){NS.V034D2B?.markGate?.(this,w,tileId,'SITE_PROJECT_PENDING');return false;}if(projects.length>=maxProjects(this)){NS.V034D2B?.markGate?.(this,w,tileId,'PROJECT_CAP');return false;}const cost=constructionCost(this,type);if(!cost){NS.V034D2B?.markGate?.(this,w,tileId,'NO_COST_DEFINITION');return false;}if(!reserveAllows(this,cost,type)){NS.V034D2B?.markGate?.(this,w,tileId,'STRATEGIC_RESERVE');return false;}if(!this.payBuild(tileId,cost)){NS.V034D2B?.markGate?.(this,w,tileId,'PAYMENT_OR_MATERIAL');return false;}"]
  ],
  'src/legacy/024.js': [["function projectLimit(v){let n=1;if(v.population()>=25)n++;if(v.population()>=60)n++;if(v.hasTech('ADMINISTRATION'))n++;return Math.min(5,n);}","function projectLimit(v){return NS.V034D2?.projectCap?.(v)??(1+(v.population()>=25)+(v.population()>=60)+(v.hasTech('ADMINISTRATION')?1:0));}"]],
  'src/legacy/050.js': [["function maxProjects31G(v){let n=1;if(v.population?.()>=25)n++;if(v.population?.()>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return Math.min(5,n);}", "function maxProjects31G(v){return NS.V034D2?.projectCap?.(v)??(1+(v.population?.()>=25)+(v.population?.()>=60)+(v.hasTech?.('ADMINISTRATION')?1:0));}"]],
@@ -23,12 +25,6 @@ const hooks = {
  ],
  'src/legacy/077.js': [["function startCommercial(v,w,x){","function startCommercial(v,w,x){if(NS.V034D2&&NS.V034D2.freeSlots(v)<=0)return false;"]],
  'src/legacy/076.js': [["function startSpec(v,w,x){","function startSpec(v,w,x){if(NS.V034D2&&NS.V034D2.freeSlots(v)<=0)return false;"]],
- 'src/legacy/032.js': [["occ=v.tileResidents(home).filter(p=>p.alive).length/localCapacity22(v,w,home)","occ=(NS.V034D2?.housingAt?.(v,w,home)?.occupancy??(v.tileResidents(home).filter(p=>p.alive).length/localCapacity22(v,w,home)))"]],
- 'src/legacy/039.js': [
-  ["housingShortage:Math.max(0,pop-cap)});","housingShortage:Math.max(0,(NS.V034D2?.housingAt?.(v,w,id)?.shortage??(pop-cap)))});"],
-  ["const isHome=Number(p.homeTileId)===Number(t.id);if(!isHome&&r.cap-r.pop<.75)return-Infinity;", "const shared=NS.V034D2?.housingAt?.(v,w,t.id),isHome=Number(p.homeTileId)===Number(t.id);if(!isHome&&(shared?shared.capacity-shared.population:r.cap-r.pop)<.75)return-Infinity;"],
-  ["for(const r of rows){if(r.id===src.id||r.cap-r.pop<.75)continue;", "for(const r of rows){if(r.id===src.id||NS.V034D2?.sameSettlement?.(w,src.id,r.id,this.id)||r.cap-r.pop<.75)continue;"],
- ],
  'src/legacy/126.js': [["return Math.min(5,n);}","return NS.V034D2?.projectCap?.(v)??Math.min(5,n);}"]],
  'src/legacy/128.js': [["return Math.min(5,n);}","return NS.V034D2?.projectCap?.(v)??Math.min(5,n);}"]],
  'src/legacy/130.js': [["function projectCap(v){return Number(NS.V031G?.maxProjects?.(v)||Math.min(5,1+(v.population?.()>=25)+(v.population?.()>=60)+(v.hasTech?.('ADMINISTRATION')?1:0)));}", "function projectCap(v){return Number(NS.V034D2?.projectCap?.(v)??NS.V031G?.maxProjects?.(v)??1);}"]],
@@ -44,7 +40,18 @@ const hooks = {
   ["if(nationalCap<nationalPop*1.02)annual*=.80;", "if((birthSharedHousing?birthSharedHousing.capacity:nationalCap)<(birthSharedHousing?birthSharedHousing.population:nationalPop)*1.02)annual*=.80;"],
   ["const localDays=v.settlementReserveDays(home),occ=v.tileResidents(home).filter(p=>p.alive).length/localCapacity24(v,w,home),national=v.foodReserveDays();", "const localDays=v.settlementReserveDays(home),sharedHousing=NS.V034D2A?.housingAt?.(v,w,home),occ=sharedHousing?sharedHousing.occupancy:v.tileResidents(home).filter(p=>p.alive).length/localCapacity24(v,w,home),national=v.foodReserveDays();"]
  ],
- 'src/legacy/039.js': [["function housingPulse28(v,w){","function housingPulse28(v,w){if(NS.V034D2A?.housingPulse)return NS.V034D2A.housingPulse(v,w);"]]
+ 'src/legacy/039.js': [
+  ["function housingPulse28(v,w){","function housingPulse28(v,w){if(NS.V034D2A?.housingPulse)return NS.V034D2A.housingPulse(v,w);"],
+  ["housingStrained=(v.residents||[]).filter(p=>p.alive&&((p.housingStrainDays||0)>20||((rows.find(r=>r.id===p.homeTileId)?.housingShortage||0)>0))).length","housingStrained=(v.residents||[]).filter(p=>p.alive&&(NS.V034D2B?.currentHousingStrain?.(v,w,p)??((p.housingStrainDays||0)>20||((rows.find(r=>r.id===p.homeTileId)?.housingShortage||0)>0)))).length"],
+  ["for(const r of rows){if(r.id===src.id||r.cap-r.pop<.75)continue;","for(const r of rows){if(r.id===src.id)continue;if(NS.V034D2?.sameSettlement?.(w,src.id,r.id,this.id)){NS.V034D2B?.countInternalCandidate?.(w);continue;}if(r.cap-r.pop<.75)continue;"],
+ ],
+ 'src/legacy/025.js': [
+  ["if(need>remainingSpace(this,t)+1e-6){w.telemetry.record('BUILDING_BLOCKED_SPACE'","if(need>remainingSpace(this,t)+1e-6){NS.V034D2B?.markGate?.(this,w,tileId,'NO_BUILD_SPACE');w.telemetry.record('BUILDING_BLOCKED_SPACE'"]
+ ],
+ 'src/legacy/038.js': [
+  ["const t=w.map.get(p.homeTileId),people=ctx.byHome.get(p.homeTileId)||[],pop=people.length;let cap=ctx.effectiveCaps.get(p.homeTileId);if(cap==null){cap=effectiveLocalCapacity27(t);ctx.effectiveCaps.set(p.homeTileId,cap);}const housing=pop?","const t=w.map.get(p.homeTileId),shared=NS.V034D2A?.housingAt?.(v,w,p.homeTileId),people=ctx.byHome.get(p.homeTileId)||[],pop=shared?shared.population:people.length;let cap=shared?shared.capacity:ctx.effectiveCaps.get(p.homeTileId);if(cap==null){cap=effectiveLocalCapacity27(t);ctx.effectiveCaps.set(p.homeTileId,cap);}const housing=pop?"],
+  ["const home=w.map.get(this.homeTileId),ctx=sharedVillage27(v,w),people=ctx.byHome.get(this.homeTileId)||[];let activeCap=ctx.activeCaps.get(this.homeTileId);if(activeCap==null){activeCap=housingActiveCapacity27(home);ctx.activeCaps.set(this.homeTileId,activeCap);}const short=Math.max(0,people.length-activeCap),severity=people.length?short/people.length:0;","const home=w.map.get(this.homeTileId),ctx=sharedVillage27(v,w),shared=NS.V034D2A?.housingAt?.(v,w,this.homeTileId),people=ctx.byHome.get(this.homeTileId)||[],population=shared?shared.population:people.length;let activeCap=shared?shared.activeCapacity:ctx.activeCaps.get(this.homeTileId);if(activeCap==null){activeCap=housingActiveCapacity27(home);ctx.activeCaps.set(this.homeTileId,activeCap);}const short=Math.max(0,population-activeCap),severity=population?short/population:0;"],
+ ],
 };
 export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of hooks[src]||[]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

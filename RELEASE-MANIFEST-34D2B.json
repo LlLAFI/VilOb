@@ -1,0 +1,75 @@
+{
+  "version": "V0.34D2B",
+  "releaseDate": "2026-10-11",
+  "base": "V0.34D2A",
+  "patch": "Civilian Settlement Consistency & Housing Diagnostics",
+  "status": "Candidate build — long-run stability not closed",
+  "sourceBaselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "protectedLegacyBlocks": 169,
+  "buildSource": "npm run build",
+  "tested": {
+    "staticBuild": true,
+    "sameSettlementMobilityFixture": true,
+    "householdStrainFixture": true,
+    "constructionRejectionCodeFixture": true,
+    "determinismDays": 120,
+    "determinismRuns": 2,
+    "desktopChromium": true,
+    "mobileChromium": true,
+    "syntheticLongRunCompleted": false,
+    "longNaturalRunYears75": false,
+    "remoteGithubPagesHTTP": false
+  },
+  "knownOpenIssue": "A fixed-seed extended simulation can stall. Similar behavior occurred with D2A in comparator; cause and whether D2B worsens it are undetermined.",
+  "schema": {
+    "snapshotV2Columns": 1683,
+    "settlementD1AColumns": 48,
+    "housingD2Columns": 11
+  },
+  "artifacts": {
+    "dist/standalone/index.html": {
+      "bytes": 3490399,
+      "sha256": "df4f33b41758042b493de251bb57c0a1cbe55660ff311700ac5ae4c1a5229860"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14731,
+      "sha256": "06e97912956062e34c4c945d114396ebbc0f890a1591d839bdb11a470c0aa085"
+    },
+    "index.html": {
+      "bytes": 16831,
+      "sha256": "4e0999700d23ce619905a2102cc41d7b69c33462ab8a9064be9135afe5732f9f"
+    },
+    "index-standalone.html": {
+      "bytes": 3490399,
+      "sha256": "df4f33b41758042b493de251bb57c0a1cbe55660ff311700ac5ae4c1a5229860"
+    },
+    "README.md": {
+      "bytes": 10141,
+      "sha256": "43aa56e64418fc76a8272e38be877b77605527b84604a2e49476242c7de81892"
+    },
+    "README-34D2B.md": {
+      "bytes": 3498,
+      "sha256": "7c334dff7b3b4d48e9dfeb4e80f5f79ca639c9e5d6b18ce153b5f79e0b5b5104"
+    },
+    "TEST-34D2B.md": {
+      "bytes": 1456,
+      "sha256": "91e814968aebfb7415f9297dc399ef1813b525ad006e55808e55a143216b558b"
+    },
+    "src/bootstrap/v034d2b.js": {
+      "bytes": 10212,
+      "sha256": "21222ed62c76e9d219fa66392fd336ed992669dea6f8d1dbb97bd78e711fb5e0"
+    },
+    "tools/d2-transform.mjs": {
+      "bytes": 10746,
+      "sha256": "a9be583b47d0da688580df3929933ad277b55b2036212db750ce8eab3a59491b"
+    },
+    "tests/test-d2b.cjs": {
+      "bytes": 8602,
+      "sha256": "715f16075bfe78959ede37bebd21e2b6a5b4ed9678c220108d145bc7ef3c7a55"
+    },
+    "tests/test-d2b-focus.cjs": {
+      "bytes": 4096,
+      "sha256": "8a4da5d87946ceb17e2703cf3dc93f4254561a008d5c313a5342cf9a4d1a22f7"
+    }
+  }
+}

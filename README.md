@@ -1,3 +1,22 @@
+# Village Observer V0.34D2B — Civilian Settlement Consistency & Housing Diagnostics
+
+**개발 기준선: V0.34D2B (2026-10-11).** V0.34D2A의 공동 주거 핫픽스에 이어, V0.27 실제 Person 일일 주거 스트레스·행복도, V0.28 통계와 내부 민간 이주 후보를 Settlement 생활권에 연결했습니다.
+
+- **다운로드·실행:** `dist/standalone/index.html` 하나로 독립 실행. GitHub Pages에는 `dist/hosted/index.html`과 `dist/hosted/assets/`를 함께 배포합니다.
+- **D2B 핵심:** 같은 Settlement 안의 타일 사이에서는 V0.28 민간 내부 이주를 수행하지 않음. 물리적인 Person 거주 타일·군사 이동·건설 입지는 유지합니다.
+- **일일 생활:** V0.27 실제 Person 대사 경로의 주거 스트레스·행복도 주거 비율을 Settlement 공동 주거로 계산합니다.
+- **통계:** `housingStrainedResidents28`은 현재 공동 주거 **활성** 수용량 부족 상태를 집계합니다. `housingStrainDays>20`은 별도 D2B Devlog 진단으로 유지하여 과거 누적 스트레스와 구별합니다.
+- **착공 진단:** 주택 신축·주거 개축·토지정비 시도별 `byType`, `byBlocker`, 최근 36개 시도를 Devlog `v034d2bHousingDiagnostics`에 제공합니다. 출처가 확인되지 않는 거절은 `UNRESOLVED_*`로 표기합니다.
+- **유지:** 건설 슬롯 기본 3~최대 11, 자재·Gold·노동·기술·경제·전쟁 규칙, 기존 1,683열 Snapshot V2·48열 Settlement·11열 Housing CSV 모두 유지.
+- **저장:** D2B 버전만 현재 로드 가능. 키 `village-observer-v034d2b`; 이전 세이브 자동 변환은 지원하지 않습니다.
+- **기본 시험:** `npm run build`, `npm test`, `python tests/browser-smoke.py`.
+- **검증 한계:** 120일 반복 결정론과 기능별 합성 시나리오, PC·모바일 Chromium은 통과. 특정 고정 시드의 1년 이상 자연주행에서 진행 중단이 재현되어 **D2 계열 CLOSED 보류**. 이 현상은 D2A 비교 시험에서도 발견되었으나 원인 및 D2B 고유 영향 여부는 확정하지 못했습니다.
+- **범위 제한:** 동일 Settlement 간 물리 이주는 제거하지만, **서로 다른 Settlement 간 기존 타일 기반 식량·서비스·직장 매력도**는 아직 유지됩니다. 완전한 경제 생활권 통합은 D3 예정입니다.
+
+상세: `README-34D2B.md` · 시험: `TEST-34D2B.md` · 릴리스: `RELEASE-MANIFEST-34D2B.json`.
+
+---
+
 # Village Observer V0.34D2A — 주거 계산·생활권 정합성 핫픽스
 
 **현재 기준선: V0.34D2A (2026-10-11).** 회관/전초기지 주거 수용량 누락 및 같은 종류 건물 상태 효율 과대 계산을 수정하고, 실제 V0.24 일일 출생·질병과 Person 주거 스트레스의 Settlement 생활권 기준을 통일했습니다.
