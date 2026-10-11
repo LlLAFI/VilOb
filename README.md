@@ -1,3 +1,18 @@
+# Village Observer V0.34D2A — 주거 계산·생활권 정합성 핫픽스
+
+**현재 기준선: V0.34D2A (2026-10-11).** 회관/전초기지 주거 수용량 누락 및 같은 종류 건물 상태 효율 과대 계산을 수정하고, 실제 V0.24 일일 출생·질병과 Person 주거 스트레스의 Settlement 생활권 기준을 통일했습니다.
+
+- **단독 실행:** `dist/standalone/index.html` 또는 `index-standalone.html`
+- **GitHub Pages:** 전체 프로젝트를 GitHub에 업로드하여 `dist/hosted/` 빌드 배포
+- **건설 슬롯:** 기본 3, 인구·기술에 따라 최대 11개로 확대된 D2 공식 유지
+- **저장:** `V0.34D2A`만 지원, 로컬 키 `village-observer-v034d2a` (이전 D2 세이브 직접 불러오기 미지원)
+- **CSV:** Snapshot V2 1,683열 / D1A Settlement 48열 / D2 Housing 11열 유지
+- **구현 상세:** `README-34D2A.md` · **시험:** `TEST-34D2A.md`
+- **개발:** `npm run build`, `npm test`, 선택적으로 `node tests/test-d2a-year.cjs`, `python tests/browser-smoke.py`
+- **검증:** 코드/120일·370일 결정론/PC·모바일 PASS; 사용자 자연주행 60–75년 미검증
+
+---
+
 # Village Observer V0.34D2 — Settlement 생활권 통합 · 건설 슬롯 확대
 
 **현재 기준선: V0.34D2** (2026-10-11). D1A 노동 관측 패치에서 **실제 주거·건설 판단을 변경**합니다.

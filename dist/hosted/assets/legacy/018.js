@@ -32,7 +32,7 @@ const metabolism09=NS.Person.prototype.metabolism;
 NS.Person.prototype.metabolism=function(v,w,worked=true){
  metabolism09.call(this,v,w,worked);
  const t=w.map.get(this.homeTileId);if(!t||t.ownerId!==v.id)return;
- const pop=v.tileResidents(t.id).filter(p=>p.alive).length,cap=activeLocalCapacity(t),short=Math.max(0,pop-cap),severity=pop?short/pop:0;
+ const shared=NS.V034D2A?.housingAt?.(v,w,t.id),pop=shared?shared.population:v.tileResidents(t.id).filter(p=>p.alive).length,cap=shared?shared.activeCapacity:activeLocalCapacity(t),short=Math.max(0,pop-cap),severity=pop?short/pop:0;
  if(severity>0){
   this.housingStrainDays=(this.housingStrainDays||0)+1;
   if(this.housingStrainDays>20){this.energy=clamp(this.energy-.035-.11*severity,0,100);this.happiness=clamp(this.happiness-.015-.045*severity,0,100);}
@@ -40,7 +40,7 @@ NS.Person.prototype.metabolism=function(v,w,worked=true){
  }else this.housingStrainDays=Math.max(0,(this.housingStrainDays||0)-2);
 };
 NS.Village.prototype.settlementAttractiveness=function(w,t,p){
- if(!t)return-Infinity;const pop=this.tileResidents(t.id).filter(x=>x.alive).length,cap=activeLocalCapacity(t);if(cap<=pop)return -120-(pop-cap)*18;
+ if(!t)return-Infinity;const shared=NS.V034D2A?.housingAt?.(this,w,t.id),pop=shared?shared.population:this.tileResidents(t.id).filter(x=>x.alive).length,cap=shared?shared.activeCapacity:activeLocalCapacity(t);if(cap<=pop)return -120-(pop-cap)*18;
  t.syncResources(w.ordinalDay());let s=(cap-pop)*5-w.map.distance(this.coreTileId,t.id)*1.1;
  if(pop<=1&&t.id!==this.coreTileId)s+=15;if((p?.housingStrainDays||0)>30)s+=8;
  if(p?.job==='농부'||p?.job==='채집꾼'||p?.job==='사냥꾼')s+=t.ratio('food',w.ordinalDay())*18;

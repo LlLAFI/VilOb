@@ -9,7 +9,7 @@ const F=x=>N(x).toFixed(2);
 function activeRecords(w){return (w?.v34b?.settlements||[]).filter(r=>r.lifecycle==='ACTIVE'&&Array.isArray(r.tileIds)&&r.tileIds.length);}
 function lookup(w,id){return w?._v34bActive?.get(String(id))||activeRecords(w).find(r=>same(r.id,id))||null;}
 function nation(w,id){return (w?.villages||[]).find(v=>same(v.id,id))||null;}
-function housing(t){let out=0;const arr=t.buildings||[];
+function housing(t){if(NS.V034D2A?.capAt)return NS.V034D2A.capAt(t);let out=0;const arr=t.buildings||[];
  for(let i=0;i<arr.length;i++){const b=arr[i],cap=N(NS.BUILDINGS?.[b]?.capacity);if(!cap)continue;
   const eff=typeof t.buildingEfficiency==='function'?N(t.buildingEfficiency(b)):Math.min(1,Math.max(0,N(t.buildingCondition?.[i]??100)/70));out+=cap*eff;}
  return out;

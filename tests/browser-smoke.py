@@ -15,7 +15,7 @@ with sync_playwright() as p:
   page.wait_for_timeout(850)
   info=page.evaluate('''() => {
     const NS=window.VSim,w=window.villageObserver?.world||new NS.World(19,19);
-    const a=NS.V034D2,rows=a.contextAll(w),audit=a.audit(w),csv=a.csv(w);
+    const a=NS.V034D2,rows=a.contextAll(w),audit=NS.V034D2A.audit(w),csv=a.csv(w);
     const save=w.serialize(),loaded=NS.World.from(JSON.parse(JSON.stringify(save)));
     NS.SaveSystem.save(w);
     const first=rows[0],ui=window.villageObserver;
@@ -32,8 +32,8 @@ with sync_playwright() as p:
   }''')
   info['pageErrors']=errors[:10]
   print(name,json.dumps(info,ensure_ascii=False))
-  assert info['version']=='V0.34D2' and info['roundtrip']=='V0.34D2'
-  assert info['loadedSave']=='V0.34D2' and info['patch']=='V0.34D2'
+  assert info['version']=='V0.34D2A' and info['roundtrip']=='V0.34D2A'
+  assert info['loadedSave']=='V0.34D2A' and info['patch']=='V0.34D2A'
   assert info['button'] and info['columns']==11 and info['header']==11
   assert info['inspector'] and info['labour'] and info['csvV2Unique']
   assert info['errors']==[] and info['pageErrors']==[]

@@ -1,0 +1,66 @@
+{
+  "version": "V0.34D2A",
+  "releaseDate": "2026-10-11",
+  "base": "V0.34D2",
+  "patch": "Housing Capacity & Shared Living Consistency Hotfix",
+  "sourceBaselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "protectedLegacyBlocks": 169,
+  "buildSource": "npm run build",
+  "tested": {
+    "staticBuild": true,
+    "unitScenario": true,
+    "determinismDays": 370,
+    "determinismRuns": 2,
+    "desktopChromium": true,
+    "mobileChromium": true,
+    "longNaturalRunYears75": false,
+    "remoteGithubPagesHTTP": false
+  },
+  "schema": {
+    "snapshotV2Columns": 1683,
+    "settlementD1AColumns": 48,
+    "housingD2Columns": 11
+  },
+  "artifacts": {
+    "dist/standalone/index.html": {
+      "bytes": 3479181,
+      "sha256": "76e4d4ab82a4e754bd25c4cf92dc8df33baf62aa4509bf013e779504513c3189"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14679,
+      "sha256": "343cef77d0d5e9671400f5800423858d8552e7e40b88dd5ea92ab9518ebcdccc"
+    },
+    "index.html": {
+      "bytes": 16767,
+      "sha256": "01c88d5927998030e648ad364ff0a6e5bda56dd466245f5d5d41d9875d55a41e"
+    },
+    "index-standalone.html": {
+      "bytes": 3479181,
+      "sha256": "76e4d4ab82a4e754bd25c4cf92dc8df33baf62aa4509bf013e779504513c3189"
+    },
+    "README.md": {
+      "bytes": 7673,
+      "sha256": "c6367a8f45ab85521aa7fd0ff6258fd4d471cf26389da62f46b3bd73549aa332"
+    },
+    "README-34D2A.md": {
+      "bytes": 6219,
+      "sha256": "f125489178cc234b5aff55a1373281e6513bdc5066ff6fbc6eae6c45d858b404"
+    },
+    "TEST-34D2A.md": {
+      "bytes": 3285,
+      "sha256": "500817cd91467ef49d9307d3d7d30c78dbf689484f0cf1d861c277ff10bc82ef"
+    },
+    "src/bootstrap/v034d2a.js": {
+      "bytes": 14431,
+      "sha256": "db62c610ae666042d24ccb41a05017315ca3ed7d196b5081c81a103ea3f86d95"
+    },
+    "src/bootstrap/v034d2.js": {
+      "bytes": 18535,
+      "sha256": "f4319fcdb8005082a69d6ee4e058a1927be7a31a9c01105c1f1ba6d52ec0fbe6"
+    },
+    "tools/d2-transform.mjs": {
+      "bytes": 8180,
+      "sha256": "2182a834e3965a3f81b17e81ed421eb25b6e5399e601e19878f77d676e7a74e5"
+    }
+  }
+}
