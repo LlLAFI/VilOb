@@ -1,0 +1,74 @@
+{
+  "version": "V0.34D3A1",
+  "baseline": "V0.34D3A",
+  "title": "Food Flow Calendar & Audit Hotfix",
+  "date": "2026-10-11",
+  "build": {
+    "version": "V0.34D3A1",
+    "baselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+    "sourceBlocks": 169,
+    "scriptBlocks": 165,
+    "styleBlocks": 4,
+    "hostedBytes": 14888,
+    "standaloneBytes": 3535322,
+    "hostedIndexSHA256": "f50518effd19514febdb6ebbdc6f3051b260a6d303ebf9c50f2882dcbc9b0e3f",
+    "standaloneIndexSHA256": "be9f5c1fdeab7c784708306fb0ae50fa82d9ed2635c536d10ccc07fdd9c82915",
+    "csvColumns": 1683,
+    "csvDuplicateExtraColumnsFixed": 72
+  },
+  "compatibility": {
+    "saveKey": "village-observer-v034d3a1",
+    "importPreviousD3AJSON": "physical state retained; old 90-day flow windows reset, new 30-day windows start at import",
+    "snapshotV2Columns": 1683,
+    "settlementColumns": 48,
+    "housingColumns": 11,
+    "economyColumns": 24,
+    "foodFlowColumns": 46,
+    "foodFlowUniqueHeaders": 46
+  },
+  "tests": {
+    "fullNpmTest": "PASS",
+    "realCalendarDeterminism": "108 days × 2 runs, same physical state & RNG",
+    "syntheticSpoilageFrontier": "PASS",
+    "foodWindowBoundaries": "1-30,31-60,61-90 PASS",
+    "desktopChromium": "PASS",
+    "mobileChromium": "PASS",
+    "browserJavaScriptErrors": 0,
+    "longRun60to75Years": "NOT VALIDATED",
+    "legacy849DayIssue": "UNRESOLVED"
+  },
+  "legacy": {
+    "sourceBlocks": 169,
+    "originalHashIntegrity": "PASS"
+  },
+  "files": {
+    "dist/standalone/index.html": {
+      "bytes": 3535322,
+      "sha256": "be9f5c1fdeab7c784708306fb0ae50fa82d9ed2635c536d10ccc07fdd9c82915"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14888,
+      "sha256": "f50518effd19514febdb6ebbdc6f3051b260a6d303ebf9c50f2882dcbc9b0e3f"
+    },
+    "README.md": {
+      "bytes": 13490,
+      "sha256": "90c10227a87437da9707bb8e19bbc442e70897171ca05fdb1eebca6743d4f8d8"
+    },
+    "README-34D3A1.md": {
+      "bytes": 4670,
+      "sha256": "621c186d18980401e9359d37b93fc123309be98e0ce051a2ed26705f3a164c0c"
+    },
+    "TEST-34D3A1.md": {
+      "bytes": 1746,
+      "sha256": "a67777ee9557986df9bf2a1146c47d7eb6708ab4b288e70de45f22d5396f1a82"
+    },
+    "src/bootstrap/v034d3a.js": {
+      "bytes": 18104,
+      "sha256": "25ea7c20b9c046229d9c5df40e1daa31b2ab9d488b109f6ae5b8cb44b3a07bd1"
+    },
+    "src/bootstrap/v034d3a1.js": {
+      "bytes": 5893,
+      "sha256": "411048f572c07588bebc10cade357f904db22f4ed4d72c4b214f3454d4fd3c3c"
+    }
+  }
+}

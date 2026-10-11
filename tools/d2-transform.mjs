@@ -76,5 +76,11 @@ const d3aHooks={
  'src/legacy/068.js':[["const took=v.withdrawAt(best.d.id,'food',qty),put=v.depositAt(r.id,'food',took);if(put<took)v.depositAt(best.d.id,'food',took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,best.d.id,r.id,'food',qty);"]],
  'src/legacy/069.js':[["const took=v.withdrawAt(best.d.id,'food',qty),put=v.depositAt(r.id,'food',took);if(put<took)v.depositAt(best.d.id,'food',took-put);", "const {took,put}=NS.V034D3A.transferWithReturn(v,best.d.id,r.id,'food',qty);"]]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+const d3a1Hooks={
+ 'src/legacy/021.js':[["t.stocks.food-=loss;total+=loss;", "t.stocks.food-=loss;total+=loss;NS.V034D3A1?.spoilage?.(w,v,id,loss);"]],
+ 'src/legacy/029.js':[["v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;", "const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);"]],
+ 'src/legacy/031.js':[["v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;", "const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);"]],
+ 'src/legacy/099.js':[["v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;", "const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);"]]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

@@ -117,7 +117,7 @@ NS.World.prototype.processInternalLogistics=function(){
 };
 function processFoodSpoilage(v,w){
  ensureV13Nation(v,w);let total=0;
- for(const id of v.territory){const t=w.map.get(id);if(!t?.stocks)continue;const cap=v.settlementCaps(id).food,stock=t.stocks.food||0;if(cap<=0||stock/cap<=FOOD_SPOIL_THRESHOLD)continue;const granary=t.buildingEfficiency?.('granary')||0,excess=Math.max(0,stock-cap*FOOD_SPOIL_SAFE),rate=FOOD_SPOIL_RATE*(1-.55*granary)*(v.hasTech?.('FOOD_PRESERVATION')?.60:1),loss=Math.min(stock,excess*rate);if(loss<=.05)continue;t.stocks.food-=loss;total+=loss;}
+ for(const id of v.territory){const t=w.map.get(id);if(!t?.stocks)continue;const cap=v.settlementCaps(id).food,stock=t.stocks.food||0;if(cap<=0||stock/cap<=FOOD_SPOIL_THRESHOLD)continue;const granary=t.buildingEfficiency?.('granary')||0,excess=Math.max(0,stock-cap*FOOD_SPOIL_SAFE),rate=FOOD_SPOIL_RATE*(1-.55*granary)*(v.hasTech?.('FOOD_PRESERVATION')?.60:1),loss=Math.min(stock,excess*rate);if(loss<=.05)continue;t.stocks.food-=loss;total+=loss;NS.V034D3A1?.spoilage?.(w,v,id,loss);}
  if(total>0){v.foodBalanceStats.spoiled+=total;if(total>=8)w.telemetry.record('FOOD_SPOILAGE',w,{village:v.name,qty:+total.toFixed(1),threshold:FOOD_SPOIL_THRESHOLD,granaryProtection:true});}
  return total;
 }

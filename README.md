@@ -1,3 +1,15 @@
+# Village Observer V0.34D3A1
+
+최신: **V0.34D3A1 — Food Flow Calendar & Audit Hotfix**. D3A Food Flow 관측을 **실제 30달력일** 기준으로 수정하고, 중복된 CSV 열을 제거했습니다. 고비축 식량 부패와 개척 식량 지출을 **물리 재고 차감 시점**에 별도로 관측하며, Settlement 구성 변경 시 미설명 수지를 확정 판정하지 않습니다. 지형별 식량 회복·농업 효율·주민 소비·부패율·개척 비용은 그대로 유지합니다.
+
+- **독립 실행:** `dist/standalone/index.html` 혹은 `index-standalone.html`
+- **GitHub Pages:** `dist/hosted/` 전체 게시 (프로젝트 루트 `index.html`만 다른 폴더로 옮기면 작동하지 않습니다)
+- **CSV:** Food Flow **46개 고유 열**; Snapshot V2 1,683열 / Settlement 48열 / Housing 11열 / Economy 24열은 유지
+- **저장:** D3A1 전용 저장 키 `village-observer-v034d3a1`; 파일로 내보낸 D3A 세이브는 `NS.World.from`으로 이식 가능하지만, 과거의 실제 약 90일 관측 창은 30일로 쪼개지 않고 초기화됩니다
+- **상세:** [README-34D3A1.md](README-34D3A1.md) · [TEST-34D3A1.md](TEST-34D3A1.md)
+
+---
+
 # Village Observer V0.34D3A
 
 최신: **V0.34D3A — Food Supply & Storage Stabilization**. 일반 식량·목재·석재 채취의 창고 미입고분을 자연 원료로 복구하고, Settlement별 30일 Food Flow CSV(45열) 및 실제 원격 인출·일부 물류 반환 진단을 제공합니다. 기본 생산·소비·재생 수치는 변경하지 않습니다. 상세 내용: [README-34D3A.md](README-34D3A.md), 검증: [TEST-34D3A.md](TEST-34D3A.md).
