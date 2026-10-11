@@ -24,7 +24,7 @@ function effectiveHousingCapE1(t){
  for(let i=0;i<(t.buildings||[]).length;i++){const b=t.buildings[i],cond=Number(t.buildingCondition?.[i]??100),eff=cond>=70?1:clamp(cond/70,0,1);n+=Number(NS.BUILDINGS?.[b]?.capacity||0)*eff;}
  return Math.max(.1,n);
 }
-function quickHousingE1(v,w){
+function quickHousingE1(v,w){if(NS.V034D2?.quickHousing)return NS.V034D2.quickHousing(v,w);
  const byHome=NS.V026?.ensureResidentIndex?.(v)?.byHome,rows=[];let max=0,short=0;for(const id0 of v.territory||[]){const id=Number(id0),t=w.map.get(id);if(!t)continue;const ps=byHome?.get(id)||(v.tileResidents?.(id)||[]),pop=ps.length,adults=ps.reduce((n,p)=>n+(p.alive&&p.age>=16&&p.assignment!=='PIONEER'?1:0),0),cap=effectiveHousingCapE1(t),free=Math.max(0,cap-pop),occupancy=pop/cap,housingShortage=Math.max(0,pop-cap);if(pop>0){max=Math.max(max,occupancy);short+=housingShortage;}rows.push({id,t,pop,adults,cap,free,occupancy,housingShortage});}
  const bad=rows.filter(r=>r.pop>0&&(r.occupancy>=1.12||r.housingShortage>=1));const pressure=bad.length>0,active=max>=1.18||short>=3,severe=max>=1.35||short>=8;
  return{rows,bad,max,short,pressure,active,severe};
@@ -32,7 +32,7 @@ function quickHousingE1(v,w){
 function maxProjectCapE1(v){return Math.max(1,Number(NS.V031G?.maxProjects?.(v)||1));}
 function pendingHousingE1(v){return[...(v.constructionProjects||[]).filter(p=>p?.type==='house'),...(v.buildingUpgradeProjects||[]).filter(p=>['row_house','collective_house','collective_housing'].includes(p?.to))];}
 function marketGoldNationE1(v,w){let n=0;for(const id of v.territory||[])n+=Number(w.map.get(Number(id))?.v29Economy?.marketGold||0);return n;}
-function blockerFromQuickE1(v,w,q){
+function blockerFromQuickE1(v,w,q){if(NS.V034D2?.housingBlocker)return NS.V034D2.housingBlocker(v,w,q);
  if(!q.bad.length)return'NONE';if(q.rows.some(r=>r.free>=1))return'RELOCATION';const hp=pendingHousingE1(v);if(hp.length)return'HOUSING_PROJECT_QUEUE';
  const cost=NS.V08?.effectiveCost?.(v,'house')||NS.V08?.BUILD_COSTS?.house||{wood:14,stone:4,gold:0};if(Number(v.wood||0)+1e-9<Number(cost.wood||0)||Number(v.stone||0)+1e-9<Number(cost.stone||0))return'MATERIAL_PAYMENT';
  const goldNeed=Number(cost.gold||0);if(goldNeed>0&&marketGoldNationE1(v,w)+Math.max(0,Number(v.gold||0)-4)+1e-9<goldNeed)return'MATERIAL_PAYMENT';if((v.constructionProjects||[]).length>=maxProjectCapE1(v))return'PROJECT_CAP';

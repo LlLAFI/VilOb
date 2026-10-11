@@ -1,0 +1,60 @@
+{
+  "release": "V0.34D2",
+  "date": "2026-10-11",
+  "source": "V0.34D1A",
+  "saveKey": "village-observer-v034d2",
+  "snapshotCSVV2Columns": 1683,
+  "settlementCSVColumns": 48,
+  "housingCSVColumns": 11,
+  "maxConstructionSlots": 11,
+  "constructionUnlocks": {
+    "base": 3,
+    "population25": 1,
+    "population60": 1,
+    "ADMINISTRATION": 2,
+    "ENGINEERING": 2,
+    "URBANIZATION": 2
+  },
+  "files": {
+    "dist/standalone/index.html": {
+      "bytes": 3463781,
+      "sha256": "fe6cdb26e17cadda3d6154ddf08f5c5fab2accb2b5d0300e25eba321b869b973"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14626,
+      "sha256": "b6cbfc58f17d1f6d3b81799476ec3af09e8d0dba46a16fb604c8ba9985199b17"
+    },
+    "src/bootstrap/v034d2.js": {
+      "bytes": 18374,
+      "sha256": "659b8303ce166c1c657fb17f7c71f1fedb73093a299068b9bdfee91d0f812794"
+    },
+    "tools/d2-transform.mjs": {
+      "bytes": 4994,
+      "sha256": "d47c4390b214d372635d82daa5cd0e7b8aaaaaf66595188f9a2479528c91bb0f"
+    },
+    "README.md": {
+      "bytes": 6522,
+      "sha256": "0125ed02f0efd2f65234bc576256365043c17009a765ef808a0cf1e9cf5b36d8"
+    },
+    "README-34D2.md": {
+      "bytes": 5870,
+      "sha256": "be2dd6290a09f5534ab4fd5edc9ecd7715a2d7d16c7e4507fa5b4e091f7615b8"
+    },
+    "TEST-34D2.md": {
+      "bytes": 1909,
+      "sha256": "44789b7a1ad3ff3409e7f35d4a94ca7ace2cb1a27e4d25b61157ebaa59f48cc5"
+    },
+    "BUILD-GUIDE.md": {
+      "bytes": 2939,
+      "sha256": "97eb90fee7e09a7be7790d05836f9e99f75962fda7d1b262465c8d0ea2bb53a8"
+    },
+    "index.html": {
+      "bytes": 16702,
+      "sha256": "04e8cc23228ad2d6a7ef8589c1b14f8f51f2343a465893c90612cb073837b5b6"
+    },
+    "index-standalone.html": {
+      "bytes": 3463781,
+      "sha256": "fe6cdb26e17cadda3d6154ddf08f5c5fab2accb2b5d0300e25eba321b869b973"
+    }
+  }
+}

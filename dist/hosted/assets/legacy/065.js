@@ -30,7 +30,7 @@ function ensureD3(v){
 function cloneSafe(x){try{return JSON.parse(JSON.stringify(x));}catch{return x;}}
 function effectiveCapD3(t){if(!t)return 0;if(NS.V011?.effectiveLocalCapacity)return Number(NS.V011.effectiveLocalCapacity(t)||0);let n=0;for(let i=0;i<(t.buildings||[]).length;i++){const b=t.buildings[i],cond=Number(t.buildingCondition?.[i]??100),eff=cond>=70?1:clamp(cond/70,0,1);n+=Number(NS.BUILDINGS?.[b]?.capacity||0)*eff;}return n;}
 function tileBusyD3(v,id){return[...(v.constructionProjects||[]).filter(p=>!p?.v17Marker),...(v.landDevelopmentProjects||[]),...(v.buildingUpgradeProjects||[]),...(v.specializationProjects||[])].some(p=>Number(p.tileId??p.targetTileId)===Number(id));}
-function housingRowsD3(v,w){
+function housingRowsD3(v,w){if(NS.V034D2?.housingRows)return NS.V034D2.housingRows(v,w);
  const cal=CAL(w),epoch=Number(v._v26ResidentEpoch||0),cache=v._v32d3HousingRowsCache;if(cache&&cache.cal===cal&&cache.epoch===epoch&&cache.size===v.territory.size)return cache.rows;let src=[];try{src=NS.V028?.urbanSummary?.(v,w,true)?.rows||[];}catch{}
  const by=new Map(src.map(r=>[Number(r.id),r])),rows=[...v.territory].map(id=>{const t=w.map.get(id),base=by.get(Number(id)),pop=(v.tileResidents?.(id)||[]).filter(p=>p.alive).length,cap=Math.max(.1,effectiveCapD3(t)),free=Math.max(0,cap-pop),occ=pop/cap,shortage=Math.max(0,pop-cap);return{id:Number(id),t,pop,cap,free,occupancy:occ,housingShortage:Math.max(Number(base?.housingShortage||0),shortage),urbanity:Number(base?.urbanity||0),rank:base?.rank||'',foodDays:Number(base?.foodDays??v.settlementReserveDays?.(id)??0)};}).filter(r=>r.t);v._v32d3HousingRowsCache={cal,epoch,size:v.territory.size,rows};return rows;
 }
@@ -50,7 +50,7 @@ function relocateHousingD3(v,w,source,dest){
  return moved;
 }
 function nextHousingUpgradeD3(v,type){if(type==='house'&&v.hasTech?.('URBAN_PLANNING'))return'row_house';if(type==='row_house'&&v.hasTech?.('URBANIZATION'))return'collective_house';return null;}
-function tryHousingResolveD3(v,w,sourceId,reason='HOUSING32D3'){
+function tryHousingResolveD3(v,w,sourceId,reason='HOUSING32D3'){if(NS.V034D2?.resolveHousing)return NS.V034D2.resolveHousing(v,w,sourceId,reason);
  const rows=housingRowsD3(v,w),source=rows.find(r=>r.id===Number(sourceId))||[...rows].sort((a,b)=>b.occupancy-a.occupancy)[0];if(!source||(Number(source.occupancy||0)<1.12&&Number(source.housingShortage||0)<1))return false;const scope=orderedHousingScopeD3(v,w,source.id,rows);
  // 1) actual spare housing in the same life/admin sphere -> real Person relocation.
  const spare=scope.find(r=>r.free>=1&&!tileBusyD3(v,r.id));if(spare&&relocateHousingD3(v,w,source,spare)>0){ensureD3(v).h.actions++;return true;}

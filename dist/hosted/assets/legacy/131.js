@@ -19,7 +19,7 @@ function trueSurvival(v){return!!(v?.v30b2?.survival?.active||v?.v30b4?.survival
 function recoveryOnly(v){return!!v?.recoveryState?.active&&!trueSurvival(v);}
 function atWar(v,w){return(w?.wars||[]).some(x=>!x?.ended&&(x.attackerId===v.id||x.defenderId===v.id||(x.sideAIds||[]).includes(v.id)||(x.sideBIds||[]).includes(v.id)));}
 function projectCount(v){return(v.constructionProjects||[]).filter(p=>!p?.v17Marker).length+(v.landDevelopmentProjects||[]).length+(v.buildingUpgradeProjects||[]).length+(v.specializationProjects||[]).length;}
-function projectCap(v){let n=1;if(Number(v.population?.()||0)>=25)n++;if(Number(v.population?.()||0)>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return Math.min(5,n);}
+function projectCap(v){let n=1;if(Number(v.population?.()||0)>=25)n++;if(Number(v.population?.()||0)>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return NS.V034D2?.projectCap?.(v)??Math.min(5,n);}
 function freeSlots(v){return Math.max(0,projectCap(v)-projectCount(v));}
 function stock(v,k){if(typeof v.resourceTotal==='function'){const q=Number(v.resourceTotal(k));if(Number.isFinite(q))return q;}return Number(v?.[k]||0);}
 function countBuilding(v,w,type){let n=0;for(const id of v.territory||[]){const t=w.map?.get?.(Number(id));if(t)n+=(t.buildings||[]).filter(x=>x===type).length;}return n;}

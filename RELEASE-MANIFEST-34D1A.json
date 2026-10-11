@@ -1,0 +1,38 @@
+{
+  "release": "V0.34D1A",
+  "date": "2026-10-11",
+  "source": "V0.34D1",
+  "saveKey": "village-observer-v034d1a",
+  "csvV2Columns": 1683,
+  "settlementCSVColumns": 48,
+  "files": {
+    "dist/standalone/index.html": {
+      "bytes": 3444522,
+      "sha256": "6774cf850572fb367ae9a7571afd627aa9660076cf3d65f791a25a0033446421"
+    },
+    "dist/hosted/index.html": {
+      "bytes": 14576,
+      "sha256": "881b6ce2f7975daf1daaa5329c14be195ce747c020d6803cb58c502b971bd976"
+    },
+    "src/bootstrap/v034d1a.js": {
+      "bytes": 15887,
+      "sha256": "730c3e7cf160303828923680439a24c96e9bbfadf6f9a2039e2ecf6a6eab226c"
+    },
+    "README.md": {
+      "bytes": 5240,
+      "sha256": "f6d829894e8adebe88700b3659d6e4452b0cb89163609ba64a2d66deb4c0a4c9"
+    },
+    "README-34D1A.md": {
+      "bytes": 4983,
+      "sha256": "e8df31fd281ee12d1f0f2f33ca7eef18a244ddf08d3262f026c69d5cd6b0882b"
+    },
+    "TEST-34D1A.md": {
+      "bytes": 1644,
+      "sha256": "3226f69c3ea1e95fdd6120022e3d28465b4b7728b3a9dfda4d09ec35d9cfd43e"
+    },
+    "SETTLEMENT-AGGREGATE-D1A-SCHEMA.md": {
+      "bytes": 2467,
+      "sha256": "1468750932971cf54e380b3f0d35ee0b19dfdad254b85b37531cc971291cf5fd"
+    }
+  }
+}

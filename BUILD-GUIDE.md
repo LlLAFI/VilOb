@@ -1,4 +1,4 @@
-# V0.34D1 빌드 및 게시 안내
+# V0.34D2 빌드 및 게시 안내
 
 ## 로컬 빌드
 
@@ -33,4 +33,11 @@ npm test
 - `tests/legacy/`는 과거 C1H 참고 테스트로, 절대경로 의존성이 일부 존재합니다. `npm test`는 경로가 현재 프로젝트로 수정된 D0 공식 테스트만 사용합니다.
 
 
-D1 관측 Bootstrap: `src/bootstrap/v034d1.js` — 빌드 시 D0 Bootstrap 다음에 순차 실행됩니다.
+D1 집계 Bootstrap: `src/bootstrap/v034d1.js` — D0 다음 실행.
+D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
+
+## D2 정책 연결 방식
+
+`src/bootstrap/v034d2.js`는 D1A 다음에 적용됩니다. 레거시 169개 파일의 원본 해시는 보존하되, `tools/d2-transform.mjs`에서 몇 가지 레거시 주거·인력·건설 경로에 명시적인 호출 게이트를 삽입한 결과물을 두 빌드에 동일하게 넣습니다. `--check-only`는 레거시 원본 무결성을 검사하고, 실제 `npm run build`에서 연결 지점의 존재·유일성을 검증합니다.
+
+`npm test`는 D2 정책 변경 때문에 기존 `test-determinism.cjs`(C1H↔D0 전체 상태 동일성) 대신 `test-d2.cjs`(D2↔D2 반복 결정론)를 실행합니다. 이전 D1A 테스트는 개별 기준선의 기록으로만 남습니다.

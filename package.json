@@ -1,14 +1,14 @@
 {
   "name": "village-observer",
-  "version": "0.34.0-d1",
+  "version": "0.34.0-d2",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
     "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs",
-    "test:simulation": "node tests/test-determinism.cjs && node tests/test-d1.cjs",
-    "test": "node tools/build.mjs --check-only && node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-determinism.cjs && node tests/test-d1.cjs"
+    "test:simulation": "node tests/test-d2.cjs",
+    "test": "node tools/build.mjs --check-only && node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-d2.cjs"
   },
   "engines": {"node": ">=18"}
 }

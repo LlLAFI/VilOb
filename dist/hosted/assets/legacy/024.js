@@ -44,7 +44,7 @@ NS.Village.prototype.processBuildingMaintenance=function(w){
 };
 
 /* ---------- action feasibility + same-season fallback ---------- */
-function projectLimit(v){let n=1;if(v.population()>=25)n++;if(v.population()>=60)n++;if(v.hasTech('ADMINISTRATION'))n++;return Math.min(5,n);}
+function projectLimit(v){return NS.V034D2?.projectCap?.(v)??(1+(v.population()>=25)+(v.population()>=60)+(v.hasTech('ADMINISTRATION')?1:0));}
 function projects(v){return Array.isArray(v.constructionProjects)?v.constructionProjects:[];}
 function costFor(v,type){return NS.V08?.effectiveCost?NS.V08.effectiveCost(v,type):{};}
 function missingCost(v,cost){for(const k of ['wood','stone','food','gold']){const need=Number(cost?.[k]||0),have=k==='gold'?v.gold:v[k];if(need>0&&have+1e-6<need)return{resource:k,need,have};}return null;}

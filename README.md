@@ -1,3 +1,33 @@
+# Village Observer V0.34D2 — Settlement 생활권 통합 · 건설 슬롯 확대
+
+**현재 기준선: V0.34D2** (2026-10-11). D1A 노동 관측 패치에서 **실제 주거·건설 판단을 변경**합니다.
+
+- **Settlement 생활권:** 같은 Settlement에 속한 타일은 공동 주거 용량과 민간 근무 접근성을 이용합니다. 건물의 지형/입지와 군사 유닛의 타일 이동은 보존합니다. 재고·시장 통합은 D3 예정.
+- **건설 슬롯:** 기본 3개, 인구 25/60 각 +1, `ADMINISTRATION`/`ENGINEERING`/`URBANIZATION` 각 +2, 최대 **11개**. 신축·개축·토지 개발·특화 작업을 공통 집계합니다.
+- **상세 변경:** `README-34D2.md` · **시험:** `TEST-34D2.md`.
+- **실행:** `dist/standalone/index.html` (단일 파일), 또는 전체 프로젝트를 GitHub Pages GitHub Actions로 게시.
+- **개발:** `npm run build` / `npm test`; 선택적으로 `python tests/browser-smoke.py`.
+- **데이터:** D2 Housing CSV 11열 신규 · D1A Settlement CSV 48열 유지 · Snapshot CSV V2 1,683열 유지.
+- **저장:** D2 자체 저장 전용(`village-observer-v034d2`). 이전 버전 세이브 불러오기 미지원.
+- **현재 판정:** 구현·기본 회귀시험 PASS, 60~75년 장기 자연주행 미검증.
+
+---
+
+# Village Observer V0.34D1A — Labor Metrics Clarification
+
+**현재 개발·배포 기준선은 V0.34D1A입니다.** 75년 V0.34D1 자연주행에서 발견된 노동 집계 의미 오류를 관측 전용으로 보정했습니다. 경제·고용·Person/AI 의사결정은 변경하지 않았습니다.
+
+- **독립형 게임:** `dist/standalone/index.html` 또는 `index-standalone.html` (단일 HTML).
+- **GitHub Pages:** 프로젝트 전체를 GitHub에 게시; `.github/workflows/pages.yml`이 `dist/hosted`를 빌드·배포.
+- **원본 개발 소스:** `src/bootstrap/v034d0.js` → `v034d1.js` → **`v034d1a.js`**, 165개 Legacy JS와 4개 CSS는 보호 유지.
+- **빌드/검사:** `npm run build` / `npm test`; 선택사항 `python tests/browser-smoke.py`.
+- **D1A Settlement CSV:** 기존 32열 + 16개 노동 지표 = **48열**. `assignedJobs`와 `workersAtTile`은 원본 필드 집계로 남아 있으며 실제 고용률을 의미하지 않습니다.
+- **기존 Snapshot CSV V2:** 1,683열 유지.
+- **저장:** `V0.34D1A` 전용 `village-observer-v034d1a` 키; D1과 구버전 세이브 불러오기 미지원.
+- 상세: `README-34D1A.md`, `TEST-34D1A.md`, `SETTLEMENT-AGGREGATE-D1A-SCHEMA.md`.
+
+---
+
 # Village Observer V0.34D1
 
 **새 개발 기준선은 V0.34D1 Settlement Aggregate V1입니다.** 다중 파일 소스/이중 배포는 D0를 유지하고, 최신 정착지 읽기 전용 집계·독립 검산·세부 UI·32열 Settlement CSV를 추가했습니다.

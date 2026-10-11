@@ -18,7 +18,7 @@ function svg31G(name){const common='viewBox="0 0 24 24" aria-hidden="true" focus
 };return path[name]||'';}
 function iconHTML31G(kind,key,fallback=''){const raw=svg31G(key);return raw?`<span class="v31g-svg v31g-${kind}" title="${esc31G(NS.RESOURCE_DEFS?.[key]?.label||NS.BUILDINGS?.[key]?.label||key)}">${raw}</span>`:esc31G(fallback);}
 const style=document.createElement('style');style.textContent=`.v31g-svg{display:inline-flex;width:1.18em;height:1.18em;vertical-align:-.20em;align-items:center;justify-content:center}.v31g-svg svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.v31g-diagnostic{margin-top:10px}.v31g-stage{font-weight:800}.v31g-blocker{color:var(--warn)}.v31g-resources{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px}.v31g-resources span[data-r]{display:inline-flex;gap:4px;align-items:center}`;document.head.appendChild(style);
-function maxProjects31G(v){let n=1;if(v.population?.()>=25)n++;if(v.population?.()>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return Math.min(5,n);}
+function maxProjects31G(v){return NS.V034D2?.projectCap?.(v)??(1+(v.population?.()>=25)+(v.population?.()>=60)+(v.hasTech?.('ADMINISTRATION')?1:0));}
 function countBuilt31G(v,w,type){let n=0;for(const id of v.territory||[])n+=(w.map.get(id)?.buildings||[]).filter(x=>x===type).length;return n;}
 function countPending31G(v,type){return (v.constructionProjects||[]).filter(p=>p?.type===type&&!p?.v17Marker).length;}
 function ironCap31G(v,w){let cap=0,best=0,eligible=0;for(const id of v.territory||[]){const t=w.map.get(id);const q=Number(t?.resourceCap?.iron_ore||0);cap+=q;best=Math.max(best,q);if(q>280)eligible++;}return{cap,best,eligible};}

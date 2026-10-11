@@ -26,7 +26,7 @@ function ensure(w,src=null){if(!w)return null;if(src?.v33f5a4&&!w.v33f5a4)w.v33f
 function directEff(t,type){if(!t)return 0;let e=0;for(let i=0;i<(t.buildings||[]).length;i++)if(t.buildings[i]===type){const q=Number(t.buildingCondition?.[i]??100);e=Math.max(e,q<=0?0:q>=70?1:Math.max(0,q/70));}return e;}
 function countBuilding(v,w,type){let n=0;for(const id of v?.territory||[]){const t=w?.map?.get?.(Number(id));if(!t)continue;n+=(t.buildings||[]).filter(b=>b===type).length;}return n;}
 function activeProjectCount(v){return (v.constructionProjects||[]).filter(p=>!p?.v17Marker).length+(v.landDevelopmentProjects||[]).length+(v.buildingUpgradeProjects||[]).length+(v.specializationProjects||[]).length;}
-function projectCap(v){let n=1;if(Number(v.population?.()||0)>=25)n++;if(Number(v.population?.()||0)>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return Math.min(5,n);}
+function projectCap(v){let n=1;if(Number(v.population?.()||0)>=25)n++;if(Number(v.population?.()||0)>=60)n++;if(v.hasTech?.('ADMINISTRATION'))n++;return NS.V034D2?.projectCap?.(v)??Math.min(5,n);}
 function busy(v,id){return [...(v.constructionProjects||[]).filter(p=>!p?.v17Marker),...(v.landDevelopmentProjects||[]),...(v.buildingUpgradeProjects||[]),...(v.specializationProjects||[])].some(p=>Number(p.tileId??p.targetTileId)===Number(id));}
 function applyRegistries(){
  NS.BUILDINGS.ancient_farm={label:'고대 농장',icon:'🌾',capacity:0,maint:.0038,footprint:2.0,storage:{food:80,wood:4,stone:2,iron_ore:0,iron:0,tools:4},desc:'고대 경작지를 관개·윤작 체계에 맞게 개축한 농업시설입니다. 실제 농부 노동과 더 높은 식량 회복·채취 효율을 제공합니다.'};

@@ -29,7 +29,7 @@ const planPrev=NS.Village.prototype.updateStrategicPlan;
 if(planPrev)NS.Village.prototype.updateStrategicPlan=function(w){const p=planPrev.call(this,w);if(!p?.reserves)return p;const df=delta(this,'fiscalConservatism'),ds=delta(this,'survival'),dr=delta(this,'risk');if(Math.abs(df)+Math.abs(ds)+Math.abs(dr)<1e-9)return p;const old=Number(p.reserves.gold||0),mul=clamp(1+df*.70+ds*.16-dr*.12,.58,1.65);p.reserves.gold=+Math.max(4,old*mul).toFixed(1);p.reserves.wood=+Math.max(0,Number(p.reserves.wood||0)*(1+df*.12+ds*.08)).toFixed(1);p.reserves.stone=+Math.max(0,Number(p.reserves.stone||0)*(1+df*.10+ds*.06)).toFixed(1);const z=ensure(w);z.stats.profileReserveAdjustments++;return p;};
 
 function projectCount(v){return (v.constructionProjects||[]).filter(p=>!p?.v17Marker).length+(v.landDevelopmentProjects||[]).length+(v.buildingUpgradeProjects||[]).length+(v.specializationProjects||[]).length;}
-function projectCap(v){return Number(NS.V031G?.maxProjects?.(v)||Math.min(5,1+(v.population?.()>=25)+(v.population?.()>=60)+(v.hasTech?.('ADMINISTRATION')?1:0)));}
+function projectCap(v){return Number(NS.V034D2?.projectCap?.(v)??NS.V031G?.maxProjects?.(v)??1);}
 function survival(v){return!!(v.v30b2?.survival?.active||v.v30b4?.survival?.active||v.recoveryState?.active);}
 function atWar(v,w){return (w?.v33d?.wars||w?.wars||[]).some(x=>x&&x.status==='ACTIVE'&&([...(x.sideAIds||[]),...(x.sideBIds||[])].map(Number).includes(Number(v.id))));}
 function countBuilding(v,w,type){let n=0;for(const id of v.territory||[]){const t=w.map?.get?.(Number(id));if(t)n+=(t.buildings||[]).filter(b=>b===type).length;}return n;}

@@ -20,7 +20,7 @@ if(!t.v29Economy)t.v29Economy={};t.v29Economy.marketGold=oldGold+0.9;const next=
 const after=NS.V034D1.audit(w);assert(after.ok,after.errors.slice(0,8).join(' | '));
 let csv=NS.V034D1.csv(w).split('\n');assert.equal(csv.length,rows.length+1);assert.equal(new Set(csv[0].split(',')).size,NS.V034D1.columns.length);
 // Restored current-version world must preserve new version and complete physical state.
-NS.SaveSystem.save(w);const restored=NS.SaveSystem.load();assert.equal(restored.serialize().version,'V0.34D1');const nativeTiles=x=>x.map.tiles.filter(t=>t.ownerId!==null&&t.ownerId!==undefined).map(t=>({id:t.id,owner:t.ownerId,settlementId:t.settlementId,stocks:t.stocks,buildings:t.buildings,condition:t.buildingCondition,marketGold:t.v29Economy?.marketGold}));
+NS.SaveSystem.save(w);const restored=NS.SaveSystem.load();assert.equal(restored.serialize().version,'V0.34D1A');const nativeTiles=x=>x.map.tiles.filter(t=>t.ownerId!==null&&t.ownerId!==undefined).map(t=>({id:t.id,owner:t.ownerId,settlementId:t.settlementId,stocks:t.stocks,buildings:t.buildings,condition:t.buildingCondition,marketGold:t.v29Economy?.marketGold}));
 // The legacy loader fills absent default fields; compare authoritative stored physical facts.
 const owned=(world)=>world.map.tiles.filter(t=>t.ownerId!==null&&t.ownerId!==undefined);
 for(const src of owned(w)){const t=restored.map.get(src.id);assert.equal(t.ownerId,src.ownerId);assert.equal(t.settlementId,src.settlementId);
