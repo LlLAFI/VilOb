@@ -1,0 +1,27 @@
+{
+  "version": "V0.34D3B3",
+  "baselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
+  "sourceBlocks": 169,
+  "scriptBlocks": 165,
+  "styleBlocks": 4,
+  "hostedBytes": 15155,
+  "standaloneBytes": 3582876,
+  "hostedIndexSHA256": "beb5760007ab487a04fac3d80bea8f9b91a070194ff8fdc1c1049a649e9552a2",
+  "standaloneIndexSHA256": "f6cb9636e38026bca6b360380c0e1670f1e10f75618c06583b0af25eb597afab",
+  "csvColumns": 1683,
+  "csvDuplicateExtraColumnsFixed": 72,
+  "release": "V0.34D3B3",
+  "revision": "hotpath-perf-optimization-v1",
+  "baseRelease": "V0.34D3B2",
+  "sourceChanged": [
+    "src/bootstrap/v034d3.js",
+    "src/bootstrap/v034d3a.js",
+    "src/bootstrap/v034d3b3.js",
+    "tools/build.mjs",
+    "save-validator.html"
+  ],
+  "protectedLegacyModified": 0,
+  "behaviorScope": "performance only; no intentional RNG or simulation decision change",
+  "benchmark": "20k reads; 256 residents; 13 member tiles; B2 1977.63ms B3 542.33ms (synthetic microbenchmark only)",
+  "natural66YearBenchmark": "not executed"
+}

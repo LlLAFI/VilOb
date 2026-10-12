@@ -15,9 +15,12 @@ function groupedPhysical(w){const rows=D3.economyRows(w),out=new Map();for(const
 function start(w){const s=state(w),ordinal=calendar(w),bucket=Math.floor((ordinal-1)/30);if(s.live&&s.lastBucket===bucket)return s;
  if(s.live){finish(w,s);}const rows=groupedPhysical(w);s.live={bucket,startOrdinal:bucket*30+1,endOrdinal:(bucket+1)*30,startedAtOrdinal:ordinal,groups:Object.fromEntries(rows),partialStart:ordinal>bucket*30+1};s.lastBucket=bucket;return s;}
 function row(w,v,tid){const s=start(w),g=group(w,v,tid);let r=s.live.groups[g.id];if(!r){r=freshRow(g.id,g.nationId,g.name,g.ids);r.topologyChanged=true;r.openingFood=g.ids.reduce((n,id)=>n+D3.stockRaw(w,id,'food'),0);r.openingNatural=g.ids.reduce((n,id)=>n+num(w.map.get(id)?.resources?.food),0);s.live.groups[g.id]=r;}
- if(!eq(r.nationId,g.nationId)||r.tileIds.join(',')!==g.ids.join(','))r.topologyChanged=true;
+ if(!eq(r.nationId,g.nationId)||r.tileIds.length!==g.ids.length||r.tileIds.some((id,i)=>id!==g.ids[i]))r.topologyChanged=true;
  return r;}
 function add(w,v,tid,k,amount){if(!w||!v||!Number.isFinite(amount)||!amount)return;const r=row(w,v,tid);r[k]=(r[k]||0)+amount;const s=state(w);if(Object.hasOwn(s.total,k))s.total[k]+=amount;}
+// Accounting is identical to sequential add(), but many metrics from one real
+// stock transaction share one settled membership lookup and one window row.
+function addMany(w,v,tid,pairs){if(!w||!v)return;let r=null,s=null;for(const [k,value] of pairs){if(!Number.isFinite(value)||!value)continue;if(!r){r=row(w,v,tid);s=state(w);}r[k]=(r[k]||0)+value;if(Object.hasOwn(s.total,k))s.total[k]+=value;}}
 function fillLabor(w,r,now){const v=w.villages.find(v=>eq(v.id,r.nationId));if(!v)return;const ids=new Set(now.tileIds.map(Number)),people=(v.residents||[]).filter(p=>p.alive!==false&&ids.has(Number(p.homeTileId)));r.population=people.length;r.foodLaborers=people.filter(p=>p.age>=15&&['농부','채집꾼','사냥꾼'].includes(p.job)&&p.assignment!=='PIONEER'&&p.militaryStatus32A!=='active'&&!p.militaryActive32B).length;r.severeHunger=people.filter(p=>num(p.hunger)>=85).length;r.criticalHunger=people.filter(p=>num(p.hunger)>=95).length;const demand=people.reduce((n,p)=>n+(num(p.age)<15?.30:.42),0);r.foodReserveCycles=demand?r.closingFood/demand:999;}
 function finish(w,s){const live=s.live;if(!live)return;const physical=groupedPhysical(w);for(const r of Object.values(live.groups)){
  const now=physical.get(r.settlementId);if(now&&eq(now.nationId,r.nationId)){r.closingFood=now.closingFood;r.closingNatural=now.closingNatural;r.closingCapacity=now.closingCapacity;
@@ -38,8 +41,7 @@ function harvestAndStore(p,v,w,t,k,requested,day){const raw=Math.max(0,num(t.har
  const refused=Math.max(0,made-stored),restored=made>EPS?Math.min(raw,raw*(refused/made)):raw;
  if(restored>0){t.resources[k]=Math.max(0,num(t.resources?.[k])+restored);}
  if(k==='food'){
-  for(const [name,value] of [['harvestRequested',Math.max(0,num(requested))],['harvestRaw',raw],['harvestProduced',made],['harvestStored',stored],['harvestRestoredNatural',restored],['harvestRejectedOutput',refused]])add(w,v,t.id,name,value);
-  add(w,v,t.id,'harvestCalls',1);
+  addMany(w,v,t.id,[['harvestRequested',Math.max(0,num(requested))],['harvestRaw',raw],['harvestProduced',made],['harvestStored',stored],['harvestRestoredNatural',restored],['harvestRejectedOutput',refused],['harvestCalls',1]]);
  }
  return stored;
 }
@@ -49,11 +51,11 @@ NS.Village.prototype.withdrawAt=function(tid,k,qty){const w=this._world,m=k==='f
  if(k==='food'&&fed?.v===this)add(w,this,tid,'mealRequested',Math.max(0,num(qty)));
  if(got<=0)return got;
  if(m&&m.ids.length>1){const remote=Math.max(0,got-Math.min(Math.max(0,num(qty)),local));if(remote>EPS){const key=({food:'remoteFoodWithdrawn',wood:'remoteWoodWithdrawn',stone:'remoteStoneWithdrawn'})[k];if(key)add(w,this,tid,key,remote);add(w,this,tid,'remoteWithdrawCalls',1);}}
- if(k==='food'){if(fed?.v===this){add(w,this,tid,'mealReceived',got);}else if(!ctx?.v||ctx.v!==this)add(w,this,tid,'otherWithdrawn',got);else add(w,this,tid,'otherWithdrawn',got);}
+ if(k==='food')add(w,this,tid,fed?.v===this?'mealReceived':'otherWithdrawn',got);
  return got;};
 NS.Village.prototype.depositAt=function(tid,k,qty){const w=this._world,req=Math.max(0,num(qty)),m=D3.members(this,tid),localRoom=Math.max(0,num(D3.physicalCap(this,tid,k))-D3.stockRaw(w,tid,k)),got=origDeposit.call(this,tid,k,qty);if(!w||k!=='food'&&(!m||m.ids.length<2))return got;
  if(m&&m.ids.length>1){const remote=Math.max(0,got-Math.min(got,localRoom));if(remote>EPS){if(k==='food')add(w,this,tid,'remoteFoodDeposited',remote);add(w,this,tid,'remoteDepositCalls',1);}}
- if(k==='food'&&req>0){add(w,this,tid,'depositRequested',req);add(w,this,tid,'depositAccepted',got);add(w,this,tid,'depositRejected',Math.max(0,req-got));if(harvestScope.get(w)?.v===this){/* harvested amount logged by harvestAndStore */}else add(w,this,tid,'otherDeposited',got);}
+ if(k==='food'&&req>0){addMany(w,this,tid,[['depositRequested',req],['depositAccepted',got],['depositRejected',Math.max(0,req-got)],...(harvestScope.get(w)?.v===this?[]:[['otherDeposited',got]])]);}
  return got;};
 NS.Person.prototype.metabolism=function(v,w,...args){const prior=mealScope.get(w);mealScope.set(w,{v});try{return origMeta.call(this,v,w,...args);}finally{if(prior)mealScope.set(w,prior);else mealScope.delete(w);}};
 const origSync=NS.Tile.prototype.syncResources;

@@ -5,7 +5,7 @@ const assert=require('node:assert/strict'),fs=require('fs'),path=require('path')
 const ROOT=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(ROOT,'index-standalone.html'),'utf8');
 function boot(seed=0x951fab41){let state=seed>>>0,calls=0;const m=Object.create(Math);m.random=()=>{calls++;state^=state<<13;state^=state>>>17;state^=state<<5;return (state>>>0)/4294967296;};const make=()=>({style:{},innerHTML:'',appendChild(){},addEventListener(){},insertAdjacentElement(){},classList:{add(){},remove(){}},querySelector(){return null},querySelectorAll(){return []}});const storage=new Map();const ctx={console,Math:m,Set,Map,WeakMap,WeakSet,JSON,TextEncoder,TextDecoder,URL,Blob,Uint8Array,Uint32Array,ArrayBuffer,structuredClone,crypto:crypto.webcrypto,Date:class DateFixed extends Date{static now(){return 1760101000000;}},performance:require('perf_hooks').performance,alert(){},confirm(){return false},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},document:{head:make(),body:make(),documentElement:make(),getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},createElement:make}};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);for(const [i,match] of [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].entries()){try{new vm.Script(match[1],{filename:'script-'+i}).runInContext(ctx,{timeout:15000});}catch(e){if(!/onclick/.test(e.message))throw e;}}return {NS:ctx.VSim,rng:()=>calls,setSeed:s=>{state=s>>>0;calls=0;}};}
 const near=(a,b,msg)=>assert(Math.abs(a-b)<1e-6,`${msg||'mismatch'}: ${a} vs ${b}`);
-const bx=boot(),NS=bx.NS,H=NS.V034D3A,D=NS.V034D3,w=new NS.World(19,19),v=w.villages[0],t=w.map.get(v.coreTileId),p=v.residents.find(p=>p.alive!==false);assert(p);assert.equal(w.serialize().version,'V0.34D3B2');
+const bx=boot(),NS=bx.NS,H=NS.V034D3A,D=NS.V034D3,w=new NS.World(19,19),v=w.villages[0],t=w.map.get(v.coreTileId),p=v.residents.find(p=>p.alive!==false);assert(p);assert.equal(w.serialize().version,'V0.34D3B3');
 const initialTime=w.ordinalDay();
 for(const [k,req] of [['food',2],['wood',1],['stone',1]]){
  t.syncResources(initialTime);t.resources[k]=Math.max(20,t.resources[k]||0);const nat=t.resources[k],cap=D.physicalCap(v,t.id,k);t.stocks[k]=cap;
@@ -34,7 +34,7 @@ assert.equal(H.foodCSV(w).split('\n')[0].split(',').length,H.columns.length);
 // Monthly split, non-migrating history identity and save roundtrip.
 
 const wClean=new NS.World(19,19);for(let d=0;d<105;d++)wClean.advanceOneDay();assert(H.stats(wClean).windows.length>=1);const oldCSV=H.foodCSV(wClean),save=JSON.parse(JSON.stringify(wClean.serialize())),back=NS.World.from(save);
-assert.equal(back.serialize().version,'V0.34D3B2');assert.equal(H.stats(back).windows.length,H.stats(wClean).windows.length);assert.equal(H.foodCSV(back),oldCSV,'flow observations survive save/restore unchanged');
+assert.equal(back.serialize().version,'V0.34D3B3');assert.equal(H.stats(back).windows.length,H.stats(wClean).windows.length);assert.equal(H.foodCSV(back),oldCSV,'flow observations survive save/restore unchanged');
 assert(NS.V034D3.audit(back).ok);assert.equal(D.csv(back).split('\n')[0].split(',').length,24);
 // Natural simulation same RNG after 370d (includes birth/illness); physics deep equality.
 const a=boot(0x8133a1),b=boot(0x8133a1),wa=new a.NS.World(19,19),wb=new b.NS.World(19,19);a.setSeed(0x42776);b.setSeed(0x42776);

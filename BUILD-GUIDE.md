@@ -1,3 +1,5 @@
+> **현재 배포: V0.34D3B3.** src/bootstrap/v034d3b3.js가 마지막에 로드되고, src/bootstrap/v034d3.js / v034d3a.js의 비보호 코드에 최적화가 적용됩니다. `README-34D3B3.md`, `TEST-34D3B3.md` 참조.
+
 > **현재 배포: V0.34D3B2.** `src/bootstrap/v034d3b2.js`는 D3B1 후에 로드되며 V24 물리 착공 식량 계측과 최초 버전 배지를 수정합니다. `npm run build`의 `VERSION` 상수가 UI/메타데이터에 적용됩니다. `README-34D3B2.md`, `TEST-34D3B2.md` 참조.
 
 > **현재 배포 기준:** V0.34D3B1. `src/bootstrap/v034d3b1.js`를 D3B 후에 연결합니다. 도로 정착지 13타일 변환은 `tools/d2-transform.mjs`에서 이루어지며 레거시 원본 SHA는 그대로 유지합니다. 상세: `README-34D3B1.md`, `TEST-34D3B1.md`.

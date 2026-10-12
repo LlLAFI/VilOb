@@ -12,11 +12,41 @@ const eq=(a,b)=>String(a)===String(b);
 const meter=new WeakMap(),feeding=new WeakMap();
 function stat(w){let s=meter.get(w);if(!s){s={sharedWithdrawCalls:0,sharedWithdrawQty:0,sharedDepositCalls:0,sharedDepositQty:0,avoidedSameSettlementTradePairs:0,marketGroupsNormalized:0,foodMealCalls:0,foodMealRequested:0,foodMealReceived:0,foodHarvestCalls:0,foodHarvestRequested:0,foodHarvested:0,foodNaturalRegenerated:0,foodDepositOverflow:0,marketGoldTransfers:0,marketGoldTransferQty:0,byTile:{}};meter.set(w,s);}return s;}
 function tileStats(w,id){const s=stat(w);return s.byTile[id]||(s.byTile[id]={harvested:0,regen:0,consumed:0,mealDemand:0,depositOverflow:0});}
-function members(v,id){const w=v?._world,t=w?.map?.get(Number(id));if(!t||!eq(t.ownerId,v.id))return null;
+// D3B3: event-invalidated, physical Settlement membership cache.
+// Only ownership, Settlement id and occupation state are watched. Stocks,
+// Gold, buildings and Person objects remain live, never cached here.
+const memberCache=new WeakMap(),memberScopes=new WeakMap(),tileWatch=new WeakMap();
+function memberScope(w){let s=memberScopes.get(w);if(!s){s={epoch:0};memberScopes.set(w,s);}return s;}
+function watchTile(w,t){if(tileWatch.get(t)===w)return true;
+ const scope=memberScope(w);
+ for(const key of ['ownerId','settlementId','v33OccupierId']){
+  const d=Object.getOwnPropertyDescriptor(t,key);
+  if(d&&!d.configurable)return false;
+ }
+ for(const key of ['ownerId','settlementId','v33OccupierId']){
+  const d=Object.getOwnPropertyDescriptor(t,key),getter=d?.get,setter=d?.set;
+  let value=getter?getter.call(t):t[key];
+  Object.defineProperty(t,key,{configurable:true,enumerable:d?.enumerable??true,
+   get(){return getter?getter.call(this):value;},
+   set(next){const before=getter?getter.call(this):value;
+    if(setter)setter.call(this,next);else if(!getter)value=next;
+    const after=getter?getter.call(this):value;
+    if(before!==after)scope.epoch++;
+   }});
+ }
+ tileWatch.set(t,w);return true;
+}
+function members(v,id){const w=v?._world,tid=Number(id),t=w?.map?.get(tid);if(!t||!eq(t.ownerId,v.id))return null;
  const sid=t.settlementId;if(sid==null)return null;const rec=w._v34bActive?.get(String(sid))||(w.v34b?.settlements||[]).find(r=>eq(r.id,sid)&&r.lifecycle==='ACTIVE');
  if(!rec||!eq(rec.nationId,v.id)||rec.lifecycle!=='ACTIVE')return null;
- const ids=(rec.tileIds||[]).map(Number).filter(tid=>{const x=w.map.get(tid);return x&&eq(x.ownerId,v.id)&&eq(x.settlementId,sid)&&!((x.v33OccupierId!=null)&&!eq(x.v33OccupierId,v.id));});
- if(!ids.includes(Number(id)))return null;return {sid,ids,core:Number(rec.coreTileId)};
+ const scope=memberScope(w);let m=memberCache.get(rec);
+ if(m&&m.source===rec.tileIds&&m.size===rec.tileIds.length&&m.core===Number(rec.coreTileId)&&m.nationId===v.id&&m.epoch===scope.epoch){return m.ids.includes(tid)?m:null;}
+ const ids=[];let watched=true;
+ for(const raw of rec.tileIds||[]){const mid=Number(raw),x=w.map.get(mid);if(x){if(!watchTile(w,x))watched=false;
+  if(eq(x.ownerId,v.id)&&eq(x.settlementId,sid)&&!(x.v33OccupierId!=null&&!eq(x.v33OccupierId,v.id)))ids.push(mid);
+ }}
+ m={sid,ids,core:Number(rec.coreTileId),nationId:v.id,source:rec.tileIds,size:(rec.tileIds||[]).length,epoch:watched?scope.epoch:-1};
+ memberCache.set(rec,m);return ids.includes(tid)?m:null;
 }
 function sameSettlement(w,a,b,nationId){if(Number(a)===Number(b))return true;const x=w?.map?.get(Number(a)),y=w?.map?.get(Number(b));return !!(x&&y&&x.settlementId!=null&&eq(x.settlementId,y.settlementId)&&eq(x.ownerId,y.ownerId)&&(nationId==null||eq(x.ownerId,nationId))&&!(x.v33OccupierId!=null&&!eq(x.v33OccupierId,x.ownerId))&&!(y.v33OccupierId!=null&&!eq(y.v33OccupierId,y.ownerId)));}
 function stockRaw(w,id,k){return Math.max(0,N(w?.map?.get(Number(id))?.stocks?.[k]));}
@@ -42,8 +72,13 @@ NS.Village.prototype.depositAt=function(id,k,qty){const m=members(this,id),q=Mat
 // Legacy food reserve is in three-day economic-cycle units (child .30, adult .42).
 // All homes in a Settlement share one numerator AND one population-weighted denominator.
 const oldDays=NS.Village.prototype.settlementReserveDays;
-NS.Village.prototype.settlementReserveDays=function(id){const m=members(this,id);if(!m||m.ids.length<2)return oldDays.call(this,id);const resident=new Set(m.ids),people=(this.residents||[]).filter(p=>p.alive!==false&&resident.has(Number(p.homeTileId)));if(!people.length)return 999;
- const demand=people.reduce((s,p)=>s+(N(p.age)<15?.30:.42),0);return pool(this,id,'food')/Math.max(.12,demand);
+NS.Village.prototype.settlementReserveDays=function(id){const m=members(this,id);if(!m||m.ids.length<2)return oldDays.call(this,id);
+ // V26's resident index invalidates on birth, death, relocation and roster
+ // replacement; only the members' real residents are read, not the nation.
+ const index=NS.V026?.ensureResidentIndex?.(this)?.byHome;let people=0,demand=0;
+ if(index){for(const tid of m.ids){const rows=index.get(tid);if(!rows)continue;for(const p of rows){people++;demand+=N(p.age)<15?.30:.42;}}}
+ else{const resident=new Set(m.ids);for(const p of this.residents||[]){if(p.alive===false||!resident.has(Number(p.homeTileId)))continue;people++;demand+=N(p.age)<15?.30:.42;}}
+ if(!people)return 999;return pool(this,id,'food')/Math.max(.12,demand);
 };
 // Same-Settlement logistics is not a shipment, and does not require route capacity.
 const oldLogistics=NS.Village.prototype.internalLogisticsCapacity;
