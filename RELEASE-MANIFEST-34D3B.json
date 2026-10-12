@@ -1,0 +1,61 @@
+{
+  "game": "Village Observer",
+  "version": "V0.34D3B",
+  "releaseDate": "2026-10-12",
+  "baseVersion": "V0.34D3A2",
+  "revision": "early-economic-balance-war-scale-recovery-v1",
+  "protectedSourceBlocks": 169,
+  "protectedScriptBlocks": 165,
+  "protectedStyleBlocks": 4,
+  "snapshotV2Columns": 1683,
+  "foodFlowColumns": 48,
+  "primaryPaths": {
+    "standalone": "dist/standalone/index.html",
+    "githubPages": "dist/hosted/index.html",
+    "sourceBootstrap": "src/bootstrap/v034d3b.js"
+  },
+  "sha256": {
+    "standaloneHtml": "75cee320296aeb8271dcd7dd79c1d7d25b84062b505c29057e761e54200de097",
+    "hostedHtml": "690e8b293a7856b6923f6f7c58838622d53b83b3f5a7fd603575e7398216f7f5",
+    "d3bBootstrap": "bd9521e085c0e411e229e23b67ed1362058283d164a4b2305bac9a5dcec4af96",
+    "readme": "78423dcda819cea9f383925a70a1675228f20ac8241f78fad899e68822dec3c8",
+    "patchReadme": "875c51a6a843f6f220b718ba8e89d113bd3944545871900c3843100c9957b8bc",
+    "testRecord": "bfa741682f19b0e2a1bfbf5d8ec4ea8c7f202f474a5c57f5b29daa07a04bf642",
+    "protectedManifest": "fb2c08bb957ae867a1d7713d84ac44da0937ef3ba065730f8f49fa41372c3fd4"
+  },
+  "validation": {
+    "sourceChecksum": "PASS",
+    "build": "PASS",
+    "browserPC": "PASS",
+    "browserMobile": "PASS",
+    "d3a2FoodAccounting": "PASS",
+    "d3bFocused": "PASS",
+    "determinism108days": "PASS",
+    "shortNatural720days": "PASS",
+    "longNatural25to75Years": "NOT_TESTED",
+    "fullActualWarRecovery": "NOT_TESTED"
+  },
+  "changes": {
+    "terrainWoodRegen": {
+      "plain": 0.016,
+      "grass": 0.036,
+      "forest": 0.28,
+      "rock": 0.008,
+      "mountain": 0.015
+    },
+    "basicConstructionWood": {
+      "house": 15,
+      "farmstead": 10,
+      "quarry": 14,
+      "legacyExpansion": 24
+    },
+    "actualFrontierWood": {
+      "twoPioneer": 14,
+      "threePioneer": 16
+    },
+    "foundingPhysicalWoodMaxPerNation": 12,
+    "woodGatherMultiplierFirst25Years": 1.12,
+    "woodGatherMultiplierAfterYear25": 1.04
+  },
+  "note": "D3B is a physical economy balance change; 25-75 year run and actual war aftermath still require user natural data."
+}

@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34D3A2</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34D3B</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -1819,8 +1819,8 @@ NS.World.prototype.dealCandidate=function(buyer,seller,resource,route){
 /* ---------- recovery floor economy ---------- */
 function ensureRecovery(v){v.recoveryState=v.recoveryState||{active:false,sinceDay:null,stableSeasons:0,entries:0,manualFood:0,manualWood:0,manualStone:0,salvagedWood:0,salvagedStone:0,dismantled:0,relocations:0};return v.recoveryState;}
 function recoveryProfile(v,w){const m=NS.V011?.maintenanceSummary?.(v,w)||{total:0,inactive:0,inactiveShare:0,avg:100},pop=v.population(),cap=Math.max(0,v.capacity(w)),food=v.foodReserveDays(),wood=v.wood,health=v.avgHealth();let flags=0;if(m.total&&m.inactiveShare>=.35)flags++;if(wood<Math.max(5,pop*.22))flags++;if(food<24)flags++;if(pop>2&&cap<pop*.70)flags++;if(health<46)flags++;return{...m,pop,cap,food,wood,health,flags,severe:m.total&&m.inactiveShare>=.65};}
-function updateRecovery(v,w,seasonal=false){const s=ensureRecovery(v),p=recoveryProfile(v,w),should=p.severe||p.flags>=2;if(!s.active&&should){s.active=true;s.sinceDay=w.ordinalDay();s.stableSeasons=0;s.entries++;w.log(`${v.name}이(가) 기반시설 붕괴를 막기 위해 생존·복구 체제로 전환했습니다.`,true,'RECOVERY_MODE_ENTER',{village:v.name,inactiveShare:+p.inactiveShare.toFixed(2),foodReserveDays:+p.food.toFixed(1),wood:+p.wood.toFixed(1),population:p.pop});}
- if(s.active){const stable=p.inactiveShare<.20&&p.food>42&&p.wood>Math.max(16,p.pop*.4)&&p.cap>=p.pop*.85;s.stableSeasons=stable?(seasonal?s.stableSeasons+1:s.stableSeasons):0;if(s.stableSeasons>=3){s.active=false;s.sinceDay=null;s.stableSeasons=0;w.log(`${v.name}이(가) 핵심 기반시설을 복구해 정상 발전 체제로 돌아왔습니다.`,true,'RECOVERY_MODE_EXIT',{village:v.name});}}
+function updateRecovery(v,w,seasonal=false){const s=ensureRecovery(v),p=recoveryProfile(v,w),should=NS.V034D3B?.recoveryShouldEnter?.(v,w,p)??(p.severe||p.flags>=2);if(!s.active&&should){s.active=true;s.sinceDay=w.ordinalDay();s.stableSeasons=0;s.entries++;w.log(`${v.name}이(가) 기반시설 붕괴를 막기 위해 생존·복구 체제로 전환했습니다.`,true,'RECOVERY_MODE_ENTER',{village:v.name,inactiveShare:+p.inactiveShare.toFixed(2),foodReserveDays:+p.food.toFixed(1),wood:+p.wood.toFixed(1),population:p.pop});}
+ if(s.active){const stable=NS.V034D3B?.recoveryStable?.(v,w,p)??(p.inactiveShare<.20&&p.food>42&&p.wood>Math.max(16,p.pop*.4)&&p.cap>=p.pop*.85);s.stableSeasons=stable?(seasonal?s.stableSeasons+1:s.stableSeasons):0;if(s.stableSeasons>=3){s.active=false;s.sinceDay=null;s.stableSeasons=0;w.log(`${v.name}이(가) 핵심 기반시설을 복구해 정상 발전 체제로 돌아왔습니다.`,true,'RECOVERY_MODE_EXIT',{village:v.name});}}
  return p;
 }
 function depositSomewhere(v,k,amount){let left=amount;const ids=[v.coreTileId,...[...v.territory].filter(id=>id!==v.coreTileId)];for(const id of ids){if(left<=0)break;left-=v.depositAt(id,k,left);}return amount-left;}
@@ -2700,12 +2700,12 @@ function localExpansionCandidates20(v,w){
 }
 function canStartFrontier20(v,w,autonomous=false){
  ensureNation20(v);if(v.status!=='active'||v.recoveryState?.active||v.frontierProjects.length>=maxFrontierProjects(v))return false;if(w.ordinalDay()<61&&v.territory.size===1)return false;
- const minFood=autonomous?42:24;if(v.foodReserveDays()<minFood||v.wood<16||v.stone<4)return false;if(v.availableSettlers().length<2)return false;
+ const minFood=autonomous?42:24;if(v.foodReserveDays()<minFood||v.wood<14||v.stone<4)return false;if(v.availableSettlers().length<2)return false;
  const popFloor=autonomous?v.territory.size*1.55+7:v.territory.size+5;if(v.population()<=popFloor)return false;const rowsA2=localExpansionCandidates20(v,w);if(!rowsA2.length)return false;const pickA2=NS.V033F5A2?.selectAffordableCandidate?.(v,w,rowsA2,{model:'V20_FRONTIER',autonomous,pioneerCount:2});if(NS.V033F5A2&&!pickA2?.candidate)return false;const fq=pickA2?.quote||NS.V033F5A1?.frontierFeasibility?.(v,w,{model:'V20_FRONTIER',candidate:rowsA2[0],autonomous,pioneerCount:2});if(fq&&!fq.ok)return false;return true;
 }
 function startFrontier20(v,w,autonomous=false){
  if(!canStartFrontier20(v,w,autonomous))return false;const rows=localExpansionCandidates20(v,w),pickA2=NS.V033F5A2?.selectAffordableCandidate?.(v,w,rows,{model:'V20_FRONTIER',autonomous,pioneerCount:2}),c=pickA2?.candidate||rows[0];if(!c||c.score<(autonomous?(NS.AIProfileCompat(v,'territorialExpansion')>.5?42:54):35))return false;const adults=c.adults.filter(p=>p.assignment!=='PIONEER').sort((a,b)=>(b.skills?.building||0)+(b.skills?.hunting||0)-((a.skills?.building||0)+(a.skills?.hunting||0)));if(adults.length<2)return false;
- const pioneers=adults.slice(0,2),cost={wood:16,stone:4,food:10,gold:NS.V033F5A2?.terrainGoldCost?.(c.tile.terrain,2)??6};if(v.wood<cost.wood||v.stone<cost.stone||v.food<cost.food)return false;const projectId=`fx-${v.id}-${w.ordinalDay()}-${Math.random().toString(36).slice(2,7)}`;const finance20=NS.V033F5A?.payFrontierFinance?.(v,w,{projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,cost,pioneers,frontierType:'V20_FRONTIER',recovery:false});if(NS.V033F5A&&!finance20?.ok)return false;const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);if(!NS.V033F5A)v.gold-=cost.gold;for(const p of pioneers){p.assignment='PIONEER';ensurePerson20(p).workTileId=c.sourceId;}
+ const pioneers=adults.slice(0,2),cost={wood:14,stone:4,food:10,gold:NS.V033F5A2?.terrainGoldCost?.(c.tile.terrain,2)??6};if(v.wood<cost.wood||v.stone<cost.stone||v.food<cost.food)return false;const projectId=`fx-${v.id}-${w.ordinalDay()}-${Math.random().toString(36).slice(2,7)}`;const finance20=NS.V033F5A?.payFrontierFinance?.(v,w,{projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,cost,pioneers,frontierType:'V20_FRONTIER',recovery:false});if(NS.V033F5A&&!finance20?.ok)return false;const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);if(!NS.V033F5A)v.gold-=cost.gold;for(const p of pioneers){p.assignment='PIONEER';ensurePerson20(p).workTileId=c.sourceId;}
  let duration=NS.TERRAIN[c.tile.terrain].duration*.62;if(v.hasTech?.('FRONTIER_LOGISTICS'))duration*=.84;if(v.hasTech?.('ENGINEERING'))duration*=.90;if(c.maritime)duration*=1.22+Math.min(.28,Number(c.seaSteps||0)*.035);if(c.tile.ruin)duration*=.72;duration=Math.max(110,Math.round(duration));
  const pr={id:projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,startDay:w.ordinalDay(),progress:0,duration,pioneerIds:pioneers.map(p=>p.id),lastRiskCheck:w.ordinalDay(),stallDays:0,events:0,maritime:!!c.maritime,seaSteps:c.seaSteps||0,originHarborId:c.harborId??null,score:+c.score.toFixed(1)};v.frontierProjects.push(pr);v._v20FrontierCooldown=w.ordinalDay()+45;
  w.log(`${v.name}의 (${w.map.get(c.sourceId)?.x},${w.map.get(c.sourceId)?.y}) 정착지가 (${c.tile.x},${c.tile.y}) 개척대를 보냈습니다.`,false,'FRONTIER_EXPANSION_STARTED',{village:v.name,sourceTileId:c.sourceId,targetTileId:c.tile.id,terrain:c.tile.terrain,duration,pioneers:pioneers.map(p=>p.name),parallel:v.frontierProjects.length,maxParallel:maxFrontierProjects(v),maritime:!!c.maritime,score:+c.score.toFixed(1),goldCost:+Number(cost.gold||0).toFixed(3),terrainGoldModel33F5A2:!!NS.V033F5A2});return true;
@@ -2877,11 +2877,11 @@ function localExpansionCandidates21(v,w){
 }
 function canStartFrontier21(v,w,autonomous=false){
  ensureNation21(v);if(v.status!=='active'||v.recoveryState?.active)return false;const cap=maxFrontierProjects21(v,w);if((v.frontierProjects||[]).length>=cap)return false;if(w.ordinalDay()<61&&v.territory.size===1)return false;
- if(v.foodReserveDays()<(autonomous?38:22)||v.wood<16||v.stone<4)return false;const density=v.population()/Math.max(1,v.territory.size),rules=frontierRules21(v);if(density<(autonomous?rules.autoDensity:2.0))return false;const rows=localExpansionCandidates21(v,w);if(!rows.length)return false;const pickA2=NS.V033F5A2?.selectAffordableCandidate?.(v,w,rows,{model:'V21_BALANCED_FRONTIER',autonomous});if(NS.V033F5A2&&!pickA2?.candidate)return false;const fq=pickA2?.quote||NS.V033F5A1?.frontierFeasibility?.(v,w,{model:'V21_BALANCED_FRONTIER',candidate:rows[0],autonomous});if(fq&&!fq.ok)return false;return true;
+ if(v.foodReserveDays()<(autonomous?38:22)||v.wood<14||v.stone<4)return false;const density=v.population()/Math.max(1,v.territory.size),rules=frontierRules21(v);if(density<(autonomous?rules.autoDensity:2.0))return false;const rows=localExpansionCandidates21(v,w);if(!rows.length)return false;const pickA2=NS.V033F5A2?.selectAffordableCandidate?.(v,w,rows,{model:'V21_BALANCED_FRONTIER',autonomous});if(NS.V033F5A2&&!pickA2?.candidate)return false;const fq=pickA2?.quote||NS.V033F5A1?.frontierFeasibility?.(v,w,{model:'V21_BALANCED_FRONTIER',candidate:rows[0],autonomous});if(fq&&!fq.ok)return false;return true;
 }
 function startFrontier21(v,w,autonomous=false){
  if(!canStartFrontier21(v,w,autonomous))return false;const rows=localExpansionCandidates21(v,w),pickA2=NS.V033F5A2?.selectAffordableCandidate?.(v,w,rows,{model:'V21_BALANCED_FRONTIER',autonomous}),c=pickA2?.candidate||rows[0],threshold=autonomous?(46-8*NS.AIProfileCompat(v,'territorialExpansion')-3*NS.AIProfileCompat(v,'resourceSeeking')+8*NS.AIProfileCompat(v,'urbanConcentration')+3*NS.AIProfileCompat(v,'survivalPriority')):32;if(!c||c.score<threshold)return false;
- const adults=c.adults.filter(p=>p.assignment!=='PIONEER').sort((a,b)=>((b.skills?.building||0)+(b.skills?.hunting||0))-((a.skills?.building||0)+(a.skills?.hunting||0)));if(adults.length<2||c.source.surplusAdults<2)return false;const density=v.population()/Math.max(1,v.territory.size),pioneerCount=(c.source.people.length>=7&&c.source.pioneerPool.length>=4&&c.source.surplusAdults>=4&&density>=3.7)?3:2,pioneers=adults.slice(0,pioneerCount),extra=Math.max(0,pioneers.length-2),cost={wood:16+extra*2,stone:4,food:10+extra*3,gold:NS.V033F5A2?.terrainGoldCost?.(c.tile.terrain,pioneers.length)??(6+extra)};if(pioneers.length<2||v.wood<cost.wood||v.stone<cost.stone||v.food<cost.food)return false;const projectId=`fx21-${v.id}-${w.ordinalDay()}-${Math.random().toString(36).slice(2,7)}`;const finance21=NS.V033F5A?.payFrontierFinance?.(v,w,{projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,cost,pioneers,frontierType:'V21_BALANCED_FRONTIER',recovery:false});if(NS.V033F5A&&!finance21?.ok)return false;
+ const adults=c.adults.filter(p=>p.assignment!=='PIONEER').sort((a,b)=>((b.skills?.building||0)+(b.skills?.hunting||0))-((a.skills?.building||0)+(a.skills?.hunting||0)));if(adults.length<2||c.source.surplusAdults<2)return false;const density=v.population()/Math.max(1,v.territory.size),pioneerCount=(c.source.people.length>=7&&c.source.pioneerPool.length>=4&&c.source.surplusAdults>=4&&density>=3.7)?3:2,pioneers=adults.slice(0,pioneerCount),extra=Math.max(0,pioneers.length-2),cost={wood:14+extra*2,stone:4,food:10+extra*3,gold:NS.V033F5A2?.terrainGoldCost?.(c.tile.terrain,pioneers.length)??(6+extra)};if(pioneers.length<2||v.wood<cost.wood||v.stone<cost.stone||v.food<cost.food)return false;const projectId=`fx21-${v.id}-${w.ordinalDay()}-${Math.random().toString(36).slice(2,7)}`;const finance21=NS.V033F5A?.payFrontierFinance?.(v,w,{projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,cost,pioneers,frontierType:'V21_BALANCED_FRONTIER',recovery:false});if(NS.V033F5A&&!finance21?.ok)return false;
  const _foodBeforeD3A1=NS.V034D3A1?.frontierBefore?.(v,w);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3A1?.frontierAfter?.(v,w,_foodBeforeD3A1);if(!NS.V033F5A)v.gold-=cost.gold;for(const p of pioneers){p.assignment='PIONEER';ensurePerson21(p).workTileId=c.sourceId;}invalidateResidentIndex21(v);
  let duration=NS.TERRAIN[c.tile.terrain].duration*.62;if(v.hasTech?.('FRONTIER_LOGISTICS'))duration*=.84;if(v.hasTech?.('ENGINEERING'))duration*=.90;if(c.maritime)duration*=1.22+Math.min(.28,Number(c.seaSteps||0)*.035);if(c.tile.ruin)duration*=.72;duration=Math.max(110,Math.round(duration));
  const pr={id:projectId,sourceTileId:c.sourceId,targetTileId:c.tile.id,startDay:w.ordinalDay(),progress:0,duration,pioneerIds:pioneers.map(p=>p.id),lastRiskCheck:w.ordinalDay(),stallDays:0,events:0,maritime:!!c.maritime,seaSteps:c.seaSteps||0,originHarborId:c.harborId??null,score:+c.score.toFixed(1),v21:true,sourcePopulation:c.source.people.length,sourceAdults:c.source.allAdults.length,adjacentOwned:c.adj,nearbyOwned:c.near.owned};
@@ -4482,9 +4482,9 @@ function survivalProfileB2(v,w){const b=ensureB2(v,w),st=b.survival,pop=v.popula
  return{pop,occupied,adults,food,hunger,health,blocked,starv,loss,severeHunger85:severe85,severeHunger95:severe95,severeHungerShare85:+share85.toFixed(4),severeHungerShare95:+share95.toFixed(4),reproductiveWomen:repro.women,reproductiveMen:repro.men,risk:+risk.toFixed(2)};
 }
 function cancelFrontiersB2(v,w,reason='EARLY_SURVIVAL'){const b=ensureB2(v,w),ids=new Set();for(const pr of v.frontierProjects||[])for(const id of pr.pioneerIds||[])ids.add(id);if(v.expansionProject)for(const id of v.expansionProject.pioneerIds||[])ids.add(id);for(const id of ids){const p=(v.residents||[]).find(x=>x.id===id);if(p&&p.alive){p.assignment=null;if('workTileId'in p)p.workTileId=p.homeTileId;}}const n=(v.frontierProjects||[]).length+(v.expansionProject?1:0);v.frontierProjects=[];v.expansionProject=null;if(n){b.survival.cancelledFrontiers+=n;w.telemetry?.record?.('FRONTIER_EXPANSION_CANCELLED',w,{village:v.name,count:n,reason});}return n;}
-function updateSurvivalB2(v,w,force=false){const b=ensureB2(v,w),st=b.survival,day=w.ordinalDay();if(!force&&day-st.lastEvalDay<5)return st.lastProfile||survivalProfileB2(v,w);st.lastEvalDay=day;const p=survivalProfileB2(v,w);st.lastRisk=p.risk;st.lastProfile=p;const localHard=p.pop<=30?(p.severeHunger95>=1||p.severeHunger85>=2):p.pop<=100?((p.severeHunger95>=2&&p.severeHungerShare95>=.03)||(p.severeHunger85>=4&&p.severeHungerShare85>=.08)):((p.severeHunger95>=Math.max(4,Math.ceil(p.pop*.03))&&p.severeHungerShare95>=.03)||(p.severeHunger85>=Math.max(10,Math.ceil(p.pop*.08))&&p.severeHungerShare85>=.08));const hard=p.pop<=10||p.starv>=2||(p.pop<=16&&p.hunger>=32)||localHard,enter=hard||p.risk>=2.5;
+function updateSurvivalB2(v,w,force=false){const b=ensureB2(v,w),st=b.survival,day=w.ordinalDay();if(!force&&day-st.lastEvalDay<5)return st.lastProfile||survivalProfileB2(v,w);st.lastEvalDay=day;const p=survivalProfileB2(v,w);st.lastRisk=p.risk;st.lastProfile=p;const localHard=p.pop<=30?(p.severeHunger95>=1||p.severeHunger85>=2):p.pop<=100?((p.severeHunger95>=2&&p.severeHungerShare95>=.03)||(p.severeHunger85>=4&&p.severeHungerShare85>=.08)):((p.severeHunger95>=Math.max(4,Math.ceil(p.pop*.03))&&p.severeHungerShare95>=.03)||(p.severeHunger85>=Math.max(10,Math.ceil(p.pop*.08))&&p.severeHungerShare85>=.08));const hard=p.pop<=10||p.starv>=2||(p.pop<=16&&p.hunger>=32)||localHard,enter=NS.V034D3B?.survivalEmergency?.(v,w,p)??(hard||p.risk>=2.5);
  if(!st.active&&enter&&v.status==='active'){st.active=true;st.enteredDay=day;st.stableDays=0;st.entries++;cancelFrontiersB2(v,w);w.log(`${v.name}이(가) 초기 생존 위기를 감지해 확장보다 식량·인구 안정에 집중합니다.`,true,'EARLY_SURVIVAL_CRISIS_ENTER',{village:v.name,risk:p.risk,population:p.pop,occupiedSettlements:p.occupied,foodReserveDays:+p.food.toFixed(1),avgHunger:+p.hunger.toFixed(1),avgHealth:+p.health.toFixed(1),blocked90:p.blocked,starvation120:p.starv,severeHunger85:p.severeHunger85,severeHunger95:p.severeHunger95,severeHungerShare85:p.severeHungerShare85,severeHungerShare95:p.severeHungerShare95,populationLoss120:+p.loss.toFixed(3)});}
- if(st.active){const localStable=p.pop<=30?p.severeHunger85===0:(p.severeHungerShare85<.02&&p.severeHunger95<=Math.max(1,Math.floor(p.pop*.005)));const stable=p.risk<1.5&&p.food>=35&&p.hunger<25&&p.health>=72&&p.pop>=15&&p.starv===0&&p.blocked<3&&localStable;st.stableDays=stable?st.stableDays+5:0;if(st.stableDays>=120){st.active=false;st.enteredDay=null;st.stableDays=0;st.exits++;w.log(`${v.name}이(가) 생존 기반을 회복해 정상 발전 체제로 복귀했습니다.`,true,'EARLY_SURVIVAL_CRISIS_EXIT',{village:v.name,population:p.pop,foodReserveDays:+p.food.toFixed(1),avgHunger:+p.hunger.toFixed(1),avgHealth:+p.health.toFixed(1)});}}
+ if(st.active){const localStable=p.pop<=30?p.severeHunger85===0:(p.severeHungerShare85<.02&&p.severeHunger95<=Math.max(1,Math.floor(p.pop*.005)));const legacyStable=p.risk<1.5&&p.food>=35&&p.hunger<25&&p.health>=72&&p.pop>=15&&p.starv===0&&p.blocked<3&&localStable,stable=NS.V034D3B?.survivalStable?.(v,w,p,legacyStable)??legacyStable;st.stableDays=stable?st.stableDays+5:0;if(st.stableDays>=120){st.active=false;st.enteredDay=null;st.stableDays=0;st.exits++;w.log(`${v.name}이(가) 생존 기반을 회복해 정상 발전 체제로 복귀했습니다.`,true,'EARLY_SURVIVAL_CRISIS_EXIT',{village:v.name,population:p.pop,foodReserveDays:+p.food.toFixed(1),avgHunger:+p.hunger.toFixed(1),avgHealth:+p.health.toFixed(1)});}}
  return p;
 }
 function expansionReadyB2(v,w){const p=updateSurvivalB2(v,w),pop=p.pop,territory=v.territory?.size||0;if(v.v30b2?.survival?.active)return false;if(p.starv||p.blocked>=4||p.health<70)return false;if(pop<14)return territory<2&&p.food>=45&&p.adults>=6&&p.hunger<27;if(pop<20)return territory<3&&p.food>=42&&p.adults>=8&&p.hunger<28;if(pop<25)return territory<4&&p.food>=40&&p.adults>=9&&p.hunger<28;if(pop<30)return territory<5&&p.food>=38&&p.adults>=10&&p.hunger<29;return true;}
@@ -14307,6 +14307,202 @@ if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHea
 if(typeof document!=='undefined')document.title='Village Observer '+VERSION;
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-11',title:'Frontier Food Accounting Hotfix',summary:'개척 진행 중 식량 유지비와 보급 사고의 실제 재고 감소량을 30달력일 Food Flow 수지에 포함합니다. 개척 정책·식량 밸런스는 변경하지 않습니다.',sections:[['식량 수지',['V0.20 개척 유지비의 실제 물리 재고 감소량을 추적합니다.','V0.20 보급 사고의 추가 식량 소모를 별도로 기록합니다.','기존 개척 착공 비용·부패 비용과 중복 합산하지 않습니다.']],['호환성·검증',['Food Flow CSV 48개 고유 열. 기존 4개 CSV는 변경하지 않습니다.','기존 D3A1/D3A 저장은 수동 JSON 불러오기 경로로 지원합니다.','식량 생산·소비·개척 사고 확률과 난수 사용은 변경하지 않습니다.']]]});
 NS.V034D3A2=Object.freeze({version:VERSION,frontierBefore,frontierAfter,foodCSV,columns:cols,rows,stats,audit:w=>({ok:D.audit(w).ok,upkeep:n(ensure(w).total.frontierFoodUpkeep),accidents:n(ensure(w).total.frontierFoodAccident),columns:cols.length,unique:new Set(cols).size})});
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34D3B — Early Economic Balance & War-Scale Recovery Policy V1.
+ * Adds no resources during ordinary simulation. One-time founding wood is a physical
+ * opening endowment for NEW worlds only. Original 169 legacy blocks are untouched.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34D3B', PREVIOUS='V0.34D3A2', KEY='village-observer-v034d3b';
+const WOOD_REGEN=Object.freeze({plain:.016,grass:.036,forest:.280,rock:.008,mountain:.015,water:0});
+const BASE_COSTS=Object.freeze({house:15,farmstead:10,quarry:14,expansion:24});
+const FRONTIER_WOOD=Object.freeze({twoPioneers:14,threePioneers:16});
+const n=x=>Number.isFinite(Number(x))?Number(x):0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const now=w=>n(w?.calendarOrdinalDay?.()??(w?.ordinalDay?.()*3));
+function state(v){return v._v34d3b||(v._v34d3b={starterChecked:false,starterWood:0,woodWorkerMoves:0,lastWoodLaborCal:-100000,decisions:0});}
+function warsFor(v,w){return (w?.v33War?.wars||[]).filter(war=>{
+ const ids=Array.isArray(war.participantIds)&&war.participantIds.length?war.participantIds:[war.attackerId,war.defenderId,...(war.sideAIds||[]),...(war.sideBIds||[])];
+ return ids.some(id=>n(id)===n(v.id));
+});}
+function warDamage(v,w){
+ const wars=warsFor(v,w),cal=now(w),pop=Math.max(1,n(v.population?.())),territory=Math.max(1,v.territory?.size||1);
+ let casualties=0,wounded=0,active=false,recent=false,referencePop=pop;
+ for(const war of wars){const end=n(war.endCal||cal),isActive=war.status==='ACTIVE';if(!isActive&&(cal-end>1080||end>cal))continue;
+  recent=true;active=active||isActive;
+  casualties+=n(war.casualties?.[v.id]);wounded+=n(war.wounded?.[v.id]);
+  referencePop=Math.max(referencePop,n(war.startPopulation?.[v.id]));
+ }
+ let occupied=0,coreOccupied=false;
+ for(const id of v.territory||[]){const t=w?.map?.get?.(id);if(t?.v33OccupierId!=null&&n(t.v33OccupierId)!==n(v.id)){occupied++;if(n(id)===n(v.coreTileId))coreOccupied=true;}}
+ const lossShare=(casualties+wounded*.4)/Math.max(1,referencePop),occupiedShare=occupied/territory;
+ return{active,recent,casualties,wounded,referencePop,lossShare,occupied,occupiedShare,coreOccupied};
+}
+// RECOVERY represents genuine war destruction, not two ordinary market shortages.
+// A non-war catastrophic famine is handled by the separate emergency survival mode.
+function recoveryShouldEnter(v,w,p){
+ if(v?.status!=='active')return false;
+ const damage=warDamage(v,w);
+ if(!damage.recent&&!damage.coreOccupied&&!damage.occupied)return false;
+ const food=n(p.food),health=n(p.health),inactive=n(p.inactiveShare),housing=n(p.cap)<n(p.pop)*.70;
+ const collapse=food<18||health<48||inactive>=.30||housing;
+ const majorLoss=damage.lossShare>=.15&&damage.casualties>=2;
+ const majorOccupation=damage.coreOccupied||damage.occupiedShare>=.28;
+ return (majorLoss&&collapse)||(majorOccupation&&(collapse||damage.occupiedShare>=.50))||
+   (damage.active&&damage.lossShare>=.22&&food<25)||(damage.active&&inactive>=.65&&food<22);
+}
+function recoveryStable(v,w,p){
+ const d=warDamage(v,w);
+ // Do not instantly "recover" while the state is being devastated by occupation.
+ if(d.active&&(d.coreOccupied||d.occupiedShare>=.28))return false;
+ return n(p.food)>=24&&n(p.health)>=50&&n(p.inactiveShare)<.35&&
+  n(p.cap)>=n(p.pop)*.78 && n(p.wood)>=Math.max(6,n(p.pop)*.10);
+}
+// The old B2 rule entered national Survival from small population/risk alone.
+// Keep national emergency for *actual* starvation or catastrophic war collapse;
+// local hunger mitigation, shipments and ordinary economic decisions remain active.
+function survivalEmergency(v,w,p){
+ const pop=Math.max(1,n(p.pop)),hunger=n(p.hunger),food=n(p.food),severe=n(p.severeHunger85),critical=n(p.severeHunger95),starv=n(p.starv),war=warDamage(v,w);
+ const starvation= (starv>=2&&(food<22||hunger>=25))||
+   (critical>=Math.max(2,Math.ceil(pop*.055))&&food<18)||
+   (severe>=Math.max(3,Math.ceil(pop*.12))&&food<12)||
+   (food<6&&hunger>=35)||(pop<=6&&food<12&&hunger>=30);
+ const warCollapse=war.recent&&war.lossShare>=.23&&food<14&&hunger>=27;
+ return !!(starvation||warCollapse);
+}
+function survivalStable(v,w,p,oldStable){
+ if(oldStable)return true;
+ return n(p.food)>=24&&n(p.hunger)<24&&n(p.health)>=62&&n(p.severeHunger95)===0&&
+ n(p.severeHunger85)<=Math.max(1,Math.floor(n(p.pop)*.02))&&n(p.starv)===0&&n(p.pop)>=7;
+}
+// One-time founding grant is put into *real tile storage*. Imported worlds do not
+// receive it; returned quantity is the actual accepted quantity, never a promise.
+function foundingWood(v,w){
+ const s=state(v);if(s.starterChecked)return 0;
+ s.starterChecked=true;
+ if(w.year!==1||n(w.ordinalDay?.())>3||v.status!=='active')return 0;
+ let left=12,put=0;
+ for(const id of [v.coreTileId,...(v.territory||[])]){
+  if(left<=0)break;const q=Math.max(0,n(v.depositAt?.(id,'wood',left)));put+=q;left-=q;
+ }
+ s.starterWood=put;return put;
+}
+function woodLaborPulse(v,w){
+ const s=state(v),cal=now(w);if(v.status!=='active'||cal-s.lastWoodLaborCal<90)return 0;
+ s.lastWoodLaborCal=cal;s.decisions++;
+ if(v.recoveryState?.active||v.v30b2?.survival?.active||warDamage(v,w).active)return 0;
+ const pop=n(v.population?.()),reserve=Math.max(1,n(v.targetWood?.(w)));
+ if(pop<12||n(v.wood)>=Math.min(28,reserve*.60))return 0;
+ const existing=(v.residents||[]).filter(x=>x.alive&&x.age>=16&&x.job==='목수'&&x.assignment!=='PIONEER').length;
+ const goal=Math.min(3,Math.max(1,Math.ceil(pop/30)));
+ if(existing>=goal)return 0;
+ // Actual civilians are reassigned, never created. Prefer unemployed adults; only
+ // release surplus non-food occupations if the normal unemployed pool is empty.
+ const counts={};for(const p of v.residents||[])if(p.alive)counts[p.job]=(counts[p.job]||0)+1;
+ const foodDays=n(v.foodReserveDays?.());
+ const eligible=p=>{
+  if(!p.alive||p.age<16||p.age>62||p.assignment||p.militaryStatus32A==='active')return false;
+  if(p.job==='무직')return true;
+  if(p.job==='경비')return (counts['경비']||0)>Math.max(1,Math.ceil(pop/30));
+  if(p.job==='상인')return (counts['상인']||0)>1;
+  if(p.job==='건축가')return (counts['건축가']||0)>1&&!(v.constructionProjects||[]).length;
+  if((p.job==='채집꾼'||p.job==='사냥꾼')&&foodDays>40)return (counts[p.job]||0)>1;
+  return false;
+ };
+ const rank=p=>({'무직':0,'경비':1,'상인':2,'건축가':3,'채집꾼':4,'사냥꾼':5}[p.job]??9);
+ const candidates=(v.residents||[]).filter(eligible).sort((a,b)=>rank(a)-rank(b)||n(b.skills?.building)-n(a.skills?.building)||String(a.id).localeCompare(String(b.id)));
+ if(!candidates.length)return 0;
+ let placed=0;
+ const sites=[...(v.territory||[])].map(id=>w.map.get(id)).filter(t=>t&&NS.TERRAIN[t.terrain]?.passable)
+  .sort((a,b)=>((b.terrain==='forest')-(a.terrain==='forest'))||n(b.resources?.wood)-n(a.resources?.wood));
+ for(const person of candidates.slice(0,goal-existing)){
+  const dest=sites.find(t=>n(w.map.distance?.(person.homeTileId,t.id))<=3)||w.map.get(person.homeTileId);
+  if(!dest)continue;
+  person.job='목수';person.workTileId=dest.id;person.workBuildingIndex29=null;person.workBuildingType29=null;
+  person._v29NextJobReviewCal=cal+120;placed++;
+ }
+ if(placed){v._v29LaborForceDirty=true;s.woodWorkerMoves+=placed;}
+ return placed;
+}
+// Late-bound economics. Legacy cost paths use the shared registry; no independent
+// 0.8-era auto-build code is activated or retroactively re-priced.
+for(const [k,val] of Object.entries(WOOD_REGEN)){
+ if(NS.TERRAIN?.[k])NS.TERRAIN[k].regen.wood=val;
+ if(NS.V010?.WOOD_REGEN)NS.V010.WOOD_REGEN[k]=val;
+}
+for(const [type,wood] of Object.entries(BASE_COSTS)){
+ if(NS.V08?.BUILD_COSTS?.[type])NS.V08.BUILD_COSTS[type].wood=wood;
+}
+const oldHarvest=NS.Village.prototype.harvestMultiplier;
+NS.Village.prototype.harvestMultiplier=function(kind,t){let multiplier=oldHarvest.call(this,kind,t);
+ if(kind==='wood')multiplier*=n(this._world?.year)<=25?1.12:1.04;
+ return multiplier;
+};
+const oldDaily=NS.Village.prototype.dailyTick;
+NS.Village.prototype.dailyTick=function(w){foundingWood(this,w);return oldDaily.call(this,w);};
+// Keep just enough *existing* timber for a real first frontier rather than
+// spending the last 14 units on discretionary early infrastructure. Housing,
+// food, quarry and sawmill remain exempt and still pay normal physical costs.
+const oldConstruction=NS.Village.prototype.startConstruction;
+if(oldConstruction)NS.Village.prototype.startConstruction=function(w,tileId,type,...rest){
+ if(n(w?.year)<=12&&this.status==='active'&&!this.recoveryState?.active&&!(this.v30b2?.survival?.active)&&
+    (this.territory?.size||0)<=2&&!['house','farmstead','ancient_farm','sawmill','quarry','row_house','collective_house'].includes(type)){
+  const hasForest=[...(this.territory||[])].some(id=>w.map.get(id)?.terrain==='forest');
+  if(!hasForest){const cost=NS.V08?.effectiveCost?.(this,type)||NS.V08?.BUILD_COSTS?.[type]||{};
+   if(n(this.wood)>=14&&n(this.wood)-n(cost.wood)<14)return false;
+  }
+ }
+ return oldConstruction.call(this,w,tileId,type,...rest);
+};
+const oldSeason=NS.Village.prototype.seasonalTick;
+NS.Village.prototype.seasonalTick=function(w){woodLaborPulse(this,w);return oldSeason.call(this,w);};
+const oldVSerialize=NS.Village.prototype.serialize;
+NS.Village.prototype.serialize=function(){const d=oldVSerialize.call(this);d.v34d3b={...state(this)};return d;};
+const oldWSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldWSerialize.call(this);d.version=VERSION;d.v034d3b={policy:'war-scale-recovery-and-founding-economic-balance-v1'};return d;};
+NS.World.from=function(d){if(!d||![VERSION,PREVIOUS,'V0.34D3A1','V0.34D3A'].includes(d.version))throw Error('V0.34D3B/D3A2/D3A1/D3A 저장 파일만 지원합니다.');
+ const w=oldFrom({...d,version:d.version===VERSION?PREVIOUS:d.version});
+ for(const v of w.villages||[]){const raw=(d.villages||[]).find(x=>n(x.id)===n(v.id))?.v34d3b;
+  v._v34d3b=raw?{...state(v),...raw}:{...state(v),starterChecked:true};
+ }
+ return w;
+};
+function snapshotPolicy(w){return (w.villages||[]).map(v=>{
+ const x=state(v),d=warDamage(v,w),sur=v.v30b2?.survival||{},rec=v.recoveryState||{};
+ return{id:v.id,name:v.name,recovery:!!rec.active,survival:!!sur.active,warRecent:d.recent,warActive:d.active,warLossShare:+d.lossShare.toFixed(4),occupied:d.occupied,foundingWood:x.starterWood,woodLaborReassignments:x.woodWorkerMoves,
+  wood:+n(v.wood).toFixed(2),foodDays:+n(v.foodReserveDays?.()).toFixed(2),pop:n(v.population?.())};
+ });}
+const oldSnapshot=NS.Telemetry.prototype.snapshot;
+NS.Telemetry.prototype.snapshot=function(w,...args){const s=oldSnapshot.call(this,w,...args);if(s){const profile=snapshotPolicy(w);for(const row of s.villages||[]){const p=profile.find(x=>n(x.id)===n(row.id));if(p)Object.assign(row,{d3bWarScaleRecovery:p.recovery?1:0,d3bSurvivalEmergency:p.survival?1:0,d3bWarLossShare:p.warLossShare,d3bFoundingWood:p.foundingWood,d3bWoodLaborMoves:p.woodLaborReassignments});}if(s.global)Object.assign(s.global,{d3bRecoveryNations:profile.filter(x=>x.recovery).length,d3bEmergencyNations:profile.filter(x=>x.survival).length});}return s;};
+const oldToJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldToJSON.call(this,w);d.version=VERSION;
+ if(d.worldSummary){d.worldSummary.v034d3bRevision='early-economic-balance-war-scale-recovery-v1';d.worldSummary.v034d3bBalance={woodRegen:WOOD_REGEN,baseConstructionWood:BASE_COSTS,activeFrontierWood:FRONTIER_WOOD,woodHarvestBoostEarly:1.12,woodHarvestBoostLate:1.04,firstFrontierTimberReserve:14,founderWoodBonus:12,foodConsumptionUnchanged:true,warAndRealStarvationOnly:true,nations:snapshotPolicy(w)};}
+ return d;};
+function download(name,body,mime='application/json'){const u=URL.createObjectURL(new Blob([body],{type:mime})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+NS.SaveSystem={...NS.SaveSystem,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const txt=localStorage.getItem(KEY)||localStorage.getItem('village-observer-v034d3a2');return txt?NS.World.from(JSON.parse(txt)):null;},
+ export(w){download(`village-observer-v034D3B-save-${w.year}y.json`,JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download(`village-observer-v034D3B-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)));},
+ exportDevCSVV2(w){download(`village-observer-v034D3B-v2-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+NS.V034D0.csvV2(w.telemetry.snapshotsCSV()),'text/csv;charset=utf-8');},
+ exportSettlementCSV(w){download(`village-observer-v034D3B-settlements-${w.telemetry.sessionId}.csv`,'\ufeff'+NS.V034D1A.csv(w),'text/csv;charset=utf-8');},
+ exportSettlementHousingCSV(w){download(`village-observer-v034D3B-housing-${w.telemetry.sessionId}.csv`,'\ufeff'+NS.V034D2.csv(w),'text/csv;charset=utf-8');},
+ exportSettlementEconomyCSV(w){download(`village-observer-v034D3B-economy-${w.telemetry.sessionId}.csv`,'\ufeff'+NS.V034D3.csv(w),'text/csv;charset=utf-8');},
+ exportSettlementFoodFlowCSV(w){download(`village-observer-v034D3B-foodflow-${w.telemetry.sessionId}.csv`,'\ufeff'+NS.V034D3A2.foodCSV(w),'text/csv;charset=utf-8');}
+};
+if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader;
+ NS.UI.prototype.renderHeader=function(...args){const r=oldHeader.apply(this,args);if(typeof document!=='undefined'){document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';}return r;};}
+if(typeof document!=='undefined')document.title='Village Observer '+VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-12',title:'Early Economic Balance & Recovery Policy V1',summary:'평시의 정상적인 경제성장을 위해 초기 목재 경제와 기초 건설비를 조정하고, 국가 차원의 복구·생존 체제는 중대한 전쟁 피해나 실제 기아 위기에서 발동합니다.',sections:[
+ ['초반 경제',['목재 자연회복: 평야 0.016, 초지 0.036, 숲 0.280 / 3일 주기. 암지·산은 유지.','실제 채취 생산량: 목재 +12%(1~25년), 이후 +4%.','최초 건국 시 목재 12를 실제 저장고에 1회만 지급하며, 기존 저장 파일에는 지급하지 않습니다.','목재 부족 시 무직자 및 여유 비식량 노동자를 정규 벌목 노동자로 제한적으로 재배치하고, 초기 비필수 공사는 첫 개척 목재 최소 14를 남깁니다.']],
+ ['기초 건설비',['주택 목재 18→15, 경작지 12→10, 채석장 16→14, 구형 일반 개척 단가 28→24, 실제 V20/V21 개척 2명 16→14·3명 18→16.','다른 자재·Gold·식량 비용, AI 개척 확률과 물리 건설 노동·개척민·보급·사고 비용은 유지.']],
+ ['평시와 위기',['일시적 저재고·저인구·주거부족의 조합만으로 국가 Recovery·Survival을 발동하지 않습니다.','국가 Recovery는 실제 전쟁 피해와 주요 기반 악화가 동시에 있는 경우에 발동합니다.','전쟁이 없더라도 실제 심각한 기아·인구붕괴 시 생존모드 안전장치는 작동합니다.','지역 식량 물류·시세·일반 AI 경제 행동은 유지합니다.']],
+ ['호환성·관측',['기존 169개 레거시 블록 보존, Github Pages/단일 HTML 동시 지원.','D3A2 저장 이식 및 D3A2 48열 Food Flow와 1683열 Snapshot V2 유지.','연간 snapshot/Devlog에 평시·전쟁위기 진단과 실제 목재 배치를 추가합니다.']]
+]});
+NS.V034D3B=Object.freeze({version:VERSION,woodRegen:WOOD_REGEN,constructionWood:BASE_COSTS,frontierWood:FRONTIER_WOOD,warDamage,recoveryShouldEnter,recoveryStable,survivalEmergency,survivalStable,foundingWood,woodLaborPulse,state,snapshotPolicy});
 })(window.VSim);
 
 </script>

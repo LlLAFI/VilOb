@@ -1,3 +1,14 @@
+## 최신 버전: V0.34D3B (2026-10-12) — Early Economic Balance & Recovery Policy V1
+
+초반 목재 자연회복·채집 (+12%), 기초 건축비, 신규 건국 목재(+12), 정상적인 평시 노동 재배치를 조정합니다. 평범한 목재·식량·주거 압박만으로 Recovery/국가 Survival을 발동하지 않으며, **중대한 전쟁 피해와 실제 심각한 기아**에는 기존 복구 안전장치를 유지합니다. 활성 V20/V21 개척은 목재 **2명 16→14 / 3명 18→16**입니다. D3A2 실제 식량 회계와 D3 공동 물리재고는 유지합니다.
+
+- 실행: `dist/standalone/index.html` 또는 `index-standalone.html` (단일 파일), GitHub Pages: `dist/hosted/` 전체.
+- 저장: D3B 신규 + D3A2/D3A1/D3A JSON 이식. Snapshot V2 1,683열, Food Flow 48열 유지.
+- 회귀: PC/모바일 Chromium, D3B 정책, 실물 식량 및 720일 단기 자연주행 PASS. 25~75년 검증은 미완료.
+- [D3B 상세 패치](README-34D3B.md) · [시험 기록](TEST-34D3B.md)
+
+---
+
 ## 최신 버전: V0.34D3A2 (2026-10-11)
 
 **Frontier Food Accounting Hotfix:** V20 개척 진행 식량 유지비와 보급 사고의 실제 물리 식량 차감을 기록합니다. Food Flow 30일 CSV는 **48개 고유 열**이며, 기존 수지의 `frontierFoodSpent`에 누적되므로 유지비·사고비를 다시 빼지 않습니다. 개척 및 식량 밸런스는 변경하지 않았습니다.

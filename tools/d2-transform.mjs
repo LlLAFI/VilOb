@@ -88,5 +88,28 @@ const d3a2Hooks={
   ["else if(r<.14){v.food=Math.max(0,v.food-4);v.wood=Math.max(0,v.wood-2);", "else if(r<.14){const _d3a2AccidentBefore=NS.V034D3A2?.frontierBefore?.(v,w,p.sourceTileId);v.food=Math.max(0,v.food-4);NS.V034D3A2?.frontierAfter?.(v,w,_d3a2AccidentBefore,'accident',4,p.id);v.wood=Math.max(0,v.wood-2);"]
  ]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+// D3B: late-bound policy hooks; C1H original source remains byte-identical.
+const d3bHooks={
+ 'src/legacy/029.js':[
+  ["v.foodReserveDays()<minFood||v.wood<16||v.stone<4", "v.foodReserveDays()<minFood||v.wood<14||v.stone<4"],
+  ["const pioneers=adults.slice(0,2),cost={wood:16,stone:4,food:10,", "const pioneers=adults.slice(0,2),cost={wood:14,stone:4,food:10,"],
+ ],
+ 'src/legacy/031.js':[
+  ["v.foodReserveDays()<(autonomous?38:22)||v.wood<16||v.stone<4", "v.foodReserveDays()<(autonomous?38:22)||v.wood<14||v.stone<4"],
+  ["cost={wood:16+extra*2,stone:4,food:10+extra*3,", "cost={wood:14+extra*2,stone:4,food:10+extra*3,"],
+ ],
+ 'src/legacy/023.js':[
+  ["const s=ensureRecovery(v),p=recoveryProfile(v,w),should=p.severe||p.flags>=2;",
+   "const s=ensureRecovery(v),p=recoveryProfile(v,w),should=NS.V034D3B?.recoveryShouldEnter?.(v,w,p)??(p.severe||p.flags>=2);"],
+  ["const stable=p.inactiveShare<.20&&p.food>42&&p.wood>Math.max(16,p.pop*.4)&&p.cap>=p.pop*.85;",
+   "const stable=NS.V034D3B?.recoveryStable?.(v,w,p)??(p.inactiveShare<.20&&p.food>42&&p.wood>Math.max(16,p.pop*.4)&&p.cap>=p.pop*.85);"],
+ ],
+ 'src/legacy/043.js':[
+  ["const hard=p.pop<=10||p.starv>=2||(p.pop<=16&&p.hunger>=32)||localHard,enter=hard||p.risk>=2.5;",
+   "const hard=p.pop<=10||p.starv>=2||(p.pop<=16&&p.hunger>=32)||localHard,enter=NS.V034D3B?.survivalEmergency?.(v,w,p)??(hard||p.risk>=2.5);"],
+  ["const stable=p.risk<1.5&&p.food>=35&&p.hunger<25&&p.health>=72&&p.pop>=15&&p.starv===0&&p.blocked<3&&localStable;",
+   "const legacyStable=p.risk<1.5&&p.food>=35&&p.hunger<25&&p.health>=72&&p.pop>=15&&p.starv===0&&p.blocked<3&&localStable,stable=NS.V034D3B?.survivalStable?.(v,w,p,legacyStable)??legacyStable;"],
+ ]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[]),...(d3bHooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

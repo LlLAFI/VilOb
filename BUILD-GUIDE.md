@@ -1,3 +1,5 @@
+> **현재 배포 기준:** V0.34D3B. 빌드 `src/bootstrap/v034d3b.js`를 D3A2 다음에 연결합니다. 현재 결과물과 검증 상태는 `README-34D3B.md` / `TEST-34D3B.md`를 확인하세요.
+
 > 최신 빌드 기준선: V0.34D2A. `src/bootstrap/v034d2a.js`는 V0.34D2 후에 로딩됩니다.
 
 # V0.34D2 빌드 및 게시 안내
