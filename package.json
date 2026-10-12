@@ -1,6 +1,6 @@
 {
   "name": "village-observer",
-  "version": "0.34.0-d3b",
+  "version": "0.34.0-d3b1",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
@@ -8,8 +8,8 @@
     "check:source": "node tools/build.mjs --check-only",
     "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs",
     "test:year": "node tests/test-d3-year.cjs",
-    "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs",
-    "test": "node tools/build.mjs --check-only && node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs"
+    "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs",
+    "test": "node tools/build.mjs --check-only && node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs"
   },
   "engines": {"node": ">=18"}
 }

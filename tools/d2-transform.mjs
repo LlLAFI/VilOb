@@ -111,5 +111,22 @@ const d3bHooks={
    "const legacyStable=p.risk<1.5&&p.food>=35&&p.hunger<25&&p.health>=72&&p.pop>=15&&p.starv===0&&p.blocked<3&&localStable,stable=NS.V034D3B?.survivalStable?.(v,w,p,legacyStable)??legacyStable;"],
  ]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[]),...(d3bHooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+
+// D3B1: spatial consolidation tuning in the protected C source. Only compiled
+// artifacts are transformed; the C1H legacy source hashes never change.
+const d3b1Hooks={
+ 'src/legacy/154.js':[
+  ["const EPS=1e-8,JOIN=1.00,SPLIT=1.15,JOIN_WAIT=90,SPLIT_WAIT=180,REVIEW=90,MAX_TILES=5;",
+   "const EPS=1e-8,JOIN=1.24,SPLIT=1.40,JOIN_WAIT=90,SPLIT_WAIT=180,REVIEW=90,MAX_TILES=13;"],
+  ["function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||a.tileIds.length+b.tileIds.length>MAX_TILES)return null;",
+   "function withinCoreRadiusD3B1(w,ids,core){const c=tile(w,core);return !!c&&ids.every(id=>{const t=tile(w,id);return !!t&&Math.abs(t.x-c.x)+Math.abs(t.y-c.y)<=2;});}\nfunction canJoin(w,a,b){if(!same(a.nationId,b.nationId)||a.tileIds.length+b.tileIds.length>MAX_TILES)return null;"],
+  ["const ac=bothReachable(w,aa,a.coreTileId,JOIN),bc=bothReachable(w,aa,b.coreTileId,JOIN);",
+   "const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,JOIN);"],
+  ["if(bothReachable(w,r.tileIds,r.coreTileId,SPLIT)){delete pendingSplit[r.id];continue;}",
+   "if(withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId)&&bothReachable(w,r.tileIds,r.coreTileId,SPLIT)){delete pendingSplit[r.id];continue;}"],
+  ["if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});",
+   "if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});if(!withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId))errors.push({code:'RADIUS_EXCEEDED',id});"]
+ ]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[]),...(d3bHooks[src]||[]),...(d3b1Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

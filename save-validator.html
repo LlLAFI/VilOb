@@ -133,7 +133,7 @@ async function audit(d,fileInfo,sections,progress){
   if(!obj(z)||z.schema!=='village-observer-settlement'||![1,2].includes(schemaVersion)||!Array.isArray(z.settlements)){
    addIssue(errors,'V034_REGISTRY_MISSING_OR_INVALID',{});
   }else{
-   const bySt=new Map(),tileAssignments=new Set(),maxSize=schemaVersion===2?5:1;
+   const bySt=new Map(),tileAssignments=new Set(),maxSize=schemaVersion===2?(w.version==='V0.34D3B1'?13:5):1;
    for(const r of z.settlements){const sid=String(r.id||'');if(bySt.has(sid))addIssue(errors,'V034_DUPLICATE_SETTLEMENT_ID',{settlementId:sid});bySt.set(sid,r);
     const match=/^st-(\d+)$/.exec(sid);if(!match)addIssue(errors,'V034_BAD_SETTLEMENT_ID',{settlementId:sid});else maxSeq=Math.max(maxSeq,Number(match[1]));
     if(r.schema!=='village-observer-settlement'||r.schemaVersion!==schemaVersion)addIssue(errors,'V034_BAD_SETTLEMENT_SCHEMA',{settlementId:sid});
@@ -147,6 +147,7 @@ async function audit(d,fileInfo,sections,progress){
      if(!t||natural(t.ownerId)||String(t.ownerId)!==String(r.nationId))addIssue(errors,'V034_OWNER_MISMATCH',{settlementId:sid,tileId:id});
      if(!t||String(t.settlementId)!==sid)addIssue(errors,'V034_LINK_MISMATCH',{settlementId:sid,tileId:id});
     }
+    if(w.version==='V0.34D3B1'&&schemaVersion===2){const c=byTile.get(String(r.coreTileId));if(c&&[...ids].some(id=>{const t=byTile.get(id);return !t||Math.abs(Number(t.x)-Number(c.x))+Math.abs(Number(t.y)-Number(c.y))>2;}))addIssue(errors,'V034_RADIUS_EXCEEDED',{settlementId:sid});}
     if(schemaVersion===2&&ids.size>1){const seen=new Set(),todo=[String(r.coreTileId)];while(todo.length){const id=todo.pop();if(seen.has(id)||!ids.has(id))continue;seen.add(id);const t=byTile.get(id);if(!t)continue;
      for(const q of tiles)if(ids.has(String(q.id))&&Math.abs(Number(q.x)-Number(t.x))+Math.abs(Number(q.y)-Number(t.y))===1&&!seen.has(String(q.id)))todo.push(String(q.id));}
      if(seen.size!==ids.size)addIssue(errors,'V034_DISCONNECTED',{settlementId:sid,reachable:seen.size,tiles:ids.size});}

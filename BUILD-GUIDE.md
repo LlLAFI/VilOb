@@ -1,3 +1,5 @@
+> **현재 배포 기준:** V0.34D3B1. `src/bootstrap/v034d3b1.js`를 D3B 후에 연결합니다. 도로 정착지 13타일 변환은 `tools/d2-transform.mjs`에서 이루어지며 레거시 원본 SHA는 그대로 유지합니다. 상세: `README-34D3B1.md`, `TEST-34D3B1.md`.
+
 > **현재 배포 기준:** V0.34D3B. 빌드 `src/bootstrap/v034d3b.js`를 D3A2 다음에 연결합니다. 현재 결과물과 검증 상태는 `README-34D3B.md` / `TEST-34D3B.md`를 확인하세요.
 
 > 최신 빌드 기준선: V0.34D2A. `src/bootstrap/v034d2a.js`는 V0.34D2 후에 로딩됩니다.

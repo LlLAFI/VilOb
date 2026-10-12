@@ -7,7 +7,7 @@ function boot(seed=0x951fab41){let state=seed>>>0,calls=0;const m=Object.create(
 // D3A2 source-level regression: real national stock setter + physical settlement audit.
 const bx=boot(0x951fab41),NS=bx.NS,H=NS.V034D3A,P=NS.V034D3A2,w=new NS.World(19,19),v=w.villages[0],t=w.map.get(v.coreTileId);
 const near=(a,b)=>assert(Math.abs(a-b)<1e-6,`${a} != ${b}`);
-assert.equal(w.serialize().version,'V0.34D3B');
+assert.equal(w.serialize().version,'V0.34D3B1');
 assert.equal(P.columns.length,48);assert.equal(new Set(P.columns).size,48);
 assert(P.columns.includes('frontierFoodUpkeep')&&P.columns.includes('frontierFoodAccident'));
 let day=1;w.calendarOrdinalDay=()=>day;t.stocks.food=40;
@@ -30,13 +30,13 @@ assert(row);near(row.frontierFoodUpkeep,0.064);near(row.frontierFoodAccident,4);
 near(row.storageDelta,-4.064);near(row.unattributedDelta,0);
 const data=P.foodCSV(w).trimEnd().split('\n');assert.equal(data[0].split(',').length,48);assert(data.slice(1).every(line=>line.split(',').length===48));
 const version=JSON.parse(JSON.stringify(w.serialize()));delete w.calendarOrdinalDay;
-const loaded=NS.World.from(version);assert.equal(loaded.serialize().version,'V0.34D3B');
+const loaded=NS.World.from(version);assert.equal(loaded.serialize().version,'V0.34D3B1');
 near(H.stats(loaded).total.frontierFoodUpkeep,0.064);near(H.stats(loaded).total.frontierFoodAccident,4);
 near(P.stats(loaded).accidentPhysicalSpent,4);
 const prev=JSON.parse(JSON.stringify(version));prev.version='V0.34D3A1';delete prev.v034d3a2;
-const fromPrev=NS.World.from(prev);assert.equal(fromPrev.serialize().version,'V0.34D3B');
+const fromPrev=NS.World.from(prev);assert.equal(fromPrev.serialize().version,'V0.34D3B1');
 assert(P.stats(fromPrev).otherSaveMigrated===true);
-const dev=loaded.telemetry.toJSON(loaded);assert.equal(dev.version,'V0.34D3B');
+const dev=loaded.telemetry.toJSON(loaded);assert.equal(dev.version,'V0.34D3B1');
 assert.equal(dev.worldSummary.v034d3a2Audit.foodFlowColumns,48);
 assert(P.audit(loaded).ok);
 console.log(JSON.stringify({result:'PASS',version:version.version,foodColumns:48,realUpkeep:spent,realAccident:loss,calendarWindows:[[1,30]],accountedResidual:row.unattributedDelta,saveRoundtrip:true,previousSaveMigration:true,stockAudit:true}));

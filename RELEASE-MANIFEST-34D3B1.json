@@ -1,0 +1,52 @@
+{
+  "game": "Village Observer",
+  "version": "V0.34D3B1",
+  "releaseDate": "2026-10-12",
+  "baseVersion": "V0.34D3B",
+  "revision": "road-connected-settlement-radius-two-v1",
+  "protectedSourceBlocks": 169,
+  "protectedScriptBlocks": 165,
+  "protectedStyleBlocks": 4,
+  "snapshotV2Columns": 1683,
+  "foodFlowColumns": 48,
+  "primaryPaths": {
+    "standalone": "dist/standalone/index.html",
+    "githubPages": "dist/hosted/index.html",
+    "sourceBootstrap": "src/bootstrap/v034d3b1.js"
+  },
+  "sha256": {
+    "standaloneHtml": "048411b59b8089717c67a1a2f55340ce06428e7686881d73962784bdd9d064c6",
+    "hostedHtml": "cc34a30e70f6393da948c498d599574350448903252beaf81ba82a160adf13a5",
+    "d3b1Bootstrap": "da8917b1357add71d13da86a90e2e396b76588bc59747b580f9ac2ad09e8708b",
+    "readme": "e4e44bf43b2f171f9b3a46a483f5f3810ada3ccf5539f26fac28f290cdce7454",
+    "patchReadme": "371f6c418ec1fff30c37532f74e36a5c123d17da3b0fec8f4cd1d923491a9d09",
+    "testRecord": "648b65779c37178b3f6a25043969cc8d39a75add12b1a0f07062bf928f9e9b39",
+    "protectedManifest": "fb2c08bb957ae867a1d7713d84ac44da0937ef3ba065730f8f49fa41372c3fd4"
+  },
+  "validation": {
+    "sourceChecksum": "PASS",
+    "build": "PASS",
+    "staticScripts177": "PASS",
+    "browserPC": "PASS",
+    "browserMobile": "PASS",
+    "d3a2FoodAccounting": "PASS",
+    "d3bEconomy": "PASS",
+    "roadDiamond13Merge": "PASS",
+    "roadDisconnectionSplitGrace": "PASS",
+    "saveMigrationFromD3B": "PASS",
+    "fullLegacyRegression": "NOT_COMPLETED",
+    "longNatural25to75Years": "NOT_TESTED"
+  },
+  "policy": {
+    "joinCost": 1.24,
+    "splitCost": 1.4,
+    "maxSettlementTiles": 13,
+    "coreManhattanRadius": 2,
+    "unchangedRoadFactor": 0.62,
+    "compactFrontierScoreBonus": 14
+  },
+  "notes": [
+    "No synthetic roads or resources created",
+    "V24 pioneer startup food accounting issue from D3B 59y run remains open."
+  ]
+}

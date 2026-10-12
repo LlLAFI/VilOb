@@ -4,7 +4,7 @@
    No Person behavioural/physical economy rules are changed. */
 (function(NS){'use strict';
 const VERSION='V0.34C',PREV='V0.34B-HF1',SCHEMA='village-observer-settlement';
-const EPS=1e-8,JOIN=1.00,SPLIT=1.15,JOIN_WAIT=90,SPLIT_WAIT=180,REVIEW=90,MAX_TILES=5;
+const EPS=1e-8,JOIN=1.24,SPLIT=1.40,JOIN_WAIT=90,SPLIT_WAIT=180,REVIEW=90,MAX_TILES=13;
 const owned=x=>x!==null&&x!==undefined, same=(a,b)=>String(a)===String(b);
 const day=w=>Number(w.calendarOrdinalDay?.()??w.ordinalDay?.()??0);
 const active=w=>w?._v34bActive;
@@ -83,10 +83,11 @@ function groupsAdjacent(w,a,b){for(const id of a.tileIds)for(const n of w.map.ne
 function coreScore(w,r){const t=tile(w,r.coreTileId),v=w.villages.find(v=>same(v.id,r.nationId));const pop=v?.tileResidents?.(r.coreTileId)?.length||0;
  return (t.id===Number(v?.coreTileId)?100000:0)+pop*3+(t.buildings?.length||0)*5+(day(w)-Number(r.createdCalendarDay||day(w)))*0.0001;
 }
+function withinCoreRadiusD3B1(w,ids,core){const c=tile(w,core);return !!c&&ids.every(id=>{const t=tile(w,id);return !!t&&Math.abs(t.x-c.x)+Math.abs(t.y-c.y)<=2;});}
 function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||a.tileIds.length+b.tileIds.length>MAX_TILES)return null;
  if(!groupsAdjacent(w,a,b))return null;
  const aa=a.tileIds.concat(b.tileIds);if(!aa.some(id=>developed(w,tile(w,id))))return null;
- const ac=bothReachable(w,aa,a.coreTileId,JOIN),bc=bothReachable(w,aa,b.coreTileId,JOIN);
+ const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,JOIN);
  if(!ac&&!bc)return null;
  if(ac&&!bc)return [a,b];if(bc&&!ac)return [b,a];return coreScore(w,a)>=coreScore(w,b)?[a,b]:[b,a];
 }
@@ -97,7 +98,7 @@ function reevaluate(w){ensure(w);const start=performance.now(),z=w.v34c,c=counte
  const pendingSplit=z.pendingSplit||{},pendingJoin=z.pendingJoin||{};
  for(const r of [...active(w).values()].sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
   if(r.tileIds.length<=1){delete pendingSplit[r.id];continue;}
-  if(bothReachable(w,r.tileIds,r.coreTileId,SPLIT)){delete pendingSplit[r.id];continue;}
+  if(withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId)&&bothReachable(w,r.tileIds,r.coreTileId,SPLIT)){delete pendingSplit[r.id];continue;}
   if(pendingSplit[r.id]===undefined){pendingSplit[r.id]=now;continue;}
   if(now-pendingSplit[r.id]<SPLIT_WAIT)continue;
   // Access degradation: each survivor is independently physical. No resource duplication.
@@ -146,7 +147,7 @@ function inspect(w,{baseline=false}={}){const errors=[],warnings=[],z=w?.v34b,vs
   if(!nations.has(String(r.nationId)))errors.push({code:'INVALID_NATION',id});
   if(!Array.isArray(r.tileIds)||!r.tileIds.length){errors.push({code:'ACTIVE_EMPTY',id});continue;}
   maxSize=Math.max(maxSize,r.tileIds.length);if(r.tileIds.length>1)multi++;
-  if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});
+  if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});if(!withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId))errors.push({code:'RADIUS_EXCEEDED',id});
   if(!r.tileIds.includes(Number(r.coreTileId)))errors.push({code:'CORE_NOT_MEMBER',id});
   if(components(w,r.tileIds).length>1)errors.push({code:'DISCONNECTED',id});
   for(const tid of r.tileIds){const t=tile(w,tid);if(seen.has(tid))errors.push({code:'MULTIPLE_SETTLEMENTS',tileId:tid});seen.add(tid);

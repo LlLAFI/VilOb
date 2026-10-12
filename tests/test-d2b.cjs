@@ -8,7 +8,7 @@ assert.equal(D.projectCap(mock(0)),3);assert.equal(D.projectCap(mock(25)),4);ass
 assert.equal(D.projectCap(mock(60,['ADMINISTRATION'])),7);
 assert.equal(D.projectCap(mock(60,['ADMINISTRATION','ENGINEERING'])),9);
 assert.equal(D.projectCap(mock(60,['ADMINISTRATION','ENGINEERING','URBANIZATION'])),11);
-const w=new NS.World(19,19);assert.equal(w.serialize().version,'V0.34D3B');
+const w=new NS.World(19,19);assert.equal(w.serialize().version,'V0.34D3B1');
 const init=D.audit(w);assert(init.ok,init.errors.join('|'));assert(NS.V034D2A.audit(w).ok,NS.V034D2A.audit(w).errors.join('|'));assert.equal(init.housingCapacity,NS.V034D1.all(w).reduce((sum,x)=>sum+x.housing.capacity,0));assert.equal(init.people,w.villages.reduce((a,v)=>a+v.residents.filter(p=>p.alive!==false).length,0));
 // Founding Town Hall capacity (4) and four Houses (3 each) must be recognized.
 for(const nation of w.villages){const tile=w.map.get(nation.coreTileId);assert.equal(NS.V034D2A.capAt(tile),NS.V011.effectiveLocalCapacity(tile));}
@@ -55,7 +55,7 @@ v.constructionProjects=[];v.landDevelopmentProjects=[];v.buildingUpgradeProjects
 // The synthetic fixture bypasses the game's legitimate claim/merge invalidation pathways.
 // Save/load is validated on an untouched, canonical D2 world instead.
 const wClean=new NS.World(19,19);assert(D.audit(wClean).ok);
-NS.SaveSystem.save(wClean);const restored=NS.SaveSystem.load();assert.equal(restored.serialize().version,'V0.34D3B');assert(D.audit(restored).ok,D.audit(restored).errors.join('|'));
+NS.SaveSystem.save(wClean);const restored=NS.SaveSystem.load();assert.equal(restored.serialize().version,'V0.34D3B1');assert(D.audit(restored).ok,D.audit(restored).errors.join('|'));
 // A natural deterministic run (no forced fixture) must repeat in D2 itself.
 const A=create(0x1782aab4),B=create(0x1782aab4);let wa=new A.NS.World(19,19),wb=new B.NS.World(19,19);A.reset(0x24813601);B.reset(0x24813601);for(let i=0;i<120;i++){wa.advanceOneDay();wb.advanceOneDay();}
 const state=z=>{const s=JSON.parse(JSON.stringify(z.serialize()));delete s.telemetry;return JSON.stringify(s);};

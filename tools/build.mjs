@@ -20,6 +20,7 @@ const d3a=get('src/bootstrap/v034d3a.js').toString('utf8');
 const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
+const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
 if(!template.includes('<!-- VILOB_D0_BLOCK_000 -->'))throw Error('bad template');
 const mode=process.argv.includes('--check-only')?'check-only':'build';
 function render(flavor,assetPrefix='assets/'){
@@ -35,9 +36,9 @@ function render(flavor,assetPrefix='assets/'){
   out=out.replace(block.marker,()=>entry);
  }
  if(flavor==='baseline')return out;
- out=out.replace('<title>Village Observer V0.34C1H</title>','<title>Village Observer V0.34D3B</title>');
- const tag=flavor==='standalone'?'<script>\n'+bootstrap+'\n</script>\n<script>\n'+d1+'\n</script>\n<script>\n'+d1a+'\n</script>\n<script>\n'+d2+'\n</script>\n<script>\n'+d2a+'\n</script>\n<script>\n'+d2b+'\n</script>\n<script>\n'+d3+'\n</script>\n<script>\n'+d3a+'\n</script>\n<script>\n'+d3a1+'\n</script>\n<script>\n'+d3a2+'\n</script>\n<script>\n'+d3b+'\n</script>':
-  '<script src="'+assetPrefix+'bootstrap/v034d0.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d1.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d1a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2b.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a1.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a2.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3b.js"></script>';
+ out=out.replace('<title>Village Observer V0.34C1H</title>','<title>Village Observer V0.34D3B1</title>');
+ const tag=flavor==='standalone'?'<script>\n'+bootstrap+'\n</script>\n<script>\n'+d1+'\n</script>\n<script>\n'+d1a+'\n</script>\n<script>\n'+d2+'\n</script>\n<script>\n'+d2a+'\n</script>\n<script>\n'+d2b+'\n</script>\n<script>\n'+d3+'\n</script>\n<script>\n'+d3a+'\n</script>\n<script>\n'+d3a1+'\n</script>\n<script>\n'+d3a2+'\n</script>\n<script>\n'+d3b+'\n</script>\n<script>\n'+d3b1+'\n</script>':
+  '<script src="'+assetPrefix+'bootstrap/v034d0.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d1.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d1a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d2b.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a1.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3a2.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3b.js"></script>\n<script src="'+assetPrefix+'bootstrap/v034d3b1.js"></script>';
  if(!out.includes('</body>'))throw Error('Missing closing body');
  return out.replace('</body>',tag+'\n</body>');
 }
@@ -69,8 +70,9 @@ fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d3a.js'),d3a)
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d3a1.js'),d3a1);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d3a2.js'),d3a2);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d3b.js'),d3b);
+fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d3b1.js'),d3b1);
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
 fs.writeFileSync(path.join(root,'index-standalone.html'),standalone);
-const result={version:'V0.34D3B',baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
+const result={version:'V0.34D3B1',baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
 fs.writeFileSync(path.join(dist,'build-manifest.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));
