@@ -1,3 +1,15 @@
+## 최신 버전: V0.34D3B2 (2026-10-12) — Food Flow Accounting & Release Integrity
+
+V24 지역 개척 착공 시 **2인 10 / 3인 13의 실제 물리 식량 차감**을 기존 Food Flow `frontierFoodSpent`로 누락 없이 계측합니다. 30일 수지 잔차의 분류 정보도 Devlog에 추가하며, **좌상단 버전 배지가 처음부터 V0.34D3B2**로 보이도록 빌드 버전과 일치시킵니다. 경제·개척·Recovery·AI·전쟁 밸런스는 변경하지 않습니다.
+
+- **단독 실행:** `dist/standalone/index.html` 또는 `index-standalone.html`.
+- **GitHub Pages:** `dist/hosted/` 전체 배포; 루트 `index.html`은 에셋 디렉터리 필요.
+- **스키마·호환:** Snapshot V2 1,683열 · Food Flow 48열 · Settlement 13타일/거리2 · B1 이전 저장 이식.
+- **검증:** 실물 V24 2·3인 개척, 30일 잔차 0, PC/모바일 첫 화면 버전 B2, 기존 Node 회귀 PASS. 68~75년 장기 검증과 다른 식량 접근 문제는 OPEN.
+- [상세 패치노트](README-34D3B2.md) · [시험 기록](TEST-34D3B2.md)
+
+---
+
 ## 최신 버전: V0.34D3B1 (2026-10-12) — Road-Connected Settlement Radius 2
 
 **정착지 통합 최대 5→13타일**, 중심지 왕복 접근비 1.00→1.24, 분할 완충 1.15→1.40으로 확대했습니다. 도로가 정상적으로 이어진 평야·초지에서는 중심에서 거리 2칸의 마름모(1+4+8)를 구성할 수 있습니다. 물리 도로 상태·기술·기존 병합/분할 유예조건은 유지합니다.

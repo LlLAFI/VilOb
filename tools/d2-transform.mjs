@@ -128,5 +128,13 @@ const d3b1Hooks={
    "if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});if(!withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId))errors.push({code:'RADIUS_EXCEEDED',id});"]
  ]
 };
-export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[]),...(d3bHooks[src]||[]),...(d3b1Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
+// D3B2: measure the *actual* V24 regional frontier food deduction at the
+// physical stock boundary, not an estimated cost or the later upkeep path.
+const d3b2Hooks={
+ 'src/legacy/034.js':[[
+  'v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;',
+  'const _v034d3b2FoodBefore=NS.V034D3B2?.frontierBefore?.(v,w,c.sourceId);v.wood-=cost.wood;v.stone-=cost.stone;v.food-=cost.food;NS.V034D3B2?.frontierAfter?.(v,w,_v034d3b2FoodBefore,cost.food,projectId);'
+ ]]
+};
+export function d2Transform(src,data){let out=data,used=0;for(const [before,after] of [...(hooks[src]||[]),...(d3hooks[src]||[]),...(d3aHooks[src]||[]),...(d3a1Hooks[src]||[]),...(d3a2Hooks[src]||[]),...(d3bHooks[src]||[]),...(d3b1Hooks[src]||[]),...(d3b2Hooks[src]||[])]){if(before===after)continue;const first=out.indexOf(before);if(first<0||out.indexOf(before,first+before.length)>=0)throw Error('D2 integration anchor must be unique: '+src+' '+before.slice(0,80));out=out.slice(0,first)+after+out.slice(first+before.length);used++;}return {data:out,used};}
 export function d2TransformList(){return Object.keys(hooks);}

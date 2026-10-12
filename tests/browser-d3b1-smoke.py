@@ -25,10 +25,10 @@ with sync_playwright() as p:
   }''')
   info['pageErrors']=errors[:8]
   print(name,json.dumps(info,ensure_ascii=False),flush=True)
-  assert info['version']=='V0.34D3B1' and info['roundtrip']=='V0.34D3B1'
+  assert info['version']=='V0.34D3B2' and info['roundtrip']=='V0.34D3B2'
   assert info['auditErrors']==[] and info['pageErrors']==[]
   assert info['economyColumns']==24 and info['snapshotCols']==1683
   assert info['foodButton'] and info['foodColumns']==48
-  assert info['btn'] and info['inspector'] and info['patch']=='V0.34D3B1'
+  assert info['btn'] and info['inspector'] and info['patch']=='V0.34D3B2'
   page.close()
  browser.close()
