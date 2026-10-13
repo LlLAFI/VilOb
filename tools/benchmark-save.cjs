@@ -51,10 +51,10 @@ function trial(source,label,id){const runner=boot(source);const w=save?runner.NS
 }
 const rows=[];
 for(let i=0;i<runs;i++){const first=i%2===0?[['baseline',baseline],['candidate',candidate]]:[['candidate',candidate],['baseline',baseline]];for(const [label,src] of first)rows.push(trial(src,label,i+1));}
-const median=xs=>{const a=[...xs].sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
+const median=xs=>{const a=[...xs].sort((x,y)=>x-y);return a.length?(a[Math.floor((a.length-1)/2)]+a[Math.floor(a.length/2)])/2:null;};
 const A=rows.filter(x=>x.label==='baseline'),B=rows.filter(x=>x.label==='candidate');
 const equivalent=rows.every((v)=>{const peer=rows.find(x=>x.run===v.run&&x.label!==v.label);return peer&&peer.initialDigest===v.initialDigest&&peer.finalDigest===v.finalDigest&&peer.rngCalls===v.rngCalls;});
 const a=median(A.map(x=>x.msPerDay)),b=median(B.map(x=>x.msPerDay));
-const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,syntheticYear:save?null:syntheticYear,syntheticExtraPeople:save?null:syntheticExtraPeople,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc2',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
+const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,syntheticYear:save?null:syntheticYear,syntheticExtraPeople:save?null:syntheticExtraPeople,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc3',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
 const output=JSON.stringify(report,null,2);if(outputFile)fs.writeFileSync(outputFile,output+'\n');console.log(output);
 if(!equivalent)process.exitCode=2;

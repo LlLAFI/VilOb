@@ -61,3 +61,7 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 - `src/bootstrap/v034d3b3a.js`를 Standalone/Hosted 마지막에 연결합니다.
 - `npm run build` 및 `npm run check:source`; 테스트는 `node tests/test-d3b3a.cjs`.
 - 전체 Food Flow 48열은 그대로, 잔차 경량 CSV는 별도 다운로드입니다.
+
+## V0.34E-rc3 빌드
+
+`node tools/build.mjs` / `npm run test:static`. `tools/e3-transform.mjs`은 해시가 고정된 `src/legacy/065.js`의 *빌드 산출물*에만 스냅샷 상태 단계 분리·개척 진단 경량화를 적용합니다. 정적 소스 원본을 수정하지 않으므로 C1H 원본 재현 검사는 유지됩니다. `tools/benchmark-local.html`은 실제 세이브 비교 기능을 제공합니다.

@@ -1,11 +1,11 @@
-/* V0.34E-rc2 — on-demand profiling foundation.
+/* V0.34E-rc3 — on-demand profiling foundation.
  * No simulation decisions are modified. Method instrumentation is INSTALLED
  * only during a manually requested sample and restored at stop().
  */
 (function(NS){'use strict';
-const VERSION='V0.34E-rc2';
+const VERSION='V0.34E-rc3';
 const PREVIOUS='V0.34D3B3B';
-const SAVE_KEY='village-observer-v034e-rc2';
+const SAVE_KEY='village-observer-v034e-rc3';
 const names=[
  ['World','advanceOneDay','world.day'],
  ['Person','act','person.act'],
@@ -63,24 +63,24 @@ function start(world,days=30){
 }
 function status(){return session?{active:true,days:session.days,requestedDays:session.requestedDays,totalWorldMs:session.totalWorldMs}: {active:false,lastDays:last?.days||0};}
 function download(name,body,mime='application/json'){const url=URL.createObjectURL(new Blob([body],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-const profiler=Object.freeze({start,stop,status,last:()=>last,labels:names.map(x=>x[2]),exportJSON(){const r=last||stop();if(!r)throw Error('먼저 성능 계측을 수행하세요.');download('village-observer-v034E-rc2-performance.json',JSON.stringify(r,null,2));return r;}});
+const profiler=Object.freeze({start,stop,status,last:()=>last,labels:names.map(x=>x[2]),exportJSON(){const r=last||stop();if(!r)throw Error('먼저 성능 계측을 수행하세요.');download('village-observer-v034E-rc3-performance.json',JSON.stringify(r,null,2));return r;}});
 NS.V034E=Object.freeze({version:VERSION,profiling:profiler});
 const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
 NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;return d;};
-NS.World.from=function(d){if(!d||typeof d!=='object')throw Error('Invalid save data');return oldFrom(d.version===VERSION?{...d,version:PREVIOUS}:d);};
+NS.World.from=function(d){if(!d||typeof d!=='object')throw Error('Invalid save data');return oldFrom([VERSION,'V0.34E-rc2','V0.34E-rc1'].includes(d.version)?{...d,version:PREVIOUS}:d);};
 // E-02: Full Snapshot cadence is deliberately retained. Late synthetic A/B showed
 // world/RNG divergence when these old observer callbacks were skipped.
 const prevJSON=NS.Telemetry.prototype.toJSON;
-NS.Telemetry.prototype.toJSON=function(w){const d=prevJSON.call(this,w);d.version=VERSION;if(d.worldSummary)d.worldSummary.v034eRevision='E02_event_compaction_and_light_profiler';if(d.worldSummary)d.worldSummary.v034eTelemetry={autoSnapshotPolicy:"UNCHANGED_B3B",eventPruneMinIntervalOrdinal:30,eventRetentionThreshold:16000,highFrequencyProfilerDefault:"OFF"};return d;};
+NS.Telemetry.prototype.toJSON=function(w){const d=prevJSON.call(this,w);d.version=VERSION;if(d.worldSummary)d.worldSummary.v034eRevision='E03_snapshot_state_split_and_frontier_index';if(d.worldSummary)d.worldSummary.v034eTelemetry={autoSnapshotPolicy:"UNCHANGED_B3B",eventPruneMinIntervalOrdinal:30,eventRetentionThreshold:16000,highFrequencyProfilerDefault:"OFF"};return d;};
 NS.SaveSystem={...NS.SaveSystem,
  save(w){localStorage.setItem(SAVE_KEY,JSON.stringify(w.serialize()));},
- load(){const keys=[SAVE_KEY,'village-observer-v034e-rc1','village-observer-v034d3b3b','village-observer-v034d3b3a','village-observer-v034d3b3','village-observer-v034d3b2'];let raw;for(const key of keys){raw=localStorage.getItem(key);if(raw)break;}return raw?NS.World.from(JSON.parse(raw)):null;},
- export(w){download('village-observer-v034E-rc2-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
- exportDevJSON(w){download('village-observer-v034E-rc2-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));}
+ load(){const keys=[SAVE_KEY,'village-observer-v034e-rc2','village-observer-v034e-rc1','village-observer-v034d3b3b','village-observer-v034d3b3a','village-observer-v034d3b3','village-observer-v034d3b2'];let raw;for(const key of keys){raw=localStorage.getItem(key);if(raw)break;}return raw?NS.World.from(JSON.parse(raw)):null;},
+ export(w){download('village-observer-v034E-rc3-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download('village-observer-v034E-rc3-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));}
 };
 function updateVersion(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';}
 function profilerUI(w){if(typeof document==='undefined')return;const p=document.getElementById('v30aPerfPanel');if(!p||!p.parentElement)return;
- let host=document.getElementById('v034eE01Panel');if(!host){host=document.createElement('div');host.id='v034eE01Panel';host.className='panel';host.innerHTML='<div class="section-head"><h2>0.34E 실험실 · 선택형 성능 계측</h2><span class="tag">E-02</span></div><div class="small muted" id="v034eE01Status">계측 비활성 (일반 플레이 성능 오버헤드 없음)</div><div class="button-grid"><button id="v034eStart">다음 30일 계측</button><button id="v034eStop">계측 중지</button><button id="v034eExport">성능 JSON 내보내기</button></div><div class="small muted">계측 ON은 시간을 추가로 사용하므로 일반 성능 수치와 비교하지 마세요. 실제 세이브는 동봉된 benchmark-local.html로 PC에서 비교 가능.</div>';
+ let host=document.getElementById('v034eE01Panel');if(!host){host=document.createElement('div');host.id='v034eE01Panel';host.className='panel';host.innerHTML='<div class="section-head"><h2>0.34E 실험실 · 선택형 성능 계측</h2><span class="tag">E-03</span></div><div class="small muted" id="v034eE01Status">계측 비활성 (일반 플레이 성능 오버헤드 없음)</div><div class="button-grid"><button id="v034eStart">다음 30일 계측</button><button id="v034eStop">계측 중지</button><button id="v034eExport">성능 JSON 내보내기</button></div><div class="small muted">계측 ON은 시간을 추가로 사용하므로 일반 성능 수치와 비교하지 마세요. 실제 세이브는 동봉된 benchmark-local.html로 PC에서 비교 가능.</div>';
   p.insertAdjacentElement('afterend',host);
   host.querySelector('#v034eStart').onclick=()=>{try{profiler.start(w,30);}catch(e){alert(e.message);}profilerUI(w);};
   host.querySelector('#v034eStop').onclick=()=>{profiler.stop();profilerUI(w);};
@@ -93,6 +93,6 @@ if(NS.UI){const priorHeader=NS.UI.prototype.renderHeader,priorWorld=NS.UI.protot
  NS.UI.prototype.renderWorld=function(...a){const ret=priorWorld.apply(this,a);profilerUI(this.world);return ret;};
 }
 updateVersion();
-if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-13',title:'0.34E E-02 실험판 — 이벤트 기록 비용 개선',summary:'오래된 수동 기록이 남아 있을 때 반복되는 이벤트 배열 전체 필터링을 30 레거시 날짜 단위의 일괄 정리로 전환합니다. 자동 Snapshot 주기는 기존과 동일하며 고빈도 계측을 기본 제외합니다.',sections:[['이벤트 기록',['원본 0.9 이벤트 보존의 원본 정책(최근 상세 및 수동 기록)을 유지하며 전체 재필터링 호출만 제한합니다.','실물 이벤트 보존과 RNG·세계 상태 동등성을 검증합니다.']],['성능 측정',['stock.read / food.reserveRead 호출별 세부 계측은 관측자 부하를 낮추기 위해 기본 목록에서 제외합니다.','tools/benchmark-local.html에서 61년차 원본 세이브 파일을 PC에서 직접 선택해 B3B와 RC2 전체 SIM을 교차 비교할 수 있습니다.']],['Snapshot 검증',['자동 Snapshot 빈도를 줄이는 실험은 세계 상태·RNG 변화가 발견되어 적용하지 않았습니다.','수동·시나리오 Snapshot, 연간 요약 및 기존 Snapshot/CSV는 유지합니다.']]]});
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-13',title:'0.34E E-03 실험판 — Snapshot 상태 처리 분리·개척 진단 최적화',summary:'주거·개척 상태 갱신과 Snapshot 관측 단계의 책임을 분리하고, 개척 후보 진단의 반복 주민 탐색을 경량화합니다. 기존 Snapshot 주기와 게임 수식은 유지합니다.',sections:[['이벤트 기록',['원본 0.9 이벤트 보존의 원본 정책(최근 상세 및 수동 기록)을 유지하며 전체 재필터링 호출만 제한합니다.','실물 이벤트 보존과 RNG·세계 상태 동등성을 검증합니다.']],['성능 측정',['stock.read / food.reserveRead 호출별 세부 계측은 관측자 부하를 낮추기 위해 기본 목록에서 제외합니다.','tools/benchmark-local.html에서 61년차 원본 세이브 파일을 PC에서 직접 선택해 B3B와 RC2 전체 SIM을 교차 비교할 수 있습니다.']],['Snapshot 검증',['자동 Snapshot 빈도를 줄이는 실험은 세계 상태·RNG 변화가 발견되어 적용하지 않았습니다.','수동·시나리오 Snapshot, 연간 요약 및 기존 Snapshot/CSV는 유지합니다.']]]});
 NS.RELEASE_VERSION=VERSION;
 })(window.VSim);
