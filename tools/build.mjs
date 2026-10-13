@@ -21,7 +21,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.34E-rc1';
+const VERSION='V0.34E-rc2';
 const B3B_VERSION='V0.34D3B3B';
 const e01=get('src/bootstrap/v034e.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__',VERSION);
 const d3b3b=get('src/bootstrap/v034d3b3b.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__',B3B_VERSION);
@@ -35,7 +35,18 @@ function render(flavor,assetPrefix='assets/'){
  for(const block of manifest.blocks){
   const raw=get(block.path), data=raw.toString('utf8');
   if(sha(raw)!==block.sha256)throw Error('Protected legacy source changed: '+block.path);
-  const transformed=(flavor==='baseline'?data:d2Transform(block.path,data).data);
+  let transformed=(flavor==='baseline'?data:d2Transform(block.path,data).data);
+  // RC2 release-only performance transform; immutable C1H reconstruction stays byte-identical.
+  if(flavor!=='baseline' && block.path==='src/legacy/016.js'){
+   const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
+   if(!transformed.includes(needle))throw Error('Telemetry record compaction anchor missing');
+   transformed=transformed.replace(needle,`// RC2 bounded, age-aware event compaction; keep all manual notes and event counts.
+   const current=w.ordinalDay(),last=this._v034eLastPruneOrdinal??-Infinity;
+   if((this.entries.length>16000||(this.entries[0]?.ordinalDay||0)<cutoff-120)&&current-last>=30){
+    this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');
+    this._v034eLastPruneOrdinal=current;
+   }`);
+  }
   const entry=(flavor==='baseline'||flavor==='standalone')? block.openTag+transformed+block.closeTag:
    block.type==='script'?block.openTag.replace(/>$/,' src="'+assetPrefix+block.path.slice(4)+'">')+block.closeTag:
    '<link rel="stylesheet" href="'+assetPrefix+block.path.slice(4)+'">';
@@ -64,7 +75,17 @@ const hosted=render('hosted');fs.writeFileSync(path.join(dist,'hosted','index.ht
 const rootHosted=render('hosted','dist/hosted/assets/');fs.writeFileSync(path.join(root,'index.html'),rootHosted);
 for(const block of manifest.blocks){
  const dest=path.join(dist,'hosted','assets',block.path.slice(4));
- fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,d2Transform(block.path,get(block.path).toString('utf8')).data);
+ fs.mkdirSync(path.dirname(dest),{recursive:true});let transformed=d2Transform(block.path,get(block.path).toString('utf8')).data;
+ if(block.path==='src/legacy/016.js'){
+  const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
+  if(!transformed.includes(needle))throw Error('Hosted telemetry anchor missing');
+  transformed=transformed.replace(needle,`const current=w.ordinalDay(),last=this._v034eLastPruneOrdinal??-Infinity;
+  if((this.entries.length>16000||(this.entries[0]?.ordinalDay||0)<cutoff-120)&&current-last>=30){
+   this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');
+   this._v034eLastPruneOrdinal=current;
+  }`);
+ }
+ fs.writeFileSync(dest,transformed);
 }
 fs.mkdirSync(path.join(dist,'hosted','assets','bootstrap'),{recursive:true});
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034d0.js'),bootstrap);

@@ -12,6 +12,8 @@ const runs=Math.max(1,Math.min(10,Number(arg('--runs',3))||3));
 const warmup=Math.max(0,Math.min(30,Number(arg('--warmup',0))||0));
 const seed=Number(arg('--seed','20261013'))>>>0;
 const savePath=arg('--save',null);
+const syntheticYear=Math.max(1,Math.floor(Number(arg('--synthetic-year','1'))||1));
+const syntheticExtraPeople=Math.max(0,Math.min(800,Math.floor(Number(arg('--synthetic-extra-people','0'))||0))); 
 const profile=args.includes('--profile');
 const baseFile=path.resolve(arg('--baseline',path.join(root,'tests/fixtures/v034D3B3B-index.html')));
 const newFile=path.resolve(arg('--candidate',path.join(root,'index-standalone.html')));
@@ -38,6 +40,8 @@ function digest(w){ // semantic simulation fields only, excludes time, telemetry
  })).digest('hex');
 }
 function trial(source,label,id){const runner=boot(source);const w=save?runner.NS.World.from(save):new runner.NS.World(19,19);
+ if(!save && syntheticYear>1)w.year=syntheticYear;
+ if(!save && syntheticExtraPeople){for(let i=0;i<syntheticExtraPeople;i++){const v=w.villages[i%w.villages.length];v.residents.push(new runner.NS.Person(v.id,'e02-load-'+i,{age:20+i%20,sex:i%2?'남':'여',homeTileId:v.coreTileId,workTileId:v.coreTileId,health:95,hunger:10,energy:80}));}}
  for(let i=0;i<warmup;i++)w.advanceOneDay();
  const startRandom=runner.calls(),initial=digest(w);let sample=null;
  if(profile&&label==='candidate'&&runner.NS.V034E?.profiling)runner.NS.V034E.profiling.start(w,days);
@@ -51,6 +55,6 @@ const median=xs=>{const a=[...xs].sort((x,y)=>x-y);return a[Math.floor(a.length/
 const A=rows.filter(x=>x.label==='baseline'),B=rows.filter(x=>x.label==='candidate');
 const equivalent=rows.every((v)=>{const peer=rows.find(x=>x.run===v.run&&x.label!==v.label);return peer&&peer.initialDigest===v.initialDigest&&peer.finalDigest===v.finalDigest&&peer.rngCalls===v.rngCalls;});
 const a=median(A.map(x=>x.msPerDay)),b=median(B.map(x=>x.msPerDay));
-const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc1',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
+const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,syntheticYear:save?null:syntheticYear,syntheticExtraPeople:save?null:syntheticExtraPeople,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc2',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
 const output=JSON.stringify(report,null,2);if(outputFile)fs.writeFileSync(outputFile,output+'\n');console.log(output);
 if(!equivalent)process.exitCode=2;
