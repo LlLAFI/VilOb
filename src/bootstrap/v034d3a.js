@@ -14,13 +14,15 @@ function state(w){let s=observ.get(w);if(!s){s={startedOrdinal:calendar(w),windo
 function groupedPhysical(w){const rows=D3.economyRows(w),out=new Map();for(const r of rows){const x=freshRow(r.settlementId,r.nationId,r.nationName,r.tileIds);x.openingFood=x.closingFood=num(r.resources.food);x.openingNatural=x.closingNatural=num(r.naturalFoodRemaining);x.openingCapacity=x.closingCapacity=num(r.capacity.food);out.set(x.settlementId,x);}return out;}
 function start(w){const s=state(w),ordinal=calendar(w),bucket=Math.floor((ordinal-1)/30);if(s.live&&s.lastBucket===bucket)return s;
  if(s.live){finish(w,s);}const rows=groupedPhysical(w);s.live={bucket,startOrdinal:bucket*30+1,endOrdinal:(bucket+1)*30,startedAtOrdinal:ordinal,groups:Object.fromEntries(rows),partialStart:ordinal>bucket*30+1};s.lastBucket=bucket;return s;}
-function row(w,v,tid){const s=start(w),g=group(w,v,tid);let r=s.live.groups[g.id];if(!r){r=freshRow(g.id,g.nationId,g.name,g.ids);r.topologyChanged=true;r.openingFood=g.ids.reduce((n,id)=>n+D3.stockRaw(w,id,'food'),0);r.openingNatural=g.ids.reduce((n,id)=>n+num(w.map.get(id)?.resources?.food),0);s.live.groups[g.id]=r;}
- if(!eq(r.nationId,g.nationId)||r.tileIds.length!==g.ids.length||r.tileIds.some((id,i)=>id!==g.ids[i]))r.topologyChanged=true;
+function rowWithMembership(w,v,tid,m){const s=start(w),sid=m?.sid??('tile-'+tid),id=String(sid),ids=m?.ids||[Number(tid)];let r=s.live.groups[id];
+ if(!r){r=freshRow(id,String(v.id),v.name||'',ids);r.topologyChanged=true;r.openingFood=ids.reduce((n,id)=>n+D3.stockRaw(w,id,'food'),0);r.openingNatural=ids.reduce((n,id)=>n+num(w.map.get(id)?.resources?.food),0);s.live.groups[id]=r;}
+ if(!eq(r.nationId,v.id)||r.tileIds.length!==ids.length||r.tileIds.some((id,i)=>id!==ids[i]))r.topologyChanged=true;
  return r;}
+function row(w,v,tid){return rowWithMembership(w,v,tid,D3.members(v,tid));}
 function add(w,v,tid,k,amount){if(!w||!v||!Number.isFinite(amount)||!amount)return;const r=row(w,v,tid);r[k]=(r[k]||0)+amount;const s=state(w);if(Object.hasOwn(s.total,k))s.total[k]+=amount;}
 // Accounting is identical to sequential add(), but many metrics from one real
 // stock transaction share one settled membership lookup and one window row.
-function addMany(w,v,tid,pairs){if(!w||!v)return;let r=null,s=null;for(const [k,value] of pairs){if(!Number.isFinite(value)||!value)continue;if(!r){r=row(w,v,tid);s=state(w);}r[k]=(r[k]||0)+value;if(Object.hasOwn(s.total,k))s.total[k]+=value;}}
+function addMany(w,v,tid,pairs,membership){if(!w||!v)return;let r=null,s=null;for(const [k,value] of pairs){if(!Number.isFinite(value)||!value)continue;if(!r){r=membership!==undefined?rowWithMembership(w,v,tid,membership):row(w,v,tid);s=state(w);}r[k]=(r[k]||0)+value;if(Object.hasOwn(s.total,k))s.total[k]+=value;}}
 function fillLabor(w,r,now){const v=w.villages.find(v=>eq(v.id,r.nationId));if(!v)return;const ids=new Set(now.tileIds.map(Number)),people=(v.residents||[]).filter(p=>p.alive!==false&&ids.has(Number(p.homeTileId)));r.population=people.length;r.foodLaborers=people.filter(p=>p.age>=15&&['농부','채집꾼','사냥꾼'].includes(p.job)&&p.assignment!=='PIONEER'&&p.militaryStatus32A!=='active'&&!p.militaryActive32B).length;r.severeHunger=people.filter(p=>num(p.hunger)>=85).length;r.criticalHunger=people.filter(p=>num(p.hunger)>=95).length;const demand=people.reduce((n,p)=>n+(num(p.age)<15?.30:.42),0);r.foodReserveCycles=demand?r.closingFood/demand:999;}
 function finish(w,s){const live=s.live;if(!live)return;const physical=groupedPhysical(w);for(const r of Object.values(live.groups)){
  const now=physical.get(r.settlementId);if(now&&eq(now.nationId,r.nationId)){r.closingFood=now.closingFood;r.closingNatural=now.closingNatural;r.closingCapacity=now.closingCapacity;
@@ -46,17 +48,29 @@ function harvestAndStore(p,v,w,t,k,requested,day){const raw=Math.max(0,num(t.har
  return stored;
 }
 // Observe D3's actual physical transfer while retaining all its own distribution logic.
-const origWithdraw=NS.Village.prototype.withdrawAt,origDeposit=NS.Village.prototype.depositAt,origMeta=NS.Person.prototype.metabolism;
-NS.Village.prototype.withdrawAt=function(tid,k,qty){const w=this._world,m=k==='food'?D3.members(this,tid):D3.members(this,tid),local=D3.stockRaw(w,tid,k),fed=mealScope.get(w),ctx=transferScope.get(w),got=origWithdraw.call(this,tid,k,qty);if(!w)return got;
- if(k==='food'&&fed?.v===this)add(w,this,tid,'mealRequested',Math.max(0,num(qty)));
- if(got<=0)return got;
- if(m&&m.ids.length>1){const remote=Math.max(0,got-Math.min(Math.max(0,num(qty)),local));if(remote>EPS){const key=({food:'remoteFoodWithdrawn',wood:'remoteWoodWithdrawn',stone:'remoteStoneWithdrawn'})[k];if(key)add(w,this,tid,key,remote);add(w,this,tid,'remoteWithdrawCalls',1);}}
- if(k==='food')add(w,this,tid,fed?.v===this?'mealReceived':'otherWithdrawn',got);
- return got;};
-NS.Village.prototype.depositAt=function(tid,k,qty){const w=this._world,req=Math.max(0,num(qty)),m=D3.members(this,tid),localRoom=Math.max(0,num(D3.physicalCap(this,tid,k))-D3.stockRaw(w,tid,k)),got=origDeposit.call(this,tid,k,qty);if(!w||k!=='food'&&(!m||m.ids.length<2))return got;
- if(m&&m.ids.length>1){const remote=Math.max(0,got-Math.min(got,localRoom));if(remote>EPS){if(k==='food')add(w,this,tid,'remoteFoodDeposited',remote);add(w,this,tid,'remoteDepositCalls',1);}}
- if(k==='food'&&req>0){addMany(w,this,tid,[['depositRequested',req],['depositAccepted',got],['depositRejected',Math.max(0,req-got)],...(harvestScope.get(w)?.v===this?[]:[['otherDeposited',got]])]);}
- return got;};
+// D3B3B records transactions inside the original D3 physical settlement
+// operation. Its already-resolved membership and opening local inventory are
+// passed here, so no second topology lookup/stock-capacity scan is necessary.
+const origMeta=NS.Person.prototype.metabolism;
+function observeWithdrawFast(w,v,tid,k,qty,got,m,local){if(!w)return;
+ const pairs=[],fed=mealScope.get(w);if(k==='food'&&fed?.v===v)pairs.push(['mealRequested',Math.max(0,num(qty))]);
+ if(got>0){
+  if(m?.ids.length>1){const remote=Math.max(0,got-Math.min(Math.max(0,num(qty)),local));
+   if(remote>EPS){const key=({food:'remoteFoodWithdrawn',wood:'remoteWoodWithdrawn',stone:'remoteStoneWithdrawn'})[k];if(key)pairs.push([key,remote]);pairs.push(['remoteWithdrawCalls',1]);}}
+  if(k==='food')pairs.push([fed?.v===v?'mealReceived':'otherWithdrawn',got]);
+ }
+ if(pairs.length)addMany(w,v,tid,pairs,m);
+}
+function observeDepositFast(w,v,tid,k,qty,got,m,localRoom){if(!w)return;
+ const pairs=[];
+ if(m?.ids.length>1){const remote=Math.max(0,got-Math.min(got,localRoom));if(remote>EPS){if(k==='food')pairs.push(['remoteFoodDeposited',remote]);pairs.push(['remoteDepositCalls',1]);}}
+ if(k==='food'){
+  const req=Math.max(0,num(qty));if(req>0){pairs.push(['depositRequested',req],['depositAccepted',got],['depositRejected',Math.max(0,req-got)]);
+   if(harvestScope.get(w)?.v!==v)pairs.push(['otherDeposited',got]);
+  }
+ }
+ if(pairs.length)addMany(w,v,tid,pairs,m);
+}
 NS.Person.prototype.metabolism=function(v,w,...args){const prior=mealScope.get(w);mealScope.set(w,{v});try{return origMeta.call(this,v,w,...args);}finally{if(prior)mealScope.set(w,prior);else mealScope.delete(w);}};
 const origSync=NS.Tile.prototype.syncResources;
 NS.Tile.prototype.syncResources=function(day){const before=num(this.resources?.food),out=origSync.call(this,day),gained=Math.max(0,num(this.resources?.food)-before),w=NS._v32fActiveAct?.w||this._worldRef;if(gained>EPS&&w){const v=(w.villages||[]).find(v=>eq(v.id,this.ownerId));if(v)add(w,v,this.id,'foodRegenObserved',gained);}return out;};
@@ -96,6 +110,6 @@ if(NS.UI){const head=NS.UI.prototype.renderHeader;
  NS.UI.prototype.renderHeader=function(...args){const ret=head.apply(this,args);if(typeof document==='undefined')return ret;document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const near=document.getElementById('exportSettlementEconomyD3Btn');if(near&&!document.getElementById('exportSettlementFoodFlowD3ABtn')){const btn=document.createElement('button');btn.id='exportSettlementFoodFlowD3ABtn';btn.textContent='Food Flow 30일 CSV';btn.title='D3A 30일 단위 식량 흐름·입고/반환·공유 실제량 ('+COL.length+'열)';btn.addEventListener('click',()=>{try{NS.SaveSystem.exportSettlementFoodFlowCSV(this.world);}catch(e){console.error(e);alert(e.message);}});near.insertAdjacentElement('afterend',btn);}return ret;};}
 if(typeof document!=='undefined')document.title='Village Observer '+VERSION;
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-11',title:'Food Supply & Storage Stabilization',summary:'일반 식량·목재·석재 채집물의 미입고 원료를 자연으로 정확히 복구하고, 30일 식량 수지와 실제 Settlement 간격 내 원격 조달·반송을 관측합니다. 생산·소비·자연회복 밸런스는 유지합니다.',sections:[['수확 보존',['창고가 가득 차도 채집 시 사용한 원료 중 입고되지 않은 생산물에 대응하는 양을 자연 자원으로 복원합니다.','실제 생산 효율, 주민 소비, 지형별 자원 회복률은 변경하지 않습니다.']],['관측',['새 Food Flow 30일 CSV에서 Settlement별 주식량 입고·소비·복원·타일 간 원격 조달을 관측합니다.','이전 D3 foodDepositOverflow는 입고 미수용 요청량이며 실제 유실량이 아닙니다.']],['검증',['기존 Snapshot 1,683열, Settlement 48열, Housing 11열, Economy 24열을 유지합니다.','다른 Settlement 재고·시장 Gold·군사 물류는 변경하지 않습니다.']]]});
-NS.V034D3A=Object.freeze({version:VERSION,addMetric:add,harvestAndStore,transferWithReturn,foodCSV,columns:COL,stats:state,rows:windowRows,ensureRow:row,laborIssues,audit:w=>({ok:D3.audit(w).ok,conservedHarvestRestored:state(w).total.harvestRestoredNatural,transferUnrecovered:state(w).total.transferUnrecovered})});
+NS.V034D3A=Object.freeze({version:VERSION,observeWithdrawFast,observeDepositFast,addMetric:add,harvestAndStore,transferWithReturn,foodCSV,columns:COL,stats:state,rows:windowRows,ensureRow:row,laborIssues,audit:w=>({ok:D3.audit(w).ok,conservedHarvestRestored:state(w).total.harvestRestoredNatural,transferUnrecovered:state(w).total.transferUnrecovered})});
 try{window.villageObserver?.renderHeader?.();}catch(e){console.error('D3A header',e);}
 })(window.VSim);

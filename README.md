@@ -1,3 +1,13 @@
+## 최신 버전: V0.34D3B3B (2026-10-13) — Simulation Hotpath Optimization
+
+- 실제 D3 물리 재고 입출고의 **Settlement 멤버십·이전 타일 재고를 D3A Food Flow에 공유**해 중복 조회를 제거. 자원·경제·AI·군사 수식과 계측 정확도 유지.
+- 원본 B3A vs B3B 식량 출고 25,000회 중앙값 **약 210ms→117ms**, 해당 경로 시간 **44% 감소**.
+- 원본 B3A vs B3B **인구 565명 합성 세계 30일 전체 SIM** 시험에서 처리시간 **약 3.6~4.9% 감소** 및 물리 자원·Food Flow CSV·난수 일치. **60년 자연주행 전체 개선율은 미검증**.
+- 169개 보호 레거시 해시 유지, Food Flow 48열·Snapshot 1,683열·B3A 저장 이식, PC/모바일 Hosted/Standalone 확인.
+- [상세 패치노트](README-34D3B3B.md) · [검증 기록](TEST-34D3B3B.md)
+
+---
+
 ## 최신 버전: V0.34D3B3A (2026-10-13) — Performance & Food Flow Regression Audit
 
 - **신규 `식량 이상 구간 CSV`** 버튼: Food Flow 전체 48열 CSV와 별개로, 종료된 30일 수지 잔차 중 ±0.01 초과 행만 21열로 경량 출력합니다. 국가·정착지·구간·물리 입출고·잔차를 포함합니다.

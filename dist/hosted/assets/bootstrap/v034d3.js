@@ -57,17 +57,39 @@ function capacity(v,tid,k){const m=members(v,tid);return m?m.ids.reduce((s,id)=>
 // Preserve the raw tile getter for observers, transport receipts and audits.
 NS.Village.prototype.stockAt=function(id,k){const m=members(this,id);if(!m||m.ids.length<2)return oldStock.call(this,id,k);return m.ids.reduce((s,tid)=>s+stockRaw(this._world,tid,k),0);};
 NS.Village.prototype.settlementCaps=function(id){const raw=oldCap.call(this,id),m=members(this,id);if(!m||m.ids.length<2)return raw;const o={...raw};for(const k of RES)o[k]=m.ids.reduce((s,tid)=>s+physicalCap(this,tid,k),0);return o;};
-NS.Village.prototype.withdrawAt=function(id,k,qty){const m=members(this,id),q=Math.max(0,N(qty));if(!m||m.ids.length<2||!q){const got=oldWithdraw.call(this,id,k,qty),feed=feeding.get(this._world);if(k==='food'&&feed&&feed.v===this&&q>0){feed.requested+=q;feed.got+=got;tileStats(this._world,Number(id)).consumed+=got;tileStats(this._world,Number(id)).mealDemand+=q;}return got;}
- let left=q,got=0;for(const tid of [Number(id),...m.ids.filter(x=>x!==Number(id))]){if(left<=1e-9)break;const take=oldWithdraw.call(this,tid,k,left);got+=take;left-=take;}
- const d=stat(this._world);d.sharedWithdrawCalls++;d.sharedWithdrawQty+=got;
- const feedingCtx=feeding.get(this._world);if(k==='food'&&feedingCtx&&feedingCtx.v===this){feedingCtx.requested+=q;feedingCtx.got+=got;tileStats(this._world,Number(id)).consumed+=got;tileStats(this._world,Number(id)).mealDemand+=q;}
+// B3B: capture the D3A observer on the SAME transaction as physical withdrawal.
+// This avoids a second members() call and a second raw-stock/capacity inspection
+// by the former outer observer. No resource, RNG or policy changes.
+NS.Village.prototype.withdrawAt=function(id,k,qty){
+ const m=members(this,id),q=Math.max(0,N(qty)),w=this._world,observer=NS.V034D3A;
+ const localBefore=observer&&m?.ids.length>1&&q>0?stockRaw(w,id,k):0;
+ let got;
+ if(!m||m.ids.length<2||!q){
+  got=oldWithdraw.call(this,id,k,qty);
+  const feed=feeding.get(w);
+  if(k==='food'&&feed&&feed.v===this&&q>0){feed.requested+=q;feed.got+=got;tileStats(w,Number(id)).consumed+=got;tileStats(w,Number(id)).mealDemand+=q;}
+ }else{
+  let left=q;got=0;for(const tid of [Number(id),...m.ids.filter(x=>x!==Number(id))]){if(left<=1e-9)break;const take=oldWithdraw.call(this,tid,k,left);got+=take;left-=take;}
+  const d=stat(w);d.sharedWithdrawCalls++;d.sharedWithdrawQty+=got;
+  const feedingCtx=feeding.get(w);if(k==='food'&&feedingCtx&&feedingCtx.v===this){feedingCtx.requested+=q;feedingCtx.got+=got;tileStats(w,Number(id)).consumed+=got;tileStats(w,Number(id)).mealDemand+=q;}
+ }
+ observer?.observeWithdrawFast?.(w,this,id,k,qty,got,m,localBefore);
  return got;
 };
-NS.Village.prototype.depositAt=function(id,k,qty){const m=members(this,id),q=Math.max(0,N(qty));if(!m||m.ids.length<2||!q){const got=oldDeposit.call(this,id,k,qty);if(k==='food'&&this._world&&qty>got){stat(this._world).foodDepositOverflow+=Number(qty)-got;tileStats(this._world,Number(id)).depositOverflow+=Number(qty)-got;}return got;}
- let left=q,put=0;for(const tid of [Number(id),...m.ids.filter(x=>x!==Number(id))]){if(left<=1e-9)break;const added=oldDeposit.call(this,tid,k,left);put+=added;left-=added;}
- const s=stat(this._world);s.sharedDepositCalls++;s.sharedDepositQty+=put;
- if(k==='food'&&q>put){s.foodDepositOverflow+=q-put;tileStats(this._world,Number(id)).depositOverflow+=q-put;}
- return put;
+NS.Village.prototype.depositAt=function(id,k,qty){
+ const m=members(this,id),q=Math.max(0,N(qty)),w=this._world,observer=NS.V034D3A;
+ const roomBefore=observer&&m?.ids.length>1&&q>0?Math.max(0,physicalCap(this,id,k)-stockRaw(w,id,k)):0;
+ let got;
+ if(!m||m.ids.length<2||!q){
+  got=oldDeposit.call(this,id,k,qty);
+  if(k==='food'&&w&&qty>got){stat(w).foodDepositOverflow+=Number(qty)-got;tileStats(w,Number(id)).depositOverflow+=Number(qty)-got;}
+ }else{
+  let left=q;got=0;for(const tid of [Number(id),...m.ids.filter(x=>x!==Number(id))]){if(left<=1e-9)break;const added=oldDeposit.call(this,tid,k,left);got+=added;left-=added;}
+  const st=stat(w);st.sharedDepositCalls++;st.sharedDepositQty+=got;
+  if(k==='food'&&q>got){st.foodDepositOverflow+=q-got;tileStats(w,Number(id)).depositOverflow+=q-got;}
+ }
+ observer?.observeDepositFast?.(w,this,id,k,qty,got,m,roomBefore);
+ return got;
 };
 // Legacy food reserve is in three-day economic-cycle units (child .30, adult .42).
 // All homes in a Settlement share one numerator AND one population-weighted denominator.
