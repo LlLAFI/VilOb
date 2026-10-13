@@ -43,11 +43,11 @@ function trial(source,label,id){const runner=boot(source);const w=save?runner.NS
  if(!save && syntheticYear>1)w.year=syntheticYear;
  if(!save && syntheticExtraPeople){for(let i=0;i<syntheticExtraPeople;i++){const v=w.villages[i%w.villages.length];v.residents.push(new runner.NS.Person(v.id,'e02-load-'+i,{age:20+i%20,sex:i%2?'남':'여',homeTileId:v.coreTileId,workTileId:v.coreTileId,health:95,hunger:10,energy:80}));}}
  for(let i=0;i<warmup;i++)w.advanceOneDay();
- const startRandom=runner.calls(),initial=digest(w);let sample=null;
+ const startRandom=runner.calls(),initial=digest(w),startYear=w.year;let sample=null;
  if(profile&&label==='candidate'&&runner.NS.V034E?.profiling)runner.NS.V034E.profiling.start(w,days);
  const begin=performance.now();for(let i=0;i<days;i++)w.advanceOneDay();const simMs=performance.now()-begin;
  if(profile&&label==='candidate')sample=runner.NS.V034E.profiling.last();
- return {run:id,label,days,simMs:+simMs.toFixed(3),msPerDay:+(simMs/days).toFixed(3),rngCalls:runner.calls()-startRandom,totalRngCalls:runner.calls(),initialDigest:initial,finalDigest:digest(w),startYear:save?.year||1,pop:w.villages.reduce((n,v)=>n+v.residents.filter(p=>p.alive).length,0),sample};
+ return {run:id,label,days,simMs:+simMs.toFixed(3),msPerDay:+(simMs/days).toFixed(3),rngCalls:runner.calls()-startRandom,totalRngCalls:runner.calls(),initialDigest:initial,finalDigest:digest(w),startYear,pop:w.villages.reduce((n,v)=>n+v.residents.filter(p=>p.alive).length,0),sample};
 }
 const rows=[];
 for(let i=0;i<runs;i++){const first=i%2===0?[['baseline',baseline],['candidate',candidate]]:[['candidate',candidate],['baseline',baseline]];for(const [label,src] of first)rows.push(trial(src,label,i+1));}
@@ -55,6 +55,6 @@ const median=xs=>{const a=[...xs].sort((x,y)=>x-y);return a.length?(a[Math.floor
 const A=rows.filter(x=>x.label==='baseline'),B=rows.filter(x=>x.label==='candidate');
 const equivalent=rows.every((v)=>{const peer=rows.find(x=>x.run===v.run&&x.label!==v.label);return peer&&peer.initialDigest===v.initialDigest&&peer.finalDigest===v.finalDigest&&peer.rngCalls===v.rngCalls;});
 const a=median(A.map(x=>x.msPerDay)),b=median(B.map(x=>x.msPerDay));
-const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,syntheticYear:save?null:syntheticYear,syntheticExtraPeople:save?null:syntheticExtraPeople,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc3',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
+const report={format:'vilob-sim-ab-v1',saveFile:savePath?path.basename(savePath):null,hasRealSave:!!save,syntheticYear:save?null:syntheticYear,syntheticExtraPeople:save?null:syntheticExtraPeople,source:'Node VM World.advanceOneDay (does not measure browser Wall or Render)',days,runs,warmup,seed,baseline:'V0.34D3B3B',candidate:'V0.34E-rc4',baselineMedianMsDay:a,candidateMedianMsDay:b,changePercent:+((a-b)/a*100).toFixed(2),semanticStateAndRngMatch:equivalent,results:rows.map(({sample,...rest})=>rest),profile:profile?B.at(-1)?.sample:null};
 const output=JSON.stringify(report,null,2);if(outputFile)fs.writeFileSync(outputFile,output+'\n');console.log(output);
 if(!equivalent)process.exitCode=2;

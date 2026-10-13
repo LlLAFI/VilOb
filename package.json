@@ -1,19 +1,20 @@
 {
   "name": "village-observer",
-  "version": "0.34.0-e-rc3",
+  "version": "0.34.0-e-rc4h",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
-    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-e03.cjs",
+    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-e04h.cjs",
     "test:year": "node tests/test-d3-year.cjs",
     "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test": "node tools/build.mjs --check-only && node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test:e01": "node tests/test-e01.cjs",
     "bench:save": "node tools/benchmark-save.cjs",
     "test:e02": "node tests/test-e02.cjs",
-    "test:e03": "node tests/test-e03.cjs && node tests/test-e03-parity.cjs"
+    "test:e03": "node tests/test-e03.cjs && node tests/test-e03-parity.cjs",
+    "test:e04h": "node tests/test-e04h.cjs && node tests/test-e04h-parity.cjs && node tests/test-e04h-semantic.cjs"
   },
   "engines": {
     "node": ">=18"

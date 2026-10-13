@@ -1,0 +1,7 @@
+
+> village-observer@0.34.0-e-rc3 test:static
+> node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-e03.cjs
+
+{"result":"PASS","scriptBlocks":182,"hostedBlocks":182,"css":4,"sourceSHA":"89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64","csvV2Columns":1683}
+{"result":"PASS","csvColumns":1683,"duplicateHeadersFixed":72,"rows":7,"valueRowsIdentical":true}
+{"result":"PASS","version":"V0.34E-rc3","lateSyntheticDays":180,"snapshotsA":1,"snapshotsB":1,"identicalWorld":true,"identicalRandom":true,"manualAndScenarioCaptures":true,"manualNotePreserved":true,"legacySaveCompat":true}

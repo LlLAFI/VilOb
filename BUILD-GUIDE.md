@@ -62,6 +62,18 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 - `npm run build` 및 `npm run check:source`; 테스트는 `node tests/test-d3b3a.cjs`.
 - 전체 Food Flow 48열은 그대로, 잔차 경량 CSV는 별도 다운로드입니다.
 
-## V0.34E-rc3 빌드
+## V0.34E-rc4 빌드
 
 `node tools/build.mjs` / `npm run test:static`. `tools/e3-transform.mjs`은 해시가 고정된 `src/legacy/065.js`의 *빌드 산출물*에만 스냅샷 상태 단계 분리·개척 진단 경량화를 적용합니다. 정적 소스 원본을 수정하지 않으므로 C1H 원본 재현 검사는 유지됩니다. `tools/benchmark-local.html`은 실제 세이브 비교 기능을 제공합니다.
+
+
+## V0.34E-rc4
+- `tools/e4-transform.mjs`는 **릴리스** F5/F5A Snapshot 상위 중복 초기화 감소 변환을 담당한다. 원본 레거시 무결성은 유지.
+- `tools/benchmark-local.html`은 B3B/RC3 기준과 RC4의 3일 주기/Snapshot 비용을 분리한다.
+
+
+## V0.34E-rc4h 결정론 핫픽스
+
+- `tools/e4-transform.mjs`가 F5/F5A Snapshot의 원본 `attach(w)` 호출을 의무 검사하며 **릴리스 변환을 하지 않습니다**. RC4의 최적화 생략 경로는 되돌렸습니다.
+- `npm run build`, `npm run test:static`, `npm run test:e04h`를 사용합니다. 마지막 테스트는 브라우저 61년차 저장파일을 요구하지 않으나 150일 회귀로 시간이 걸립니다.
+- 내부 버전: `V0.34E-rc4h`; GitHub Pages Hosted와 Standalone 둘 다 빌드됩니다.

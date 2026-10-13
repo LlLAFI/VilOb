@@ -2,6 +2,7 @@
 // Reproducible V0.34D0 builds. Requires only Node.js >=18.
 import {d2Transform} from './d2-transform.mjs';
 import {e3Transform} from './e3-transform.mjs';
+import {e4Transform} from './e4-transform.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const get=p=>fs.readFileSync(path.join(root,p));
@@ -22,7 +23,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.34E-rc3';
+const VERSION='V0.34E-rc4h';
 const B3B_VERSION='V0.34D3B3B';
 const e01=get('src/bootstrap/v034e.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__',VERSION);
 const d3b3b=get('src/bootstrap/v034d3b3b.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__',B3B_VERSION);
@@ -36,7 +37,7 @@ function render(flavor,assetPrefix='assets/'){
  for(const block of manifest.blocks){
   const raw=get(block.path), data=raw.toString('utf8');
   if(sha(raw)!==block.sha256)throw Error('Protected legacy source changed: '+block.path);
-  let transformed=(flavor==='baseline'?data:e3Transform(block.path,d2Transform(block.path,data).data));
+  let transformed=(flavor==='baseline'?data:e4Transform(block.path,e3Transform(block.path,d2Transform(block.path,data).data)));
   // RC2 release-only performance transform; immutable C1H reconstruction stays byte-identical.
   if(flavor!=='baseline' && block.path==='src/legacy/016.js'){
    const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
@@ -76,7 +77,7 @@ const hosted=render('hosted');fs.writeFileSync(path.join(dist,'hosted','index.ht
 const rootHosted=render('hosted','dist/hosted/assets/');fs.writeFileSync(path.join(root,'index.html'),rootHosted);
 for(const block of manifest.blocks){
  const dest=path.join(dist,'hosted','assets',block.path.slice(4));
- fs.mkdirSync(path.dirname(dest),{recursive:true});let transformed=e3Transform(block.path,d2Transform(block.path,get(block.path).toString('utf8')).data);
+ fs.mkdirSync(path.dirname(dest),{recursive:true});let transformed=e4Transform(block.path,e3Transform(block.path,d2Transform(block.path,get(block.path).toString('utf8')).data));
  if(block.path==='src/legacy/016.js'){
   const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
   if(!transformed.includes(needle))throw Error('Hosted telemetry anchor missing');

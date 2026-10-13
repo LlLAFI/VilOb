@@ -1,0 +1,73 @@
+{
+  "format": "vilob-sim-ab-v1",
+  "saveFile": null,
+  "hasRealSave": false,
+  "syntheticYear": 61,
+  "syntheticExtraPeople": 540,
+  "source": "Node VM World.advanceOneDay (does not measure browser Wall or Render)",
+  "days": 30,
+  "runs": 2,
+  "warmup": 0,
+  "seed": 20261013,
+  "baseline": "V0.34D3B3B",
+  "candidate": "V0.34E-rc3",
+  "baselineMedianMsDay": 176.6775,
+  "candidateMedianMsDay": 164.20499999999998,
+  "changePercent": 7.06,
+  "semanticStateAndRngMatch": true,
+  "results": [
+    {
+      "run": 1,
+      "label": "baseline",
+      "days": 30,
+      "simMs": 5631.292,
+      "msPerDay": 187.71,
+      "rngCalls": 87349,
+      "totalRngCalls": 120075,
+      "initialDigest": "d8f2114e02ff7e1720a22cbbd7033e425990dcc0202a5d7552c732f323d1ceac",
+      "finalDigest": "6c20a1a01af24c507db0b52782fbc74232888a6fa48a91d0b2f7c6f82a15959d",
+      "startYear": 1,
+      "pop": 649
+    },
+    {
+      "run": 1,
+      "label": "candidate",
+      "days": 30,
+      "simMs": 4896.082,
+      "msPerDay": 163.203,
+      "rngCalls": 87349,
+      "totalRngCalls": 120075,
+      "initialDigest": "d8f2114e02ff7e1720a22cbbd7033e425990dcc0202a5d7552c732f323d1ceac",
+      "finalDigest": "6c20a1a01af24c507db0b52782fbc74232888a6fa48a91d0b2f7c6f82a15959d",
+      "startYear": 1,
+      "pop": 649
+    },
+    {
+      "run": 2,
+      "label": "candidate",
+      "days": 30,
+      "simMs": 4956.204,
+      "msPerDay": 165.207,
+      "rngCalls": 87349,
+      "totalRngCalls": 120075,
+      "initialDigest": "d8f2114e02ff7e1720a22cbbd7033e425990dcc0202a5d7552c732f323d1ceac",
+      "finalDigest": "6c20a1a01af24c507db0b52782fbc74232888a6fa48a91d0b2f7c6f82a15959d",
+      "startYear": 1,
+      "pop": 649
+    },
+    {
+      "run": 2,
+      "label": "baseline",
+      "days": 30,
+      "simMs": 4969.338,
+      "msPerDay": 165.645,
+      "rngCalls": 87349,
+      "totalRngCalls": 120075,
+      "initialDigest": "d8f2114e02ff7e1720a22cbbd7033e425990dcc0202a5d7552c732f323d1ceac",
+      "finalDigest": "6c20a1a01af24c507db0b52782fbc74232888a6fa48a91d0b2f7c6f82a15959d",
+      "startYear": 1,
+      "pop": 649
+    }
+  ],
+  "profile": null
+}
