@@ -51,3 +51,9 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 `src/bootstrap/v034d2.js`는 D1A 다음에 적용됩니다. 레거시 169개 파일의 원본 해시는 보존하되, `tools/d2-transform.mjs`에서 몇 가지 레거시 주거·인력·건설 경로에 명시적인 호출 게이트를 삽입한 결과물을 두 빌드에 동일하게 넣습니다. `--check-only`는 레거시 원본 무결성을 검사하고, 실제 `npm run build`에서 연결 지점의 존재·유일성을 검증합니다.
 
 `npm test`는 D2 정책 변경 때문에 기존 `test-determinism.cjs`(C1H↔D0 전체 상태 동일성) 대신 `test-d2.cjs`(D2↔D2 반복 결정론)를 실행합니다. 이전 D1A 테스트는 개별 기준선의 기록으로만 남습니다.
+
+
+## V0.34D3B3A 계측
+- `src/bootstrap/v034d3b3a.js`를 Standalone/Hosted 마지막에 연결합니다.
+- `npm run build` 및 `npm run check:source`; 테스트는 `node tests/test-d3b3a.cjs`.
+- 전체 Food Flow 48열은 그대로, 잔차 경량 CSV는 별도 다운로드입니다.
