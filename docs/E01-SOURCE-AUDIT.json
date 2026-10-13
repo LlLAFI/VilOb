@@ -1,0 +1,418 @@
+{
+  "createdFor": "V0.34E-rc1",
+  "scope": "static assignment counts (not a CPU profile and not proof of unused code)",
+  "sourceScripts": 182,
+  "legacyScriptBlocks": 165,
+  "bootstrapScripts": 17,
+  "rows": [
+    {
+      "name": "World.advanceOneDay",
+      "occurrences": 42,
+      "files": 42,
+      "examples": [
+        {
+          "path": "src/legacy/139.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/146.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/147.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/150.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/152.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/154.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "World.serialize",
+      "occurrences": 147,
+      "files": 147,
+      "examples": [
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/161.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "World.from",
+      "occurrences": 148,
+      "files": 148,
+      "examples": [
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/161.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Person.act",
+      "occurrences": 15,
+      "files": 15,
+      "examples": [
+        {
+          "path": "src/legacy/055.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/083.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/084.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/085.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/087.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/142.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Person.metabolism",
+      "occurrences": 10,
+      "files": 10,
+      "examples": [
+        {
+          "path": "src/legacy/018.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/019.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/026.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/038.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/040.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/083.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Person.chooseJob",
+      "occurrences": 7,
+      "files": 7,
+      "examples": [
+        {
+          "path": "src/legacy/028.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/029.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/038.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/040.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/060.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/083.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Village.seasonalTick",
+      "occurrences": 61,
+      "files": 61,
+      "examples": [
+        {
+          "path": "src/legacy/130.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/131.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/132.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/142.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/143.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/157.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Village.dailyTick",
+      "occurrences": 23,
+      "files": 23,
+      "examples": [
+        {
+          "path": "src/legacy/087.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/089.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/111.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/112.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/125.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/142.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Telemetry.toJSON",
+      "occurrences": 148,
+      "files": 147,
+      "examples": [
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/161.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Telemetry.snapshot",
+      "occurrences": 127,
+      "files": 123,
+      "examples": [
+        {
+          "path": "src/legacy/158.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Telemetry.snapshotsCSV",
+      "occurrences": 112,
+      "files": 112,
+      "examples": [
+        {
+          "path": "src/legacy/158.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "UI.renderWorld",
+      "occurrences": 20,
+      "files": 20,
+      "examples": [
+        {
+          "path": "src/legacy/157.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/159.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/160.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/162.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/163.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/164.js",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "name": "Telemetry.record.call",
+      "occurrences": 75,
+      "files": 23,
+      "examples": [
+        {
+          "path": "src/legacy/032.js",
+          "hits": 4
+        },
+        {
+          "path": "src/legacy/033.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/034.js",
+          "hits": 6
+        },
+        {
+          "path": "src/legacy/036.js",
+          "hits": 9
+        },
+        {
+          "path": "src/legacy/038.js",
+          "hits": 1
+        },
+        {
+          "path": "src/legacy/039.js",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "name": "Event/Devlog literal",
+      "occurrences": 0,
+      "files": 0,
+      "examples": []
+    }
+  ]
+}

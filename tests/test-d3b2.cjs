@@ -5,11 +5,11 @@ const src=fs.readFileSync(path.join(ROOT,'index-standalone.html'),'utf8');
 function boot(seed=0x340d3b2){let state=seed>>>0,calls=0;const rand=Object.create(Math);rand.random=()=>{calls++;state^=state<<13;state^=state>>>17;state^=state<<5;return (state>>>0)/4294967296;};const make=()=>({style:{},innerHTML:'',textContent:'',appendChild(){},addEventListener(){},insertAdjacentElement(){},classList:{add(){},remove(){}},querySelector(){return null},querySelectorAll(){return []}});const db=new Map();const c={console,Math:rand,Map,Set,WeakMap,WeakSet,JSON,TextDecoder,TextEncoder,URL,Blob,Uint8Array,Uint32Array,ArrayBuffer,structuredClone,crypto:crypto.webcrypto,Date:class extends Date{static now(){return 1760200000000;}},performance:require('perf_hooks').performance,alert(){},confirm(){return false},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},localStorage:{getItem:k=>db.get(k)||null,setItem:(k,v)=>db.set(k,v)},document:{head:make(),body:make(),documentElement:make(),createElement:make,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};c.window=c;c.addEventListener=()=>{};vm.createContext(c);for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){try{new vm.Script(m[1]).runInContext(c,{timeout:20000});}catch(e){if(!/onclick/.test(e.message))throw e;}}return {NS:c.VSim,ctx:c,rng:()=>calls};}
 const near=(a,b,m='')=>assert(Math.abs(a-b)<1e-6,`${m}: ${a} != ${b}`);
 const z=boot(),NS=z.NS,A=NS.V034D3B2,H=NS.V034D3A,D=NS.V034D3;
-assert(A);assert.equal(NS.RELEASE_VERSION,'V0.34D3B3B');
+assert(A);assert.equal(NS.RELEASE_VERSION,'V0.34E-rc1');
 assert.equal(NS.V034D3A2.columns.length,48);
 assert.equal(new Set(NS.V034D3A2.columns).size,48);
-assert(src.includes('id="versionBadge"')&&src.includes('>Village Observer · V0.34D3B3B</button>'));
-assert.equal(z.ctx.document.title,'Village Observer V0.34D3B3B');
+assert(src.includes('id="versionBadge"')&&src.includes('>Village Observer · V0.34E-rc1</button>'));
+assert.equal(z.ctx.document.title,'Village Observer V0.34E-rc1');
 function fixture(forceThree){const b=boot(0x123451+forceThree),N=b.NS,w=new N.World(19,19),v=w.villages[0],t=w.map.get(v.coreTileId);w.year=15;
  // All inputs are stocked in existing physical storage, without synthetic receipts.
  for(const k of ['food','wood','stone']){t.stocks[k]=Math.min(N.V034D3.physicalCap(v,t.id,k)*.7,k==='food'?240:k==='wood'?180:80);}
@@ -45,12 +45,12 @@ for(const type of [false,true]){
  assert(observed,'V24 food debit must have a stable accounting settlement');
  near(observed.unattributedDelta,0,'closed V24 food balance');
  delete x.w.calendarOrdinalDay;
- const save=JSON.parse(JSON.stringify(x.w.serialize()));assert.equal(save.version,'V0.34D3B3B');const back=x.N.World.from(save);
+ const save=JSON.parse(JSON.stringify(x.w.serialize()));assert.equal(save.version,'V0.34E-rc1');const back=x.N.World.from(save);
  near(x.N.V034D3B2.stats(back).regionalPhysicalSpent,expected);
- assert.equal(back.serialize().version,'V0.34D3B3B');
- const debug=back.telemetry.toJSON(back);assert.equal(debug.version,'V0.34D3B3B');assert.equal(debug.worldSummary.v034d3b2Audit.regionalStarts,1);
+ assert.equal(back.serialize().version,'V0.34E-rc1');
+ const debug=back.telemetry.toJSON(back);assert.equal(debug.version,'V0.34E-rc1');assert.equal(debug.worldSummary.v034d3b2Audit.regionalStarts,1);
  console.log(JSON.stringify({result:'PASS',kind:count+'-pioneer',cost:expected,physicalSpent:x.stats.regionalPhysicalSpent,mode:'real-V24-start',roundtrip:true}));
 }
 const w=new NS.World(19,19);let old=JSON.parse(JSON.stringify(w.serialize()));old.version='V0.34D3B1';delete old.v034d3b2;
-const migrated=NS.World.from(old);assert.equal(migrated.serialize().version,'V0.34D3B3B');assert(A.stats(migrated).migrationFromB1);
-console.log(JSON.stringify({result:'PASS',version:'V0.34D3B3B',saveMigration:true,initialVersion:true,csvColumns:48,releaseNotes:NS.PATCH_NOTES[0].version}));
+const migrated=NS.World.from(old);assert.equal(migrated.serialize().version,'V0.34E-rc1');assert(A.stats(migrated).migrationFromB1);
+console.log(JSON.stringify({result:'PASS',version:'V0.34E-rc1',saveMigration:true,initialVersion:true,csvColumns:48,releaseNotes:NS.PATCH_NOTES[0].version}));

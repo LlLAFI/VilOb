@@ -18,7 +18,7 @@ function setup(NS){const w=new NS.World(19,19),v=w.villages[0],C=NS.V034C,diamon
 function oldMembers(v,id){const w=v?._world,t=w?.map?.get(Number(id)),eq=(a,b)=>String(a)===String(b);if(!t||!eq(t.ownerId,v.id))return null;const sid=t.settlementId;if(sid==null)return null;const rec=w._v34bActive?.get(String(sid))||(w.v34b?.settlements||[]).find(r=>eq(r.id,sid)&&r.lifecycle==='ACTIVE');if(!rec||!eq(rec.nationId,v.id)||rec.lifecycle!=='ACTIVE')return null;const ids=(rec.tileIds||[]).map(Number).filter(tid=>{const x=w.map.get(tid);return x&&eq(x.ownerId,v.id)&&eq(x.settlementId,sid)&&!(x.v33OccupierId!=null&&!eq(x.v33OccupierId,v.id));});if(!ids.includes(Number(id)))return null;return {sid,ids,core:Number(rec.coreTileId)};}
 function priorDays(v,id){const m=oldMembers(v,id);if(!m||m.ids.length<2)return null;const set=new Set(m.ids),people=(v.residents||[]).filter(p=>p.alive!==false&&set.has(Number(p.homeTileId)));if(!people.length)return 999;const demand=people.reduce((n,p)=>n+(Number(p.age)<15?.30:.42),0),food=m.ids.reduce((n,tid)=>n+Math.max(0,Number(v._world.map.get(tid)?.stocks?.food)||0),0);return food/Math.max(.12,demand);}
 const {NS,ctx}=boot(),{w,v,core,m}=setup(NS),D=NS.V034D3;
-assert.equal(NS.RELEASE_VERSION,'V0.34D3B3B');assert.equal(NS.V034D3B3.samplingEnabled(),false);assert.equal(ctx.document.title,'Village Observer V0.34D3B3B');
+assert.equal(NS.RELEASE_VERSION,'V0.34E-rc1');assert.equal(NS.V034D3B3.samplingEnabled(),false);assert.equal(ctx.document.title,'Village Observer V0.34E-rc1');
 const ref=oldMembers(v,core.id),next=D.members(v,core.id);assert.deepEqual([...next.ids],[...ref.ids]);
 assert(Math.abs(priorDays(v,core.id)-v.settlementReserveDays(core.id))<1e-10,'reserve denominator matches original');
 // In-place occupation invalidates the physical pool WITHOUT changing the
@@ -37,7 +37,7 @@ assert(Math.abs(priorDays(v,core.id)-v.settlementReserveDays(core.id))<1e-10);as
 // Sampled B3 profiler never records unless explicitly enabled.
 assert.equal(NS.V034D3B3.stats(w).dayAdvances,0);
 const synthetic=v.residents.filter(p=>String(p.id).startsWith('bench-'));v.residents=v.residents.filter(p=>!String(p.id).startsWith('bench-'));
-const clean=JSON.parse(JSON.stringify(w.serialize()));assert.equal(clean.version,'V0.34D3B3B');const reload=NS.World.from(clean);assert.equal(reload.serialize().version,'V0.34D3B3B');assert(NS.V034D3.audit(reload).ok);
-const older={...clean,version:'V0.34D3B2'};delete older.v034d3b3;const migrated=NS.World.from(older);assert.equal(migrated.serialize().version,'V0.34D3B3B');
+const clean=JSON.parse(JSON.stringify(w.serialize()));assert.equal(clean.version,'V0.34E-rc1');const reload=NS.World.from(clean);assert.equal(reload.serialize().version,'V0.34E-rc1');assert(NS.V034D3.audit(reload).ok);
+const older={...clean,version:'V0.34D3B2'};delete older.v034d3b3;const migrated=NS.World.from(older);assert.equal(migrated.serialize().version,'V0.34E-rc1');
 v.residents.push(...synthetic);
-console.log(JSON.stringify({result:'PASS',version:'V0.34D3B3B',groupTiles:m.tileIds.length,syntheticResidents:v.residents.length,occupierInvalidation:true,migrationInvalidation:true,saveB2Import:true,releaseNotes:NS.PATCH_NOTES[0].version}));
+console.log(JSON.stringify({result:'PASS',version:'V0.34E-rc1',groupTiles:m.tileIds.length,syntheticResidents:v.residents.length,occupierInvalidation:true,migrationInvalidation:true,saveB2Import:true,releaseNotes:NS.PATCH_NOTES[0].version}));

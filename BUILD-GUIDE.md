@@ -1,3 +1,5 @@
+> **현재 실험 빌드 V0.34E-rc1 (E-01).** `src/bootstrap/v034e.js` / `tools/benchmark-save.cjs` / `tools/audit-surface.mjs`를 추가했습니다. 61년차 저장파일 A/B 비교는 저장파일 제공 후 수행합니다. 정식 V0.34E가 아닙니다.
+
 > **현재 배포 V0.34D3B3B.** D3B3A 다음 `src/bootstrap/v034d3b3b.js`를 로드. 비보호 `src/bootstrap/v034d3.js`/`v034d3a.js`의 관측 통합을 통해 중복 물리 재고 계측을 줄입니다. `README-34D3B3B.md`·`TEST-34D3B3B.md` 참고.
 
 > **현재 배포: V0.34D3B3.** src/bootstrap/v034d3b3.js가 마지막에 로드되고, src/bootstrap/v034d3.js / v034d3a.js의 비보호 코드에 최적화가 적용됩니다. `README-34D3B3.md`, `TEST-34D3B3.md` 참조.
