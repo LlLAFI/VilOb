@@ -72,7 +72,7 @@ NS.Village.prototype.yearlyTick=function(w){annualCirculation24(this,w);};
 
 /* 360 calendar days with one legacy economy/work cycle every three days. */
 const advance23=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){ensureWorld24(this);dailyDemography24(this);if(this._v24Subday<2){this._v24Subday++;if(this.selectedPersonId&&!this.selectedPerson)this.selectedPersonId=this.selectedVillage?.residents[0]?.id||null;return;}this._v24MacroStart={year:this.year,season:this.season,day:this.day};try{advance23.call(this);}finally{this._v24Subday=0;this._v24MacroStart=null;}};
+NS.World.prototype.advanceOneDay=function(){ensureWorld24(this);const trace=NS.V034E?.profiling?.traceSegmentActive;if(trace)trace('calendar.demography',()=>dailyDemography24(this));else dailyDemography24(this);if(this._v24Subday<2){this._v24Subday++;if(this.selectedPersonId&&!this.selectedPerson)this.selectedPersonId=this.selectedVillage?.residents[0]?.id||null;return;}this._v24MacroStart={year:this.year,season:this.season,day:this.day};try{if(trace)trace('macro.legacyCore',()=>advance23.call(this));else advance23.call(this);}finally{this._v24Subday=0;this._v24MacroStart=null;}};
 
 /* ---------- V0.24 regional maintenance labor ---------- */
 const MAINT24=NS.V09?.MAINT_BASE||{};const MAINT_RATE24=.02,EFFECT_FULL24=70;

@@ -77,3 +77,8 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 - `tools/e4-transform.mjs`가 F5/F5A Snapshot의 원본 `attach(w)` 호출을 의무 검사하며 **릴리스 변환을 하지 않습니다**. RC4의 최적화 생략 경로는 되돌렸습니다.
 - `npm run build`, `npm run test:static`, `npm run test:e04h`를 사용합니다. 마지막 테스트는 브라우저 61년차 저장파일을 요구하지 않으나 150일 회귀로 시간이 걸립니다.
 - 내부 버전: `V0.34E-rc4h`; GitHub Pages Hosted와 Standalone 둘 다 빌드됩니다.
+
+
+## V0.34F0
+
+`src/bootstrap/v034f0.js` 는 E05 부트스트랩 이후 로드됩니다. `npm run build` / `npm run test:static` / `F0_DAYS=360 node tests/test-f0.cjs` 로 검증합니다. 성능 합격 조건은 PC ×10 150년 동안 평활 SIM/BATCH 1000ms 미만이며 F0 단계에서는 검증 대기입니다.
