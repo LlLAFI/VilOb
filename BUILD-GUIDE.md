@@ -1,3 +1,5 @@
+> **최신: V0.34F1** — `src/bootstrap/v034f1.js`를 F0 다음에 로드. 모델 수식은 F0 그대로이며 원인 진단만 추가. `npm run build`, `npm run test:static`, `F1_DAYS=360 node tests/test-f1.cjs`. 자세한 내용은 `README-34F1.md` / `TEST-34F1.md`.
+
 > **현재 실험 빌드 V0.34E-rc1 (E-01).** `src/bootstrap/v034e.js` / `tools/benchmark-save.cjs` / `tools/audit-surface.mjs`를 추가했습니다. 61년차 저장파일 A/B 비교는 저장파일 제공 후 수행합니다. 정식 V0.34E가 아닙니다.
 
 > **현재 배포 V0.34D3B3B.** D3B3A 다음 `src/bootstrap/v034d3b3b.js`를 로드. 비보호 `src/bootstrap/v034d3.js`/`v034d3a.js`의 관측 통합을 통해 중복 물리 재고 계측을 줄입니다. `README-34D3B3B.md`·`TEST-34D3B3B.md` 참고.

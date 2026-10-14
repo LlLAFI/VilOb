@@ -1,3 +1,11 @@
+# V0.34F1 최신 개발판 (2026-10-14)
+
+**기아 붕괴 원인 추적 / 후기 SIM 진단.** F0 신진대사 B안의 식량·Health·RNG 공식은 그대로 유지. Settlement별 배급 부족 진단(최신 1,800일), 선택형 60일 SIM+Snapshot 일별 추적, F0↔F1 동일 세이브 A/B 비교를 추가했다. **114년 주행에서 4개국 멸망의 직접 원인 검증은 아직 진행 중이며, PC ×10 150년 SIM/BATCH 1000ms 미만 목표는 미달/미검증**이다.
+
+상세: [README-34F1.md](README-34F1.md) · [TEST-34F1.md](TEST-34F1.md) · [로컬 A/B](benchmark-local.html)
+
+---
+
 # V0.34F0 최신 개발판
 
 Settlement 단위 차등 배급 B안·개인별 신진대사, PC ×10 150년 SIM/BATCH 목표 기록. **최종 성능 목표 달성은 아직 확인되지 않음.** 상세 내용 `README-34F0.md`, 테스트 `TEST-34F0.md`.

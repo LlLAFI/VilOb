@@ -52,6 +52,10 @@ function prepare(group,s){if(group.started)return;group.started=true;const {w,v}
  group.received=got;s.received+=got;
  const policy=['BALANCED','CHILD_FIRST','WORK_FIRST'].includes(v.v034f0RationPolicy)?v.v034f0RationPolicy:'BALANCED';
  const allotments=allocate(people,got,policy);
+ // F1 observational hook: allocation has already been determined, so this
+ // cannot influence inventory, Person order, or RNG.
+ if(NS.V034F1?.recordRation){let hungerHigh=0,healthLow=0;for(const person of people){if(num(person.hunger)>=85)hungerHigh++;if(num(person.health)<25)healthLow++;}
+  NS.V034F1.recordRation(w,v,group,{requested,received:got,available,population:people.length,hungerHigh,healthLow});}
  for(const a of allotments)group.rations.set(a.p,a);
  // D3's physical withdrawal records the reserve as 'otherWithdrawn'. Relabel it
  // as meals in the existing 30-day ledger without creating/removing physical food.
@@ -149,5 +153,5 @@ badge();
 try{window.villageObserver?.renderHeader?.();}catch(e){}
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-14',title:'Settlement Metabolism B — 개인 생존·정착지 차등 배급',summary:'개별 주민의 Hunger·Health를 유지하고 식량 수요·출납을 정착지 단위로 통합합니다. 구버전과 생존 결과 및 RNG는 달라질 수 있습니다.',sections:[['정착지 배급',['기본·추가 식량 수요를 합쳐 Settlement별 배급량을 계산합니다.','아동·노약자·건강 취약자·근로자·군인에 따라 배급 우선순위를 다르게 적용하며 실제 재고에서 일괄 출납합니다.']],['개인 생존',['주민별 Hunger·Energy·Health·Happiness와 기아 누적 상태를 유지합니다.','영양 부족 정도에 따라 개인의 Hunger 완화와 건강 악화를 연속적으로 처리합니다.']],['성능·검증',['PC ×10 자연주행에서 인게임 SIM/BATCH 1000ms 미만, 150년까지 유지하는 것을 최종 목표로 삼습니다.','연도별 평활 SIM/BATCH 최고치·평균·초과 횟수와 인구·Settlement 수를 기록합니다.','F0는 모델 개편이므로 기존 버전과 RNG/수치 동등성은 요구하지 않습니다.']]]});
 NS.RELEASE_VERSION=VERSION;
-NS.V034F0=Object.freeze({version:VERSION,performanceReport,recordBatch:samplePerf,metabolismStats:w=>({...stats(w)}),needFor,priorityFor});
+NS.V034F0=Object.freeze({version:VERSION,performanceReport,recordBatch:samplePerf,metabolismStats:w=>({...stats(w)}),needFor,priorityFor,survive});
 })(window.VSim);
