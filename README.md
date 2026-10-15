@@ -1,3 +1,7 @@
+# Village Observer V0.34F2
+
+현 기준선: **V0.34F2 — Unified Person Lifecycle V1**. 상세 내용은 `README-34F2.md`, 검증은 `TEST-34F2.md` 참조.
+
 > **최신 V0.34F1A1** — F1A Food Flow 52열·식량 이상 13열의 문자열 단위 줄바꿈 출력 버그 수정. 시뮬레이션 수식·RNG 무변경. 큰 세이브를 업로드하지 않고 PC에서 직접 F1↔F1A1 동일 세이브를 검증하는 `benchmark-local.html` 갱신. `README-34F1A1.md` / `TEST-34F1A1.md`.
 
 > **최신 V0.34F1A** — 회계 정합성 패치. 자세한 설명: `README-34F1A.md` / `TEST-34F1A.md`. 모델·RNG는 F1 그대로이며 식량 초과비축/임시 점령 출납 기록만 정합화합니다.

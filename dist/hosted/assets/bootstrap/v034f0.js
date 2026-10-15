@@ -43,10 +43,13 @@ function prepare(group,s){if(group.started)return;group.started=true;const {w,v}
  // Settlement membership and stock are resolved once for the entire group.
  const m=D3?.members(v,group.anchor),available=Math.max(0,Number(v.stockAt(group.anchor,'food')||0));
  let capacity=0;
- for(const id of m?.ids||[group.anchor]){const tile=w.map.get(id);for(let i=0;i<(tile?.buildings||[]).length;i++){
-  if(num(tile.buildingCondition?.[i]??100)<=0)continue;
-  capacity+=Math.max(0,num(NS.BUILDINGS?.[tile.buildings[i]]?.capacity));
- }}
+ for(const id of m?.ids||[group.anchor]){const tile=w.map.get(id);
+  if(NS.V034F2?.enabled&&NS.V034D2?.capAt){capacity+=NS.V034D2.capAt(tile);continue;}
+  for(let i=0;i<(tile?.buildings||[]).length;i++){
+   if(num(tile.buildingCondition?.[i]??100)<=0)continue;
+   capacity+=Math.max(0,num(NS.BUILDINGS?.[tile.buildings[i]]?.capacity));
+  }
+ }
  group.housingStress=people.length?Math.min(1,Math.max(0,(people.length-capacity)/people.length)):0;
  const target=Math.min(requested,available),got=Math.max(0,Number(v.withdrawAt(group.anchor,'food',target)||0));
  group.received=got;s.received+=got;
@@ -97,7 +100,7 @@ function survive(p,v,w,worked,amount,need,housingStress=0){
 NS.Person.prototype.metabolism=function(v,w,worked=true){if(!this.alive)return;
  const s=cycleState(w),n=nationState(w,v,s),tile=w.map.get(Number(this.homeTileId)),sid=tile?.settlementId!=null?String(tile.settlementId):'tile-'+this.homeTileId;
  const group=n.groups.get(sid)||n.homeToGroup.get(Number(this.homeTileId));
- if(!group){s.missing++;survive(this,v,w,worked,false,needFor(this));return;}
+ if(!group){s.missing++;NS.V034F2?.missingHome?.(w,this);survive(this,v,w,worked,false,needFor(this));return;}
  prepare(group,s);
  const a=group.rations.get(this);if(!a||group.used.has(this))return;
  group.used.add(this);group.delivered+=a.given;s.delivered+=a.given;

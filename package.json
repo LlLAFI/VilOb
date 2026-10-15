@@ -1,12 +1,12 @@
 {
   "name": "village-observer",
-  "version": "0.34.0-f1a1",
+  "version": "0.34.0-f2",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
-    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-f1a.cjs && node tests/test-f1a1.cjs",
+    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-f2.cjs",
     "test:year": "node tests/test-d3-year.cjs",
     "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test": "node tools/build.mjs --check-only && npm run test:static",
@@ -18,7 +18,7 @@
     "test:e05": "node tests/test-e05.cjs && node tests/test-e05-parity.cjs && node tests/test-e05-stage.cjs",
     "test:f0": "node tests/test-f0.cjs",
     "test:f1": "node tests/test-f1.cjs",
-    "test:f1a": "node tests/test-f1a.cjs && node tests/test-f1a1.cjs"
+    "test:f1a": "node tests/test-f1a.cjs && node tests/test-f1a1.cjs && node tests/test-f2.cjs"
   },
   "engines": {
     "node": ">=18"

@@ -1,3 +1,7 @@
+## V0.34F2 추가사항
+
+신규 `src/bootstrap/v034f2.js`, `tools/f2-transform.mjs`를 빌드에서 마지막에 적용한다. F1A1 기준선 파일과 별개로 기존 169개 C1H 보호 블록 해시는 유지한다.
+
 > **최신 V0.34F1A1** — `src/bootstrap/v034f1a1.js`를 F1A 이후 로드. F1A Food Flow CSV 출력 조립만 수정하고 시뮬레이션은 유지. `npm run build`, `npm run test:static`, `F1A1_DAYS=180 node tests/test-f1a1.cjs`. 상세 `README-34F1A1.md`.
 
 > **최신: V0.34F1A** — `tools/f1a-transform.mjs`가 보호 레거시 008의 실제 초과비축 차감을 관측하고 `src/bootstrap/v034f1a.js`를 F1 뒤에 로드합니다. `npm run build`, `npm run test:static`, `F1A_DAYS=180 node tests/test-f1a.cjs`. `README-34F1A.md` 참고.
