@@ -14,9 +14,27 @@ function state(w){let s=observ.get(w);if(!s){s={startedOrdinal:calendar(w),windo
 function groupedPhysical(w){const rows=D3.economyRows(w),out=new Map();for(const r of rows){const x=freshRow(r.settlementId,r.nationId,r.nationName,r.tileIds);x.openingFood=x.closingFood=num(r.resources.food);x.openingNatural=x.closingNatural=num(r.naturalFoodRemaining);x.openingCapacity=x.closingCapacity=num(r.capacity.food);out.set(x.settlementId,x);}return out;}
 function start(w){const s=state(w),ordinal=calendar(w),bucket=Math.floor((ordinal-1)/30);if(s.live&&s.lastBucket===bucket)return s;
  if(s.live){finish(w,s);}const rows=groupedPhysical(w);s.live={bucket,startOrdinal:bucket*30+1,endOrdinal:(bucket+1)*30,startedAtOrdinal:ordinal,groups:Object.fromEntries(rows),partialStart:ordinal>bucket*30+1};s.lastBucket=bucket;return s;}
-function rowWithMembership(w,v,tid,m){const s=start(w),sid=m?.sid??('tile-'+tid),id=String(sid),ids=m?.ids||[Number(tid)];let r=s.live.groups[id];
+function rowWithMembership(w,v,tid,m){
+ let occupationLedger=false;
+ // F1A: inventory access stays filtered on occupation. Ledger topology does not:
+ // it groups all physical tiles of the same still-owned Settlement.
+ if(m?.source&&m.ids.length!==m.source.length){
+  occupationLedger=true;
+  m={sid:m.sid,ids:m.source.map(Number)};
+ }else if(!m){
+  const tile=w.map.get(Number(tid)),sid0=tile?.settlementId;
+  if(tile&&eq(tile.ownerId,v.id)&&sid0!=null){
+   const rec=w._v34bActive?.get(String(sid0))||(w.v34b?.settlements||[]).find(x=>eq(x.id,sid0)&&x.lifecycle==='ACTIVE');
+   if(rec&&eq(rec.nationId,v.id)&&rec.lifecycle==='ACTIVE'&&rec.tileIds.some(x=>Number(x)===Number(tid))){
+    occupationLedger=tile.v33OccupierId!=null&&!eq(tile.v33OccupierId,v.id);
+    m={sid:sid0,ids:rec.tileIds.map(Number)};
+   }
+  }
+ }
+ const s=start(w),sid=m?.sid??('tile-'+tid),id=String(sid),ids=m?.ids||[Number(tid)];let r=s.live.groups[id];
  if(!r){r=freshRow(id,String(v.id),v.name||'',ids);r.topologyChanged=true;r.openingFood=ids.reduce((n,id)=>n+D3.stockRaw(w,id,'food'),0);r.openingNatural=ids.reduce((n,id)=>n+num(w.map.get(id)?.resources?.food),0);s.live.groups[id]=r;}
  if(!eq(r.nationId,v.id)||r.tileIds.length!==ids.length||r.tileIds.some((id,i)=>id!==ids[i]))r.topologyChanged=true;
+ if(occupationLedger)r.occupationLedgerAttributions=(r.occupationLedgerAttributions||0)+1;
  return r;}
 function row(w,v,tid){return rowWithMembership(w,v,tid,D3.members(v,tid));}
 function add(w,v,tid,k,amount){if(!w||!v||!Number.isFinite(amount)||!amount)return;const r=row(w,v,tid);r[k]=(r[k]||0)+amount;const s=state(w);if(Object.hasOwn(s.total,k))s.total[k]+=amount;}

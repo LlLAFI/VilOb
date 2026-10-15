@@ -7,7 +7,7 @@ function boot(file,seed=0x6bc8e002){let state=seed,calls=0;const rand=Object.cre
  for(const m of fs.readFileSync(file,'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())try{new vm.Script(m[1]).runInContext(ctx,{timeout:30000});}catch(e){if(!/onclick/.test(e.message))throw e;}
  return {NS:ctx.VSim,calls:()=>calls};
 }
-const root=path.join(__dirname,'..'),base=boot(path.join(root,'index-F0-baseline.html')),target=boot(path.join(root,'index-standalone.html'));
+const root=path.join(__dirname,'..'),base=boot(path.join(root,'index-F0-baseline.html')),target=boot(path.join(root,'index-F1-baseline.html'));
 assert.equal(base.NS.RELEASE_VERSION,'V0.34F0');assert.equal(target.NS.RELEASE_VERSION,'V0.34F1');assert(target.NS.V034F1);
 const a=new base.NS.World(19,19),b=new target.NS.World(19,19);
 function fingerprint(w){const data=w.serialize();return JSON.stringify({year:data.year,day:data.day,season:data.season,villages:data.villages,map:data.map,war:data.wars,settlements:data.v34b||data.v034b});}
