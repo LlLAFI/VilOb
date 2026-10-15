@@ -6,7 +6,7 @@ function boot(file,seed=0x4ab1221d){let state=seed,calls=0;const rand=Object.cre
  ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
  for(const m of fs.readFileSync(file,'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())try{new vm.Script(m[1]).runInContext(ctx,{timeout:30000});}catch(e){if(!/onclick/.test(e.message))throw e;}
  return {NS:ctx.VSim,calls:()=>calls};}
-const root=path.join(__dirname,'..'),base=boot(path.join(root,'index-F1-baseline.html')),target=boot(path.join(root,'index-standalone.html'));
+const root=path.join(__dirname,'..'),base=boot(path.join(root,'index-F1-baseline.html')),target=boot(path.join(root,'index-F1A-baseline.html'));
 assert.equal(base.NS.RELEASE_VERSION,'V0.34F1');assert.equal(target.NS.RELEASE_VERSION,'V0.34F1A');
 assert(target.NS.V034F1A);assert.equal(target.NS.V034F1A.columns.length,52);
 const a=new base.NS.World(19,19),b=new target.NS.World(19,19);

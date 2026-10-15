@@ -1,3 +1,5 @@
+> **최신 V0.34F1A1** — `src/bootstrap/v034f1a1.js`를 F1A 이후 로드. F1A Food Flow CSV 출력 조립만 수정하고 시뮬레이션은 유지. `npm run build`, `npm run test:static`, `F1A1_DAYS=180 node tests/test-f1a1.cjs`. 상세 `README-34F1A1.md`.
+
 > **최신: V0.34F1A** — `tools/f1a-transform.mjs`가 보호 레거시 008의 실제 초과비축 차감을 관측하고 `src/bootstrap/v034f1a.js`를 F1 뒤에 로드합니다. `npm run build`, `npm run test:static`, `F1A_DAYS=180 node tests/test-f1a.cjs`. `README-34F1A.md` 참고.
 
 > **최신: V0.34F1** — `src/bootstrap/v034f1.js`를 F0 다음에 로드. 모델 수식은 F0 그대로이며 원인 진단만 추가. `npm run build`, `npm run test:static`, `F1_DAYS=360 node tests/test-f1.cjs`. 자세한 내용은 `README-34F1.md` / `TEST-34F1.md`.
