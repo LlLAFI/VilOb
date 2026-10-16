@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "fixture": {
+    "indexPulses": 1,
+    "indexTileRows": 10,
+    "indexSettlements": 2,
+    "multiTilePulses": 1,
+    "duplicateTileRows": 8,
+    "duplicateDonorCandidates": 8,
+    "hiddenShortageTiles": 9,
+    "falseDonorTiles": 9,
+    "duplicateUrgentReceivers": 0,
+    "sameSettlementPairs": 0,
+    "sameSettlementFallbackPairs": 0,
+    "pairSamples": 0,
+    "shipments": 0,
+    "sameSettlementShipments": 0,
+    "shipmentQty": 0,
+    "sameSettlementQty": 0,
+    "multiTileShipmentEndpoints": 0,
+    "potentialManhattanSavings": 0,
+    "maxPotentialManhattanSavings": 0,
+    "retainedAuditRows": 1,
+    "retentionLimit": 1200,
+    "observationScope": "V0.32E2 national emergency food relay decision points; geometry only for observed shipments",
+    "foodBalanceChanged": false,
+    "legacyDecisionChanged": false
+  },
+  "parity": [
+    {
+      "days": 180,
+      "digest": "af07f77d984665d99464b95e3784ad94d4625cb724d732ce1a4f3ce5ae32b1da",
+      "pop": 121,
+      "rngCalls": 115306,
+      "cycles": 420,
+      "auditPulses": 210,
+      "rows": 0
+    }
+  ]
+}

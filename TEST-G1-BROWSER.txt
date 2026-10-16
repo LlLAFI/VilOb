@@ -1,0 +1,2 @@
+BROWSER {'width': 1440, 'height': 900} {'version': 'V0.34G1', 'world': True, 'badge': 'Village Observer · V0.34G1', 'button': True, 'title': 'Village Observer V0.34G1', 'uiNation': '🧭 중기 전략 프로그램식량 자립 · 남은 1080일1~3년 단위로 유지하며 연 1회 재평가합니다. 생존·식량 비상상황은 프로그램보다 우선합니다.'} ERRORS []
+BROWSER {'width': 390, 'height': 844} {'version': 'V0.34G1', 'world': True, 'badge': 'Village Observer · V0.34G1', 'button': True, 'title': 'Village Observer V0.34G1', 'uiNation': '🧭 중기 전략 프로그램식량 자립 · 남은 900일1~3년 단위로 유지하며 연 1회 재평가합니다. 생존·식량 비상상황은 프로그램보다 우선합니다.'} ERRORS []

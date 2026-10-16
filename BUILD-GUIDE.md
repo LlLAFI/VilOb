@@ -1,3 +1,7 @@
+## V0.34G1 최신 빌드
+
+`node tools/build.mjs`; 회귀는 `npm test` 또는 `G1_DAYS=30,90,180 node tests/test-g1.cjs`. G1 물류 감사 CSV 추가. `README-34G1.md` 참고.
+
 ## V0.34F2 추가사항
 
 신규 `src/bootstrap/v034f2.js`, `tools/f2-transform.mjs`를 빌드에서 마지막에 적용한다. F1A1 기준선 파일과 별개로 기존 169개 C1H 보호 블록 해시는 유지한다.
