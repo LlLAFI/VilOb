@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto'),{performance}=require('node:perf_hooks');
 const root=path.join(__dirname,'..');
 const F3=process.env.G1_BASELINE_HTML||path.join(root,'index-G1-baseline.html');
-const G1=path.join(root,'index-standalone.html');
+const G1=path.join(root,'index-G1A-baseline.html');
 function boot(file,seed=0x223355aa){let state=seed,calls=0;
  const rng=Object.create(Math);rng.random=()=>{calls++;state^=state<<13;state^=state>>>17;state^=state<<5;return(state>>>0)/4294967296;};
  const el=()=>({style:{},innerHTML:'',textContent:'',appendChild(){},addEventListener(){},insertAdjacentElement(){},click(){},classList:{add(){},remove(){}},querySelector(){return null},querySelectorAll(){return []}});

@@ -104,7 +104,7 @@ function attachE2(w,src=null){w=attachE1(w,src);if(!w)return w;for(const v of w.
 
 /* D5 cadence remains the base; legacy D5 housing/relay are suppressed by E1 flags and replaced here. */
 const advanceD5=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){const r=advanceD5.call(this);runHousingResolverE1(this);nationalFoodRelayE1(this);return r;};
+NS.World.prototype.advanceOneDay=function(){const r=advanceD5.call(this);runHousingResolverE1(this);if(!NS.V034G2?.relay)nationalFoodRelayE1(this);return r;};
 
 /* Telemetry */
 const snapD5=NS.Telemetry.prototype.snapshot;

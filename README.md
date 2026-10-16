@@ -1,4 +1,10 @@
-# 현재 배포: V0.34G1A
+# 현재 배포: V0.34G2
+
+정착지 단위 식량 수요·공급, V27/V28/E2 구호 단일화, 실제 물리 타일 배송 경로. [README-34G2.md](README-34G2.md) / [TEST-34G2.md](TEST-34G2.md).
+
+이전 기준선 G1B: [README-34G1B.md](README-34G1B.md) / [TEST-34G1B.md](TEST-34G1B.md).
+
+# 이전 배포: V0.34G1A
 
 V0.34G1A 상세 설명: [README-34G1A.md](README-34G1A.md) / 검증: [TEST-34G1A.md](TEST-34G1A.md)
 

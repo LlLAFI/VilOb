@@ -159,7 +159,7 @@ function preemptiveFoodRelief27(w){
  const p=w._v27PerfCurrent||(w._v27PerfCurrent={});p.foodRelief=(p.foodRelief||0)+(now27()-t0);
 }
 const advance26=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){const prev=ACTIVE_WORLD27;ACTIVE_WORLD27=this;try{preemptiveFoodRelief27(this);return advance26.call(this);}finally{ACTIVE_WORLD27=prev;}};
+NS.World.prototype.advanceOneDay=function(){const prev=ACTIVE_WORLD27;ACTIVE_WORLD27=this;try{if(!NS.V034G2?.relay)preemptiveFoodRelief27(this);return advance26.call(this);}finally{ACTIVE_WORLD27=prev;}};
 
 /* ---------- V0.27 telemetry ---------- */
 function smooth27(old,cur,a=.24){const out={...old};for(const k of new Set([...Object.keys(old||{}),...Object.keys(cur||{})]))out[k]=Number(old?.[k]||0)*(1-a)+Number(cur?.[k]||0)*a;return out;}

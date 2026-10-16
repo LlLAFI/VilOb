@@ -1,3 +1,7 @@
+## 현재 빌드 V0.34G1B
+
+Standalone/Hosted: `npm run build`. 테스트: `npm test`, `python tests/browser-g1b-smoke.py`. G1B 부트스트랩은 G1A 다음 순서이며 버전 메타데이터·세이브/로드를 업데이트한다. 보호 C1H 소스는 변경하지 않는다.
+
 ## V0.34G1 최신 빌드
 
 `node tools/build.mjs`; 회귀는 `npm test` 또는 `G1_DAYS=30,90,180 node tests/test-g1.cjs`. G1 물류 감사 CSV 추가. `README-34G1.md` 참고.

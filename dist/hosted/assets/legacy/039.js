@@ -133,7 +133,7 @@ function urbanFoodRelief28(w){
 function migrationPulse28(w){const now=calDay28(w);if(w._v28MigrationDay===now||now%30!==0)return;w._v28MigrationDay=now;for(const v of w.activeVillages||[])v.internalMigration(w);}
 function developmentPulse28(w){if(w?._v32e1HousingManaged)return;const now=calDay28(w);if(w._v28HousingDay===now||now%30!==0)return;w._v28HousingDay=now;for(const v of w.activeVillages||[])housingPulse28(v,w);}
 const advance27=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){urbanFoodRelief28(this);const x=advance27.call(this);migrationPulse28(this);developmentPulse28(this);return x;};
+NS.World.prototype.advanceOneDay=function(){if(NS.V034G2?.relay)NS.V034G2.relay(this);else urbanFoodRelief28(this);const x=advance27.call(this);migrationPulse28(this);developmentPulse28(this);return x;};
 
 /* ---------- V0.28 telemetry ---------- */
 const snap27=NS.Telemetry.prototype.snapshot;

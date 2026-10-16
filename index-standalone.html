@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G1A</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G2</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -15,7 +15,7 @@ window.VSim.AIProfileCompat=function(subject,key){
 };
 </script>
 
-<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G1A</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G2</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -3806,7 +3806,7 @@ function preemptiveFoodRelief27(w){
  const p=w._v27PerfCurrent||(w._v27PerfCurrent={});p.foodRelief=(p.foodRelief||0)+(now27()-t0);
 }
 const advance26=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){const prev=ACTIVE_WORLD27;ACTIVE_WORLD27=this;try{preemptiveFoodRelief27(this);return advance26.call(this);}finally{ACTIVE_WORLD27=prev;}};
+NS.World.prototype.advanceOneDay=function(){const prev=ACTIVE_WORLD27;ACTIVE_WORLD27=this;try{if(!NS.V034G2?.relay)preemptiveFoodRelief27(this);return advance26.call(this);}finally{ACTIVE_WORLD27=prev;}};
 
 /* ---------- V0.27 telemetry ---------- */
 function smooth27(old,cur,a=.24){const out={...old};for(const k of new Set([...Object.keys(old||{}),...Object.keys(cur||{})]))out[k]=Number(old?.[k]||0)*(1-a)+Number(cur?.[k]||0)*a;return out;}
@@ -4002,7 +4002,7 @@ function urbanFoodRelief28(w){
 function migrationPulse28(w){const now=calDay28(w);if(w._v28MigrationDay===now||now%30!==0)return;w._v28MigrationDay=now;for(const v of w.activeVillages||[])v.internalMigration(w);}
 function developmentPulse28(w){if(w?._v32e1HousingManaged)return;const now=calDay28(w);if(w._v28HousingDay===now||now%30!==0)return;w._v28HousingDay=now;for(const v of w.activeVillages||[])housingPulse28(v,w);}
 const advance27=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){urbanFoodRelief28(this);const x=advance27.call(this);migrationPulse28(this);developmentPulse28(this);return x;};
+NS.World.prototype.advanceOneDay=function(){if(NS.V034G2?.relay)NS.V034G2.relay(this);else urbanFoodRelief28(this);const x=advance27.call(this);migrationPulse28(this);developmentPulse28(this);return x;};
 
 /* ---------- V0.28 telemetry ---------- */
 const snap27=NS.Telemetry.prototype.snapshot;
@@ -6589,7 +6589,7 @@ function attachE2(w,src=null){w=attachE1(w,src);if(!w)return w;for(const v of w.
 
 /* D5 cadence remains the base; legacy D5 housing/relay are suppressed by E1 flags and replaced here. */
 const advanceD5=NS.World.prototype.advanceOneDay;
-NS.World.prototype.advanceOneDay=function(){const r=advanceD5.call(this);runHousingResolverE1(this);nationalFoodRelayE1(this);return r;};
+NS.World.prototype.advanceOneDay=function(){const r=advanceD5.call(this);runHousingResolverE1(this);if(!NS.V034G2?.relay)nationalFoodRelayE1(this);return r;};
 
 /* Telemetry */
 const snapD5=NS.Telemetry.prototype.snapshot;
@@ -15777,6 +15777,247 @@ if(NS.UI){const content=NS.UI.prototype.renderVillageContent,header=NS.UI.protot
 if(typeof document!=='undefined'){const s=document.createElement('style');s.textContent=`.v034g1a-switch{display:flex;gap:6px;margin:8px 0 14px;position:sticky;top:0;z-index:2;background:var(--bg,#131c27);padding:5px;border-radius:9px}.v034g1a-switch button{flex:1;padding:9px;border-radius:8px;cursor:pointer}.v034g1a-switch button.active{border:1px solid #5b9fc6;background:rgba(91,159,198,.22);font-weight:700}.v034g1a-list{display:grid;gap:10px}.v034g1a-settlement-card{border:1px solid rgba(125,158,184,.35);border-radius:10px;padding:10px;background:rgba(90,134,165,.07)}.v034g1a-settlement-card summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}.v034g1a-settlement-card summary::-webkit-details-marker{display:none}.v034g1a-settlement-card summary span{display:flex;flex-direction:column;gap:3px}.v034g1a-settlement-card summary small{opacity:.72}.v034g1a-settlement-card summary .v034g1a-tag{font-size:12px;white-space:nowrap;opacity:.75}.v034g1a-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}.v034g1a-grid>div{background:rgba(101,134,164,.10);border-radius:6px;padding:8px;font-size:12px;display:flex;flex-direction:column;gap:3px}.v034g1a-members{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:7px 0}.v034g1a-members span{font-size:12px;opacity:.7;margin-right:5px}.v034g1a-members button,.v034g1a-jump{cursor:pointer;border:1px solid rgba(115,147,182,.35);border-radius:7px;padding:6px;font-size:12px}.v034g1a-jump{margin-top:9px}.v034g1a-top{margin-bottom:10px}`;document.head.appendChild(s);}
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-16',title:'정착지 카드·타일 탭 분리 및 식량 물류 감사 연결 안정화',summary:'국가 정착지 탭을 실제 정착지별 카드로 바꾸고 타일 상세를 별도 하위 탭에서 유지합니다. E2 물류 감사가 빈 파일로 끝나지 않도록 6일 정착지 샘플과 실제 운송 이벤트를 독립 계측합니다.',sections:[['국가 UI',['정착지별 공동 인구·주거·식량·자원 카드 및 구성 타일 버튼','정착지/타일 하위 탭 분리, 기존 타일 상세·지도 클릭 유지']],['감사',['6일마다 정착지 전체와 타일별 기존 비축 판단을 비교합니다.','실제 NATIONAL_FOOD_RELAY32D5 이벤트에서 배송 건수와 동일 정착지 배송 여부를 독립 기록합니다.','CSV 및 Devlog 요약은 G1A 전용으로 제공하며 감사 데이터는 세이브에 포함하지 않습니다.']],['변경하지 않은 것',['실제 물류·AI·F3 배급·RNG·전쟁·Gold·재고 보존식 미변경','최적 도로 경로와 정착지 수요 통합은 G2에서 처리']]]});
 NS.V034G1A=Object.freeze({version:VERSION,summary,csv,sample,observePair,observeShipment,groupsForUI});NS.RELEASE_VERSION=VERSION;
+try{window.villageObserver?.renderHeader?.();}catch(_e){}
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34G1B — settlement-first nation UI; read-only observation.
+ * No economy, logistics, AI, Person, RNG, or protected legacy source changes.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34G1B',PREVIOUS='V0.34G1A',KEY='village-observer-v034g1b';
+const n=x=>Number.isFinite(Number(x))?Number(x):0;
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(x,d=1)=>n(x).toFixed(d);
+const pct=(part,total)=>Math.max(0,Math.min(100,total>0?100*n(part)/n(total):0));
+const eq=(a,b)=>String(a)===String(b);
+const RES=[['food','🌾','식량'],['wood','🪵','목재'],['stone','🪨','석재'],['iron_ore','⛏','철광'],['iron','🔩','철'],['tools','🔧','도구']];
+const buildingIcon=b=>NS.BUILDINGS?.[b]?.icon||'▣';
+const buildingLabel=b=>NS.BUILDINGS?.[b]?.label||b;
+const terrain=t=>NS.TERRAIN?.[t?.terrain]?.label||String(t?.terrain||'미상');
+const bar=(value,maximum)=>`<div class="v034g1b-bar"><span style="width:${pct(value,maximum).toFixed(2)}%"></span></div>`;
+function dataFor(v,w){
+ const gs=NS.V034G1A.groupsForUI(v,w),personByTile=new Map(),personByGroup=new Map();
+ const byTile=new Map();for(const g of gs)for(const tid of g.tileIds||[])byTile.set(Number(tid),String(g.settlementId));
+ for(const p of v.residents||[]){if(p.alive===false)continue;const tid=Number(p.homeTileId),sid=byTile.get(tid);if(!sid)continue;
+  let a=personByGroup.get(sid);if(!a){a={count:0,age:0,health:0,happiness:0,hunger:0,severe:0,critical:0,jobs:new Map()};personByGroup.set(sid,a);}a.count++;a.age+=n(p.age);a.health+=n(p.health);a.happiness+=n(p.happiness);a.hunger+=n(p.hunger);if(n(p.hunger)>=85)a.severe++;if(n(p.hunger)>=95)a.critical++;const j=String(p.job||'미배정');a.jobs.set(j,(a.jobs.get(j)||0)+1);personByTile.set(tid,(personByTile.get(tid)||0)+1);
+ }
+ return{groups:gs,people:personByGroup,byTile,personByTile};
+}
+function groupData(v,w,g,people){
+ const ids=(g.tileIds||[]).map(Number),centerId=Number(g.coreTileId??ids[0]);const tiles=ids.map(id=>w.map.get(id)).filter(Boolean);
+ const raw=k=>Math.max(0,n(v.stockAt?.(centerId,k)));const stock=Object.fromEntries(RES.map(([k])=>[k,raw(k)]));
+ const sharedCaps=v.settlementCaps?.(centerId)||{};const capacity=Object.fromEntries(RES.map(([k])=>[k,Math.max(0,n(sharedCaps[k]))]));
+ const counts=new Map(),condition=[],cityNames=new Map(),urbScores=[],usedTiles=new Set();
+ for(const t of tiles){usedTiles.add(Number(t.id));(t.buildings||[]).forEach((b,i)=>{counts.set(b,(counts.get(b)||0)+1);condition.push(n(t.buildingCondition?.[i]??100));});}
+ // V28 tile urbanity is a historical tile-scoped statistic, not a settlement value.
+ // Show a derived tile-population-weighted figure only when existing cached rows are present.
+ const source=v._v28Summary?.data?.rows||[];for(const r of source){if(!usedTiles.has(Number(r.id)))continue;urbScores.push({val:n(r.urbanity),pop:Math.max(1,n(r.pop))});if(r.rank)cityNames.set(r.rank,(cityNames.get(r.rank)||0)+1);}
+ const urban=urbScores.length?urbScores.reduce((s,r)=>s+r.val*r.pop,0)/urbScores.reduce((s,r)=>s+r.pop,0):null;
+ return{ids,tiles,centerId,stock,capacity,counts,buildCondition:condition.length?condition.reduce((a,b)=>a+b,0)/condition.length:null,people:people||{count:0,age:0,health:0,happiness:0,hunger:0,severe:0,critical:0,jobs:new Map()},urban,cityNames};
+}
+function drawResources(d){return RES.map(([k,ico,label])=>{
+ const cap=d.capacity[k],val=d.stock[k];return`<div class="v034g1b-resource" title="정착지 전체 물리 재고 합계 / 구성 타일 저장 용량 합계"><span>${ico} ${label}</span>${bar(val,cap)}<span class="v034g1b-res-val">${f(val,0)} / ${f(cap,0)}</span></div>`;
+ }).join('');}
+function drawBuildings(d){const entries=[...d.counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));return entries.length?entries.map(([b,c])=>`<span class="v034g1b-building">${esc(buildingIcon(b))} ${esc(buildingLabel(b))} <strong>×${c}</strong></span>`).join(''):'<span class="v034g1b-note">건물 없음</span>';}
+function settlementCard(v,w,g,ps,open){
+ const d=groupData(v,w,g,ps),t=w.map.get(d.centerId),p=d.people,actualPop=n(g.population),cap=n(g.capacity),reserve=n(v.settlementReserveDays?.(d.centerId)),critical=p.critical||0;
+ const buildingTotal=[...d.counts.values()].reduce((a,b)=>a+b,0);
+ const jobList=[...p.jobs.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([job,c])=>`${esc(job)} ${c}`).join(' · ');
+ const urgent=critical>0||reserve<6;
+ return `<article class="v034g1b-settlement ${urgent?'v034g1b-urgent':''}" data-g1b-sid="${esc(g.settlementId)}">
+  <header><div><h3>🏘 정착지 ${esc(g.settlementId)}</h3><div class="v034g1b-sub">중심 (${t?.x??'?'},${t?.y??'?'}) · ${d.ids.length}타일 · ${buildingTotal}개 건물</div></div><div class="v034g1b-reserve" title="현재 F2 주민 구성별 3일 배급 요구량 기준">🌾 ${f(reserve)} <small>작업주기</small></div></header>
+  <div class="v034g1b-pop"><div class="v034g1b-pop-label"><strong>👥 ${actualPop}명</strong><span>공동 주거 ${f(cap,0)}명분${g.shortage>0?' · 부족 '+f(g.shortage,1):''}</span></div>${bar(actualPop,cap)}
+    <div class="v034g1b-pop-meta">평균 건강 ${p.count?f(p.health/p.count,0):'—'} · 행복 ${p.count?f(p.happiness/p.count,0):'—'} · Hunger ${p.count?f(p.hunger/p.count,0):'—'}${p.severe?' · 심한 Hunger '+p.severe+'명':''}</div></div>
+  <div class="v034g1b-overview"><span><b>주거</b> ${f(pct(actualPop,cap),0)}%</span><span><b>도시화</b> ${d.urban==null?'미집계':f(d.urban,0)+'/100'}</span><span><b>평균 연령</b> ${p.count?f(p.age/p.count):'—'}세</span><span><b>평균 시설 상태</b> ${d.buildCondition==null?'—':f(d.buildCondition,0)+'%'}</span></div>
+  <div class="v034g1b-resources">${drawResources(d)}</div>
+  <div class="v034g1b-buildings"><div class="v034g1b-section-title">🏗 시설 · ${buildingTotal}개</div><div class="v034g1b-building-list">${drawBuildings(d)}</div></div>
+  <div class="v034g1b-jobs"><b>직업 구성</b> <span>${jobList||'거주 주민 없음'}</span></div>
+  <div class="v034g1b-action"><button type="button" data-g1b-expand="${esc(g.settlementId)}">${open?'구성 타일 접기 ▴':'구성 타일 보기 ▾'}</button><button type="button" data-g1b-center="${d.centerId}">📍 지도에서 보기</button></div>
+  ${open?`<div class="v034g1b-member-list">${d.tiles.map(t=>`<button type="button" data-g1b-member="${t.id}">#${t.id} (${t.x},${t.y}) · ${esc(terrain(t))}</button>`).join('')}</div>`:''}
+ </article>`;
+}
+function tileDetail(v,w,t){const cap=Object.fromEntries(RES.map(([k])=>[k,n(NS.V034D3?.physicalCap?.(v,t.id,k))])),raw=k=>n(NS.V034D3?.stockRaw?.(w,t.id,k)??t.stocks?.[k]);return `<div class="v034g1b-tile-detail"><div class="v034g1b-section-title">개별 타일 정보 · 공동 정착지 재고가 아닌 실제 위치별 재고</div>
+  <div class="v034g1b-physical">${RES.map(([k,ico,label])=>`<span>${ico} ${label} ${f(raw(k),1)} / ${f(cap[k],1)}</span>`).join('')}</div>
+  <div class="v034g1b-building-list">${(t.buildings||[]).map(b=>`<span class="v034g1b-building">${esc(buildingIcon(b))} ${esc(buildingLabel(b))}</span>`).join('')||'시설 없음'}</div>
+  <button type="button" data-g1b-center="${t.id}">📍 지도에서 타일 상세 보기</button></div>`;}
+function render(ui){const w=ui.world,v=w?.selectedNation,root=ui.q?.('villageContent');if(!w||!v||!root)return;
+ const switcher=root.querySelector('.v034g1a-switch');const mode=ui._g1aMode==='tiles'?'tiles':'settlements';const model=dataFor(v,w),expanded=ui._g1bExpanded||(ui._g1bExpanded=new Set());
+ let html='';if(mode==='settlements'){
+  html=`<div class="v034g1b-heading"><strong>${esc(v.name)} · 정착지</strong><span>정착지 ${model.groups.length}개 · 영토 ${v.territory.size}타일</span></div><div class="v034g1b-cards">${model.groups.map(g=>settlementCard(v,w,g,model.people.get(String(g.settlementId)),expanded.has(String(g.settlementId)))).join('')}</div>`;
+ }else{
+  const tiles=[...v.territory].map(id=>w.map.get(Number(id))).filter(Boolean).sort((a,b)=>n(model.personByTile.get(b.id))-n(model.personByTile.get(a.id))||a.id-b.id),sel=ui._g1bTileOpen;
+  html=`<div class="v034g1b-heading"><strong>${esc(v.name)} · 타일</strong><span>${tiles.length}타일 · 선택하여 상세 보기</span></div><div class="v034g1b-tiles">${tiles.map(t=>{const selected=Number(sel)===t.id,pop=n(model.personByTile.get(t.id)),bid=(t.buildings||[]).length;return `<section class="v034g1b-tile-row ${selected?'is-selected':''}"><button type="button" class="v034g1b-tile-button" data-g1b-tile="${t.id}" aria-expanded="${selected}"><span class="v034g1b-tile-main">${t.id===v.coreTileId?'🏛':'▣'} <b>#${t.id}</b> (${t.x},${t.y}) · ${esc(terrain(t))}<small>정착지 ${esc(model.byTile.get(t.id)||'미배정')}</small></span><span class="v034g1b-tile-metrics">👥 ${pop} · 🏗 ${bid} ${selected?'▴':'▾'}</span></button>${selected?tileDetail(v,w,t):''}</section>`;}).join('')}</div>`;
+ }
+ // Preserve G1A's working mode switch, but replace previous dense/compact list contents.
+ const scroll=root.scrollTop,bar=switcher?.cloneNode(true);root.innerHTML='';if(bar){root.appendChild(bar);bar.querySelectorAll('[data-g1a-mode]').forEach(b=>b.addEventListener('click',()=>{ui._g1aMode=b.dataset.g1aMode;ui._g1bTileOpen=null;ui.renderVillageContent();}));}
+ const host=document.createElement('div');host.className='v034g1b-root';host.innerHTML=html;root.appendChild(host);root.scrollTop=scroll;
+ root.querySelectorAll('[data-g1b-expand]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.g1bExpand;expanded.has(id)?expanded.delete(id):expanded.add(id);ui.renderVillageContent();}));
+ root.querySelectorAll('[data-g1b-member]').forEach(b=>b.addEventListener('click',()=>{ui._g1aMode='tiles';ui._g1bTileOpen=Number(b.dataset.g1bMember);ui.world.selectedTileId=ui._g1bTileOpen;root.scrollTop=0;ui.renderVillageContent();const row=root.querySelector('.is-selected');row?.scrollIntoView({block:'nearest'});}));
+ root.querySelectorAll('[data-g1b-tile]').forEach(b=>b.addEventListener('click',()=>{const id=Number(b.dataset.g1bTile);ui._g1bTileOpen=ui._g1bTileOpen===id?null:id;ui.world.selectedTileId=id;ui.renderVillageContent();}));
+ root.querySelectorAll('[data-g1b-center]').forEach(b=>b.addEventListener('click',()=>{ui.world.selectedTileId=Number(b.dataset.g1bCenter);ui.view='map';ui.renderViews();}));
+}
+const priorSave=NS.SaveSystem;
+NS.SaveSystem={...priorSave,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const s=localStorage.getItem(KEY)||localStorage.getItem('village-observer-v034g1a')||localStorage.getItem('village-observer-v034g1')||localStorage.getItem('village-observer-v034f3')||localStorage.getItem('village-observer-v034f2');return s?NS.World.from(JSON.parse(s)):null;},
+ export(w){const data=JSON.stringify(w.serialize()),url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`village-observer-v034G1B-save-${w.year}y.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},
+ exportDevJSON(w){const data=JSON.stringify(w.telemetry.toJSON(w)),url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`village-observer-v034G1B-devlog-${w.telemetry.sessionId}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},
+};
+const serialize=NS.World.prototype.serialize,from=NS.World.from;
+NS.World.prototype.serialize=function(){const d=serialize.call(this);d.version=VERSION;d.v034g1b={ui:'settlement-detail/tile-compact',simulationChanged:false};return d;};
+NS.World.from=function(data){if(!data||typeof data!=='object')throw Error('잘못된 세이브');return from(data.version===VERSION?{...data,version:PREVIOUS}:data);};
+const toJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const j=toJSON.call(this,w);j.version=VERSION;j.worldSummary=j.worldSummary||{};j.worldSummary.v034g1b={ui:'settlement-detail/tile-compact',simulationChanged:false};return j;};
+if(NS.UI){const old=NS.UI.prototype.renderVillageContent,head=NS.UI.prototype.renderHeader;
+ NS.UI.prototype.renderVillageContent=function(...args){const result=old.apply(this,args);if(this.sub==='settlements')render(this);return result;};
+ NS.UI.prototype.renderHeader=function(...args){const r=head.apply(this,args);document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';return r;};
+}
+if(typeof document!=='undefined'){
+ const s=document.createElement('style');s.textContent=`
+ .v034g1b-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin:12px 0}.v034g1b-heading>strong{font-size:17px}.v034g1b-heading>span{font-size:12px;opacity:.72}
+ .v034g1b-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v034g1b-settlement{border:1px solid rgba(115,148,177,.38);border-radius:12px;background:rgba(17,34,51,.39);padding:12px;min-width:0}.v034g1b-settlement.v034g1b-urgent{border-left:3px solid #e8a750}
+ .v034g1b-settlement>header{display:flex;justify-content:space-between;gap:6px;align-items:flex-start;margin-bottom:8px}.v034g1b-settlement h3{font-size:14px;line-height:1.25;margin:0 0 4px;font-weight:700}.v034g1b-sub{font-size:11px;opacity:.7}.v034g1b-reserve{font-size:13px;white-space:nowrap;color:#b6d7f0;font-weight:700}.v034g1b-reserve small{font-size:10px;font-weight:400;opacity:.75}
+ .v034g1b-pop{border:1px solid rgba(92,143,192,.32);border-radius:9px;padding:9px;background:rgba(52,110,161,.13)}.v034g1b-pop-label{display:flex;justify-content:space-between;font-size:12px;gap:8px}.v034g1b-pop-label span{opacity:.78}.v034g1b-bar{height:7px;min-width:15px;flex:1;border-radius:6px;background:rgba(130,170,205,.15);overflow:hidden}.v034g1b-bar>span{height:100%;display:block;background:#70b3ef;border-radius:6px}.v034g1b-pop>.v034g1b-bar{margin-top:7px}.v034g1b-pop-meta{font-size:11px;line-height:1.45;margin-top:6px;opacity:.78}
+ .v034g1b-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;font-size:11px;margin:8px 0}.v034g1b-overview>span{border-radius:5px;background:rgba(107,143,175,.11);padding:5px}.v034g1b-overview b{font-weight:600}
+ .v034g1b-resources{display:grid;gap:4px;margin:8px 0}.v034g1b-resource{display:flex;align-items:center;gap:7px;font-size:11px}.v034g1b-resource>span:first-child{width:57px;flex:none}.v034g1b-resource .v034g1b-bar{height:6px}.v034g1b-res-val{width:81px;text-align:right;flex:none;white-space:nowrap;opacity:.8}
+ .v034g1b-section-title{font-size:11px;font-weight:700;margin-bottom:6px}.v034g1b-building-list{display:flex;flex-wrap:wrap;gap:5px}.v034g1b-building{font-size:10px;border-radius:100px;border:1px solid rgba(123,159,189,.4);padding:4px 7px;white-space:nowrap}.v034g1b-note{font-size:11px;opacity:.62}.v034g1b-buildings{margin-top:8px}.v034g1b-jobs{display:flex;gap:6px;font-size:11px;line-height:1.5;margin-top:9px}.v034g1b-jobs span{opacity:.77}
+ .v034g1b-action{display:flex;gap:7px;justify-content:space-between;margin-top:9px}.v034g1b-action button,.v034g1b-member-list button,.v034g1b-tile-detail button{font-size:11px;border-radius:7px;padding:6px 8px;cursor:pointer;border:1px solid rgba(105,147,190,.40)}.v034g1b-member-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+ .v034g1b-tiles{display:grid;gap:6px}.v034g1b-tile-row{border:1px solid rgba(121,161,192,.35);border-radius:9px;overflow:hidden;background:rgba(104,141,179,.06)}.v034g1b-tile-row.is-selected{border-color:#74b7ef}.v034g1b-tile-button{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;width:100%;padding:9px 12px;text-align:left;background:transparent;border:0;color:inherit}.v034g1b-tile-main{font-size:12px;line-height:1.45}.v034g1b-tile-main small{display:block;opacity:.65}.v034g1b-tile-metrics{font-size:11px;opacity:.76;white-space:nowrap}.v034g1b-tile-detail{padding:12px;border-top:1px solid rgba(121,161,192,.32)}.v034g1b-physical{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;margin-bottom:9px}.v034g1b-physical>span{padding:4px 6px;border-radius:5px;background:rgba(101,143,184,.11)}.v034g1b-tile-detail button{margin-top:10px}
+ @media(max-width:730px){.v034g1b-cards{grid-template-columns:1fr}.v034g1b-settlement{padding:9px}.v034g1b-res-val{width:76px}.v034g1b-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ `;document.head.appendChild(s);
+}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-16',title:'정착지 상세 카드 · 타일 간결 목록',summary:'국가 정보에서 공동 경제와 인구·주거·시설을 정착지 상세 카드에 모으고, 타일은 선택형 간결 목록으로 전환합니다. 식량 비축 표시는 F2의 3일 작업주기 단위를 통일합니다.',sections:[['정착지 중심 화면',['실제 Settlement별 2열 카드(모바일 1열)에서 공동 재고, 주거, 평균 건강·행복, 건물 구성과 주민 직업을 바로 확인할 수 있습니다.','구성 타일은 필요할 때만 펼쳐보고 지도 상세로 이동합니다.']],['타일 탐색',['많은 타일을 빠르게 훑을 수 있는 압축 목록으로 전환합니다.','타일을 클릭하면 해당 타일의 물리 재고·건물만 펼쳐 보여 줍니다.']],['표시 정합성',['F2 식량 비축값을 작업주기(3일)로 명시하고 개별 타일의 공동 비축값 반복을 제거합니다.','공동 재고와 개별 타일의 실제 물리 재고를 구분 표시합니다.']],['비변경 범위',['G1A 물류 감사·F3 대사·RNG·경제·AI·군사·도로·공간 통합 규칙은 유지됩니다.','G2 정착지 단위 물류 알고리즘과 G3 원형 반경 확장은 아직 적용되지 않았습니다.']]]});
+NS.V034G1B=Object.freeze({version:VERSION,dataFor,groupData});NS.RELEASE_VERSION=VERSION;
+try{window.villageObserver?.renderHeader?.();}catch(_e){}
+})(window.VSim);
+
+</script>
+<script>
+/* V0.34G2 Settlement Logistics V2 — unified same-nation food relief.
+ * A Settlement owns exactly one food demand and one physical pool. Inter-Settlement
+ * delivery chooses a legal reachable tile pair using the real route cost. No RNG.
+ * Legacy V27/V28/E2 food relief is retained only as a pre-bootstrap fallback.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34G2',PREVIOUS='V0.34G1B',KEY='village-observer-v034g2';
+const num=x=>Number.isFinite(Number(x))?Number(x):0;
+const same=(a,b)=>String(a)===String(b);
+const cal=w=>num(w?.calendarOrdinalDay?.()??((w?.ordinalDay?.()||0)*3));
+const n5=x=>+num(x).toFixed(5);
+const diag=new WeakMap();
+function stats(w){let s=diag.get(w);if(!s){s={pulses:0,nationPulses:0,settlementReads:0,receivers:0,donorCandidates:0,skippedSameSettlement:0,routePairsChecked:0,routePairsReachable:0,routeCacheHits:0,blocked:{},shipments:0,quantity:0,returned:0,failedReturns:0,invalidEndpoints:0,physicalMismatch:0,foodDemand:0,hiddenLegacyShortages:0,retainedRoutes:[],lastDay:-1};diag.set(w,s);}return s;}
+const block=(s,k)=>s.blocked[k]=(s.blocked[k]||0)+1;
+function tileOK(w,v,tid){const t=w.map?.get(Number(tid));return !!(t&&same(t.ownerId,v.id)&&!(t.v33OccupierId!=null&&!same(t.v33OccupierId,v.id)));}
+function groups(v,w){
+ const g=new Map(),byTile=new Map(),territory=Array.from(v.territory||[],Number).sort((a,b)=>a-b);
+ for(const id of territory){if(!tileOK(w,v,id))continue;const t=w.map.get(id),sid=t.settlementId!=null?String(t.settlementId):'tile:'+id;
+  let x=g.get(sid);if(!x){x={sid,ids:[],anchor:id,pop:0,adults:0,tileAdults:new Map(),severe:0,critical:0,hunger:0,need:0,stock:0,days:0,avgHunger:0,room:0};g.set(sid,x);}
+  x.ids.push(id);byTile.set(id,x);x.stock+=num(NS.V034D3?.stockRaw?.(w,id,'food')??t.stocks?.food);
+  x.room+=Math.max(0,num(NS.V034D3?.physicalCap?.(v,id,'food'))-num(NS.V034D3?.stockRaw?.(w,id,'food')??t.stocks?.food));
+ }
+ for(const p of v.residents||[]){if(p.alive===false)continue;const x=byTile.get(Number(p.homeTileId));if(!x)continue;
+  x.pop++;x.need+=num(NS.V034F0?.needFor?.(p)??(num(p.age)<15?.30:.42));x.hunger+=num(p.hunger);
+  if(num(p.hunger)>=85)x.severe++;if(num(p.hunger)>=95)x.critical++;
+  if(num(p.age)>=16&&p.assignment!=='PIONEER'&&p.militaryStatus32A!=='active'){x.adults++;const tid=Number(p.homeTileId);x.tileAdults.set(tid,(x.tileAdults.get(tid)||0)+1);}
+ }
+ for(const x of g.values()){x.avgHunger=x.pop?x.hunger/x.pop:0;x.days=x.pop?x.stock/Math.max(.12,x.need):999;}
+ return [...g.values()].filter(x=>x.pop>0).sort((a,b)=>a.anchor-b.anchor);
+}
+const demandUrgent=x=>x.days<(x.pop>=4?18:10)||x.critical>0||x.severe>0||x.avgHunger>=58;
+const donorOK=(x,floor)=>x.days>floor&&x.stock>Math.max(8,x.need*floor);
+const manhattan=(w,a,b)=>{const x=w.map.get(a),y=w.map.get(b);return Math.abs(num(x?.x)-num(y?.x))+Math.abs(num(x?.y)-num(y?.y));};
+function routeCost(v,w,from,to){
+ const first=v.internalPathCost?.(from,to);let cost=first==null?Infinity:Number(first);
+ if(!Number.isFinite(cost)){const raw=w.map.tradePathCost?.([from],[to],new Set([v.id]));cost=raw==null?Infinity:Number(raw);}
+ return Number.isFinite(cost)&&cost>=0?cost:Infinity;
+}
+// Cache only within the CURRENT relay day. Roads, ownership, occupation and
+// topology can change between pulses; stale routes are not silently reused.
+function bestPair(v,w,d,r,routeCache,s){
+ let best=null;
+ const candidates=[];for(const a of d.ids)for(const b of r.ids){if(!tileOK(w,v,a)||!tileOK(w,v,b))continue;candidates.push({a,b,md:manhattan(w,a,b)});}
+ candidates.sort((p,q)=>p.md-q.md||p.a-q.a||p.b-q.b);
+ for(const {a,b} of candidates){const key=a+'>'+b;let cost=routeCache.get(key);
+  if(cost===undefined){cost=routeCost(v,w,a,b);routeCache.set(key,cost);s.routePairsChecked++;}else s.routeCacheHits++;
+  if(!Number.isFinite(cost))continue;s.routePairsReachable++;
+  const regular=v.internalLogisticsCapacity?.(a,b,'food',false);
+  // Preserve E2's emergency-capacity fallback, ONLY for two distinct Settlements.
+  // Prevent D3_SHARED_POOL_NO_SHIPMENT from ever becoming a positive shipment.
+  const carrier=Math.max(1,(d.tileAdults?.get(a)||0)+(r.tileAdults?.get(b)||0)),fallback=Math.max(2,carrier*2.8/(1+cost*.08));
+  const cap=Math.max(0,num(regular?.capacity),fallback);
+  if(cap<.5)continue;
+  if(!best||cost<best.cost-1e-9||(Math.abs(cost-best.cost)<1e-9&&(cap>best.cap+1e-9||Math.abs(cap-best.cap)<1e-9&&(a<best.from||a===best.from&&b<best.to))))best={from:a,to:b,cost,cap};
+ }
+ return best;
+}
+function relay(w){
+ if(!w||num(w._v24Subday??2)<2)return;const s=stats(w),now=cal(w);s.pulses++;s.lastDay=now;
+ for(const v of w.activeVillages||[]){v.v32e1=v.v32e1||{};v.v32e2=v.v32e2||{};v.v32d5=v.v32d5||{};
+  const e=v.v32e1;if(now-num(e.lastFoodRelayCal??-99999)<3)continue;e.lastFoodRelayCal=now;s.nationPulses++;
+  const state=groups(v,w),cache=new Map();e.foodDonorIndexBuilds=num(e.foodDonorIndexBuilds)+1;s.settlementReads+=state.length;
+  const receivers=state.filter(demandUrgent).sort((a,b)=>b.critical-a.critical||b.severe-a.severe||a.days-b.days||a.anchor-b.anchor);
+  s.receivers+=receivers.length;s.foodDemand+=receivers.reduce((a,x)=>a+x.need,0);
+  // Original E2 caps urgency processing at four destinations per nation and pulse.
+  for(const r of receivers.slice(0,4)){
+   const crisis=r.critical>0||r.severe>0||r.days<8||r.avgHunger>=72;
+   const floor=crisis?24:40;
+   const donors=state.filter(d=>d.sid!==r.sid&&donorOK(d,floor)&&d.stock-d.need*floor>=.5);
+   s.skippedSameSettlement++; // intentionally exclude the requesting Settlement
+   if(!donors.length){block(s,'DONOR_RESERVE');continue;}
+   const remembered=e.recentFoodDonor?.['settlement:'+r.sid];
+   const shortlist=donors.map(d=>({d,md:Math.min(...d.ids.flatMap(a=>r.ids.map(b=>manhattan(w,a,b))))})).sort((a,b)=>(a.d.sid===remembered?-100:0)+a.md*2.6-(b.d.sid===remembered?-100:0)-b.md*2.6||b.d.days-a.d.days||a.d.anchor-b.d.anchor).slice(0,5).map(x=>x.d);
+   v.v32e2.foodCandidateShortlists=num(v.v32e2.foodCandidateShortlists)+1;
+   let best=null,routeSeen=false,capacitySeen=false;
+   for(const d of shortlist){s.donorCandidates++;const pair=bestPair(v,w,d,r,cache,s);if(!pair)continue;routeSeen=true;if(pair.cap<.5)continue;capacitySeen=true;
+    const surplus=Math.max(0,d.stock-d.need*floor);
+    const score=pair.cost*2.4-d.days*.10-d.stock*.002-(d.sid===remembered?.8:0);
+    if(!best||score<best.score||score===best.score&&d.anchor<best.d.anchor)best={...pair,d,score,surplus};
+   }
+   if(!best){block(s,!routeSeen?'NO_ROUTE':!capacitySeen?'CAPACITY':'NO_STOCK');continue;}
+   const target=crisis?38:30;
+   const need=Math.max(0,r.need*target-r.stock);
+   const qty=Math.min(need,best.surplus,best.cap*(r.critical>0?2:1.35),r.room);
+   if(qty<.5){block(s,r.room<.5?'STORAGE':'CAPACITY');continue;}
+   // Physical withdrawals / deposits use D3's existing conserved Settlement pool.
+   const initial=num(v.stockAt?.(best.from,'food'))+num(v.stockAt?.(best.to,'food'));
+   const took=num(v.withdrawAt(best.from,'food',qty));
+   const put=num(v.depositAt(best.to,'food',took));
+   const rejected=Math.max(0,took-put);
+   if(rejected>1e-9){const restored=num(v.depositAt(best.from,'food',rejected));s.returned+=restored;if(restored+1e-7<rejected){s.failedReturns++;block(s,'RETURN_FAILED');}}
+   if(put<=0){block(s,'STORAGE');continue;}
+   const final=num(v.stockAt?.(best.from,'food'))+num(v.stockAt?.(best.to,'food'));
+   if(Math.abs(final-initial)>1e-6){s.physicalMismatch++;block(s,'CONSERVATION');}
+   e.recentFoodDonor=e.recentFoodDonor||{};e.recentFoodDonor['settlement:'+r.sid]=best.d.sid;
+   v.logisticsStats=v.logisticsStats||{};v.logisticsStats.moves=num(v.logisticsStats.moves)+1;v.logisticsStats.foodMoved=num(v.logisticsStats.foodMoved)+put;
+   v.v32d5.foodRelayMoves=num(v.v32d5.foodRelayMoves)+1;v.v32d5.foodRelayQty=num(v.v32d5.foodRelayQty)+put;
+   s.shipments++;s.quantity+=put;
+   s.retainedRoutes.push({day:now,nation:v.name,fromSettlementId:best.d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,cost:n5(best.cost),qty:n5(put),donorCycles:n5(best.d.days),receiverCycles:n5(r.days)});
+   if(s.retainedRoutes.length>300)s.retainedRoutes.shift();
+   w.telemetry?.record?.('NATIONAL_FOOD_RELAY32D5',w,{village:v.name,villageId:v.id,fromSettlementId:best.d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,qty:+put.toFixed(2),routeCost:+best.cost.toFixed(2),receiverDaysBefore:+r.days.toFixed(1),donorDaysBefore:+best.d.days.toFixed(1),severeHunger:r.severe,criticalHunger:r.critical,model:'V0.34G2_SETTLEMENT_ROUTE'});
+  }
+ }
+}
+function summary(w){const s=stats(w);return{...s,quantity:n5(s.quantity),returned:n5(s.returned),retainedRoutes:s.retainedRoutes.length,transportRule:'same-nation unified food relief (V27/V28/E2 replaced)',demandBasis:'F0 age-weighted demand per 3-day work cycle',endpointChoice:'minimum actual passable route cost among Settlement member tile pairs',cadence:'3-day work cycle / before consumption',internalShipmentForbidden:true,conservationErrors:s.physicalMismatch+s.failedReturns};}
+const HEAD=['day','nation','fromSettlementId','toSettlementId','fromTileId','toTileId','cost','qty','donorCycles','receiverCycles'];
+const csv=w=>[HEAD.join(','),...stats(w).retainedRoutes.map(r=>HEAD.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n');
+function download(name,contents,mime){const url=URL.createObjectURL(new Blob([contents],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+const sav=NS.SaveSystem;
+NS.SaveSystem={...sav,save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},load(){const raw=localStorage.getItem(KEY)||localStorage.getItem('village-observer-v034g1b')||localStorage.getItem('village-observer-v034g1a')||localStorage.getItem('village-observer-v034g1')||localStorage.getItem('village-observer-v034f3');return raw?NS.World.from(JSON.parse(raw)):null;},
+ export(w){download(`village-observer-v034G2-save-${w.year}y.json`,JSON.stringify(w.serialize()),'application/json');},
+ exportDevJSON(w){download(`village-observer-v034G2-devlog-${w.telemetry.sessionId}.json`,JSON.stringify(w.telemetry.toJSON(w)),'application/json');},
+ exportG2Routes(w){download(`village-observer-v034G2-relay-routes-${w.telemetry?.sessionId||'session'}.csv`,'\ufeff'+csv(w),'text/csv;charset=utf-8');}
+};
+const serialize=NS.World.prototype.serialize,from=NS.World.from;
+NS.World.prototype.serialize=function(){const d=serialize.call(this);d.version=VERSION;d.v034g2={policy:'Settlement-level unified food relief',schema:'G1B-compatible',notes:'G2 audit counters are transient'};return d;};
+NS.World.from=function(d){if(!d||typeof d!=='object')throw Error('잘못된 세이브');return from(d.version===VERSION?{...d,version:PREVIOUS}:d);};
+const json=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const j=json.call(this,w);j.version=VERSION;j.worldSummary=j.worldSummary||{};j.worldSummary.v034g2=summary(w);return j;};
+if(NS.UI){const header=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...args){const x=header.apply(this,args);document.title='Village Observer '+VERSION;const label=document.getElementById('versionBadge');if(label)label.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const near=document.getElementById('exportLogisticsAuditG1Btn');if(near&&!document.getElementById('exportG2RelayBtn')){const b=document.createElement('button');b.id='exportG2RelayBtn';b.textContent='G2 정착지 배송 CSV';b.title='정착지 간 실제 배송 경로·식량량 (최대 최근 300건)';b.addEventListener('click',()=>NS.SaveSystem.exportG2Routes(this.world));near.insertAdjacentElement('afterend',b);}return x;};}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-17',title:'정착지 단위 통합 식량 구호 V2',summary:'V27·V28·E2의 타일별 식량 구호를 정착지 공동 재고·연령별 수요로 통합하고, 실제 통행 가능한 타일 쌍을 통해 배송합니다.',sections:[['정착지 기준 판단',['F0/F2의 실제 연령별 3일 작업주기 식량 수요와 D3의 물리 공동 식량 재고를 정착지마다 한 번 집계합니다.','동일 정착지 내부 수송은 후보에서 제외하며, 국가 내 서로 다른 정착지 간에만 긴급 보급합니다.']],['물리 배송 경로',['양쪽 정착지의 점령되지 않은 소속 타일의 실제 경로비를 비교해 가장 저렴한 출발·도착 타일 쌍을 선택합니다.','기존 용량·재고 출고·도착지 저장 공간·잔량 원상복구·식량 보존식은 유지합니다.']],['검증 및 범위',['G2는 기존 구호를 대체해 3일 작업주기 직전에 한 번 실행됩니다. 배송 CSV 및 DEVLOG worldSummary.v034g2를 추가합니다.','기존 V27·V28·E2 식량 구호는 G2 단일 루틴으로 대체합니다. 국내 상업 거래, 국제 교역, F3 신진대사, 군사 이동, 정착지 병합 범위는 변경하지 않습니다.']]]});
+NS.RELEASE_VERSION=VERSION;
+NS.V034G2=Object.freeze({version:VERSION,relay,groups,bestPair,summary,csv});
 try{window.villageObserver?.renderHeader?.();}catch(_e){}
 })(window.VSim);
 
