@@ -78,21 +78,15 @@ function survive(p,v,w,worked,amount,need,housingStress=0){
  NS.V032E10?.recordMeal?.(p,v,w,need,amount,ratio>=.8);
  p.energy=clamp(p.energy+(worked?8+Math.random()*5:10+Math.random()*5)*(.65+.35*ratio));
  p.energy+=(82-p.energy)*.035;
- let delta=(82-num(p.health))*.002-(1-ratio)*1.0;
- if(p.hunger>80)delta-=.65;
+ let delta=(82-num(p.health))*.002-NS.V034F3.nutritionLoss(ratio,p.hunger);
  if(p.age>60)delta-=.035;
  p.health=clamp(num(p.health)+delta);
  if(v.hasTech?.('SANITATION')&&p.alive&&p.health<86&&p.hunger<70)p.health=Math.min(100,p.health+.012);
  if(housingStress>0){p.housingStrainDays=num(p.housingStrainDays)+1;
-  if(p.housingStrainDays>20){p.energy=clamp(p.energy-.035-.11*housingStress);p.happiness=clamp(p.happiness-.015-.045*housingStress);}
+  if(p.housingStrainDays>20){p.energy=clamp(p.energy-.035-.11*housingStress);}
   if(p.housingStrainDays>45)p.health=clamp(p.health-.01-.035*housingStress);
  }else p.housingStrainDays=Math.max(0,num(p.housingStrainDays)-2);
- p.happiness=clamp(num(p.happiness)+(65-num(p.happiness))*.0025-(1-ratio)*.18);
- const target=clamp(52+(50-p.hunger)*.18+(p.health-60)*.10+(p.energy-55)*.07-8*housingStress,15,90);
- p.happinessTarget=target;p.happiness=clamp(p.happiness+(target-p.happiness)*.014);
- const festival=v.festivalState;
- if(festival&&num(festival.until)>=w.ordinalDay?.()){const ft=clamp(target+(Number(p.homeTileId)===Number(festival.tileId)?8:3),0,95);
-  p.happinessTarget=ft;p.happiness=clamp(p.happiness+(ft-p.happiness)*.012);}
+ NS.V034F3.updateHappiness(p,v,w,ratio,housingStress);
  if(p.hunger<95)p._v30b3Hunger100SinceCal=null;
  // One individual health/hunger experience despite collective food allocation.
  return ratio;

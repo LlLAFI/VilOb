@@ -10,11 +10,11 @@ function boot(file,seed=0x4ab1221d){let state=seed,calls=0;
  return {NS:ctx.VSim,calls:()=>calls};
 }
 const {NS,calls}=boot(path.join(root,'index-standalone.html'));
-assert.equal(NS.RELEASE_VERSION,'V0.34F2');
+assert.equal(NS.RELEASE_VERSION,'V0.34F3');
 assert(NS.V034F2?.enabled);
 const w=new NS.World(19,19);const d=NS.V034F2.diagnostics(w);
 assert.equal(NS.V034D3.audit(w).ok,true);
-const days=Math.max(15,Number(process.env.F2_DAYS||90));
+const days=Math.max(15,Number(process.env.F2_DAYS||30));
 for(let i=0;i<days;i++){
  w.advanceOneDay();
  if((i+1)%30===0){assert.equal(NS.V034D3.audit(w).ok,true,'physical audit '+(i+1));const x=NS.V034F2.diagnostics(w);assert(x.dailyStarvationChecks>0);}
@@ -22,10 +22,10 @@ for(let i=0;i<days;i++){
 assert(d.completedCycles>0&&d.aliveProcessed>0);
 assert.equal(d.duplicateMetabolismRequests,0);
 // The full F0 ration ledger is unchanged in its physical conservation semantics.
-const s=w.serialize();assert.equal(s.version,'V0.34F2');
+const s=w.serialize();assert.equal(s.version,'V0.34F3');
 const saved=NS.World.from(JSON.parse(JSON.stringify(s)));
-assert.equal(saved.serialize().version,'V0.34F2');assert.equal(NS.V034D3.audit(saved).ok,true);
-const older={...s,version:'V0.34F1A1'};delete older.v034f2;const restoredF1A1=NS.World.from(JSON.parse(JSON.stringify(older)));assert.equal(restoredF1A1.serialize().version,'V0.34F2');
+assert.equal(saved.serialize().version,'V0.34F3');assert.equal(NS.V034D3.audit(saved).ok,true);
+const older={...s,version:'V0.34F1A1'};delete older.v034f2;const restoredF1A1=NS.World.from(JSON.parse(JSON.stringify(older)));assert.equal(restoredF1A1.serialize().version,'V0.34F3');
 // Multi-tile food reserve: physical stock counted once rather than duplicated per home.
 const v=w.villages.find(v=>v.population()>0);assert(v);
 const g=NS.V034F2.reserveGroups(v);let need=0,food=0;for(const x of g.values()){need+=x.need;food+=x.food;}

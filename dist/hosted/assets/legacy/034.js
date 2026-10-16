@@ -57,7 +57,7 @@ function dailyDemography24(w){
  for(const v of [...w.activeVillages]){ensureNation24(v,w);const f=deathTechFactors24(v),people=v.residents.filter(p=>p.alive),counts=new Map(),caps=new Map();for(const p of people)counts.set(p.homeTileId,(counts.get(p.homeTileId)||0)+1);for(const id of counts.keys())caps.set(id,localCapacity24(v,w,id));const reserveAt=id=>NS.V034F2?.enabled?v.settlementReserveDays(id):Math.max(0,Number(v.stockAt?.(id,'food')||0)/(Math.max(1,counts.get(id)||0)*.36));
   for(const p of people){ensurePerson24(p,w);const home=p.homeTileId??v.coreTileId,sharedHousing=NS.V034D2A?.housingAt?.(v,w,home),localPop=sharedHousing?sharedHousing.population:(counts.get(home)||1),cap=sharedHousing?Math.max(1,sharedHousing.capacity):(caps.get(home)||1),occ=localPop/cap;
    if(Number(p.hunger)>=100){/* V0.31: starvation is handled only by the unified 12-calendar-day grace path. */}
-   let illness=p.age<=1?.10:p.age<=5?.040:p.age<=14?.010:p.age<=59?.005:p.age<=68?.012:.030;illness*=1+Math.max(0,occ-.75)*.40;illness*=1+Math.max(0,30-Number(p.health||30))*.012;illness*=f.illness;
+   let illness=p.age<=1?.10:p.age<=5?.040:p.age<=14?.010:p.age<=59?.005:p.age<=68?.012:.030;illness*=1+Math.max(0,occ-.75)*.40;illness*=NS.V034F3.illnessHealthFactor(p.health);illness*=f.illness;
    let old=0;if(p.age>=66)old=Math.min(.42,.008+(p.age-65)*.012);
    if(Math.random()<dailyHazard24(clamp24(illness,0,.48))){killPerson24(v,w,p,'DEATH_ILLNESS',p.age<=5?'감염병과 쇠약':'질병과 쇠약');continue;}
    if(Math.random()<dailyHazard24(old)){killPerson24(v,w,p,'DEATH_OLD_AGE',`${p.age}세의 노환`);continue;}
