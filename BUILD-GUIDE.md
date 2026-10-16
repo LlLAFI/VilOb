@@ -96,3 +96,7 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 ## V0.34F0
 
 `src/bootstrap/v034f0.js` 는 E05 부트스트랩 이후 로드됩니다. `npm run build` / `npm run test:static` / `F0_DAYS=360 node tests/test-f0.cjs` 로 검증합니다. 성능 합격 조건은 PC ×10 150년 동안 평활 SIM/BATCH 1000ms 미만이며 F0 단계에서는 검증 대기입니다.
+
+## V0.34G1A 추가
+
+`src/bootstrap/v034g1a.js`는 G1 부트스트랩 뒤 로드됩니다. G1A는 protected source 불변을 유지하고 `tools/g1-transform.mjs`로 관측 호출만 추가합니다. `npm run build`는 Standalone/Hosted를 동일하게 배포하며 테스트는 `tests/test-g1a.cjs`, `tests/browser-g1a-smoke.py`를 참조합니다.

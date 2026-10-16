@@ -77,7 +77,7 @@ function foodPairE2(v,w,d,r){
  const now=CAL(w),e=ensureE2(v);v._v32e2FoodPairCache=v._v32e2FoodPairCache||new Map();const key=`${d.id}>${r.id}`,old=v._v32e2FoodPairCache.get(key);
  if(old&&now-Number(old.cal||0)<=18){e.foodPairCacheHits++;perfAdd(w,'foodPairCacheHits',1);return old;}
  e.foodExpensiveChecks++;perfAdd(w,'foodExpensiveChecks',1);const t0=NOW(),cost=routeFoodE1(v,w,d.id,r.id);if(!Number.isFinite(cost)){const z={cal:now,cost:Infinity,cap:0};v._v32e2FoodPairCache.set(key,z);perfAdd(w,'foodPairMs',NOW()-t0);return z;}
- const regular=v.internalLogisticsCapacity?.(d.id,r.id,'food',false),carrier=Math.max(1,d.adults+r.adults),fallback=Math.max(2,carrier*2.8/(1+cost*.08)),cap=Math.max(Number(regular?.capacity||0),fallback),z={cal:now,cost,cap};NS.V034G1?.observePair?.(v,w,d,r,regular,z);v._v32e2FoodPairCache.set(key,z);perfAdd(w,'foodPairMs',NOW()-t0);
+ const regular=v.internalLogisticsCapacity?.(d.id,r.id,'food',false),carrier=Math.max(1,d.adults+r.adults),fallback=Math.max(2,carrier*2.8/(1+cost*.08)),cap=Math.max(Number(regular?.capacity||0),fallback),z={cal:now,cost,cap};NS.V034G1?.observePair?.(v,w,d,r,regular,z);NS.V034G1A?.observePair?.(v,w,d,r,regular,z);v._v32e2FoodPairCache.set(key,z);perfAdd(w,'foodPairMs',NOW()-t0);
  if(v._v32e2FoodPairCache.size>160){const first=v._v32e2FoodPairCache.keys().next().value;v._v32e2FoodPairCache.delete(first);}return z;
 }
 function cheapFoodCandidatesE2(v,w,donors,r,remembered,limit=5){

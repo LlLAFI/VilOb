@@ -12,7 +12,7 @@ export function g1Transform(file,source){
  s=inject(s,indexReturn,'', 'food-index');
  s=s.replace(indexReturn,'NS.V034G1?.observeFoodIndex?.(v,w,states,donors24,donors30);'+indexReturn);
  const anchor='fallback=Math.max(2,carrier*2.8/(1+cost*.08)),cap=Math.max(Number(regular?.capacity||0),fallback),z={cal:now,cost,cap};';
- s=inject(s,anchor,'NS.V034G1?.observePair?.(v,w,d,r,regular,z);','food-pair');
+ s=inject(s,anchor,'NS.V034G1?.observePair?.(v,w,d,r,regular,z);NS.V034G1A?.observePair?.(v,w,d,r,regular,z);','food-pair');
  const ship='s.recentFoodDonor[r.id]=best.d.id;';
  s=inject(s,ship,"NS.V034G1?.observeShipment?.(v,w,best.d.id,r.id,put,best.cost);",'food-shipment');
  return s;

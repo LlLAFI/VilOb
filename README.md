@@ -1,3 +1,7 @@
+# 현재 배포: V0.34G1A
+
+V0.34G1A 상세 설명: [README-34G1A.md](README-34G1A.md) / 검증: [TEST-34G1A.md](TEST-34G1A.md)
+
 ## 최신 기준 V0.34G1 (2026-10-16)
 
 타일(Tile)/정착지(Settlement) 한국어 용어 분리 및 E2 긴급 식량 물류 관측 전용 감사. 공동 재고/배급/AI/운송/RNG는 F3 유지. 자세한 사항은 [README-34G1.md](README-34G1.md), [TEST-34G1.md](TEST-34G1.md) 참조.
