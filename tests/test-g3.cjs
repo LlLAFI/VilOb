@@ -5,10 +5,10 @@ function boot(){let state=0x1243ce39,calls=0;const math=Object.create(Math);math
  const el=()=>({style:{},innerHTML:'',textContent:'',appendChild(){},addEventListener(){},click(){},classList:{add(){},remove(){}},querySelector(){return null},querySelectorAll(){return []}}),store=new Map();
  const ctx={Math:math,performance,console,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,alert(){},confirm(){return false},setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},document:{head:el(),body:el(),documentElement:el(),createElement:el,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};
  ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
- for(const m of fs.readFileSync(path.join(root,'index-standalone.html'),'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(m[1].trim())try{new vm.Script(m[1]).runInContext(ctx,{timeout:100000});}catch(e){if(!/onclick/.test(e.message))throw e;}}
+ for(const m of fs.readFileSync(path.join(root,'tests/fixtures-for-g3a-baseline.html'),'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(m[1].trim())try{new vm.Script(m[1]).runInContext(ctx,{timeout:100000});}catch(e){if(!/onclick/.test(e.message))throw e;}}
  return {NS:ctx.VSim,calls:()=>calls};
 }
-const {NS,calls}=boot();assert.equal(NS.RELEASE_VERSION,'V0.34G3A');
+const {NS,calls}=boot();assert.equal(NS.RELEASE_VERSION,'V0.34G3');
 const G=NS.V034G3;
 assert.equal(G.version,'V0.34G3');
 // Geometric control: a circle point (2,2) must be accepted at R3, but
@@ -73,8 +73,8 @@ if(process.env.G3_DISABLE_SPATIAL)G.config.spatialEnabled=false;if(process.env.G
 const days=Number(process.env.G3_DAYS||90),world=new NS.World(19,19),start=performance.now();for(let i=0;i<days;i++){world.advanceOneDay();if(process.env.G3_PROGRESS&&(i%90===89||(i>=800&&i%3===2)))console.error("CHECKPOINT",i+1,"elapsed",Math.round(performance.now()-start),"pop",world.villages.reduce((a,v)=>a+v.population(),0));}
 const diag=NS.V034C.inspect(world),ledger=NS.V034D3.audit(world),f2=NS.V034F2.diagnostics(world),food=NS.V034G2A.summary(world);
 assert(diag.ok,JSON.stringify(diag.errors).slice(0,1000));assert(ledger.ok,JSON.stringify(ledger.errors).slice(0,1000));assert.equal(f2.duplicateMetabolismRequests,0);assert.equal(f2.missingHomes,0);assert.equal(food.conservationErrors,0);assert.equal(food.reserveViolations,0);
-const save=world.serialize();assert.equal(save.version,'V0.34G3A');assert.equal(NS.World.from(JSON.parse(JSON.stringify(save))).serialize().version,'V0.34G3A');
+const save=world.serialize();assert.equal(save.version,'V0.34G3');assert.equal(NS.World.from(JSON.parse(JSON.stringify(save))).serialize().version,'V0.34G3');
 const predecessor={...save,version:'V0.34G2A'};delete predecessor.v034g3;
-assert.equal(NS.World.from(JSON.parse(JSON.stringify(predecessor))).serialize().version,'V0.34G3A');
-const dev=world.telemetry.toJSON(world);assert.equal(dev.version,'V0.34G3A');assert(dev.worldSummary.v034g3);
+assert.equal(NS.World.from(JSON.parse(JSON.stringify(predecessor))).serialize().version,'V0.34G3');
+const dev=world.telemetry.toJSON(world);assert.equal(dev.version,'V0.34G3');assert(dev.worldSummary.v034g3);
 console.log(JSON.stringify({status:'PASS',geometry:{disk3:disk3.length,disk4:disk4.length,routeChecks:G.summary(w).pathSweeps},food:{baselineG2A:0,g3:a.shipments,donorAfter:critical.z.get(10).stocks.food,emergency:G.summary(critical.w).emergencyShipments},natural:{days,pop:world.villages.reduce((a,v)=>a+v.population(),0),settlements:diag.counts.activeSettlements,errors:diag.errors.length,foodShipments:food.shipments,conservationErrors:food.conservationErrors,ms:Math.round(performance.now()-start),rng:calls()}}));

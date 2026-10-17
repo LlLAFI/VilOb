@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G3A</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G4</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -15,7 +15,7 @@ window.VSim.AIProfileCompat=function(subject,key){
 };
 </script>
 
-<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G3A</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G4</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -907,13 +907,13 @@ function pathSearch(w,sourceIds,targetIds,ownerId=null){
  for(const id of sourceIds){dist.set(id,0);push([0,id,id]);}
  while(heap.length){const [d,id,origin]=pop();if(d!==dist.get(id))continue;if(targets.has(id))return{cost:d,sourceId:origin,targetId:id};
   for(const n of w.map.neighbors4(id)){if(!NS.TERRAIN[n.terrain].passable)continue;if(ownerId!=null&&n.ownerId!==ownerId)continue;let step=NS.TERRAIN[n.terrain].tradeCost;
-   if(activeRoad(n)&&n.ownerId!=null){const owner=w.villages[n.ownerId];step*=roadFactor(roadLevel(owner));}
+   if(activeRoad(n)&&n.ownerId!=null){const owner=w.villages[n.ownerId];step*=NS.V034G4?.roadFactor?.(owner)??roadFactor(roadLevel(owner));}
    const nd=d+step;if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);push([nd,n.id,origin]);}
   }
  }
  return{cost:Infinity,sourceId:null,targetId:null};
 }
-function roadSignature(w){return w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].filter(id=>activeRoad(w.map.get(id))).join('.')}`).join('|');}
+function roadSignature(w){return w.activeVillages.map(v=>`${v.id}:${NS.V034G4?.roadTier?.(v)??roadLevel(v)}:${[...v.territory].filter(id=>activeRoad(w.map.get(id))).join('.')}`).join('|');}
 NS.World.prototype.routeInfo=function(a,b){
  const A=a.tradingPosts(),B=b.tradingPosts(),range=Math.min(a.tradeRange(this),b.tradeRange(this));
  if(!A.length||!B.length)return{reachable:false,cost:Infinity,range,aId:a.id,bId:b.id,aTileId:null,bTileId:null,sourceTileId:null,targetTileId:null};
@@ -1129,11 +1129,11 @@ NS.Person.prototype.act=function(v,w){v._v11ActingPerson=this;try{return act10.c
 /* Roads also lose efficiency gradually instead of snapping on/off. */
 function roadLevel(v){return NS.V010?.roadLevel?NS.V010.roadLevel(v):(v.hasTech('ROADS')?1:0);}
 function baseRoadFactor(level){return level>=1?.62:1;}
-function roadFactorAt(t,w){if(!t||t.ownerId==null)return 1;const e=typeEff(t,'road');if(e<=0)return 1;const base=baseRoadFactor(roadLevel(w.villages[t.ownerId]));return 1-(1-base)*e;}
+function roadFactorAt(t,w){if(!t||t.ownerId==null)return 1;const e=typeEff(t,'road');if(e<=0)return 1;const base=baseRoadFactor(roadLevel(w.villages[t.ownerId]));return NS.V034G4?.civilianRoadFactor?.(w,t,e)??(1-(1-base)*e);}
 function pathSearch(w,sourceIds,targetIds,ownerId=null){const targets=new Set(targetIds),dist=new Map(),heap=[];const push=item=>{heap.push(item);let i=heap.length-1;while(i){const p=(i-1)>>1;if(heap[p][0]<=item[0])break;heap[i]=heap[p];i=p;}heap[i]=item;};const pop=()=>{if(!heap.length)return null;const root=heap[0],last=heap.pop();if(heap.length){let i=0;while(true){let l=i*2+1,r=l+1;if(l>=heap.length)break;let c=r<heap.length&&heap[r][0]<heap[l][0]?r:l;if(heap[c][0]>=last[0])break;heap[i]=heap[c];i=c;}heap[i]=last;}return root;};for(const id of sourceIds){dist.set(id,0);push([0,id,id]);}while(heap.length){const [d,id,origin]=pop();if(d!==dist.get(id))continue;if(targets.has(id))return{cost:d,sourceId:origin,targetId:id};for(const n of w.map.neighbors4(id)){if(!NS.TERRAIN[n.terrain].passable)continue;if(ownerId!=null&&n.ownerId!==ownerId)continue;const nd=d+NS.TERRAIN[n.terrain].tradeCost*roadFactorAt(n,w);if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);push([nd,n.id,origin]);}}}return{cost:Infinity,sourceId:null,targetId:null};}
-function roadSignature(w){if(NS.V034C1F?.inPlan(w))return NS.V034C1F.roadSignature(w,()=>w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|'));return w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|');}
+function roadSignature(w){if(NS.V034C1F?.inPlan(w))return NS.V034C1F.roadSignature(w,()=>w.activeVillages.map(v=>`${v.id}:${NS.V034G4?.roadTier?.(v)??roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|'));return w.activeVillages.map(v=>`${v.id}:${NS.V034G4?.roadTier?.(v)??roadLevel(v)}:${[...v.territory].map(id=>{const t=w.map.get(id);return typeEff(t,'road')>0?`${id}@${Math.round(typeEff(t,'road')*10)}`:'';}).filter(Boolean).join('.')}`).join('|');}
 NS.World.prototype.routeInfo=function(a,b){const A=a.tradingPosts(),B=b.tradingPosts(),range=Math.min(a.tradeRange(this),b.tradeRange(this));if(!A.length||!B.length)return{reachable:false,cost:Infinity,range,aId:a.id,bId:b.id,aTileId:null,bTileId:null,sourceTileId:null,targetTileId:null};let minMan=Infinity,minPair=[null,null];for(const x of A)for(const y of B){const md=this.map.distance(x,y);if(md<minMan){minMan=md;minPair=[x,y];}}if(minMan*.48>range)return{reachable:false,cost:minMan,range,aId:a.id,bId:b.id,aTileId:minPair[0],bTileId:minPair[1],sourceTileId:minPair[0],targetTileId:minPair[1],lowerBoundOnly:true};const key=[a.id,b.id].sort((x,y)=>x-y).join('-'),sig=`${a.id}:${A.join('.')}|${b.id}:${B.join('.')}|${roadSignature(this)}`,day=this.ordinalDay();this.tradeRouteCache=this.tradeRouteCache||{};const cached=this.tradeRouteCache[key];if(cached&&cached.sig===sig&&day-cached.day<20){const info={...cached.info,range};info.reachable=Number.isFinite(info.cost)&&info.cost<=range;return info;}const p=pathSearch(this,A,B,null),info={cost:p.cost,aTileId:p.sourceId,bTileId:p.targetId,aId:a.id,bId:b.id,range,reachable:Number.isFinite(p.cost)&&p.cost<=range,sourceTileId:p.sourceId,targetTileId:p.targetId};this.tradeRouteCache[key]={day,sig,info:{...info}};return info;};
-NS.Village.prototype.internalPathCost=function(fromId,toId){const w=this._world;if(!w)return Infinity;const bucket=Math.floor(w.ordinalDay()/5);if(!w._v11InternalPathCache||w._v11InternalPathCache.bucket!==bucket)w._v11InternalPathCache={bucket,map:new Map()};const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${this.id}:${a}:${b}:${roadLevel(this)}`;if(w._v11InternalPathCache.map.has(key))return w._v11InternalPathCache.map.get(key);const cost=pathSearch(w,[fromId],[toId],this.id).cost;w._v11InternalPathCache.map.set(key,cost);return cost;};
+NS.Village.prototype.internalPathCost=function(fromId,toId){const w=this._world;if(!w)return Infinity;const bucket=Math.floor(w.ordinalDay()/5);if(!w._v11InternalPathCache||w._v11InternalPathCache.bucket!==bucket)w._v11InternalPathCache={bucket,map:new Map()};const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${this.id}:${fromId}>${toId}:${NS.V034G4?.roadTier?.(this)??roadLevel(this)}`;if(w._v11InternalPathCache.map.has(key))return w._v11InternalPathCache.map.get(key);const cost=pathSearch(w,[fromId],[toId],this.id).cost;w._v11InternalPathCache.map.set(key,cost);return cost;};
 const deal10=NS.World.prototype.dealCandidate;
 NS.World.prototype.dealCandidate=function(buyer,seller,resource,route){const d=deal10.call(this,buyer,seller,resource,route);if(!d)return null;const bt=this.map.get(d.buyerTileId??d.sourceTileId),st=this.map.get(d.sellerTileId??d.targetTileId),e=Math.min(typeEff(bt,'trading_post'),typeEff(st,'trading_post'));if(e<=0)return null;if(e<1){const old=d.qty,qty=old*e;if(qty<1.5)return null;const r=qty/old;d.qty=qty;d.price*=r;d.fee*=r;d.total*=r;d.score*=r;}return d;};
 
@@ -3573,13 +3573,13 @@ const internalPath25=NS.Village.prototype.internalPathCost;
 function topologySig26(v){
  let sum=0,roads=0,roadHash=0,harbors=0,harborHash=0;
  for(const id of v.territory||[]){sum=(sum+id*17)%1000000007;const t=v._world?.map.get(id);if(!t)continue;for(let i=0;i<(t.buildings||[]).length;i++){const b=t.buildings[i],cond=Number(t.buildingCondition?.[i]??100);if(cond<=0)continue;if(b==='road'){roads++;roadHash=(roadHash+id*31+i)%1000000007;}if(b==='harbor'){harbors++;harborHash=(harborHash+id*37+i)%1000000007;}}}
- const tech=['ROADS','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
+ const tech=['ROADS','ROAD_IMPROVEMENT','POSTAL_NETWORK','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
  return `${v.territory?.size||0}:${sum}:${roads}:${roadHash}:${harbors}:${harborHash}:${tech}`;
 }
 NS.Village.prototype.internalPathCost=function(fromId,toId){
  if(typeof internalPath25!=='function')return this._world?.map.distance(fromId,toId)??Infinity;
  const sig=topologySig26(this);if(!this._v26PathCache||this._v26PathCache.sig!==sig)this._v26PathCache={sig,map:new Map()};
- const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${a}:${b}`;if(this._v26PathCache.map.has(key))return this._v26PathCache.map.get(key);
+ const key=`${fromId}>${toId}`;if(this._v26PathCache.map.has(key))return this._v26PathCache.map.get(key);
  const cost=internalPath25.call(this,fromId,toId);this._v26PathCache.map.set(key,cost);if(this._v26PathCache.map.size>6000){const first=this._v26PathCache.map.keys().next().value;this._v26PathCache.map.delete(first);}return cost;
 };
 
@@ -3674,7 +3674,7 @@ NS.Village.prototype.tileResidents=function(tileId){
 const path26=NS.Village.prototype.internalPathCost;
 function topologySig27(v){
  const w=v._world,day=Number(w?.calendarOrdinalDay?.()??w?.ordinalDay?.()??0);
- if(v._v27TopoMemo?.day===day)return v._v27TopoMemo.sig;
+ const roadTier=NS.V034G4?.roadTier?.(v)??0;if(v._v27TopoMemo?.day===day&&v._v27TopoMemo.roadTier===roadTier)return v._v27TopoMemo.sig;
  let sum=0,roads=0,roadHash=0,harbors=0,harborHash=0;
  for(const id of v.territory||[]){
   sum=(sum+id*17)%1000000007;const t=w?.map?.get(id);if(!t)continue;
@@ -3684,15 +3684,15 @@ function topologySig27(v){
    if(b==='harbor'){harbors++;harborHash=(harborHash+id*37+i)%1000000007;}
   }
  }
- const tech=['ROADS','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
+ const tech=['ROADS','ROAD_IMPROVEMENT','POSTAL_NETWORK','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
  const sig=`${v.territory?.size||0}:${sum}:${roads}:${roadHash}:${harbors}:${harborHash}:${tech}`;
- v._v27TopoMemo={day,sig};return sig;
+ v._v27TopoMemo={day,sig,roadTier};return sig;
 }
 NS.Village.prototype.internalPathCost=function(fromId,toId){
  if(fromId===toId)return 0;
  const sig=topologySig27(this);
  if(!this._v27PathCache||this._v27PathCache.sig!==sig)this._v27PathCache={sig,map:new Map(),hits:0,misses:0};
- const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${a}:${b}`;
+ const key=`${fromId}>${toId}`;
  if(this._v27PathCache.map.has(key)){this._v27PathCache.hits++;return this._v27PathCache.map.get(key);}
  const t0=now27(),cost=path26.call(this,fromId,toId),ms=now27()-t0;this._v27PathCache.misses++;
  this._v27PathCache.map.set(key,cost);if(this._v27PathCache.map.size>12000){const first=this._v27PathCache.map.keys().next().value;this._v27PathCache.map.delete(first);}
@@ -10563,7 +10563,7 @@ applyRegistries();
 
 /* Canonical production multipliers: tech-wide crop bonuses were retired in A4. */
 const syncPrev=NS.Tile.prototype.syncResources;
-NS.Tile.prototype.syncResources=function(day){const before=Number(this.lastResourceDay||1),dt=Math.max(0,Number(day||0)-before);syncPrev.call(this,day);if(dt>0){const farm=directEff(this,'ancient_farm');if(farm>0){const extra=Number(NS.TERRAIN?.[this.terrain]?.regen?.food||0)*dt*.60*farm;this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+extra);}}};
+NS.Tile.prototype.syncResources=function(day){const before=Number(this.lastResourceDay||1),dt=Math.max(0,Number(day||0)-before);syncPrev.call(this,day);if(dt>0){const farm=directEff(this,'ancient_farm');if(farm>0){const extra=Number(NS.TERRAIN?.[this.terrain]?.regen?.food||0)*dt*.60*farm;this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+extra);}}const g4Extra=NS.V034G4?.hydraulicBonus?.(this,dt)||0;if(g4Extra>0)this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+g4Extra);};
 const harvestPrev=NS.Village.prototype.harvestMultiplier;
 NS.Village.prototype.harvestMultiplier=function(kind,t){let m=harvestPrev.call(this,kind,t);if(kind==='food'){const f=directEff(t,'ancient_farm');if(f>0)m*=1+.25*f;}if(kind==='wood'){const s=directEff(t,'sawmill'),p=this._v11ActingPerson;if(s>0&&p?.job==='목수'&&p?.workBuildingType29==='sawmill'&&Number(p.workTileId)===Number(t.id))m*=1+.45*s;}if(kind==='stone'){const dq=directEff(t,'deep_quarry'),q=directEff(t,'quarry');if(dq>0)m*=1+(Number(DEEP_QUARRY_FACTOR[t.terrain]||1)-1)*dq;else if(q>0)m*=1+(Number(QUARRY_FACTOR[t.terrain]||1)-1)*q;}return m;};
 
@@ -12638,7 +12638,7 @@ function step(w,dest){const t=tile(w,dest);if(!t||!NS.TERRAIN[t.terrain]?.passab
  // Same terrain/physical-road factor as 33D1B; no new abstract teleport route.
  const i=t.buildings?.indexOf('road')??-1,owner=w.villages.find(v=>same(v.id,t.ownerId));
  const road=i>=0&&Number(t.buildingCondition?.[i]??100)>=25&&!!owner?.hasTech?.('ROADS');
- return Number(NS.TERRAIN[t.terrain].tradeCost||1)*(road?0.62:1);
+ return NS.V034G4?.spatialStep?.(w,t)??(Number(NS.TERRAIN[t.terrain].tradeCost||1)*(road?0.62:1));
 }
 function path(w,from,to,allowed,limit=Infinity){from=Number(from);to=Number(to);if(from===to)return 0;
  const dist=new Map([[from,0]]),pending=[[0,from]];
@@ -12697,11 +12697,11 @@ function withinCoreRadiusD3B1(w,ids,core){if(NS.V034G3?.config?.spatialEnabled)r
 function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||(NS.V034G3?.config?.spatialEnabled? a.tileIds.length+b.tileIds.length>NS.V034G3.maximumJoinCap(w,a,b):a.tileIds.length+b.tileIds.length>MAX_TILES))return null;
  if(!groupsAdjacent(w,a,b))return null;
  const aa=a.tileIds.concat(b.tileIds);if(!aa.some(id=>developed(w,tile(w,id))))return null;
- const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,a.coreTileId,"join"):JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,b.coreTileId,"join"):JOIN);
+ const ar=withinCoreRadiusD3B1(w,aa,a.coreTileId),br=withinCoreRadiusD3B1(w,aa,b.coreTileId);const ac=ar&&bothReachable(w,aa,a.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,a.coreTileId,"join"):JOIN),bc=br&&bothReachable(w,aa,b.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,b.coreTileId,"join"):JOIN);if(NS.V034G3B?.config?.enabled)NS.V034G3B.onCandidate(w,{ar,br,ac,bc});
  if(!ac&&!bc)return null;
  if(ac&&!bc)return [a,b];if(bc&&!ac)return [b,a];return coreScore(w,a)>=coreScore(w,b)?[a,b]:[b,a];
 }
-function merge(w,winner,loser){const next=winner.tileIds.concat(loser.tileIds);replaceGroup(w,winner,next);retire(w,loser,winner.id);counters(w).merges++;
+function merge(w,winner,loser){if(NS.V034G3B?.config?.enabled)NS.V034G3B.onMerge(w,winner,loser);const next=winner.tileIds.concat(loser.tileIds);replaceGroup(w,winner,next);retire(w,loser,winner.id);counters(w).merges++;
  w.telemetry?.record?.('SETTLEMENT_MERGED34C',w,{settlementId:winner.id,absorbedId:loser.id,nationId:winner.nationId,coreTileId:winner.coreTileId,tileIds:next});
 }
 function reevaluate(w){ensure(w);const start=performance.now(),z=w.v34c,c=counters(w),now=day(w);c.reviews++;
@@ -16226,8 +16226,10 @@ function policy(w,ids,core){
  const radius=tier,cap=tier===4?49:tier===3?29:13;
  // Conservative travel windows: roads contribute 0.62 each while terrain is
  // authoritative. Both constraints expand; circle is never implied by path.
- const join=tier===4?4.34:tier===3?3.10:1.24;
- return {radius,cap,join,split:join+(tier===2?.16:.35),tier,pop,built};
+ const legacyJoin=tier===4?4.34:tier===3?3.10:1.24;
+ // G3B changes NEW integration only. Existing split grace windows retain G3.
+ const join=NS.V034G3B?.joinLimit??legacyJoin;
+ return {radius,cap,join,split:legacyJoin+(tier===2?.16:.35),tier,pop,built};
 }
 function promote(w,r){const p=policy(w,r.tileIds,r.coreTileId);r.v034g3MaxTier=Math.max(num(r.v034g3MaxTier||2),p.tier);}
 function withinRadius(w,ids,core){const p=policy(w,ids,core),c=w.map.get(Number(core));if(!c||ids.length>p.cap)return false;
@@ -16239,7 +16241,7 @@ const pathLimit=(w,ids,core,phase)=>policy(w,ids,core)[phase]??Infinity;
 function bothReachable(w,ids,core,limit){const allow=new Set(ids.map(Number)),source=Number(core);if(!allow.has(source))return false;
  const info=new Map();for(const id of allow){const t=w.map.get(id);if(!t||!NS.TERRAIN?.[t.terrain]?.passable)return false;
   const i=t.buildings?.indexOf('road')??-1,v=w.villages?.find(v=>same(v.id,t.ownerId)),road=i>=0&&num(t.buildingCondition?.[i]??100)>=25&&!!v?.hasTech?.('ROADS');
-  info.set(id,num(NS.TERRAIN[t.terrain].tradeCost||1)*(road?.62:1));}
+  info.set(id,(NS.V034G4?.spatialStep?.(w,t)??(num(NS.TERRAIN[t.terrain].tradeCost||1)*(road?.62:1))));}
  function sweep(reverse){const best=new Map([[source,0]]),todo=[[0,source]];while(todo.length){todo.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const [d,u]=todo.shift();if(d>limit+EPS)return false;if(d>best.get(u)+EPS)continue;
   for(const e of w.map.neighbors4(u)){const v=e.id;if(!allow.has(v))continue;const cost=reverse?info.get(u):info.get(v),nd=d+cost;if(nd>limit+EPS||nd>=((best.get(v)??Infinity)-EPS))continue;best.set(v,nd);todo.push([nd,v]);}}
  return best.size===allow.size;}
@@ -16253,9 +16255,9 @@ function candidateExtension(v,w,c){const t=c?.tile||w?.map?.get?.(Number(c?.targ
   const ids=[...r.tileIds,t.id],p=policyProjected(w,ids,r.coreTileId,v.id);
   const center=w.map.get(r.coreTileId);if(!center||ids.length>p.cap||(t.x-center.x)**2+(t.y-center.y)**2>p.radius*p.radius+EPS)continue;
   const allow=new Set(r.tileIds),out=NS.V034C.path(w,center.id,n.id,allow,p.join),back=NS.V034C.path(w,n.id,center.id,allow,p.join);
-  const roadStep=num(NS.TERRAIN?.[t.terrain]?.tradeCost||1)*.62;
+  const roadStep=num(NS.TERRAIN?.[t.terrain]?.tradeCost||1); // unowned target has NO physical road
   const roadIndex=n.buildings?.indexOf('road')??-1,nroad=roadIndex>=0&&num(n.buildingCondition?.[roadIndex]??100)>=25;
-  const backStep=num(NS.TERRAIN?.[n.terrain]?.tradeCost||1)*(nroad?.62:1);
+  const backStep=NS.V034G4?.spatialStep?.(w,n)??(num(NS.TERRAIN?.[n.terrain]?.tradeCost||1)*(nroad?.62:1));
   if(out+roadStep>p.join+EPS||back+backStep>p.join+EPS)continue;
   const row={settlementId:r.id,coreTileId:r.coreTileId,sourceTileId:n.id,targetTileId:t.id,tilesAfter:ids.length,projectedOut:+(out+roadStep).toFixed(3),projectedReturn:+(back+backStep).toFixed(3),g3Radius:p.radius};
   if(!best||r.tileIds.length>best.tilesAfter-1||r.tileIds.length===best.tilesAfter-1&&String(r.id)<String(best.settlementId))best=row;
@@ -16328,7 +16330,7 @@ function verify(w){
  };
  return {version:VERSION,build:'g3a-static-v1',ok:Object.values(tests).every(Boolean),tests};
 }
-function updateUI(){try{
+function updateUI(){if(NS.V034G3B?.refresh)return NS.V034G3B.refresh();try{
  const w=window.villageObserver?.world;
  let status=w&&verifiedWorlds.get(w);if(!status){status=verify(w);if(w)verifiedWorlds.set(w,status);}
  document.title='Village Observer '+VERSION;
@@ -16367,6 +16369,154 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))N
 NS.V034G3A=Object.freeze({version:VERSION,verify,audit,refresh:updateUI});
 // The legacy UI was constructed before D0..G3A bootstraps: refresh immediately.
 updateUI();
+})(window.VSim);
+
+</script>
+<script>
+/* V0.34G3B — One-day integration gate (existing pooled stock and G3 split preserved).
+ * Integration is allowed only if from core to EVERY member and back costs <=1.00.
+ * No new technology, AI, food, money, or military rules.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34G3B',PREV='V0.34G3A',KEY='village-observer-v034g3b',joinLimit=1.00,EPS=1e-8;
+const config={enabled:true};
+const metrics=new WeakMap();
+function counter(w){let m=metrics.get(w);if(!m){m={joinRejectedOverOneDay:0,joinAcceptedWithinOneDay:0};metrics.set(w,m);}return m;}
+function onCandidate(w,p){if((p.ar||p.br)&&!p.ac&&!p.bc)counter(w).joinRejectedOverOneDay++;}
+function onMerge(w){counter(w).joinAcceptedWithinOneDay++;}
+function travelStats(w,ids,core){
+ const allowed=new Set((ids||[]).map(Number)),root=Number(core),nodes=new Map();
+ if(!allowed.has(root))return {max:null,outboundMax:null,returnMax:null,unreachable:true};
+ for(const id of allowed){const t=w.map?.get?.(id),v=w.villages?.find(v=>String(v.id)===String(t?.ownerId)),i=t?.buildings?.indexOf('road')??-1;
+  if(!t||!NS.TERRAIN?.[t.terrain]?.passable)return {max:null,outboundMax:null,returnMax:null,unreachable:true};
+  const paved=i>=0&&Number(t.buildingCondition?.[i]??100)>=25&&!!v?.hasTech?.('ROADS');
+  nodes.set(id,(NS.V034G4?.spatialStep?.(w,t)??(Number(NS.TERRAIN[t.terrain].tradeCost||1)*(paved?.62:1))));
+ }
+ const sweep=rev=>{const dist=new Map([[root,0]]),queue=[[0,root]];while(queue.length){queue.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const [cost,id]=queue.shift();if(cost>dist.get(id)+EPS)continue;
+  for(const n of w.map.neighbors4(id)){if(!allowed.has(n.id))continue;const next=cost+(rev?nodes.get(id):nodes.get(n.id));if(next>=((dist.get(n.id)??Infinity)-EPS))continue;dist.set(n.id,next);queue.push([next,n.id]);}}
+  return dist.size===allowed.size?Math.max(...dist.values()):Infinity;};
+ const outbound=sweep(false),back=sweep(true),maximum=Math.max(outbound,back);
+ return {max:Number.isFinite(maximum)?+maximum.toFixed(5):null,outboundMax:Number.isFinite(outbound)?+outbound.toFixed(5):null,returnMax:Number.isFinite(back)?+back.toFixed(5):null,unreachable:!Number.isFinite(maximum)};
+}
+function inspect(w){const rows=[],settlements=w.v34b?.settlements||[];let over=0,unreachable=0,grandfathered=0;
+ for(const r of settlements){if(r.lifecycle!=='ACTIVE'||!r.tileIds?.length)continue;
+  const cost=travelStats(w,r.tileIds,r.coreTileId),tooFar=cost.unreachable||cost.max>joinLimit+EPS;
+  if(tooFar)over++;if(cost.unreachable)unreachable++;if(tooFar&&r.v034g3bLegacy)grandfathered++;
+  rows.push({id:r.id,nationId:r.nationId,coreTileId:r.coreTileId,tiles:r.tileIds.length,...cost,overOneDay:tooFar,legacy:r.v034g3bLegacy===true});
+ }
+ rows.sort((a,b)=>((b.max??Infinity)-(a.max??Infinity))||b.tiles-a.tiles||String(a.id).localeCompare(String(b.id)));
+ return {joinLimit,activeSettlements:rows.length,overOneDaySettlements:over,unreachableSettlements:unreachable,grandfatheredOverOneDay:grandfathered,maxSettlementTravelCost:rows.length?rows[0].max:0,worstSettlements:rows.filter(x=>x.overOneDay).slice(0,15)};
+}
+function summary(w,{details=false}={}){const metric={...counter(w)};return details?{...metric,...inspect(w)}:metric;}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;d.v034g3b={joinLimit,splitPolicy:'G3_PRESERVED',pooledStock:'D3_UNCHANGED',technologyCount:36};return d;};
+NS.World.from=function(d){const isOld=d?.version&&d.version!==VERSION;const w=oldFrom(d?.version===VERSION?{...d,version:PREV}:d);
+ if(isOld){ // Legacy Settlements are allowed to retain their established D3 pooled stocks.
+  for(const r of w.v34b?.settlements||[])if(r.lifecycle==='ACTIVE'&&r.tileIds?.length>1)r.v034g3bLegacy=true;
+ }
+ return w;
+};
+const oldJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){return NS.V034G3.observe(()=>{const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.v034g3b={revision:'one-day-join-only',...summary(w,{details:true}),splitPolicy:'G3_PRESERVED',pooledStock:'D3_UNCHANGED',technologyCount:36};return d;});};
+function verify(w){const checks={version:NS.RELEASE_VERSION===VERSION,
+  joinFixed:Math.abs(joinLimit-1)<EPS,
+  g3Spatial:!!NS.V034G3?.config?.spatialEnabled,
+  joinedRouteHook:typeof NS.V034C?.canJoin==='function'&&/V034G3B/.test(Function.prototype.toString.call(NS.V034C.canJoin)),
+  splitUnchanged:!!NS.V034G3?.policy&&(!w||NS.V034G3.observe(()=>{const r=w.v34b?.settlements?.find(x=>x.lifecycle==='ACTIVE'&&x.tileIds?.length);if(!r)return true;const p=NS.V034G3.policy(w,r.tileIds,r.coreTileId);return Math.abs(p.join-joinLimit)<EPS&&p.split>joinLimit;})),
+  g3Food:typeof NS.V034G2A?.relay==='function',
+  pooledStock:typeof NS.V034D3?.audit==='function',
+  deliveryCsv:!w||NS.V034G2A.csv(w).replace(/^\uFEFF/,'').split(/\r?\n/,1)[0].split(',').length===20};
+ return {version:VERSION,build:'g3b-static-v1',ok:Object.values(checks).every(Boolean),tests:checks};}
+function audit(w){const base=NS.V034G3A.audit(w),current=NS.V034G3.observe(()=>summary(w,{details:true}));return {...base,version:VERSION,integrity:verify(w),g3b:current};}
+function refresh(){try{const w=window.villageObserver?.world,check=verify(w);document.title='Village Observer '+VERSION;
+ const badge=document.getElementById('versionBadge');if(badge){badge.textContent='Village Observer · '+VERSION;badge.setAttribute('data-runtime-version',VERSION);}
+ let notice=document.getElementById('g3aRuntimeIntegrity');if(!notice&&document.body){notice=document.createElement('div');notice.id='g3aRuntimeIntegrity';notice.style.cssText='position:relative;z-index:20;margin:2px auto 7px;max-width:1120px;border-radius:9px;padding:7px 10px;font:12px system-ui,sans-serif;background:#0c1b28';const shell=document.querySelector('.shell'),runtime=document.getElementById('runtimeStatus');if(runtime?.parentNode)runtime.parentNode.insertBefore(notice,runtime.nextSibling);else shell?.prepend?.(notice);}
+ if(notice){notice.textContent=check.ok?'✓ G3B 런타임 무결성 · 신규 병합 왕복 1.00 · 기존 분할/공동 재고 유지':'⚠ G3B 런타임 무결성 실패: '+Object.keys(check.tests).filter(k=>!check.tests[k]).join(', ');notice.style.border='1px solid '+(check.ok?'#235a4c':'#a64c39');notice.style.color=check.ok?'#a9e7ca':'#ffe0a1';}
+ const btn=document.getElementById('exportG2RelayBtn');if(btn)btn.textContent='G3B 구호 배송 CSV';return check;
+ }catch(e){console.error('G3B integrity',e);return {ok:false,error:String(e)};}}
+function download(name,data,mime='application/json'){const url=URL.createObjectURL(new Blob([data],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...NS.SaveSystem,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const raw=[KEY,'village-observer-v034g3a','village-observer-v034g3','village-observer-v034g2a','village-observer-v034g2','village-observer-v034g1b'].map(k=>localStorage.getItem(k)).find(Boolean);return raw?NS.World.from(JSON.parse(raw)):null;},
+ export(w){download('village-observer-v034G3B-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download('village-observer-v034G3B-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));},
+ exportG2Routes(w){download('village-observer-v034G3B-relay-routes-'+(w.telemetry?.sessionId||'session')+'.csv','\ufeff'+NS.V034G2A.csv(w),'text/csv;charset=utf-8');}
+};NS.SaveSystem.exportG2ARoutes=NS.SaveSystem.exportG2Routes;
+NS.RELEASE_VERSION=VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-17',title:'정착지 병합 왕복 1일 접근성',summary:'신규 병합은 중심지에서 모든 타일로의 왕복 경로가 각각 1.00 이하일 때만 허용하며, 기존 정착지의 공동 재고·기존 분할 여유는 유지합니다.',sections:[['병합 기준',['R2/R3/R4의 병합 이동비 상한을 모두 1.00으로 통일했습니다.','지형·실제 도로·도로 조건·타일 소유권·왕복 방향 검사를 보존하며 90일 대기는 유지합니다.']],['기존 정착지 보호',['구버전 세이브의 기존 대형 정착지는 강제로 분해하지 않으며, 기존 G3 분할 조건과 180일 유예를 유지합니다.','같은 정착지의 민간 재고 즉시 공동 이용은 변경하지 않습니다.']],['진단',['병합 거절/성공 수, 최장 이동비, 1일 접근성을 초과한 기존 정착지를 DEVLOG에 기록합니다.','신규 교통 기술 및 생산·전쟁·구호 밸런스 변경은 없습니다.']]]});
+NS.V034G3B=Object.freeze({version:VERSION,joinLimit,config,onCandidate,onMerge,travelStats,inspect,summary,verify,audit,refresh});
+// Read-only selected-tile indicator; the stock and path systems are unchanged.
+if(NS.UI){const prev=NS.UI.prototype.renderTile;NS.UI.prototype.renderTile=function(...args){const result=prev.apply(this,args);
+ try{const w=this.world,t=w?.map?.get?.(Number(w.selectedTileId)),box=document.querySelector('.v34c-settlement-tile');if(!t||!box)return result;
+  const r=NS.V034C?.byTile?.(w,t.id);if(!r)return result;const d=travelStats(w,r.tileIds,r.coreTileId),old=box.querySelector('.v034g3b-travel-note');if(old)old.remove();
+  const node=document.createElement('div');node.className='v034g3b-travel-note small muted';
+  node.textContent='G3B 신규 병합 왕복 한도 1.00일 · 이 정착지 최대 접근 '+(d.unreachable?'경로 없음':d.max.toFixed(2)+'일')+(r.v034g3bLegacy?' · 기존 저장 정착지':'')+' · 병합 후 공동 재고 즉시 이용';box.appendChild(node);
+ }catch(e){console.warn('G3B tile observer',e);}return result;};}
+refresh();
+})(window.VSim);
+
+</script>
+<script>
+/* V0.34G4 — Transport Network & Hydraulic Engineering.
+ * New roads operate on physical paved tiles. Tier substitution, never multiplicative.
+ * G3B bidirectional 1.00 join / legacy split / D3 pooled stocks remain authoritative.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34G4',PREV='V0.34G3B',KEY='village-observer-v034g4',EPS=1e-9;
+const ADDED={
+ ROAD_IMPROVEMENT:{id:'ROAD_IMPROVEMENT',label:'도로 개량술',icon:'🛣️',cost:650,req:['ROADS','ENGINEERING'],branch:'개척·행정',desc:'도로의 노면·교량을 개량해 실제 도로가 놓인 타일의 민간 이동비를 낮춥니다.',effects:['활성 도로 이동비 0.62 → 0.49','신규 정착지 병합의 1일 기준 유지']},
+ POSTAL_NETWORK:{id:'POSTAL_NETWORK',label:'역참 제도',icon:'🐎',cost:850,req:['ROAD_IMPROVEMENT','BUREAUCRACY','FRONTIER_LOGISTICS'],branch:'개척·행정',desc:'역참·정기 운송망으로 실제 도로의 민간 수송 효율을 강화합니다.',effects:['활성 도로 이동비 0.49 → 0.32','도로 미설치 타일에는 효과 없음']},
+ HYDRAULIC_ENGINEERING:{id:'HYDRAULIC_ENGINEERING',label:'수리공학',icon:'💧',cost:650,req:['IRRIGATION','ENGINEERING'],branch:'생산',desc:'기존 관개 시설의 용수·수로 관리를 개선해 농업시설을 갖춘 토지의 자연 식량 재생을 증진합니다.',effects:['가동 농업시설의 기본 식량 자연재생 +10%p (합연산)','일반 채취 산출 및 자원 최대치 불변']}
+};
+for(const [id,t] of Object.entries(ADDED)){NS.TECH[id]=t;if(!NS.TECH_ORDER.includes(id))NS.TECH_ORDER.push(id);}
+// Road quality remains a single physical grade. Higher civilian tech replaces its coefficient.
+const roadTier=v=>v?.hasTech?.('POSTAL_NETWORK')?3:v?.hasTech?.('ROAD_IMPROVEMENT')?2:v?.hasTech?.('ROADS')?1:0;
+const roadFactor=v=>[1,.62,.49,.32][roadTier(v)];
+const owner=(w,t)=>w?.villages?.find(v=>String(v.id)===String(t?.ownerId));
+function roadCondition(t){if(!t)return 0;let q=0;for(let i=0;i<(t.buildings||[]).length;i++)if(t.buildings[i]==='road')q=Math.max(q,Number(t.buildingCondition?.[i]??100));return q;}
+// G3/G3B rule: no benefit unless real road exists and condition >=25.
+function spatialStep(w,t){const terrain=NS.TERRAIN?.[t?.terrain];if(!terrain?.passable)return Infinity;const v=owner(w,t);return Number(terrain.tradeCost||1)*(roadCondition(t)>=25?roadFactor(v):1);}
+// General civilian land path: retain the historical gradual-condition factor by passing typeEff().
+function civilianRoadFactor(w,t,eff){const v=owner(w,t);const quality=Math.max(0,Math.min(1,Number(eff||0)));return 1-(1-roadFactor(v))*quality;}
+let activeWorld=null;
+function agriculturalEfficiency(t){let best=0;for(let i=0;i<(t?.buildings||[]).length;i++)if(t.buildings[i]==='farmstead'||t.buildings[i]==='ancient_farm'){const c=Number(t.buildingCondition?.[i]??100);best=Math.max(best,c<=0?0:c>=70?1:c/70);}return best;}
+function hydraulicBonus(t,dt){if(dt<=0||!t||t.ownerId==null)return 0;const w=t._worldRef||activeWorld,v=owner(w,t);if(!v?.hasTech?.('HYDRAULIC_ENGINEERING'))return 0;const eff=agriculturalEfficiency(t);return Number(NS.TERRAIN?.[t.terrain]?.regen?.food||0)*dt*.10*eff;}
+// Readonly telemetry, no RNG or state changes.
+function stats(w){const tech={ROADS:0,ROAD_IMPROVEMENT:0,POSTAL_NETWORK:0,HYDRAULIC_ENGINEERING:0},roads={};let cultivated=0,validRoadTiles=0;
+ for(const v of w?.villages||[]){for(const k of Object.keys(tech))if(v.hasTech?.(k))tech[k]++;roads[v.id]=roadFactor(v);for(const id of v.territory||[]){const t=w.map?.get?.(Number(id));if(!t)continue;if(roadCondition(t)>=25)validRoadTiles++;if(agriculturalEfficiency(t)>0)cultivated++;}}
+ return {tech,roadCoefficientsByNation:roads,validRoadTiles,cultivatedTiles:cultivated,settlementJoinLimit:NS.V034G3B?.joinLimit??null};}
+const oldDay=NS.World.prototype.advanceOneDay;
+NS.World.prototype.advanceOneDay=function(...args){const previous=activeWorld;activeWorld=this;try{return oldDay.apply(this,args);}finally{activeWorld=previous;}};
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;d.v034g4={revision:'road-tier-substitution-hydraulic',techCount:39,roadFactors:[.62,.49,.32],oneDayJoin:true};return d;};
+NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREV}:d);};
+const oldJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.v034g4={revision:'physical-civilian-road-tier-and-irrigated-regen',...stats(w)};d.worldSummary.techCount=NS.TECH_ORDER.length;d.worldSummary.roadModel='physical road single grade; nation technology substitutes 0.62 / 0.49 / 0.32 for civilian paths';return d;};
+const prevChoose=NS.TechSystem.choose;
+NS.TechSystem.choose=function(v,w){const base=prevChoose.call(this,v,w),available=this.available(v);if(!available?.length)return base;let roadCount=0,farmCount=0;for(const id of v.territory||[]){const t=w.map.get(Number(id));if(!t)continue;if(roadCondition(t)>=25)roadCount++;if(agriculturalEfficiency(t)>0)farmCount++;}
+ const spread=(v.territory?.size||0),pop=Number(v.population?.()||0),days=Number(v.foodReserveDays?.()||0),trait=Number(NS.V033F5A6?.profileFor?.(v)?.traits?.production??1);
+ if(available.includes('HYDRAULIC_ENGINEERING')&&farmCount>0&&(days<28||days<55&&farmCount>=2))return 'HYDRAULIC_ENGINEERING';
+ if(available.includes('ROAD_IMPROVEMENT')&&roadCount>=3&&(spread>=8||pop>=35))return 'ROAD_IMPROVEMENT';
+ if(available.includes('POSTAL_NETWORK')&&roadCount>=5&&spread>=12)return 'POSTAL_NETWORK';
+ return base;};
+function verify(w){const tests={version:NS.RELEASE_VERSION===VERSION,techCount:NS.TECH_ORDER.length===39,newTechs:Object.keys(ADDED).every(k=>NS.TECH_ORDER.includes(k)),joinLimit:Math.abs(NS.V034G3B?.joinLimit-1)<EPS,splitPreserved:!!NS.V034G3?.policy,pooledStock:!!NS.V034D3?.audit,roadFactors:roadFactor({hasTech:k=>['ROADS','ROAD_IMPROVEMENT','POSTAL_NETWORK'].includes(k)})===.32,hydraulicFunction:typeof hydraulicBonus==='function'};return{version:VERSION,build:'g4-v1',ok:Object.values(tests).every(Boolean),tests};}
+function audit(w){const a=NS.V034G3B.audit(w);return{...a,version:VERSION,integrity:verify(w),g4:stats(w)};}
+function refresh(){try{const w=window.villageObserver?.world,c=verify(w);document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.setAttribute('data-runtime-version',VERSION);}
+ let n=document.getElementById('g3aRuntimeIntegrity');if(n){n.textContent=c.ok?'✓ G4 런타임 · 기술 39개 · 도로 0.62/0.49/0.32 · 병합 왕복 1일 유지':'⚠ G4 무결성: '+Object.keys(c.tests).filter(k=>!c.tests[k]).join(', ');n.style.border='1px solid '+(c.ok?'#235a4c':'#a64c39');n.style.color=c.ok?'#a9e7ca':'#ffe0a1';}return c;}catch(e){return{ok:false,error:String(e)};}}
+function download(name,data,mime='application/json'){const u=URL.createObjectURL(new Blob([data],{type:mime})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+NS.SaveSystem={...NS.SaveSystem,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const raw=[KEY,'village-observer-v034g3b','village-observer-v034g3a','village-observer-v034g3','village-observer-v034g2a'].map(k=>localStorage.getItem(k)).find(Boolean);return raw?NS.World.from(JSON.parse(raw)):null;},
+ export(w){download('village-observer-v034G4-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download('village-observer-v034G4-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));},
+ exportG2Routes(w){download('village-observer-v034G4-relay-routes-'+(w.telemetry?.sessionId||'session')+'.csv','\ufeff'+NS.V034G2A.csv(w),'text/csv;charset=utf-8');}
+};NS.SaveSystem.exportG2ARoutes=NS.SaveSystem.exportG2Routes;
+NS.RELEASE_VERSION=VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-17',title:'도로 개량술·역참 제도·수리공학',summary:'기술 36→39개. 실제 도로를 기반으로 민간 이동비를 0.62/0.49/0.32로 대체하고, 가동 중인 농업시설의 자연 식량 회복을 기본량 기준 +10%p 높입니다.',sections:[['기술 트리',['도로 개량술(도로+토목술, 650K), 역참 제도(도로 개량술+관료제+개척 보급술, 850K), 수리공학(관개·윤작+토목술, 650K)을 추가합니다.']],['도로와 정착지',['기술 계수는 누적 곱하지 않고 최고 기술의 계수로 대체하며, 실제 도로와 도로 상태를 반영합니다.','G3B 신규 병합 왕복 1일 기준, 기존 정착지 보호·분할·공동 재고는 유지합니다.','군사 이동 공식은 변경하지 않습니다.']],['농업',['가동 중인 농업시설에서만 기본 자연 식량 재생의 10%p를 합연산으로 추가합니다.','농부 개인 산출량·식량 저장 한도·재고 보존 기준은 변경하지 않습니다.']]]});
+NS.V034G4=Object.freeze({version:VERSION,techs:ADDED,roadTier,roadFactor,roadCondition,spatialStep,civilianRoadFactor,hydraulicBonus,stats,verify,audit,refresh});
+if(NS.UI){const header=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...args){const r=header.apply(this,args);refresh();return r;};}
+if(NS.UI){const old=NS.UI.prototype.renderTile;NS.UI.prototype.renderTile=function(...args){const r=old.apply(this,args);try{const box=document.querySelector('.v34c-settlement-tile');if(box){const x=box.querySelector('.v034g3b-travel-note');if(x)x.textContent=x.textContent.replace('G3B 신규 병합','G4 신규 병합');}}catch{}return r;};}
+refresh();
 })(window.VSim);
 
 </script>

@@ -41,13 +41,13 @@ const internalPath25=NS.Village.prototype.internalPathCost;
 function topologySig26(v){
  let sum=0,roads=0,roadHash=0,harbors=0,harborHash=0;
  for(const id of v.territory||[]){sum=(sum+id*17)%1000000007;const t=v._world?.map.get(id);if(!t)continue;for(let i=0;i<(t.buildings||[]).length;i++){const b=t.buildings[i],cond=Number(t.buildingCondition?.[i]??100);if(cond<=0)continue;if(b==='road'){roads++;roadHash=(roadHash+id*31+i)%1000000007;}if(b==='harbor'){harbors++;harborHash=(harborHash+id*37+i)%1000000007;}}}
- const tech=['ROADS','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
+ const tech=['ROADS','ROAD_IMPROVEMENT','POSTAL_NETWORK','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
  return `${v.territory?.size||0}:${sum}:${roads}:${roadHash}:${harbors}:${harborHash}:${tech}`;
 }
 NS.Village.prototype.internalPathCost=function(fromId,toId){
  if(typeof internalPath25!=='function')return this._world?.map.distance(fromId,toId)??Infinity;
  const sig=topologySig26(this);if(!this._v26PathCache||this._v26PathCache.sig!==sig)this._v26PathCache={sig,map:new Map()};
- const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${a}:${b}`;if(this._v26PathCache.map.has(key))return this._v26PathCache.map.get(key);
+ const key=`${fromId}>${toId}`;if(this._v26PathCache.map.has(key))return this._v26PathCache.map.get(key);
  const cost=internalPath25.call(this,fromId,toId);this._v26PathCache.map.set(key,cost);if(this._v26PathCache.map.size>6000){const first=this._v26PathCache.map.keys().next().value;this._v26PathCache.map.delete(first);}return cost;
 };
 

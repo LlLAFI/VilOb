@@ -19,7 +19,7 @@ function verify(w){
  };
  return {version:VERSION,build:'g3a-static-v1',ok:Object.values(tests).every(Boolean),tests};
 }
-function updateUI(){try{
+function updateUI(){if(NS.V034G3B?.refresh)return NS.V034G3B.refresh();try{
  const w=window.villageObserver?.world;
  let status=w&&verifiedWorlds.get(w);if(!status){status=verify(w);if(w)verifiedWorlds.set(w,status);}
  document.title='Village Observer '+VERSION;

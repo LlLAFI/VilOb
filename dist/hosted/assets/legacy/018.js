@@ -68,13 +68,13 @@ function pathSearch(w,sourceIds,targetIds,ownerId=null){
  for(const id of sourceIds){dist.set(id,0);push([0,id,id]);}
  while(heap.length){const [d,id,origin]=pop();if(d!==dist.get(id))continue;if(targets.has(id))return{cost:d,sourceId:origin,targetId:id};
   for(const n of w.map.neighbors4(id)){if(!NS.TERRAIN[n.terrain].passable)continue;if(ownerId!=null&&n.ownerId!==ownerId)continue;let step=NS.TERRAIN[n.terrain].tradeCost;
-   if(activeRoad(n)&&n.ownerId!=null){const owner=w.villages[n.ownerId];step*=roadFactor(roadLevel(owner));}
+   if(activeRoad(n)&&n.ownerId!=null){const owner=w.villages[n.ownerId];step*=NS.V034G4?.roadFactor?.(owner)??roadFactor(roadLevel(owner));}
    const nd=d+step;if(nd<(dist.get(n.id)??Infinity)){dist.set(n.id,nd);push([nd,n.id,origin]);}
   }
  }
  return{cost:Infinity,sourceId:null,targetId:null};
 }
-function roadSignature(w){return w.activeVillages.map(v=>`${v.id}:${roadLevel(v)}:${[...v.territory].filter(id=>activeRoad(w.map.get(id))).join('.')}`).join('|');}
+function roadSignature(w){return w.activeVillages.map(v=>`${v.id}:${NS.V034G4?.roadTier?.(v)??roadLevel(v)}:${[...v.territory].filter(id=>activeRoad(w.map.get(id))).join('.')}`).join('|');}
 NS.World.prototype.routeInfo=function(a,b){
  const A=a.tradingPosts(),B=b.tradingPosts(),range=Math.min(a.tradeRange(this),b.tradeRange(this));
  if(!A.length||!B.length)return{reachable:false,cost:Infinity,range,aId:a.id,bId:b.id,aTileId:null,bTileId:null,sourceTileId:null,targetTileId:null};

@@ -28,7 +28,7 @@ function step(w,dest){const t=tile(w,dest);if(!t||!NS.TERRAIN[t.terrain]?.passab
  // Same terrain/physical-road factor as 33D1B; no new abstract teleport route.
  const i=t.buildings?.indexOf('road')??-1,owner=w.villages.find(v=>same(v.id,t.ownerId));
  const road=i>=0&&Number(t.buildingCondition?.[i]??100)>=25&&!!owner?.hasTech?.('ROADS');
- return Number(NS.TERRAIN[t.terrain].tradeCost||1)*(road?0.62:1);
+ return NS.V034G4?.spatialStep?.(w,t)??(Number(NS.TERRAIN[t.terrain].tradeCost||1)*(road?0.62:1));
 }
 function path(w,from,to,allowed,limit=Infinity){from=Number(from);to=Number(to);if(from===to)return 0;
  const dist=new Map([[from,0]]),pending=[[0,from]];
@@ -87,11 +87,11 @@ function withinCoreRadiusD3B1(w,ids,core){if(NS.V034G3?.config?.spatialEnabled)r
 function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||(NS.V034G3?.config?.spatialEnabled? a.tileIds.length+b.tileIds.length>NS.V034G3.maximumJoinCap(w,a,b):a.tileIds.length+b.tileIds.length>MAX_TILES))return null;
  if(!groupsAdjacent(w,a,b))return null;
  const aa=a.tileIds.concat(b.tileIds);if(!aa.some(id=>developed(w,tile(w,id))))return null;
- const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,a.coreTileId,"join"):JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,b.coreTileId,"join"):JOIN);
+ const ar=withinCoreRadiusD3B1(w,aa,a.coreTileId),br=withinCoreRadiusD3B1(w,aa,b.coreTileId);const ac=ar&&bothReachable(w,aa,a.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,a.coreTileId,"join"):JOIN),bc=br&&bothReachable(w,aa,b.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,b.coreTileId,"join"):JOIN);if(NS.V034G3B?.config?.enabled)NS.V034G3B.onCandidate(w,{ar,br,ac,bc});
  if(!ac&&!bc)return null;
  if(ac&&!bc)return [a,b];if(bc&&!ac)return [b,a];return coreScore(w,a)>=coreScore(w,b)?[a,b]:[b,a];
 }
-function merge(w,winner,loser){const next=winner.tileIds.concat(loser.tileIds);replaceGroup(w,winner,next);retire(w,loser,winner.id);counters(w).merges++;
+function merge(w,winner,loser){if(NS.V034G3B?.config?.enabled)NS.V034G3B.onMerge(w,winner,loser);const next=winner.tileIds.concat(loser.tileIds);replaceGroup(w,winner,next);retire(w,loser,winner.id);counters(w).merges++;
  w.telemetry?.record?.('SETTLEMENT_MERGED34C',w,{settlementId:winner.id,absorbedId:loser.id,nationId:winner.nationId,coreTileId:winner.coreTileId,tileIds:next});
 }
 function reevaluate(w){ensure(w);const start=performance.now(),z=w.v34c,c=counters(w),now=day(w);c.reviews++;

@@ -9,7 +9,7 @@ function boot(filename){let rng=0x1a23acdd,calls=0;const math=Object.create(Math
  return {NS:context.VSim,calls:()=>calls,reset:()=>{rng=0x1a23acdd;calls=0;}};
 }
 const prior=boot(path.join(root,'tests/fixtures-for-g3a-baseline.html'));
-const newer=boot(path.join(root,'index-standalone.html'));
+const newer=boot(path.join(root,'tests/fixtures-for-g3b-baseline.html'));
 const A=newer.NS,B=prior.NS;
 assert.equal(A.RELEASE_VERSION,'V0.34G3A');assert.equal(A.V034G3.version,'V0.34G3');
 for(const [label,NS] of [['G3A',A],['G3',B]]){

@@ -44,7 +44,7 @@ applyRegistries();
 
 /* Canonical production multipliers: tech-wide crop bonuses were retired in A4. */
 const syncPrev=NS.Tile.prototype.syncResources;
-NS.Tile.prototype.syncResources=function(day){const before=Number(this.lastResourceDay||1),dt=Math.max(0,Number(day||0)-before);syncPrev.call(this,day);if(dt>0){const farm=directEff(this,'ancient_farm');if(farm>0){const extra=Number(NS.TERRAIN?.[this.terrain]?.regen?.food||0)*dt*.60*farm;this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+extra);}}};
+NS.Tile.prototype.syncResources=function(day){const before=Number(this.lastResourceDay||1),dt=Math.max(0,Number(day||0)-before);syncPrev.call(this,day);if(dt>0){const farm=directEff(this,'ancient_farm');if(farm>0){const extra=Number(NS.TERRAIN?.[this.terrain]?.regen?.food||0)*dt*.60*farm;this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+extra);}}const g4Extra=NS.V034G4?.hydraulicBonus?.(this,dt)||0;if(g4Extra>0)this.resources.food=Math.min(Number(this.resourceCap?.food||0),Number(this.resources?.food||0)+g4Extra);};
 const harvestPrev=NS.Village.prototype.harvestMultiplier;
 NS.Village.prototype.harvestMultiplier=function(kind,t){let m=harvestPrev.call(this,kind,t);if(kind==='food'){const f=directEff(t,'ancient_farm');if(f>0)m*=1+.25*f;}if(kind==='wood'){const s=directEff(t,'sawmill'),p=this._v11ActingPerson;if(s>0&&p?.job==='목수'&&p?.workBuildingType29==='sawmill'&&Number(p.workTileId)===Number(t.id))m*=1+.45*s;}if(kind==='stone'){const dq=directEff(t,'deep_quarry'),q=directEff(t,'quarry');if(dq>0)m*=1+(Number(DEEP_QUARRY_FACTOR[t.terrain]||1)-1)*dq;else if(q>0)m*=1+(Number(QUARRY_FACTOR[t.terrain]||1)-1)*q;}return m;};
 

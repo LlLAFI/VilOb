@@ -1,3 +1,25 @@
+# Village Observer V0.34G4 — Transportation Network & Agricultural Engineering
+
+**현재 버전 V0.34G4:** 기존 36개 기술에서 **도로 개량술·역참 제도·수리공학** 3개를 추가하여 39개. 정상 도로 이동비를 0.62 / 0.49 / 0.32(최고 기술 대체)로 연결. 실제 농업시설 자연 식량 회복 +10%p. **G3B의 신규 정착지 병합 왕복 1일 조건과 기존 정착지 공동재고를 유지.**
+
+- [G4 패치 상세](README-34G4.md) / [G4 검증 기록](TEST-34G4.md)
+- GitHub Pages 배포: 저장소 `index.html` 및 `dist/hosted/assets` 동시 게시. 오프라인: `index-standalone.html`.
+- 로컬 G4 세이브 검증기: `local-validator-g4.html`.
+
+---
+
+# Village Observer V0.34G3B — Settlement One-Day Integration Gate
+
+**현재 버전:** V0.34G3B. 정착지 **새 병합** 시 중심지 ↔ 모든 타일 왕복 각각 물류 이동비 **1.00 이하** 필수. 기존 정착지의 즉시 재고 공유·G3 분할 유예는 변경되지 않음. 기술 수 **36개** 유지.
+
+- [G3B 패치 상세](README-34G3B.md)
+- [G3B 검증 기록](TEST-34G3B.md)
+- GitHub Pages: 저장소 `index.html`과 `dist/hosted/assets`를 함께 배포.
+- 오프라인 본편: `index-standalone.html` / `dist/standalone/index.html`.
+- 159MB 성숙 세이브는 사용자의 PC에서 `local-validator-g3b.html`로 검사(실제 해당 세이브 검증 대기).
+
+---
+
 # Village Observer V0.34G3A
 
 현행 배포 및 대용량 세이브 로컬 검증은 [README-34G3A.md](README-34G3A.md)를 먼저 확인하세요.

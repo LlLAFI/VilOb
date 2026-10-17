@@ -26,8 +26,10 @@ function policy(w,ids,core){
  const radius=tier,cap=tier===4?49:tier===3?29:13;
  // Conservative travel windows: roads contribute 0.62 each while terrain is
  // authoritative. Both constraints expand; circle is never implied by path.
- const join=tier===4?4.34:tier===3?3.10:1.24;
- return {radius,cap,join,split:join+(tier===2?.16:.35),tier,pop,built};
+ const legacyJoin=tier===4?4.34:tier===3?3.10:1.24;
+ // G3B changes NEW integration only. Existing split grace windows retain G3.
+ const join=NS.V034G3B?.joinLimit??legacyJoin;
+ return {radius,cap,join,split:legacyJoin+(tier===2?.16:.35),tier,pop,built};
 }
 function promote(w,r){const p=policy(w,r.tileIds,r.coreTileId);r.v034g3MaxTier=Math.max(num(r.v034g3MaxTier||2),p.tier);}
 function withinRadius(w,ids,core){const p=policy(w,ids,core),c=w.map.get(Number(core));if(!c||ids.length>p.cap)return false;
@@ -39,7 +41,7 @@ const pathLimit=(w,ids,core,phase)=>policy(w,ids,core)[phase]??Infinity;
 function bothReachable(w,ids,core,limit){const allow=new Set(ids.map(Number)),source=Number(core);if(!allow.has(source))return false;
  const info=new Map();for(const id of allow){const t=w.map.get(id);if(!t||!NS.TERRAIN?.[t.terrain]?.passable)return false;
   const i=t.buildings?.indexOf('road')??-1,v=w.villages?.find(v=>same(v.id,t.ownerId)),road=i>=0&&num(t.buildingCondition?.[i]??100)>=25&&!!v?.hasTech?.('ROADS');
-  info.set(id,num(NS.TERRAIN[t.terrain].tradeCost||1)*(road?.62:1));}
+  info.set(id,(NS.V034G4?.spatialStep?.(w,t)??(num(NS.TERRAIN[t.terrain].tradeCost||1)*(road?.62:1))));}
  function sweep(reverse){const best=new Map([[source,0]]),todo=[[0,source]];while(todo.length){todo.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const [d,u]=todo.shift();if(d>limit+EPS)return false;if(d>best.get(u)+EPS)continue;
   for(const e of w.map.neighbors4(u)){const v=e.id;if(!allow.has(v))continue;const cost=reverse?info.get(u):info.get(v),nd=d+cost;if(nd>limit+EPS||nd>=((best.get(v)??Infinity)-EPS))continue;best.set(v,nd);todo.push([nd,v]);}}
  return best.size===allow.size;}
@@ -53,9 +55,9 @@ function candidateExtension(v,w,c){const t=c?.tile||w?.map?.get?.(Number(c?.targ
   const ids=[...r.tileIds,t.id],p=policyProjected(w,ids,r.coreTileId,v.id);
   const center=w.map.get(r.coreTileId);if(!center||ids.length>p.cap||(t.x-center.x)**2+(t.y-center.y)**2>p.radius*p.radius+EPS)continue;
   const allow=new Set(r.tileIds),out=NS.V034C.path(w,center.id,n.id,allow,p.join),back=NS.V034C.path(w,n.id,center.id,allow,p.join);
-  const roadStep=num(NS.TERRAIN?.[t.terrain]?.tradeCost||1)*.62;
+  const roadStep=num(NS.TERRAIN?.[t.terrain]?.tradeCost||1); // unowned target has NO physical road
   const roadIndex=n.buildings?.indexOf('road')??-1,nroad=roadIndex>=0&&num(n.buildingCondition?.[roadIndex]??100)>=25;
-  const backStep=num(NS.TERRAIN?.[n.terrain]?.tradeCost||1)*(nroad?.62:1);
+  const backStep=NS.V034G4?.spatialStep?.(w,n)??(num(NS.TERRAIN?.[n.terrain]?.tradeCost||1)*(nroad?.62:1));
   if(out+roadStep>p.join+EPS||back+backStep>p.join+EPS)continue;
   const row={settlementId:r.id,coreTileId:r.coreTileId,sourceTileId:n.id,targetTileId:t.id,tilesAfter:ids.length,projectedOut:+(out+roadStep).toFixed(3),projectedReturn:+(back+backStep).toFixed(3),g3Radius:p.radius};
   if(!best||r.tileIds.length>best.tilesAfter-1||r.tileIds.length===best.tilesAfter-1&&String(r.id)<String(best.settlementId))best=row;

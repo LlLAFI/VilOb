@@ -27,7 +27,7 @@ NS.Village.prototype.tileResidents=function(tileId){
 const path26=NS.Village.prototype.internalPathCost;
 function topologySig27(v){
  const w=v._world,day=Number(w?.calendarOrdinalDay?.()??w?.ordinalDay?.()??0);
- if(v._v27TopoMemo?.day===day)return v._v27TopoMemo.sig;
+ const roadTier=NS.V034G4?.roadTier?.(v)??0;if(v._v27TopoMemo?.day===day&&v._v27TopoMemo.roadTier===roadTier)return v._v27TopoMemo.sig;
  let sum=0,roads=0,roadHash=0,harbors=0,harborHash=0;
  for(const id of v.territory||[]){
   sum=(sum+id*17)%1000000007;const t=w?.map?.get(id);if(!t)continue;
@@ -37,15 +37,15 @@ function topologySig27(v){
    if(b==='harbor'){harbors++;harborHash=(harborHash+id*37+i)%1000000007;}
   }
  }
- const tech=['ROADS','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
+ const tech=['ROADS','ROAD_IMPROVEMENT','POSTAL_NETWORK','ENGINEERING','URBANIZATION','COASTAL_NAVIGATION','SEAFARING','OCEAN_NAVIGATION'].map(k=>v.hasTech?.(k)?1:0).join('');
  const sig=`${v.territory?.size||0}:${sum}:${roads}:${roadHash}:${harbors}:${harborHash}:${tech}`;
- v._v27TopoMemo={day,sig};return sig;
+ v._v27TopoMemo={day,sig,roadTier};return sig;
 }
 NS.Village.prototype.internalPathCost=function(fromId,toId){
  if(fromId===toId)return 0;
  const sig=topologySig27(this);
  if(!this._v27PathCache||this._v27PathCache.sig!==sig)this._v27PathCache={sig,map:new Map(),hits:0,misses:0};
- const a=Math.min(fromId,toId),b=Math.max(fromId,toId),key=`${a}:${b}`;
+ const key=`${fromId}>${toId}`;
  if(this._v27PathCache.map.has(key)){this._v27PathCache.hits++;return this._v27PathCache.map.get(key);}
  const t0=now27(),cost=path26.call(this,fromId,toId),ms=now27()-t0;this._v27PathCache.misses++;
  this._v27PathCache.map.set(key,cost);if(this._v27PathCache.map.size>12000){const first=this._v27PathCache.map.keys().next().value;this._v27PathCache.map.delete(first);}
