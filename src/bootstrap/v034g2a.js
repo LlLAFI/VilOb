@@ -73,11 +73,12 @@ function relay(w){
   if(now-num(e.lastFoodRelayCal??-99999)<3)continue;
   e.lastFoodRelayCal=now;s.nationPulses++;
   const state=groups(v,w),cache=new Map();e.foodDonorIndexBuilds=num(e.foodDonorIndexBuilds)+1;s.settlementReads+=state.length;
-  const receivers=state.filter(demandUrgent).sort((a,b)=>b.critical-a.critical||b.severe-a.severe||a.days-b.days||a.anchor-b.anchor);
+  const receivers=state.filter(demandUrgent).sort((a,b)=>(NS.V034G3?.receiverRank?.(b)||0)-(NS.V034G3?.receiverRank?.(a)||0)||b.critical-a.critical||b.severe-a.severe||a.days-b.days||a.anchor-b.anchor);
   s.receivers+=receivers.length;s.foodDemand+=receivers.reduce((a,x)=>a+x.need,0);
   for(const r of receivers.slice(0,4)){
    const crisis=r.critical>0||r.severe>0||r.days<8||r.avgHunger>=72;
-   const floor=crisis?24:40, target=crisis?38:30;
+   const basePlan={floor:crisis?24:40,target:crisis?38:30},plan=NS.V034G3?.reliefPlan?.(w,r,state,basePlan)||basePlan;
+   const {floor,target}=plan;
    const remembered=e.recentFoodDonor?.['settlement:'+r.sid];
    const attempted=new Set();let deliveries=0;
    // At most five distinct donors per receiver. A selected donor is consumed
@@ -89,7 +90,7 @@ function relay(w){
     const donors=state.filter(d=>{
      if(d.sid===r.sid||attempted.has(d.sid))return false;
      refreshStock(w,v,d,s);
-     return d.stock-reserveAmount(d,floor)>=.5;
+     return (plan.mode!=='IMMINENT'||(d.severe===0&&d.critical===0))&&d.stock-reserveAmount(d,floor)>=.5;
     });
     s.skippedSameSettlement++;
     if(!donors.length){block(s,'DONOR_RESERVE');break;}
@@ -138,17 +139,17 @@ function relay(w){
     e.recentFoodDonor=e.recentFoodDonor||{};e.recentFoodDonor['settlement:'+r.sid]=d.sid;
     v.logisticsStats=v.logisticsStats||{};v.logisticsStats.moves=num(v.logisticsStats.moves)+1;v.logisticsStats.foodMoved=num(v.logisticsStats.foodMoved)+put;
     v.v32d5.foodRelayMoves=num(v.v32d5.foodRelayMoves)+1;v.v32d5.foodRelayQty=num(v.v32d5.foodRelayQty)+put;
-    s.shipments++;s.quantity+=put;
-    s.retainedRoutes.push({day:now,nation:v.name,fromSettlementId:d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,cost:n5(best.cost),qty:n5(put),donorCycles:n5(donorStockBefore/Math.max(.12,d.need)),receiverCycles:n5(receiverBefore/Math.max(.12,r.need)),donorStockBefore:n5(donorStockBefore),donorStockAfter:n5(d.stock),donorRequired:n5(reserve),donorSurplusBefore:n5(available),donorCyclesAfter:n5(d.days),receiverStockAfter:n5(r.stock),receiverCyclesAfter:n5(r.days),reserveViolation:reserveShortfall>1e-6?1:0});
+    s.shipments++;s.quantity+=put;NS.V034G3?.onDelivery?.(w,plan.mode,put);
+    s.retainedRoutes.push({day:now,nation:v.name,fromSettlementId:d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,cost:n5(best.cost),qty:n5(put),donorCycles:n5(donorStockBefore/Math.max(.12,d.need)),receiverCycles:n5(receiverBefore/Math.max(.12,r.need)),donorStockBefore:n5(donorStockBefore),donorStockAfter:n5(d.stock),donorRequired:n5(reserve),donorSurplusBefore:n5(available),donorCyclesAfter:n5(d.days),receiverStockAfter:n5(r.stock),receiverCyclesAfter:n5(r.days),reserveViolation:reserveShortfall>1e-6?1:0,reliefMode:plan.mode||'STANDARD',reliefFloorCycles:floor});
     if(s.retainedRoutes.length>300)s.retainedRoutes.shift();
-    w.telemetry?.record?.('NATIONAL_FOOD_RELAY32D5',w,{village:v.name,villageId:v.id,fromSettlementId:d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,qty:+put.toFixed(2),routeCost:+best.cost.toFixed(2),receiverDaysBefore:+(receiverBefore/Math.max(.12,r.need)).toFixed(1),donorDaysBefore:+(donorStockBefore/Math.max(.12,d.need)).toFixed(1),donorDaysAfter:+d.days.toFixed(1),donorReserveRequired:+reserve.toFixed(3),donorReserveShortfall:+reserveShortfall.toFixed(5),severeHunger:r.severe,criticalHunger:r.critical,model:'V0.34G2A_LIVE_SURPLUS'});
+    w.telemetry?.record?.('NATIONAL_FOOD_RELAY32D5',w,{village:v.name,villageId:v.id,fromSettlementId:d.sid,toSettlementId:r.sid,fromTileId:best.from,toTileId:best.to,qty:+put.toFixed(2),routeCost:+best.cost.toFixed(2),receiverDaysBefore:+(receiverBefore/Math.max(.12,r.need)).toFixed(1),donorDaysBefore:+(donorStockBefore/Math.max(.12,d.need)).toFixed(1),donorDaysAfter:+d.days.toFixed(1),donorReserveRequired:+reserve.toFixed(3),donorReserveShortfall:+reserveShortfall.toFixed(5),severeHunger:r.severe,criticalHunger:r.critical,model:NS.V034G3?'V0.34G3_CRISIS_PRIORITY':'V0.34G2A_LIVE_SURPLUS',reliefMode:plan.mode||'STANDARD',reliefFloorCycles:floor});
    }
    if(deliveries>1)s.receiversWithMultipleDonors++;
   }
  }
 }
 function summary(w){const s=stats(w);return{...s,quantity:n5(s.quantity),returned:n5(s.returned),retainedRoutes:s.retainedRoutes.length,transportRule:'same-nation unified food relief (V27/V28/E2 replaced)',demandBasis:'F0 age-weighted demand per 3-day work cycle',endpointChoice:'minimum actual passable route cost among Settlement member tile pairs',cadence:'3-day work cycle / before consumption',internalShipmentForbidden:true,conservationErrors:s.physicalMismatch+s.failedReturns};}
-const HEAD=['day','nation','fromSettlementId','toSettlementId','fromTileId','toTileId','cost','qty','donorCycles','receiverCycles','donorStockBefore','donorStockAfter','donorRequired','donorSurplusBefore','donorCyclesAfter','receiverStockAfter','receiverCyclesAfter','reserveViolation'];
+const HEAD=['day','nation','fromSettlementId','toSettlementId','fromTileId','toTileId','cost','qty','donorCycles','receiverCycles','donorStockBefore','donorStockAfter','donorRequired','donorSurplusBefore','donorCyclesAfter','receiverStockAfter','receiverCyclesAfter','reserveViolation','reliefMode','reliefFloorCycles'];
 const csv=w=>[HEAD.join(','),...stats(w).retainedRoutes.map(r=>HEAD.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n');
 function download(name,contents,mime){const url=URL.createObjectURL(new Blob([contents],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 const sav=NS.SaveSystem;

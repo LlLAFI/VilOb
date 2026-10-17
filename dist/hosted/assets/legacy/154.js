@@ -36,7 +36,7 @@ function path(w,from,to,allowed,limit=Infinity){from=Number(from);to=Number(to);
  for(const n of w.map.neighbors4(id)){if(!allowed.has(n.id))continue;const next=cost+step(w,n.id);if(next>limit+EPS||next>=((dist.get(n.id)??Infinity)-EPS))continue;dist.set(n.id,next);pending.push([next,n.id]);}}
  return Infinity;
 }
-function bothReachable(w,ids,core,limit){const allow=new Set(ids);if(!allow.has(Number(core)))return false;
+function bothReachable(w,ids,core,limit){if(NS.V034G3?.config?.spatialEnabled)return NS.V034G3.bothReachable(w,ids,core,limit);const allow=new Set(ids);if(!allow.has(Number(core)))return false;
  for(const id of ids){if(path(w,core,id,allow,limit)>limit+EPS||path(w,id,core,allow,limit)>limit+EPS)return false;}
  return true;
 }
@@ -83,11 +83,11 @@ function groupsAdjacent(w,a,b){for(const id of a.tileIds)for(const n of w.map.ne
 function coreScore(w,r){const t=tile(w,r.coreTileId),v=w.villages.find(v=>same(v.id,r.nationId));const pop=v?.tileResidents?.(r.coreTileId)?.length||0;
  return (t.id===Number(v?.coreTileId)?100000:0)+pop*3+(t.buildings?.length||0)*5+(day(w)-Number(r.createdCalendarDay||day(w)))*0.0001;
 }
-function withinCoreRadiusD3B1(w,ids,core){const c=tile(w,core);return !!c&&ids.every(id=>{const t=tile(w,id);return !!t&&Math.abs(t.x-c.x)+Math.abs(t.y-c.y)<=2;});}
-function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||a.tileIds.length+b.tileIds.length>MAX_TILES)return null;
+function withinCoreRadiusD3B1(w,ids,core){if(NS.V034G3?.config?.spatialEnabled)return NS.V034G3.withinRadius(w,ids,core);const c=tile(w,core);return !!c&&ids.every(id=>{const t=tile(w,id);return !!t&&Math.abs(t.x-c.x)+Math.abs(t.y-c.y)<=2;});}
+function canJoin(w,a,b){if(!same(a.nationId,b.nationId)||(NS.V034G3?.config?.spatialEnabled? a.tileIds.length+b.tileIds.length>NS.V034G3.maximumJoinCap(w,a,b):a.tileIds.length+b.tileIds.length>MAX_TILES))return null;
  if(!groupsAdjacent(w,a,b))return null;
  const aa=a.tileIds.concat(b.tileIds);if(!aa.some(id=>developed(w,tile(w,id))))return null;
- const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,JOIN);
+ const ac=withinCoreRadiusD3B1(w,aa,a.coreTileId)&&bothReachable(w,aa,a.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,a.coreTileId,"join"):JOIN),bc=withinCoreRadiusD3B1(w,aa,b.coreTileId)&&bothReachable(w,aa,b.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,aa,b.coreTileId,"join"):JOIN);
  if(!ac&&!bc)return null;
  if(ac&&!bc)return [a,b];if(bc&&!ac)return [b,a];return coreScore(w,a)>=coreScore(w,b)?[a,b]:[b,a];
 }
@@ -97,8 +97,8 @@ function merge(w,winner,loser){const next=winner.tileIds.concat(loser.tileIds);r
 function reevaluate(w){ensure(w);const start=performance.now(),z=w.v34c,c=counters(w),now=day(w);c.reviews++;
  const pendingSplit=z.pendingSplit||{},pendingJoin=z.pendingJoin||{};
  for(const r of [...active(w).values()].sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
-  if(r.tileIds.length<=1){delete pendingSplit[r.id];continue;}
-  if(withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId)&&bothReachable(w,r.tileIds,r.coreTileId,SPLIT)){delete pendingSplit[r.id];continue;}
+  if(NS.V034G3?.config?.spatialEnabled)NS.V034G3.promote(w,r);if(r.tileIds.length<=1){delete pendingSplit[r.id];continue;}
+  if(withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId)&&bothReachable(w,r.tileIds,r.coreTileId,NS.V034G3?.config?.spatialEnabled?NS.V034G3.pathLimit(w,r.tileIds,r.coreTileId,"split"):SPLIT)){delete pendingSplit[r.id];continue;}
   if(pendingSplit[r.id]===undefined){pendingSplit[r.id]=now;continue;}
   if(now-pendingSplit[r.id]<SPLIT_WAIT)continue;
   // Access degradation: each survivor is independently physical. No resource duplication.
@@ -147,7 +147,7 @@ function inspect(w,{baseline=false}={}){const errors=[],warnings=[],z=w?.v34b,vs
   if(!nations.has(String(r.nationId)))errors.push({code:'INVALID_NATION',id});
   if(!Array.isArray(r.tileIds)||!r.tileIds.length){errors.push({code:'ACTIVE_EMPTY',id});continue;}
   maxSize=Math.max(maxSize,r.tileIds.length);if(r.tileIds.length>1)multi++;
-  if(r.tileIds.length>MAX_TILES)errors.push({code:'CAP_EXCEEDED',id});if(!withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId))errors.push({code:'RADIUS_EXCEEDED',id});
+  if(r.tileIds.length>(NS.V034G3?.config?.spatialEnabled?NS.V034G3.policy(w,r.tileIds,r.coreTileId).cap:MAX_TILES))errors.push({code:'CAP_EXCEEDED',id});if(!withinCoreRadiusD3B1(w,r.tileIds,r.coreTileId))errors.push({code:'RADIUS_EXCEEDED',id});
   if(!r.tileIds.includes(Number(r.coreTileId)))errors.push({code:'CORE_NOT_MEMBER',id});
   if(components(w,r.tileIds).length>1)errors.push({code:'DISCONNECTED',id});
   for(const tid of r.tileIds){const t=tile(w,tid);if(seen.has(tid))errors.push({code:'MULTIPLE_SETTLEMENTS',tileId:tid});seen.add(tid);

@@ -10,6 +10,7 @@ const manhattan=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
 function isRoad(w,v,t){const i=t?.buildings?.indexOf('road')??-1;return i>=0&&n(t.buildingCondition?.[i]??100)>=25&&!!v?.hasTech?.('ROADS');}
 function step(w,v,t,plannedRoad=false){const terrain=NS.TERRAIN?.[t?.terrain];if(!terrain?.passable)return Infinity;return n(terrain.tradeCost||1)*((plannedRoad||isRoad(w,v,t))?.62:1);}
 function candidateExtension(v,w,c){
+ if(NS.V034G3?.config?.spatialEnabled)return NS.V034G3.candidateExtension(v,w,c);
  // Potential road on a *neutral* target is only a score estimate; no road is
  // constructed for free. Actual C mergers still require physical roads.
  const t=c?.tile||w?.map?.get?.(n(c?.targetTileId??c?.tileId));
