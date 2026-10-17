@@ -7,6 +7,8 @@
 const VERSION='V0.34G3',PREV='V0.34G2A',KEY='village-observer-v034g3',EPS=1e-8;
 const config={spatialEnabled:true,foodEnabled:true};
 const same=(a,b)=>String(a)===String(b), num=x=>Number.isFinite(Number(x))?Number(x):0;
+let observationDepth=0;
+function observe(read){observationDepth++;try{return read();}finally{observationDepth--;}}
 const metrics=new WeakMap(),snap=w=>{let m=metrics.get(w);if(!m){m={policies:0,pathSweeps:0,expandedTier3:0,expandedTier4:0,reliefPlans:0,imminentPlans:0,imminentRejected:0,emergencyQty:0,emergencyShipments:0};metrics.set(w,m);}return m;};
 // Stable maximum footprint grows with actual developed population and buildings.
 // The tier is derived from current physical settlements; mergers may use pooled
@@ -20,7 +22,7 @@ function policy(w,ids,core){
  const computedTier=pop>=30&&built>=6?4:pop>=12&&built>=2?3:2;
  const record=w.v34b?.settlements?.find(r=>r.lifecycle==='ACTIVE'&&r.coreTileId===Number(core)&&same(r.nationId,c.ownerId));
  const tier=Math.max(computedTier,num(record?.v034g3MaxTier||2));
- const m=snap(w);m.policies++;if(tier===3)m.expandedTier3++;if(tier===4)m.expandedTier4++;
+ if(!observationDepth){const m=snap(w);m.policies++;if(tier===3)m.expandedTier3++;if(tier===4)m.expandedTier4++;}
  const radius=tier,cap=tier===4?49:tier===3?29:13;
  // Conservative travel windows: roads contribute 0.62 each while terrain is
  // authoritative. Both constraints expand; circle is never implied by path.
@@ -41,7 +43,7 @@ function bothReachable(w,ids,core,limit){const allow=new Set(ids.map(Number)),so
  function sweep(reverse){const best=new Map([[source,0]]),todo=[[0,source]];while(todo.length){todo.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const [d,u]=todo.shift();if(d>limit+EPS)return false;if(d>best.get(u)+EPS)continue;
   for(const e of w.map.neighbors4(u)){const v=e.id;if(!allow.has(v))continue;const cost=reverse?info.get(u):info.get(v),nd=d+cost;if(nd>limit+EPS||nd>=((best.get(v)??Infinity)-EPS))continue;best.set(v,nd);todo.push([nd,v]);}}
  return best.size===allow.size;}
- snap(w).pathSweeps+=2;return sweep(false)&&sweep(true);
+ if(!observationDepth)snap(w).pathSweeps+=2;return sweep(false)&&sweep(true);
 }
 function candidateExtension(v,w,c){const t=c?.tile||w?.map?.get?.(Number(c?.targetTileId??c?.tileId));
  if(!t||t.ownerId!=null||!v?.hasTech?.('ROADS')||!NS.V034C)return null;
@@ -81,13 +83,13 @@ const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
 NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;d.v034g3={revision:'circle-and-travel-cost-plus-imminent-relief',spatial:'derived from physical population/buildings',emergency:'18-cycle donor lower floor only for imminent crisis'};return d;};
 NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREV}:d);};
 const oldJSON=NS.Telemetry.prototype.toJSON;
-NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;
+NS.Telemetry.prototype.toJSON=function(w){return observe(()=>{const d=oldJSON.call(this,w);d.version=VERSION;
  const m={...snap(w)};d.worldSummary=d.worldSummary||{};
  const tierCounts={R2:0,R3:0,R4:0,over13Tiles:0,maxTiles:0};
  for(const r of w.v34b?.settlements||[]){if(r.lifecycle!=='ACTIVE'||!r.tileIds?.length)continue;
   const p=policy(w,r.tileIds,r.coreTileId);tierCounts['R'+p.tier]=(tierCounts['R'+p.tier]||0)+1;
   if(r.tileIds.length>13)tierCounts.over13Tiles++;tierCounts.maxTiles=Math.max(tierCounts.maxTiles,r.tileIds.length);}
- d.worldSummary.v034g3={...m,activeGrowthTiers:tierCounts,geometry:'Euclidean radius AND bidirectional owned-tile path',growth:'R2/13 -> R3/29 -> R4/49; population+buildings',food:'priority imminent crisis; 18-cycle donor safeguard with >=20 national cycles',g2aSummaryRetained:true};return d;};
+ d.worldSummary.v034g3={...m,activeGrowthTiers:tierCounts,geometry:'Euclidean radius AND bidirectional owned-tile path',growth:'R2/13 -> R3/29 -> R4/49; population+buildings',food:'priority imminent crisis; 18-cycle donor safeguard with >=20 national cycles',g2aSummaryRetained:true};return d;});};
 NS.SaveSystem={...NS.SaveSystem,
  save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
  load(){const text=localStorage.getItem(KEY)||localStorage.getItem('village-observer-v034g2a')||localStorage.getItem('village-observer-v034g2')||localStorage.getItem('village-observer-v034g1b');return text?NS.World.from(JSON.parse(text)):null;},
@@ -100,5 +102,5 @@ function download(file,contents,mime='application/json'){const url=URL.createObj
 if(NS.UI){const old=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...a){const result=old.apply(this,a);document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const x=document.getElementById('exportG2RelayBtn');if(x){x.textContent='G3 구호 배송 CSV';x.title='정착지별 식량 구호 및 일반·긴급 보호 기준 (최근 300건)';}return result;};}
 NS.RELEASE_VERSION=VERSION;
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-17',title:'정착지 원형 확장과 기아 임박 구호 안정화',summary:'정착지 병합·분할은 유클리드 원형 반경 및 실제 왕복 경로를 함께 충족해야 하고, 실제 기아 임박 시 안전 조건하에서 구호 우선순위를 높입니다.',sections:[['성장하는 공간 구조',['기본 반경 2·최대 13타일, 인구 12명·건물 2개 이상 반경 3·29타일, 인구 30명·건물 6개 이상 반경 4·49타일.','유클리드 반경 AND 실제 왕복 통행 경로비를 동시에 적용하며, 도로·지형·소유권을 보존합니다.']],['비상 구호',['기존 24/40 작업주기 보호 기준을 유지하며 기아가 임박한 정착지만 18주기 하한을 검토합니다.','국가 비축 20주기 이상, 안전한 공급원 존재 시에만 하한 완화하며 공급원 자신이 심각한 Hunger 상태이면 제외합니다.']],['회귀 검사',['기존 물류·D3 식량 재고 보존과 3일 작업주기·국제 교역/전쟁/신진대사 규칙을 유지합니다.','공간과 식량 변경을 별도로 켜고 끌 수 있어 개발 회귀 원인을 구분할 수 있습니다.']]]});
-NS.V034G3=Object.freeze({version:VERSION,config,policy,promote,withinRadius,maximumJoinCap,pathLimit,bothReachable,candidateExtension,reliefPlan,receiverRank,onDelivery,summary:w=>({...snap(w)})});
+NS.V034G3=Object.freeze({version:VERSION,config,policy,observe,promote,withinRadius,maximumJoinCap,pathLimit,bothReachable,candidateExtension,reliefPlan,receiverRank,onDelivery,summary:w=>({...snap(w)})});
 })(window.VSim);

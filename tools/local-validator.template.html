@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Village Observer G3A · 로컬 검증기</title><style>
+:root{color-scheme:dark;font-family:system-ui,'Noto Sans KR',sans-serif;background:#07101d;color:#e6f2ff}body{max-width:860px;margin:25px auto;padding:0 16px}h1{font-size:25px}p{line-height:1.7;color:#c0d0e2}.panel{border:1px solid #2c4764;background:#101e31;border-radius:12px;padding:18px;margin:15px 0}button,input,select{font:inherit;border-radius:9px;border:1px solid #395672;background:#152944;color:#eaf5ff;padding:9px;margin:6px 5px 6px 0}button{cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}button.primary{background:#24599c}#engine{display:none}#logs{white-space:pre-wrap;max-height:320px;overflow:auto;line-height:1.7;font-size:13px}#status{font-weight:700;margin:15px 0}progress{width:100%;height:17px}small{color:#9fb5cd}
+</style></head><body><h1>Village Observer · G3A 대용량 세이브 로컬 검증기</h1><p>세이브 파일을 <strong>이 PC의 브라우저에서만</strong> 읽고 실제 G3A 엔진으로 진행해. 원본 파일은 수정하거나 서버에 전송하지 않아. 실행 중 다른 탭의 세계와도 연결되지 않아.</p><section class="panel"><div><label>검사할 JSON 세이브 <input type="file" accept=".json,application/json" id="file"></label></div><label>추가 자연주행 일수 <select id="days"><option value="0">0일 (불러오기·감사만)</option><option value="30">30일</option><option value="90" selected>90일</option><option value="180">180일</option></select></label><div><button id="run" class="primary" disabled>세이브 불러오기 및 검사 시작</button><button id="cancel" disabled>다음 일자부터 중지</button></div><small>150MB 규모 세이브는 파싱 시 수백 MB 이상의 추가 메모리가 필요할 수 있어. 긴 실행은 잠시 UI가 멈춰 보일 수 있으며, 원본 백업은 유지해 줘.</small><div id="status">G3A 엔진 시작 중…</div><progress id="progress" value="0" max="100"></progress></section><section class="panel"><button id="json" disabled>진단 JSON 다운로드</button><button id="csv" disabled>30일 체크포인트 CSV 다운로드</button><div id="logs" aria-live="polite"></div></section><iframe id="engine" title="오프라인 G3A 시뮬레이션 엔진"></iframe><script>
+'use strict';
+const GAME_HTML=__ENGINE_HTML_JSON__;
+const $=id=>document.getElementById(id),logs=$('logs'),status=$('status');
+let engine=null,cancelled=false,busy=false,result=null;
+function log(x){logs.textContent+=(logs.textContent?'\n':'')+x;logs.scrollTop=logs.scrollHeight;}
+function ui(text){status.textContent=text;log(text);}
+function stamp(){return new Date().toISOString().replaceAll(':','-').replaceAll('.','-');}
+function down(name,content,type){const uri=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=uri;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(uri),1000);}
+function csvEscape(x){return '"'+String(x??'').replaceAll('"','""')+'"';}
+function yieldUI(){return new Promise(r=>setTimeout(r,0));}
+$('engine').addEventListener('load',()=>{try{engine=$('engine').contentWindow;const ver=engine.VSim?.RELEASE_VERSION;if(ver!=='V0.34G3A')throw Error('엔진 버전 불일치: '+ver);$('run').disabled=false;ui('독립 G3A 엔진 준비 완료 · '+ver);}catch(e){ui('엔진 초기화 실패: '+e.message);}});
+$('engine').srcdoc=GAME_HTML;
+$('cancel').onclick=()=>{cancelled=true;ui('중지 요청됨. 현재 일자 계산이 끝나면 중지해.');};
+$('run').onclick=async()=>{
+ if(busy)return;const file=$('file').files?.[0];if(!file)return ui('세이브 파일을 선택해 줘.');
+ busy=true;cancelled=false;result=null;$('json').disabled=true;$('csv').disabled=true;$('run').disabled=true;$('cancel').disabled=false;logs.textContent='';$('progress').value=0;
+ const target=Number($('days').value);let w=null,report=null;
+ try{
+  const NS=engine.VSim;
+  ui('로컬 세이브 읽기 시작: '+(file.size/1024/1024).toFixed(1)+'MB');await yieldUI();
+  let raw=await file.text();ui('JSON 파싱 중 (이 단계는 잠시 화면이 멈출 수 있어)');await yieldUI();
+  let data=JSON.parse(raw);raw=null;const saveVersion=data.version;
+  ui('원본 저장 형식 '+saveVersion+' → G3A 엔진 불러오기');await yieldUI();
+  w=NS.World.from(data);data=null;
+  const integrity=NS.V034G3A.verify(w);if(!integrity.ok)throw Error('G3A 연결 검사 실패: '+JSON.stringify(integrity.tests));
+  report={tool:'V0.34G3A LOCAL VALIDATOR',saveVersion,originalBytes:file.size,targetDays:target,source:'local-file-only',checkpoints:[],errors:[],startedAt:new Date().toISOString()};
+  function check(day,ms){const a=NS.V034G3A.audit(w);a.elapsedSimulationMs=+ms.toFixed(2);a.dayOffset=day;report.checkpoints.push(a);log(day+'일 검사: 인구 '+a.world.population+', 정착지 '+a.settlements.activeSettlements+', 배송 '+a.g2a.shipments+', G3 공간 판정 '+a.g3.pathSweeps+', 보호 위반 '+a.failures.reserveViolations);return a;}
+  ui('불러오기 완료. 초기 무결성 검사');await yieldUI();check(0,0);let started=performance.now();
+  for(let day=1;day<=target;day++){
+   if(cancelled)break;
+   w.advanceOneDay();$('progress').value=100*day/Math.max(1,target);
+   if(day%30===0||day===target){check(day,performance.now()-started);await yieldUI();}
+   else if(day%2===0){status.textContent='주행 '+day+'/'+target+'일 · '+w.timestamp();await yieldUI();}
+  }
+  report.completedDays=report.checkpoints.at(-1)?.dayOffset||0;report.cancelled=cancelled;
+  report.completedAt=new Date().toISOString();
+  result=report;$('json').disabled=false;$('csv').disabled=false;ui('완료 · 원본 파일 변경 없음 · '+report.completedDays+'일 · 체크포인트 '+report.checkpoints.length+'개');
+ }catch(e){console.error(e);ui('검사 중단: '+(e.stack||e.message));if(report){report.errors.push(String(e.stack||e));result=report;$('json').disabled=false;}}
+ finally{w=null;busy=false;$('run').disabled=false;$('cancel').disabled=true;}
+};
+$('json').onclick=()=>{if(result)down('vilob-g3a-local-validation-'+stamp()+'.json',JSON.stringify(result,null,2),'application/json');};
+$('csv').onclick=()=>{if(!result)return;const columns=['dayOffset','simTime','population','settlements','claimedTiles','foodShipments','foodQuantity','routeSweeps','reliefPlans','imminentPlans','imminentShipments','reserveViolations','conservationErrors','spatialErrors','physicalErrors','simMs'];const get=c=>[c.dayOffset,c.world.time,c.world.population,c.settlements.activeSettlements,c.world.claimedTiles,c.g2a.shipments,c.g2a.quantity,c.g3.pathSweeps,c.g3.reliefPlans,c.g3.imminentPlans,c.g3.emergencyShipments,c.failures.reserveViolations,c.failures.conservation,c.failures.settlement,c.failures.physical,c.elapsedSimulationMs];down('vilob-g3a-local-validation-'+stamp()+'.csv',[columns.map(csvEscape).join(','),...result.checkpoints.map(c=>get(c).map(csvEscape).join(','))].join('\n'),'text/csv;charset=utf-8');};
+</script></body></html>

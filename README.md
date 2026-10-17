@@ -1,3 +1,7 @@
+# Village Observer V0.34G3A
+
+현행 배포 및 대용량 세이브 로컬 검증은 [README-34G3A.md](README-34G3A.md)를 먼저 확인하세요.
+
 # 최신: V0.34G3 — 정착지 원형 확장 + 기아 임박 구호 안정화
 
 상세 변경·검증: [`README-34G3.md`](README-34G3.md), [`TEST-34G3.md`](TEST-34G3.md).
