@@ -111,7 +111,7 @@ NS.Person.prototype.chooseJob=function(v,w){if(this.age>=15&&this.job==='학자'
 const yield13=NS.Person.prototype.knowledgeYield;
 NS.Person.prototype.knowledgeYield=function(){if(this.job==='학자')return .058*(.75+(this.personality?.curiosity||50)/100*.5);return yield13.call(this);};
 const act13=NS.Person.prototype.act;
-NS.Person.prototype.act=function(v,w){if(this.alive&&this.age>=15&&this.assignment!=='PIONEER'&&this.job==='학자'&&v.hasTech('ACADEMY')&&activeSchoolhouses(v,w)>0){this.currentAction='학당에서 기록과 지식을 연구 중';this.metabolism(v,w,true);v.gainKnowledge(this.knowledgeYield()*1.20,w,'학자');return;}return act13.call(this,v,w);};
+NS.Person.prototype.act=function(v,w){if(this.alive&&this.age>=15&&this.assignment!=='PIONEER'&&this.job==='학자'&&v.hasTech('ACADEMY')&&activeSchoolhouses(v,w)>0){this.currentAction='학당에서 기록과 지식을 연구 중';this.metabolism(v,w,true);v.gainKnowledge(this.knowledgeYield()*(NS.V034G5?.scholarMultiplier?.(v)??1.20),w,'학자');return;}return act13.call(this,v,w);};
 const seasonal13=NS.Village.prototype.seasonalTick;
 NS.Village.prototype.seasonalTick=function(w){seasonal13.call(this,w);if(this.hasTech('ENVOYS'))for(const id of NS.V013?.contactIds?.(this,w)||[]){const q=w.villages.find(x=>x.id===id&&x.status==='active');if(!q)continue;const cur=this.relations[id]||0;if(cur>-45)this.relations[id]=Math.min(80,cur+.35);}};
 

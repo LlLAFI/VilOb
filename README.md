@@ -1,3 +1,11 @@
+# V0.34G5 — 새 기술 4종
+
+배포·변경·시험: [README-34G5.md](README-34G5.md), [TEST-34G5.md](TEST-34G5.md)
+
+# Current release V0.34G4A1
+
+UI-only Statistics dropdown fix; see [README-34G4A1.md](README-34G4A1.md). G4A food/hunger formulas unchanged.
+
 # 최신 릴리스: V0.34G4A — 식량·허기 수치 밸런스
 
 변경 사항과 검증 범위: [README-34G4A.md](README-34G4A.md) / [TEST-34G4A.md](TEST-34G4A.md)

@@ -56,7 +56,7 @@ function roll(w){const s=state(w),current=Math.floor((calendar(w)-1)/30);if(s.li
 // Conservation: take actual natural raw material, multiply by the original production
 // multiplier, deposit the output, then restore *only* unused input to nature. This
 // preserves the previously used multiplier and never creates a substitute output.
-function harvestAndStore(p,v,w,t,k,requested,day){const raw=Math.max(0,num(t.harvest(k,requested,day))),mul=Math.max(0,num(v.harvestMultiplier(k,t))),made=raw*mul;const prev=harvestScope.get(w);harvestScope.set(w,{v,t,k});let stored=0;
+function harvestAndStore(p,v,w,t,k,requested,day){const raw=Math.max(0,num(t.harvest(k,requested,day))),baseMul=Math.max(0,num(v.harvestMultiplier(k,t))),mul=Math.max(0,num(NS.V034G5?.workerMultiplier?.(p,v,k,t,baseMul)??baseMul)),made=raw*mul;const prev=harvestScope.get(w);harvestScope.set(w,{v,t,k});let stored=0;
  try{if(made>0)stored=Math.max(0,num(v.depositAt(t.id,k,made)));}finally{if(prev)harvestScope.set(w,prev);else harvestScope.delete(w);}
  const refused=Math.max(0,made-stored),restored=made>EPS?Math.min(raw,raw*(refused/made)):raw;
  if(restored>0){t.resources[k]=Math.max(0,num(t.resources?.[k])+restored);}

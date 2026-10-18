@@ -17,7 +17,7 @@ NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREV
 const oldJSON=NS.Telemetry.prototype.toJSON;
 NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.v034g4a={balance:'FOOD_HUNGER_NUMERIC_V1',...CONFIG};return d;};
 const oldG4Verify=NS.V034G4.verify;
-function verify(w){const g4=oldG4Verify(w),tests={...g4.tests,version:NS.RELEASE_VERSION===VERSION,
+function verify(w){const g4=oldG4Verify(w),tests={...g4.tests,version:[VERSION,'V0.34G4A1'].includes(NS.RELEASE_VERSION),
   foodNeed:Math.abs(NS.V034F0.needFor({age:10})-.28)<1e-8&&Math.abs(NS.V034F0.needFor({age:35})-.39)<1e-8,
   fullMealGain:Math.abs(hungerGain(6,1)-6)<1e-8,
   shortMealGain:Math.abs(hungerGain(6,0)-5.1)<1e-8,
