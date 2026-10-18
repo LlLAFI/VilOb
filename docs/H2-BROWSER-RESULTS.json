@@ -1,0 +1,57 @@
+[
+  {
+    "distribution": "hosted",
+    "width": 390,
+    "tabs": {
+      "overview": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 개요\nH2\n🧭 현재 국가 전략\n유지\n식량 자립 · 남은 540일\nAI 전략의 상세 및 근거\n인구\n18명\n정착지\n1개\n영토\n1타일\n국고\n132.0 G\n기술\n0/43\n평균 행복\n59\n식량 비축\n0.0일\n최저 비축\n0.0일\n주민 건강\n84\n도시화",
+        "fields": 0
+      },
+      "residents": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 주민\nH2\n총인구\n18명\n최근 1년 출생\n0명\n보존된 Devlog 기준\n최근 1년 사망\n0명\n기아·질병·노령 로그\n평균 연령\n26.3\n현재 목록\n18명\n이름 검색\n직업\n모든 직업\n건축가\n광부\n농부\n목수\n무직\n사냥꾼\n상인\n아이\n채집꾼\n정착지\n전",
+        "fields": 4
+      },
+      "economy": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 경제\nH2\n재정 현황\n국고\n132.0 G\n시장 Gold\n0.0 G\n주민 지갑\n0.0 G\n실물 재고\n🌾 식량\n0\n🪵 목재\n0\n🪨 석재\n0\n⛏ 철광석\n0\n🔩 철\n0\n🔧 도구\n0\n정착지별 경제\n생산·소비·재고 순변화\n국내 물류·지역 시장",
+        "fields": 0
+      },
+      "trade": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 교역\nH2\n경로 연결 국가\n3/6\n누적 거래\n0회\n누적 판매 Gold\n0.0 G\n상대국별 접근성\n델마 · 경로 미연결 · 경로비용 16.0 / 범위 10.1\n벨른 · 연결 가능 · 경로비용 7.0 / 범위 10.1\n라엔 · 연결 가능 · 경로",
+        "fields": 4
+      },
+      "social": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 사회\nH2\n관찰 범위\n세계\n국가\n정착지 st-0000005\n인구\n18명\n평균 연령\n26.3세\n남성\n9명\n여성\n9명\n혼합문화\n0명\n문화 구성\nLUEN 100.0%\n연령 분포\n0세~ 2명\n10세~ 1명\n20세~ 7명\n30세~ 6명\n40세~ 2명\n",
+        "fields": 1
+      },
+      "military": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 군사\nH2\n현역 Person\n0명\n야전 Formation 병력\n0명\n활성 Formation\n0/0\n관련 전쟁\n0개\nFormation 목록\n\n편성된 Formation 없음\n\n전쟁 준비·정보 정찰\n군수·장비\n최근 전쟁",
+        "fields": 0
+      },
+      "tech": {
+        "exists": true,
+        "legacy": true,
+        "text": "키오 · 기술\nH2\n보유 기술\n0/43\n현재 연구\n농경\n누적 Knowledge\n0 K\n현재 연구\n🌾 농경 · 0/65 K\n분야별 기술 현황\n생산 · 0/14\n교역 · 0/9\n지식 · 0/5\n개척·행정 · 0/7\n도시 · 0/5\n군사 · 0/3\n최근 ",
+        "fields": 0
+      }
+    },
+    "world": {
+      "version": "V0.34H2",
+      "tech": 43,
+      "groups": 7,
+      "integrity": true
+    },
+    "errors": []
+  }
+]
