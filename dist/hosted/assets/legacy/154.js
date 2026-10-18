@@ -186,17 +186,9 @@ if(NS.UI){const oldSet=NS.UI.prototype.setWorld,oldHead=NS.UI.prototype.renderHe
   let box=root.querySelector('.v34c-settlement-tile');if(!box){box=document.createElement('div');box.className='v34c-settlement-tile';root.appendChild(box);}
   box.innerHTML=`<strong>🏘️ 실제 Settlement ${s.id}</strong><div class="small muted">중심 타일 #${s.coreTileId} · 구성 ${s.tileIds.length}타일 · 전체 인구 ${sum.population}명 · 건물 ${sum.buildings}개<br>중심지 접근 ${out.toFixed(2)} / 귀환 ${back.toFixed(2)}일 환산 · 타일 #${s.tileIds.join(', #')}</div>`;
   return r;};
- NS.UI.prototype.renderMap=function(...a){const r=oldMap.apply(this,a);if(!this._v34cMapLayer)return r;
-  const w=this.world,g=this._mapGeom,c=this.q('worldCanvas');if(!w||!g||!c)return r;
-  const ctx=c.getContext('2d'),{cell,ox,oy}=g;ctx.save();ctx.lineWidth=Math.max(1,cell*.075);ctx.strokeStyle='rgba(255,242,170,0.85)';
-  for(const t of w.map.tiles){if(t.ownerId==null)continue;const x=ox+t.x*cell,y=oy+t.y*cell;
-   const n=w.map.at(t.x+1,t.y),d=w.map.at(t.x,t.y+1);
-   if(n&&same(n.ownerId,t.ownerId)&&n.settlementId!==t.settlementId){ctx.beginPath();ctx.moveTo(x+cell,y);ctx.lineTo(x+cell,y+cell);ctx.stroke();}
-   if(d&&same(d.ownerId,t.ownerId)&&d.settlementId!==t.settlementId){ctx.beginPath();ctx.moveTo(x,y+cell);ctx.lineTo(x+cell,y+cell);ctx.stroke();}
-   const s=record(w,t.settlementId);if(s&&s.coreTileId===t.id){ctx.fillStyle='#fff7ba';ctx.beginPath();ctx.arc(x+cell*.5,y+cell*.5,Math.max(1.8,cell*.095),0,Math.PI*2);ctx.fill();}
-  }ctx.restore();return r;};
- const install=()=>{const toolbar=document.querySelector('#view-map .map-toolbar');if(!toolbar||toolbar.querySelector('#v34cBoundaryToggle'))return;
-  const b=document.createElement('button');b.id='v34cBoundaryToggle';b.textContent='정착지 경계: 끔';b.onclick=()=>{const ui=window.villageObserver;if(!ui)return;ui._v34cMapLayer=!ui._v34cMapLayer;b.textContent='정착지 경계: '+(ui._v34cMapLayer?'켬':'끔');ui.renderMap?.();};toolbar.appendChild(b);};install();
+ NS.UI.prototype.renderMap=function(...a){return oldMap.apply(this,a);};
+ // H1 owns the settlement boundary layer and its control.
+
 }
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-09',title:'Multi-Tile Settlement + Spatial Index V1',summary:'인접 타일을 동일 국가의 실제 Settlement로 병합하고, 영토 변경 시 분할하며, 지역 캐시·경계 시각화·성능 계측을 추가합니다.',sections:[['공간 통합',['동일 국가의 물리적으로 접한 타일 중 중심지 왕복 접근비용 각각 1.0 이하인 묶음만 병합합니다.','90일 지속 조건으로 병합, 1.15 초과 상태 180일 지속 시 분리합니다. 최대 5타일, 국가 영토 혼합 금지입니다.']],['물리 규칙 보존',['Person의 고유 ID·거주·근무 및 기존 시장·자원·건물·Gold 소유권은 타일에 그대로 남습니다.','전쟁 점령은 Settlement 소속을 바꾸지 않으며 영구 양도와 영유 상실만 즉시 분할·소속 변경합니다.']],['성능·검사',['소유권 변경 시 관련 Settlement만 수정하고 병합 판정은 분기 간격으로 수행합니다.','Settlement 단위 읽기 전용 인구/건물/재고 집계 캐시, CSV 성능 지표와 선택형 정착지 경계 레이어를 추가합니다.']]]});
 NS.V034C=Object.freeze({version:VERSION,ensure,inspect,changeOwner,review:reevaluate,path,canJoin,aggregate:cachedAggregate,byTile:(w,id)=>{ensure(w);return record(w,tile(w,id)?.settlementId);},constants:{JOIN,SPLIT,JOIN_WAIT,SPLIT_WAIT,REVIEW,MAX_TILES}});

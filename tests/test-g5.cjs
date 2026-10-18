@@ -6,8 +6,8 @@ const elt=()=>({style:{},dataset:{},setAttribute(){},parentNode:null,innerHTML:'
 const ctx={Math:randomMath,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,alert(){},confirm(){return false},setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
 const html=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8');
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(match[1].trim())try{new vm.Script(match[1]).runInContext(ctx,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=ctx.VSim,G=NS.V034G5;
-assert.equal(NS.RELEASE_VERSION,'V0.34G5');assert.equal(NS.TECH_ORDER.length,43);assert(G.verify().ok,JSON.stringify(G.verify()));
+const NS=ctx.VSim,G=NS.V034G5,RELEASE=NS.V034H1?'V0.34H1':NS.V034H0?'V0.34H0':'V0.34G5';
+assert.equal(NS.RELEASE_VERSION,RELEASE);assert.equal(NS.TECH_ORDER.length,43);assert(G.verify().ok,JSON.stringify(G.verify()));
 for(const k of Object.keys(G.techs))assert(NS.TECH[k]&&NS.TECH_ORDER.includes(k));
 const farmer={alive:true,age:26,job:'농부',assignment:null},gatherer={...farmer,job:'채집꾼'},miner={...farmer,job:'광부'},other={...farmer,job:'철공'};
 const owned=new Set(),nation={hasTech:k=>owned.has(k)};
@@ -25,9 +25,9 @@ assert(src.includes("NS.V034G5?.workerMultiplier?.(p,v,k,t,baseMul)"),'D3A conse
 assert(src.includes("NS.V034G5?.postBattleDays?.(x.v,recoveryDays)"),'coalition recovery duration');
 assert(src.includes("NS.V034G5?.postBattleDays?.(winner,recoveryDays)"),'war recovery duration');
 assert(src.includes("afterBattle&&v.hasTech?.('FIELD_REORGANIZATION')?1.20:1"),'only postcombat morale');
-const w=new NS.World(19,19);let save=JSON.parse(JSON.stringify(w.serialize()));assert.equal(save.version,'V0.34G5');
-let load=NS.World.from(save);assert.equal(load.serialize().version,'V0.34G5');
-const old=JSON.parse(JSON.stringify(save));old.version='V0.34G4A1';delete old.v034g5;load=NS.World.from(old);assert.equal(load.serialize().version,'V0.34G5');
+const w=new NS.World(19,19);let save=JSON.parse(JSON.stringify(w.serialize()));assert.equal(save.version,RELEASE);
+let load=NS.World.from(save);assert.equal(load.serialize().version,RELEASE);
+const old=JSON.parse(JSON.stringify(save));old.version='V0.34G4A1';delete old.v034g5;load=NS.World.from(old);assert.equal(load.serialize().version,RELEASE);
 const duration=Number(process.env.G5_DAYS||180);for(let d=1;d<=duration;d++){load.advanceOneDay();if(d%30===0){const audit=G.audit(load);assert(audit.integrity.ok,JSON.stringify(audit.integrity));for(const key of ['physical','settlement','conservation','reserveViolations','metabolismDuplicates','missingHomes'])assert.equal(audit.failures[key],0,key+' day '+d);assert(NS.V034D3.audit(load).ok);}}
 
 // Exercise real D3A physical stock path, not just the bonus helper. Reset the same
@@ -59,6 +59,6 @@ assert(newScience>oldScience*1.10,JSON.stringify({oldScience,newScience}));
 const techSaved=JSON.parse(JSON.stringify(load.serialize()));const techReload=NS.World.from(techSaved);
 assert(techReload.villages.find(x=>String(x.id)===String(testNation.id)).hasTech('INTENSIVE_FARMING'));
 
-const report=load.telemetry.toJSON(load);assert.equal(report.version,'V0.34G5');assert.equal(report.worldSummary.techCount,43);
+const report=load.telemetry.toJSON(load);assert.equal(report.version,RELEASE);assert.equal(report.worldSummary.techCount,43);
 assert.equal(NS.V034G3B.joinLimit,1);assert.equal(NS.V034F0.needFor({age:30}),.39);assert.equal(NS.V034F0.needFor({age:10}),.28);
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,technologies:43,workerBonuses:'PASS',academy:'PASS',oreStorageGuard:'PASS',formationTimers:'PASS',naturalDays:duration,saveMigration:'PASS',audits:'PASS'}));

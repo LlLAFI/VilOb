@@ -1,3 +1,21 @@
+# 현재 버전: V0.34H1 — 지도 UI · 정착지 시각화 V2
+
+- [H1 변경내역 및 실행 안내](README-34H1.md) / [H1 검증 보고](TEST-34H1.md)
+- 단독 실행: `index-standalone.html`; GitHub Pages: `index.html` + `dist/hosted/assets/` 동시 배포.
+- 정착지 국가색 완전 외곽선·내부 음영·선택 강조 / 구형 생활권 레이어 제거 / 지도 상단과 타일 상세 정리.
+- 새 세계 및 맵 파일 가져오기는 지도 탭에 유지. 게임 엔진과 F0/F1 계측 불변.
+- 로컬 세이브 검사: `local-validator-h1.html`.
+
+---
+
+# 현재 버전: V0.34H0 — UI 개편 기반 / 레거시 경계 정리
+
+- [H0 변경내역 및 실행 안내](README-34H0.md) / [H0 테스트 결과](TEST-34H0.md)
+- [H0 UI 의존성 지도](docs/H0-UI-DEPENDENCIES.md) / [세이브 호환성·H1 인계](docs/H0-COMPATIBILITY-AND-HANDOFF.md)
+- 이 ZIP의 루트 `index.html`은 GitHub Pages용이며 `dist/hosted/assets/`와 함께 배포해야 합니다. 오프라인 사용은 `index-standalone.html`을 여세요.
+
+---
+
 # V0.34G5 — 새 기술 4종
 
 배포·변경·시험: [README-34G5.md](README-34G5.md), [TEST-34G5.md](TEST-34G5.md)

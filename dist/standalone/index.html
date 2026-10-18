@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G5</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34H1</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -15,7 +15,7 @@ window.VSim.AIProfileCompat=function(subject,key){
 };
 </script>
 
-<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G5</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34H1</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -4218,11 +4218,11 @@ function tileProjectsHTML29(v,t){const rows=[];for(const p of v.constructionProj
 function compactDetail29(ui,v,t){const detail=ui.q('villageContent')?.querySelector('.v17-settlement-detail');if(!detail)return;detail.querySelector('.v29-compact')?.remove();detail.querySelector('.v29-building-section')?.remove();const r=NS.V028?.settlementRows?.(v,ui.world,true)?.find(x=>Number(x.id)===Number(t.id));if(!r)return;const cache=settlementCache29(v,ui.world,true),row=cache.rows.get(Number(t.id)),people=row?.people||[],happy=people.length?people.reduce((a,p)=>a+Number(p.happiness||0),0)/people.length:0,e=ensureTile29(t),summaryCard=ui.q('villageContent')?.querySelector(`[data-v17-settlement="${t.id}"]`),zone=zoneForTile29(ui.world,t.id),idx=ensureLaborIndex29(v,ui.world),tileSlots=idx.byTile.get(Number(t.id))||[],cap=tileSlots.reduce((a,s)=>a+s.cap,0),used=tileSlots.reduce((a,s)=>a+s.used,0);const k=document.createElement('div');k.className='v29-compact';k.innerHTML=`<span><b>${r.rank}</b><small>도시성 ${r.urbanity.toFixed(0)}</small></span><span><b>👥 ${r.pop}</b><small>주거 ${r.pop}/${r.cap.toFixed(0)}</small></span><span><b>🙂 ${happy.toFixed(1)}</b><small>행복</small></span><span><b>💼 ${used}/${cap}</b><small>시설 슬롯 · 통근 ${r.commutersIn}/${r.commutersOut}</small></span><span><b>🌾 ${v.settlementReserveDays(t.id).toFixed(1)}일</b><small>V0.29 실제 소비 기준</small></span><span><b>🏷️ ${e.role||'일반 정착지'}</b><small>생활권 ${zone?zone.z.settlements+'곳':'없음'}</small></span><span><b>🪙 ${Number(e.marketGold||0).toFixed(2)}G</b><small>지역 상업자금</small></span><span><b>🧰 ${maintenanceText29(summaryCard)}</b><small>분기 유지</small></span>`;detail.querySelector('.section-head')?.insertAdjacentElement('afterend',k);const section=document.createElement('div');section.className='v29-building-section';section.innerHTML=`<h3>보유 건물 · 근무 슬롯</h3><div class="small muted">건축 세대·티어·상태·실제 Person 근무자/최대 슬롯·주거·저장·유지관리·개축 비용을 표시합니다.</div>${buildingsHTML29(v,ui.world,t)}${tileProjectsHTML29(v,t)}`;const jobs=[...detail.querySelectorAll('h3')].find(x=>x.textContent.includes('주민 직업'));(jobs||detail.querySelector('h3'))?.insertAdjacentElement('beforebegin',section);detail.querySelector(':scope > .grid')?.classList.add('v29-hide-old-summary');detail.querySelector('.v28-detail-kpis')?.classList.add('v29-hide-old-summary');}
 
 if(NS.UI){const bind28=NS.UI.prototype.bind,renderMap28=NS.UI.prototype.renderMap,renderTile28=NS.UI.prototype.renderTile,renderHeader28=NS.UI.prototype.renderHeader,content28=NS.UI.prototype.renderVillageContent,codex28=NS.UI.prototype.renderCodex,setWorld28=NS.UI.prototype.setWorld;
- NS.UI.prototype.bind=function(){bind28.call(this);const sel=this.q('v15LayerSelect');if(sel&&!sel.querySelector('option[value="lifezone"]'))sel.insertAdjacentHTML('beforeend','<option value="lifezone">생활권</option>');};
+ NS.UI.prototype.bind=function(){bind28.call(this);};
  NS.UI.prototype.setWorld=function(w){setWorld28.call(this,attachV29World(w));};
  NS.UI.prototype.renderHeader=function(){renderHeader28.call(this);const el=this.q('runtimeStatus');if(el)el.textContent=el.textContent.replace('V0.28 도시화 V1 · Patch 1','V0.29 국내경제권 · Gold 순환 V2');document.title='Village Observer V0.29';const e=document.querySelector('.eyebrow');if(e)e.textContent='Village Observer · V0.29';const b=document.getElementById('versionBadge');if(b)b.innerHTML='Village Observer · <strong>V0.29</strong>';};
- NS.UI.prototype.renderMap=function(){renderMap28.call(this);if(this.mapLayer==='lifezone')drawLifeZones29(this);};
- NS.UI.prototype.renderTile=function(){renderTile28.call(this);if(this.mapLayer!=='lifezone')return;const t=this.world.map.get(this.world.selectedTileId),el=this.q('tileInspector');if(!t||!el||t.ownerId==null)return;const z=zoneForTile29(this.world,t.id);el.insertAdjacentHTML('beforeend',z?`<div class="v29-zone-inspector"><strong>🧭 생활권</strong> · ${z.v.name} / ${z.z.settlements}개 Settlement / ${z.z.population}명<div class="small muted">중심지 타일 #${z.z.hubTileId} · P1 hub-anchored 기능권이며 행정구역이 아닙니다.</div></div>`:'<div class="v29-zone-inspector small muted">이 정착지는 현재 뚜렷한 생활권에 속하지 않습니다.</div>');};
+ NS.UI.prototype.renderMap=function(){renderMap28.call(this);};
+ NS.UI.prototype.renderTile=function(){renderTile28.call(this);return;const t=this.world.map.get(this.world.selectedTileId),el=this.q('tileInspector');if(!t||!el||t.ownerId==null)return;const z=zoneForTile29(this.world,t.id);el.insertAdjacentHTML('beforeend',z?`<div class="v29-zone-inspector"><strong>🧭 생활권</strong> · ${z.v.name} / ${z.z.settlements}개 Settlement / ${z.z.population}명<div class="small muted">중심지 타일 #${z.z.hubTileId} · P1 hub-anchored 기능권이며 행정구역이 아닙니다.</div></div>`:'<div class="v29-zone-inspector small muted">이 정착지는 현재 뚜렷한 생활권에 속하지 않습니다.</div>');};
  NS.UI.prototype.renderVillageContent=function(){content28.call(this);const v=this.world.selectedNation,el=this.q('villageContent');if(!v||!el)return;ensureNation29(v,this.world);if(this.sub==='settlements'){const id=Number(this.selectedSettlementDetailId??this.world.selectedTileId),t=v.territory.has(id)?this.world.map.get(id):null;if(t)compactDetail29(this,v,t);}if(this.sub==='economy'){const s=v.v29Stats,c=settlementCache29(v,this.world),wallet=(v.residents||[]).reduce((a,p)=>a+Number(p.gold29||0),0),market=[...v.territory].reduce((a,id)=>a+Number(this.world.map.get(id)?.v29Economy?.marketGold||0),0),roles={};for(const r of c.rows.values()){const role=ensureTile29(r.t).role||'일반 정착지';roles[role]=(roles[role]||0)+1;}el.insertAdjacentHTML('afterbegin',`<div class="v29-economy-box"><strong>🪙 V0.29 국내 Gold 순환</strong><div class="v29-econ-grid"><span>Person 지갑 <b>${wallet.toFixed(1)}G</b></span><span>지역 상업자금 <b>${market.toFixed(1)}G</b></span><span>누적 임금 <b>${s.wages.toFixed(1)}G</b></span><span>누적 소비 <b>${s.consumption.toFixed(1)}G</b></span><span>세금 환류 <b>${s.taxes.toFixed(1)}G</b></span><span>국내거래 <b>${s.domesticTrades}</b>회 / ${s.domesticTradeVolume.toFixed(0)}</span></div><div class="small muted">${Object.entries(roles).map(([k,n])=>`${k} ${n}`).join(' · ')}</div></div>`);}};
  NS.UI.prototype.renderCodex=function(){codex28.call(this);const el=this.q('codexContent');if(!el||el.dataset.v29Ready)return;const build=el.querySelector('[data-page="build"]'),prod=el.querySelector('[data-page="prod"]'),logi=el.querySelector('[data-page="logi"]');build?.insertAdjacentHTML('afterbegin','<div class="codex-note"><strong>V0.29 후기 건축자재</strong><br>초기/T1 건물 가격은 유지합니다. 고티어 건설·개축은 기존 기준보다 <strong>목재 ×2.0, 석재 ×1.2</strong>를 요구하며 Gold 비용은 그대로입니다. 목재 공급지의 후기 가치가 커지고, 이미 병목이 관찰된 석재는 완만하게만 증가합니다.</div>');prod?.insertAdjacentHTML('afterbegin','<div class="codex-note"><strong>V0.29 식량·근무 슬롯</strong><br>경제 사이클당 식량 소모는 0~14세 <strong>0.30</strong>, 15세 이상 <strong>0.42</strong>입니다. 농경지·채석장·시장·교역소·학당 등 시설에는 실제 Person 근무 슬롯이 있으며 관개·윤작·공학·교육·상업기술로 일부 슬롯이 늘어납니다.</div>');logi?.insertAdjacentHTML('afterbegin','<div class="codex-note"><strong>V0.29 국내경제와 생활권 지도</strong><br>Settlement별 가격·수요·상업자금과 실제 물류비를 이용해 국내 자원거래가 발생합니다. 지도 레이어의 <strong>생활권</strong>은 V0.28 P1 hub-anchored 생활권을 색으로 시각화하며 행정구역은 아닙니다.</div>');el.dataset.v29Ready='1';};
 }
@@ -12796,17 +12796,9 @@ if(NS.UI){const oldSet=NS.UI.prototype.setWorld,oldHead=NS.UI.prototype.renderHe
   let box=root.querySelector('.v34c-settlement-tile');if(!box){box=document.createElement('div');box.className='v34c-settlement-tile';root.appendChild(box);}
   box.innerHTML=`<strong>🏘️ 실제 Settlement ${s.id}</strong><div class="small muted">중심 타일 #${s.coreTileId} · 구성 ${s.tileIds.length}타일 · 전체 인구 ${sum.population}명 · 건물 ${sum.buildings}개<br>중심지 접근 ${out.toFixed(2)} / 귀환 ${back.toFixed(2)}일 환산 · 타일 #${s.tileIds.join(', #')}</div>`;
   return r;};
- NS.UI.prototype.renderMap=function(...a){const r=oldMap.apply(this,a);if(!this._v34cMapLayer)return r;
-  const w=this.world,g=this._mapGeom,c=this.q('worldCanvas');if(!w||!g||!c)return r;
-  const ctx=c.getContext('2d'),{cell,ox,oy}=g;ctx.save();ctx.lineWidth=Math.max(1,cell*.075);ctx.strokeStyle='rgba(255,242,170,0.85)';
-  for(const t of w.map.tiles){if(t.ownerId==null)continue;const x=ox+t.x*cell,y=oy+t.y*cell;
-   const n=w.map.at(t.x+1,t.y),d=w.map.at(t.x,t.y+1);
-   if(n&&same(n.ownerId,t.ownerId)&&n.settlementId!==t.settlementId){ctx.beginPath();ctx.moveTo(x+cell,y);ctx.lineTo(x+cell,y+cell);ctx.stroke();}
-   if(d&&same(d.ownerId,t.ownerId)&&d.settlementId!==t.settlementId){ctx.beginPath();ctx.moveTo(x,y+cell);ctx.lineTo(x+cell,y+cell);ctx.stroke();}
-   const s=record(w,t.settlementId);if(s&&s.coreTileId===t.id){ctx.fillStyle='#fff7ba';ctx.beginPath();ctx.arc(x+cell*.5,y+cell*.5,Math.max(1.8,cell*.095),0,Math.PI*2);ctx.fill();}
-  }ctx.restore();return r;};
- const install=()=>{const toolbar=document.querySelector('#view-map .map-toolbar');if(!toolbar||toolbar.querySelector('#v34cBoundaryToggle'))return;
-  const b=document.createElement('button');b.id='v34cBoundaryToggle';b.textContent='정착지 경계: 끔';b.onclick=()=>{const ui=window.villageObserver;if(!ui)return;ui._v34cMapLayer=!ui._v34cMapLayer;b.textContent='정착지 경계: '+(ui._v34cMapLayer?'켬':'끔');ui.renderMap?.();};toolbar.appendChild(b);};install();
+ NS.UI.prototype.renderMap=function(...a){return oldMap.apply(this,a);};
+ // H1 owns the settlement boundary layer and its control.
+
 }
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-09',title:'Multi-Tile Settlement + Spatial Index V1',summary:'인접 타일을 동일 국가의 실제 Settlement로 병합하고, 영토 변경 시 분할하며, 지역 캐시·경계 시각화·성능 계측을 추가합니다.',sections:[['공간 통합',['동일 국가의 물리적으로 접한 타일 중 중심지 왕복 접근비용 각각 1.0 이하인 묶음만 병합합니다.','90일 지속 조건으로 병합, 1.15 초과 상태 180일 지속 시 분리합니다. 최대 5타일, 국가 영토 혼합 금지입니다.']],['물리 규칙 보존',['Person의 고유 ID·거주·근무 및 기존 시장·자원·건물·Gold 소유권은 타일에 그대로 남습니다.','전쟁 점령은 Settlement 소속을 바꾸지 않으며 영구 양도와 영유 상실만 즉시 분할·소속 변경합니다.']],['성능·검사',['소유권 변경 시 관련 Settlement만 수정하고 병합 판정은 분기 간격으로 수행합니다.','Settlement 단위 읽기 전용 인구/건물/재고 집계 캐시, CSV 성능 지표와 선택형 정착지 경계 레이어를 추가합니다.']]]});
 NS.V034C=Object.freeze({version:VERSION,ensure,inspect,changeOwner,review:reevaluate,path,canJoin,aggregate:cachedAggregate,byTile:(w,id)=>{ensure(w);return record(w,tile(w,id)?.settlementId);},constants:{JOIN,SPLIT,JOIN_WAIT,SPLIT_WAIT,REVIEW,MAX_TILES}});
@@ -13341,7 +13333,7 @@ NS.SaveSystem={...oldSave,
  exportDevCSV(w){const csv=w.telemetry.snapshotsCSV(),check=NS.V032E14?.validateCSV?.(csv);if(check&&!check.ok)throw Error('C1G CSV schema mismatch '+JSON.stringify(check.bad?.slice(0,3)));download(`village-observer-v034C1G-snapshots-${w.telemetry.sessionId}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8');}
 };
 if(NS.UI){const oldHeader=NS.UI.prototype.renderHeader,oldWorld=NS.UI.prototype.renderWorld;
- NS.UI.prototype.renderHeader=function(){const ret=oldHeader.call(this);document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const status=this.q?.('runtimeStatus');if(status)status.textContent='✓ '+VERSION+' · 연간 진단 최적화';return ret;};
+ NS.UI.prototype.renderHeader=function(){const ret=oldHeader.call(this);document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';/* H0: retired redundant C1G success banner; diagnostics retained. */return ret;};
  NS.UI.prototype.renderWorld=function(){const ret=oldWorld.call(this),panel=document.querySelector('.v034c1b-profiler'),w=this.world;if(!panel||!w)return ret;let el=panel.querySelector('.v034c1g-summary');if(!el){el=document.createElement('div');el.className='v034c1g-summary small muted';el.style.cssText='margin-top:4px;font-size:11px;line-height:1.6;';panel.appendChild(el);}const s=summarize(w),r=s.last;el.textContent=r?`C1G 최근 연간 진단(${r.name}, ${r.year}년 Q${r.season+1}): ${r.diagMs.toFixed(1)}ms · Devlog 인덱스 ${r.indexMs.toFixed(1)}ms · 흐름 조회 누적 ${s.flowIndexHits}회${s.enabled?'':' · 정밀 계측 OFF (과거 기록)'}`:'C1G 연간 진단 세부 계측 없음 · C1B 정밀 계측을 켜고 다음 진단 분기까지 진행하세요.';return ret;};
 }
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-10',title:'Survival30 / Legacy Diagnostics Hotpath Optimization V1',summary:'V0.30A 연간 고급 시설 진단의 중복 Devlog 조회를 진단 1회짜리 인덱스로 교체해 불필요한 반복 연산을 줄입니다. 기존 생존/Recovery 정책과 시설 판정은 변경하지 않습니다.',sections:[['연간 진단 최적화',['동일한 국가 연간 진단 안에서 타일별 TRADE/DOMESTIC_TRADE29 최근 120일·240일 거래량을 한 번만 구축하고 재사용합니다.','거래량의 날짜/자원/출발지·도착지 필터와 이벤트 순서, 총량·건수 산정은 기존 규칙을 유지합니다.','이미 건설된 시설 및 V0.30B3 Stoneworks 진단으로 위임하는 시설에서 사용하지 않을 흐름 검색은 실행하지 않습니다.']],['계측 및 검증',['C1B 분기 정밀 계측을 ON으로 설정하면 C1G 진단 전체·인덱스 구축 시간과 B4 후처리 시간을 기록합니다.','Devlog와 Snapshot CSV에 C1G 누적 카운터와 진단 실행 시점을 추가합니다.','기존 C1F 교역망 캐시 및 HF1 패치노트/버전 배지/CSV 정렬 수정은 그대로 유지합니다.']],['범위 제한',['연간 진단의 실행 시점, 세이브 로드 직후 재진단, 시설 판정·회계·AI 난수·Survival/Recovery 규칙은 변경하지 않습니다.']]]});
@@ -16640,7 +16632,7 @@ NS.World.prototype.serialize=function(){const s=oldSave.call(this);s.version=VER
 NS.World.from=function(s){return oldFrom(s?.version===VERSION?{...s,version:PREV}:s);};
 const oldJSON=NS.Telemetry.prototype.toJSON;
 NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.techCount=NS.TECH_ORDER.length;d.worldSummary.v034g5={revision:'specialized-labor-formation-recovery',technologies:Object.keys(ADDED).reduce((a,k)=>(a[k]=(w?.activeVillages||[]).filter(v=>v.hasTech?.(k)).length,a),{}),counters:{...counters},physicalStockPreserved:true};return d;};
-function verify(w){const prev=NS.V034G4A1.verify(w),t={...prev.tests,version:NS.RELEASE_VERSION===VERSION,statsCaption:typeof document==='undefined'||!document.getElementById('statsScope')||document.getElementById('statsScope')?.querySelector('option[value="settlement"]')?.textContent==='타일 (기존 장기 통계)',techCount:NS.TECH_ORDER.length===43,newTechs:Object.keys(ADDED).every(k=>NS.TECH_ORDER.includes(k)),additiveFarmer:typeof workerMultiplier==='function'&&typeof oreMultiplier==='function'&&typeof scholarMultiplier==='function',regroupRecovery:Math.round(20*.85)===17};return{version:VERSION,ok:Object.values(t).every(Boolean),tests:t};}
+function verify(w){const prev=NS.V034G4A1.verify(w),t={...prev.tests,version:(NS.RELEASE_VERSION===VERSION||(NS.RELEASE_VERSION==='V0.34H0'||NS.RELEASE_VERSION==='V0.34H1')),statsCaption:typeof document==='undefined'||!document.getElementById('statsScope')||document.getElementById('statsScope')?.querySelector('option[value="settlement"]')?.textContent==='타일 (기존 장기 통계)',techCount:NS.TECH_ORDER.length===43,newTechs:Object.keys(ADDED).every(k=>NS.TECH_ORDER.includes(k)),additiveFarmer:typeof workerMultiplier==='function'&&typeof oreMultiplier==='function'&&typeof scholarMultiplier==='function',regroupRecovery:Math.round(20*.85)===17};return{version:VERSION,ok:Object.values(t).every(Boolean),tests:t};}
 function audit(w){const r=NS.V034G4A1.audit(w);return{...r,version:VERSION,integrity:verify(w)};}
 function status(){const w=window.villageObserver?.world,r=verify(w);document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.setAttribute('data-runtime-version',VERSION);}const s=document.getElementById('g3aRuntimeIntegrity');if(s){s.textContent=r.ok?'✓ G5 · 기술 43개 · 직업 생산/Formation 회복 · G4A1 안정성 유지':'⚠ G5: '+Object.keys(r.tests).filter(k=>!r.tests[k]).join(', ');s.style.color=r.ok?'#a9e7ca':'#ffe0a1';}return r;}
 const prior=NS.SaveSystem;
@@ -16656,6 +16648,212 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(t=>t.version===VERSION))N
 NS.V034G5=Object.freeze({version:VERSION,techs:ADDED,workerMultiplier,oreMultiplier,scholarMultiplier,regroupDays,postBattleDays,verify,audit,refresh:status,counters});
 if(NS.UI){const head=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...a){const x=head.apply(this,a);status();return x;};}
 status();
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34H0 — verified UI-refactor boundary.
+ * Compatibility: H0 and G5/G4A1/G4A/G4/G3B worlds only (current G5 supported chain).
+ * No Person, production, AI, battle, RNG, time, F0/F1, or telemetry snapshot changes.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34H0',PREVIOUS='V0.34G5',KEY='village-observer-v034h0';
+const priorSerialize=NS.World.prototype.serialize,priorFrom=NS.World.from;
+NS.World.prototype.serialize=function(...a){const d=priorSerialize.apply(this,a);d.version=VERSION;return d;};
+NS.World.from=function(data,...a){return priorFrom.call(this,data?.version===VERSION?{...data,version:PREVIOUS}:data,...a);};
+const priorJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(...a){const d=priorJSON.apply(this,a);d.version=VERSION;return d;};
+const priorSave=NS.SaveSystem;
+function download(name,obj){const url=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...priorSave,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const s=localStorage.getItem(KEY);return s?NS.World.from(JSON.parse(s)):priorSave.load?.();},
+ export(w){download(`village-observer-v034H0-save-${w.year}y.json`,w.serialize());},
+ exportDevJSON(w){download(`village-observer-v034H0-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));}
+};
+// The following small, optional helpers are shared by H1-H3; H0 does not change panel DOM.
+const ui=Object.freeze({
+ byId:id=>typeof document==='undefined'?null:document.getElementById(id),
+ setExpanded(node,expanded){if(!node)return false;node.hidden=!expanded;node.setAttribute?.('aria-hidden',expanded?'false':'true');return true;},
+ isExpanded:node=>!!node&&!node.hidden,
+ // Return a status snapshot without assuming that a G5 component check audits the whole world.
+ integrity:()=>NS.V034G5.verify(window.villageObserver?.world)
+});
+NS.RELEASE_VERSION=VERSION;
+function refresh(){
+ if(typeof document==='undefined')return;
+ document.title='Village Observer '+VERSION;
+ const badge=document.getElementById('versionBadge');
+ if(badge){badge.textContent='Village Observer · '+VERSION;badge.setAttribute('data-runtime-version',VERSION);}
+ // Old release success text is not a real error channel. Retain its DOM anchor for F0 layout.
+ const old=document.getElementById('runtimeStatus');if(old){old.hidden=true;old.style.display='none';}
+ const notice=document.getElementById('g3aRuntimeIntegrity');
+ if(notice){const r=NS.V034G5.verify(window.villageObserver?.world);notice.hidden=!!r.ok;notice.style.display=r.ok?'none':'';
+  if(!r.ok){notice.textContent='⚠ H0 구성 무결성: '+Object.keys(r.tests).filter(k=>!r.tests[k]).join(', ');notice.setAttribute?.('role','alert');}}
+}
+NS.V034H0=Object.freeze({version:VERSION,verify:()=>NS.V034G5.verify(window.villageObserver?.world),audit:w=>NS.V034G5.audit(w),compatibility:['V0.34H0','V0.34G5','V0.34G4A1','V0.34G4A','V0.34G4','V0.34G3B'],ui,refresh});
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-18',title:'UI 개편 기반 · 레거시 경계 정리',summary:'C1G 고정 성공 문구를 제거하고 정상 무결성 알림을 숨깁니다. H1~H3 UI 통합을 위한 공통 인터페이스·회귀 기준을 추가했습니다. 게임 로직과 F0/F1 계측은 G5 그대로입니다.',sections:[['이번 버전',['구형 C1G 성공 문구 제거; 기존 실제 연간 진단/계측은 유지','상단 정상 상태 알림을 숨기고 검사 실패 경고는 계속 표시','후속 UI 개편을 위한 확장용 인터페이스 및 의존성 감사 추가']],['호환성',['V0.34 계열 G5/G4A1/G4A/G4/G3B 저장파일 로드 유지','V0.33 이하 세이브 지원은 보장하지 않음','기술 43개·Person·AI·군사·Gold·물리 재고·RNG·F0/F1·CSV 스키마 변경 없음']]]});
+if(NS.UI){const prev=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...a){const result=prev.apply(this,a);refresh();return result;};}
+refresh();
+})(window.VSim);
+
+</script>
+<script>
+/* V0.34H1 — Map UI & Settlement Visualization V2
+ * Presentation-only: map geometry, controls, and inspector composition.
+ * The Settlement ledger and all production, combat, AI, RNG, telemetry and F0/F1
+ * calculations remain owned by the G5/H0 engines.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34H1',PREVIOUS='V0.34H0',KEY='village-observer-v034h1';
+const P=NS.UI?.prototype;
+const equal=(a,b)=>String(a)===String(b);
+const terrain=t=>NS.TERRAIN?.[t?.terrain]?.label||t?.terrain||'미확인';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeNum=v=>Number.isFinite(Number(v))?Number(v):0;
+const settlements=w=>(w?.v34b?.settlements||[]).filter(s=>s.lifecycle==='ACTIVE'&&s.tileIds?.length);
+const nationColor=(owner)=>{const pal=NS.NATION_COLORS||['#62a8ff','#74d69c','#ff8b91','#bd9cff'];const id=Number(owner);return pal[(id%pal.length+pal.length)%pal.length]||pal[0];};
+function colorFor(t){const base=nationColor(t.ownerId);const v=String(t.settlementId||'').split('').reduce((n,ch)=>(n*33+ch.charCodeAt(0))>>>0,5381);
+ // Small stable light/dark change per Settlement; retain the nation's hue.
+ if(/^#[0-9a-f]{6}$/i.test(base)){const shift=(v%3-1)*11;const raw=[1,3,5].map(i=>Math.max(22,Math.min(246,parseInt(base.slice(i,i+2),16)+shift)));return '#'+raw.map(n=>n.toString(16).padStart(2,'0')).join('');}
+ return base;
+}
+function boundaryGeometry(w){
+ const entries=[],groups=new Map(),map=w.map;
+ for(const t of map.tiles){if(t.ownerId==null||t.settlementId==null)continue;
+  const sid=String(t.settlementId),nation=String(t.ownerId);let r=groups.get(sid);
+  if(!r){r={sid,nation,color:colorFor(t),tiles:[],edges:[],core:null};groups.set(sid,r);}
+  r.tiles.push([t.x,t.y]);
+  for(const [dx,dy,x1,y1,x2,y2] of [[0,-1,0,0,1,0],[1,0,1,0,1,1],[0,1,0,1,1,1],[-1,0,0,0,0,1]]){
+   const n=map.at(t.x+dx,t.y+dy);
+   if(!n||n.ownerId==null||!equal(n.ownerId,t.ownerId)||String(n.settlementId)!==sid)
+    r.edges.push([t.x+x1,t.y+y1,t.x+x2,t.y+y2]);
+  }
+ }
+ for(const s of settlements(w)){const r=groups.get(String(s.id));if(r)r.core=Number(s.coreTileId);}
+ return [...groups.values()];
+}
+function geometryFor(w){const c=w.v34c?.counters||{},sig=[w.map?.tiles?.length,c.ownershipChanges,c.merges,c.splits].join(':');
+ // All topology mutations in the C engine advance at least one of these counters.
+ if(w._v034h1Borders?.signature===sig)return w._v034h1Borders.groups;
+ const groups=boundaryGeometry(w);
+ Object.defineProperty(w,'_v034h1Borders',{configurable:true,enumerable:false,writable:true,value:{signature:sig,groups}});
+ return groups;
+}
+function invalidate(w){if(w&&Object.prototype.hasOwnProperty.call(w,'_v034h1Borders'))delete w._v034h1Borders;}
+function selectedId(ui){const t=ui.world?.map?.get(ui.world.selectedTileId);return t?.ownerId!=null&&t?.settlementId!=null?String(t.settlementId):null;}
+function drawBoundaries(ui){const w=ui.world,mode=ui.h1BoundaryMode||'all',geo=ui._mapGeom,c=ui.q?.('worldCanvas');if(!w||!geo||!c||mode==='off')return;
+ const selected=selectedId(ui),groups=geometryFor(w),{cell,ox,oy}=geo,ctx=c.getContext('2d');if(!ctx||!cell)return;
+ ctx.save();ctx.beginPath();ctx.rect(ox,oy,w.map.width*cell,w.map.height*cell);ctx.clip();
+ if(mode==='selected'&&selected){
+  // Dim the full map OUTSIDE the selected Settlement (including neutral land and water).
+  // Even-odd fill leaves the actual member tiles untouched; never clear map pixels.
+  const chosen=groups.find(g=>g.sid===selected);
+  if(chosen){ctx.beginPath();ctx.rect(ox,oy,w.map.width*cell,w.map.height*cell);
+   for(const [x,y] of chosen.tiles)ctx.rect(ox+x*cell,oy+y*cell,cell,cell);
+   ctx.fillStyle='rgba(8,16,29,.32)';ctx.fill('evenodd');}
+ }
+ for(const g of groups){const active=mode==='all'||g.sid===selected;
+  if(!active)continue;
+  ctx.fillStyle=g.color;ctx.globalAlpha=mode==='selected'?.19:.105;
+  for(const [x,y] of g.tiles)ctx.fillRect(ox+x*cell,oy+y*cell,cell,cell);
+ }
+ ctx.globalAlpha=1;
+ for(const g of groups){const active=mode==='all'||g.sid===selected;
+  if(mode==='selected'&&!active)continue;
+  const width=Math.max(mode==='selected'?2.2:1.6,cell*(mode==='selected'?.105:.075));
+  function trace(){ctx.beginPath();for(const [x1,y1,x2,y2] of g.edges){ctx.moveTo(ox+x1*cell,oy+y1*cell);ctx.lineTo(ox+x2*cell,oy+y2*cell);}}
+  ctx.lineJoin='round';ctx.lineCap='square';
+  trace();ctx.strokeStyle='rgba(7,17,26,.92)';ctx.lineWidth=width+2.1;ctx.stroke();
+  trace();ctx.strokeStyle=g.color;ctx.lineWidth=width;ctx.stroke();
+  if(mode==='selected'&&active&&g.core!=null){const t=w.map.get(g.core);if(t){ctx.beginPath();ctx.arc(ox+(t.x+.5)*cell,oy+(t.y+.5)*cell,Math.max(2.5,cell*.105),0,Math.PI*2);ctx.fillStyle='#fff5cf';ctx.fill();ctx.strokeStyle='#172d40';ctx.lineWidth=1.9;ctx.stroke();}}
+ }
+ ctx.restore();
+}
+function installControls(ui){if(typeof document==='undefined')return;const bar=document.querySelector('#view-map .map-toolbar');if(!bar)return;
+ document.getElementById('v34cBoundaryToggle')?.remove();
+ const layer=ui.q?.('v15LayerSelect');if(layer){layer.querySelector('option[value="lifezone"]')?.remove();if(layer.value==='lifezone'||ui.mapLayer==='lifezone'){ui.mapLayer='base';layer.value='base';}}
+ let sel=document.getElementById('h1SettlementBoundary');if(!sel){const label=document.createElement('label');label.className='h1-boundary-setting';label.textContent='정착지 경계 ';sel=document.createElement('select');sel.id='h1SettlementBoundary';sel.setAttribute('aria-label','정착지 경계 표시');sel.innerHTML='<option value="off">끔</option><option value="all">전체</option><option value="selected">선택 강조</option>';label.appendChild(sel);bar.appendChild(label);
+  sel.addEventListener('change',()=>{const instance=window.villageObserver;if(!instance)return;instance.h1BoundaryMode=sel.value;instance.renderMap?.();});}
+ sel.value=ui.h1BoundaryMode||'all';
+ // Filters belong only to the corresponding layer; do not alter their legacy business logic.
+ for(const el of bar.querySelectorAll('select')){if(el.id==='h1SettlementBoundary'||el.id==='v15LayerSelect'||el.id==='v32dMapStyle')continue;
+  const id=el.id.toLowerCase();const overlay=ui.mapLayer||'base';if(/trade|flow|resource|good|item|partner/.test(id))el.style.display=(overlay.includes('trade')||overlay.includes('logistic')||overlay.includes('resource'))?'':'none';}
+}
+function updateStats(ui){const w=ui.world,root=ui.q?.('globalStats');if(!root||!w)return;
+ const rows=[['인구',w.allPeople?.length||0],['국가',w.activeNations?.length||0],['정착지',settlements(w).length],['영토 타일',w.map.tiles.filter(t=>t.ownerId!=null).length],['국가 국고 합계',`${(w.activeNations||[]).reduce((n,v)=>n+safeNum(v.gold),0).toFixed(0)} G`]];
+ const sig=rows.map(x=>x.join(':')).join('|');if(root.dataset.h1Stats===sig)return;root.dataset.h1Stats=sig;
+ root.innerHTML=rows.map(([label,val])=>`<div class="stat"><div class="label">${label}</div><div class="value">${val}</div></div>`).join('');
+}
+function categorizeTile(ui){const root=ui.q?.('tileInspector'),w=ui.world,t=w?.map?.get(w.selectedTileId);if(!root||!t)return;
+ const key=String(t.id),before=ui._h1InspectorOpen||{};const current={...before};
+ for(const d of root.querySelectorAll('details[data-h1-group]'))current[d.dataset.h1Group]=d.open;
+ ui._h1InspectorOpen=current;
+ const v=t.ownerId==null?null:w.villages.find(n=>equal(n.id,t.ownerId));const s=t.settlementId==null?null:settlements(w).find(s=>equal(s.id,t.settlementId));
+ const pop=v?.tileResidents?.(t.id)?.filter(p=>p.alive).length||0;
+ const basic=document.createElement('section');basic.className='h1-tile-summary';
+ basic.innerHTML=`<strong>🗺 타일 #${t.id} · (${t.x}, ${t.y}) ${esc(terrain(t))}</strong><div class="h1-tile-chips"><span>🏳️ ${esc(v?.name||'중립지')}</span><span>🏘 ${esc(s?.id||'정착지 없음')}</span><span>👥 ${pop}명</span><span>🏗 ${(t.buildings||[]).length}개 시설</span></div>${s?`<div class="small muted">정착지 전체 ${s.tileIds.length}타일 · 중심 #${s.coreTileId}</div>`:''}`;
+ const old=[...root.childNodes];root.replaceChildren(basic);
+ if(v){const nav=document.createElement('div');nav.className='h1-map-jump';nav.innerHTML='<button type="button" data-h1-go="settlement">🏘 정착지·타일 보기</button><button type="button" data-h1-go="nation">🏛 국가 개요</button>';
+  nav.querySelector('[data-h1-go="settlement"]').onclick=()=>ui.goNation?.(t.ownerId,'settlements',t.id);nav.querySelector('[data-h1-go="nation"]').onclick=()=>ui.goNation?.(t.ownerId,'overview',t.id);root.appendChild(nav);}
+ const defs=[['resources','🌿 자연자원·재고·경제'],['housing','🏗 주거·건설·정착지'],['military','⚔ 군사·전투'],['diagnostics','🔬 개발자 진단'],['more','📋 타일 상세 정보']];
+ const buckets=Object.fromEntries(defs.map(x=>[x[0],[]]));
+ for(const node of old){if(node.nodeType===3&&!node.textContent?.trim())continue;
+  if(node.nodeType===1&&node.classList.contains('v034g1-tile-label'))continue;
+  if(node.nodeType===1&&node.classList.contains('v16-jump'))continue;
+  const cls=node.nodeType===1?String(node.className||'').toLowerCase():'';
+  const label=cls+' '+(node.nodeType===1?String(node.textContent||'').slice(0,100):'');
+  let group='more';
+  if(/diagnos|audit|profiler|v34c-settlement-tile|pathcost|spatial-index|경로비용|성능|회계 검사/.test(label))group='diagnostics';
+  else if(/military|formation|battle|combat|전투 기록|병력|전쟁/.test(label))group='military';
+  else if(/housing|construction|v34d1-settlement|v034d2|건축공간|주거/.test(label))group='housing';
+  else if(/v17-inspector-grid|econom|stock|resource|v17-price-row|v034d3|자연자원/.test(label))group='resources';
+  buckets[group].push(node);
+ }
+ for(const [id,label] of defs){if(!buckets[id].length)continue;const details=document.createElement('details');details.dataset.h1Group=id;details.open=!!current[`${key}:${id}`];details.className='h1-inspector-detail';
+  const summary=document.createElement('summary');summary.textContent=label;details.appendChild(summary);
+  const content=document.createElement('div');content.className='h1-inspector-detail-body';content.append(...buckets[id]);details.appendChild(content);
+  details.addEventListener('toggle',()=>{ui._h1InspectorOpen=ui._h1InspectorOpen||{};ui._h1InspectorOpen[`${key}:${id}`]=details.open;});root.appendChild(details);
+ }
+}
+function refresh(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;
+ const badge=document.getElementById('versionBadge');if(badge){badge.textContent='Village Observer · '+VERSION;badge.dataset.runtimeVersion=VERSION;}
+ // The old H0 integrity notice can be stale during source installation; retain errors only.
+ const report=NS.V034G5?.verify?.(window.villageObserver?.world),notice=document.getElementById('g3aRuntimeIntegrity');if(notice&&report){notice.hidden=!!report.ok;notice.style.display=report.ok?'none':'';if(!report.ok){notice.textContent='⚠ H1 무결성 검사 실패';notice.setAttribute('role','alert');}}
+}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from,oldJSON=NS.Telemetry.prototype.toJSON,oldSave=NS.SaveSystem;
+NS.World.prototype.serialize=function(...args){const d=oldSerialize.apply(this,args);d.version=VERSION;return d;};
+NS.World.from=function(data,...args){return oldFrom.call(this,data?.version===VERSION?{...data,version:PREVIOUS}:data,...args);};
+NS.Telemetry.prototype.toJSON=function(...args){const j=oldJSON.apply(this,args);j.version=VERSION;return j;};
+function download(name,obj){const url=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...oldSave,save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},load(){const json=localStorage.getItem(KEY);return json?NS.World.from(JSON.parse(json)):oldSave.load?.();},export(w){download(`village-observer-v034H1-save-${w.year}y.json`,w.serialize());},exportDevJSON(w){download(`village-observer-v034H1-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));}};
+NS.RELEASE_VERSION=VERSION;
+if(P){const map=P.renderMap,tile=P.renderTile,mapView=P.renderMapView,header=P.renderHeader,set=P.setWorld,bind=P.bind;
+ P.renderMap=function(...a){const r=map.apply(this,a);drawBoundaries(this);return r;};
+ P.renderTile=function(...a){const r=tile.apply(this,a);categorizeTile(this);return r;};
+ if(typeof mapView==='function')P.renderMapView=function(...a){const r=mapView.apply(this,a);updateStats(this);return r;};
+ P.renderHeader=function(...a){const r=header.apply(this,a);updateStats(this);installControls(this);refresh();return r;};
+ P.setWorld=function(w,...a){const r=set.call(this,w,...a);invalidate(this.world);updateStats(this);return r;};
+ P.bind=function(...a){const r=bind.apply(this,a);installControls(this);return r;};
+}
+NS.V034H1=Object.freeze({version:VERSION,geometry:boundaryGeometry,geometryFor,invalidate,drawBoundaries,settlements,refresh,compatibility:['V0.34H1','V0.34H0','V0.34G5'],verify:()=>NS.V034G5.verify(window.villageObserver?.world)});
+if(typeof document!=='undefined'){const css=document.createElement('style');css.textContent=`
+.v33g2a-map-card{padding:6px 9px!important;min-height:unset!important}.v33g2a-map-card .small{line-height:1.3}
+.h1-boundary-setting{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text,#eaf1ff)}
+.h1-boundary-setting select{min-height:35px;min-width:104px;border:1px solid var(--line,#4a5c6c);border-radius:7px;padding:5px 7px;background:#152840;color:#eaf1ff}
+#view-map #globalStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
+.h1-tile-summary{border:1px solid rgba(108,175,230,.42);border-radius:11px;background:rgba(80,132,185,.12);padding:11px;line-height:1.7}
+.h1-tile-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.h1-tile-chips>span{font-size:12px;border:1px solid rgba(127,161,195,.3);background:rgba(20,40,58,.5);padding:2px 7px;border-radius:7px}
+.h1-map-jump{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.h1-map-jump button{flex:1;min-width:150px}
+.h1-inspector-detail{margin-top:8px;border:1px solid var(--line,#384a5d);border-radius:9px;background:rgba(37,62,86,.17);overflow:hidden}
+.h1-inspector-detail>summary{cursor:pointer;padding:10px 12px;font-weight:650;font-size:13px}
+.h1-inspector-detail-body{padding:6px 11px 12px;line-height:1.65;overflow-wrap:anywhere}
+@media(max-width:650px){.h1-boundary-setting{width:100%;justify-content:space-between}.h1-boundary-setting select{flex:1}}
+`;document.head.appendChild(css);}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-18',title:'지도 UI · 정착지 경계 V2',summary:'국가색으로 정착지 완전 외곽선을 그리고 내부 음영 및 선택 강조를 추가합니다. 구형 생활권 레이어를 제거하고 지도 상단 정착지 집계와 타일 상세 화면을 정리합니다.',sections:[['지도',['정착지 완전 외곽선·국가색·약한 내부 음영·선택 강조 모드','실제 Settlement 수·영토 타일 수·국고 합계 구분','구형 생활권 시각화만 제거; 신세계·맵 파일 가져오기 유지']],['타일 상세',['타일 고유 기본 정보, 정착지 소속, 인구·시설 수를 먼저 표시','자원/경제·주거/건설·군사/전투·개발자 진단 접기 구성']],['보존',['시뮬레이션·AI·전쟁·물리재고·Gold·기술 43개·F0/F1·CSV 1683열 보존','H0/G5 저장파일을 이어서 불러오기 지원']]]});
+refresh();
+try {const ui=window.villageObserver;if(ui){ui.renderHeader?.();if(ui.view==='map')ui.renderMapView?.();}}catch(e){console.warn('H1 initial UI refresh',e);}
 })(window.VSim);
 
 </script>
