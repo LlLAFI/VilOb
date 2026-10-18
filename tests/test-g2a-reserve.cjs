@@ -9,7 +9,7 @@ function boot(file=path.join(root,'index-standalone.html'),seed=0x19a34d){
  return {NS:ctx.VSim,calls:()=>calls};
 }
 const x=boot(),NS=x.NS;
-assert.equal(NS.RELEASE_VERSION,'V0.34G4');
+assert.equal(NS.RELEASE_VERSION,'V0.34G4A');
 const realD3=NS.V034D3;
 NS.V034D3={...realD3,stockRaw:(w,id)=>w.map.get(Number(id)).stocks.food,physicalCap:()=>1000};
 function fixture(secondDonor=false,blocked=false){
@@ -43,15 +43,15 @@ function verifyWorld(t){
 // surplus but four receivers need relief in the same three-day work cycle.
 const single=fixture();NS.V034G2A.relay(single.w);const a=verifyWorld(single);
 assert.equal(a.shipments,1,JSON.stringify(a));
-assert(Math.abs(single.tiles.get(10).stocks.food-100.8)<.0001);
+assert(Math.abs(single.tiles.get(10).stocks.food-10*NS.V034F0.needFor({age:25})*24)<.0001);
 assert.equal(a.reserveChecks,1);
 // Re-search another donor after the near donor is depleted; update receiver's
 // actual stock and stop at its target rather than counting stale unmet need.
 const multi=fixture(true);NS.V034G2A.relay(multi.w);const b=verifyWorld(multi);
 assert(b.shipments>1,JSON.stringify(b));
 assert(b.alternativeDonorsUsed>0,JSON.stringify(b));
-assert(multi.tiles.get(10).stocks.food>=100.8-1e-5);
-assert(multi.tiles.get(20).stocks.food>=100.8-1e-5);
+assert(multi.tiles.get(10).stocks.food>=10*NS.V034F0.needFor({age:25})*24-1e-5);
+assert(multi.tiles.get(20).stocks.food>=10*NS.V034F0.needFor({age:25})*24-1e-5);
 // No fake delivery when actual path is blocked.
 const blocked=fixture(false,true);NS.V034G2A.relay(blocked.w);const c=verifyWorld(blocked);
 assert.equal(c.shipments,0);assert.equal(c.blocked.NO_ROUTE,4);

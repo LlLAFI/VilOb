@@ -20,7 +20,7 @@ function nationState(w,v,s){let n=s.nations.get(v);if(n)return n;
  }
  n={groups,homeToGroup};s.nations.set(v,n);return n;
 }
-function needFor(p){const base=p.age<15?.30:.42;const military=(p.assignment==='MILITARY'||p.job==='경비'||p.formationId!=null)?1.09:1;return base*military;}
+function needFor(p){const base=p.age<15?.28:.39;const military=(p.assignment==='MILITARY'||p.job==='경비'||p.formationId!=null)?1.09:1;return base*military;}
 function priorityFor(p,policy='BALANCED'){let weight=1;if(p.age<15)weight+=.20;else if(p.age>=65)weight+=.10;
  if(num(p.health)<40)weight+=.14; if(p.assignment==='MILITARY'||p.job==='경비')weight+=.08;
  if(['농부','채집꾼','사냥꾼','광부','목수','건축가','철공'].includes(p.job))weight+=.04;
@@ -67,10 +67,10 @@ function prepare(group,s){if(group.started)return;group.started=true;const {w,v}
 }
 function survive(p,v,w,worked,amount,need,housingStress=0){
  const ratio=need>0?Math.min(1,Math.max(0,amount/need)):1;
- p.hunger=clamp(num(p.hunger)+(worked?5+Math.random()*3:4+Math.random()*2));
+ p.hunger=clamp(num(p.hunger)+NS.V034G4A.hungerGain((worked?5+Math.random()*3:4+Math.random()*2),ratio));
  p.energy=clamp(num(p.energy)-(worked?8+Math.random()*5:4+Math.random()*3));
  const before=p.hunger;
- if(amount>0){const curve=1-Math.pow(1-clamp(before/100,0,1),2);const relief=(5+Math.random()+(3+Math.random())*curve)*ratio;
+ if(amount>0){const curve=1-Math.pow(1-clamp(before/100,0,1),2);const relief=(5+Math.random()+(3+Math.random())*curve)*ratio*NS.V034G4A.reliefFactor(before);
   p.hunger=clamp(p.hunger-relief);
   NS.V032E11?.recordHungerRelief?.(p,v,w,before-p.hunger);
   NS.V032E12?.recordHungerCurve?.(p,v,w,before,before-p.hunger,relief);

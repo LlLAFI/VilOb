@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G4</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34G4A</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -15,7 +15,7 @@ window.VSim.AIProfileCompat=function(subject,key){
 };
 </script>
 
-<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G4</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34G4A</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -15101,7 +15101,7 @@ function nationState(w,v,s){let n=s.nations.get(v);if(n)return n;
  }
  n={groups,homeToGroup};s.nations.set(v,n);return n;
 }
-function needFor(p){const base=p.age<15?.30:.42;const military=(p.assignment==='MILITARY'||p.job==='경비'||p.formationId!=null)?1.09:1;return base*military;}
+function needFor(p){const base=p.age<15?.28:.39;const military=(p.assignment==='MILITARY'||p.job==='경비'||p.formationId!=null)?1.09:1;return base*military;}
 function priorityFor(p,policy='BALANCED'){let weight=1;if(p.age<15)weight+=.20;else if(p.age>=65)weight+=.10;
  if(num(p.health)<40)weight+=.14; if(p.assignment==='MILITARY'||p.job==='경비')weight+=.08;
  if(['농부','채집꾼','사냥꾼','광부','목수','건축가','철공'].includes(p.job))weight+=.04;
@@ -15148,10 +15148,10 @@ function prepare(group,s){if(group.started)return;group.started=true;const {w,v}
 }
 function survive(p,v,w,worked,amount,need,housingStress=0){
  const ratio=need>0?Math.min(1,Math.max(0,amount/need)):1;
- p.hunger=clamp(num(p.hunger)+(worked?5+Math.random()*3:4+Math.random()*2));
+ p.hunger=clamp(num(p.hunger)+NS.V034G4A.hungerGain((worked?5+Math.random()*3:4+Math.random()*2),ratio));
  p.energy=clamp(num(p.energy)-(worked?8+Math.random()*5:4+Math.random()*3));
  const before=p.hunger;
- if(amount>0){const curve=1-Math.pow(1-clamp(before/100,0,1),2);const relief=(5+Math.random()+(3+Math.random())*curve)*ratio;
+ if(amount>0){const curve=1-Math.pow(1-clamp(before/100,0,1),2);const relief=(5+Math.random()+(3+Math.random())*curve)*ratio*NS.V034G4A.reliefFactor(before);
   p.hunger=clamp(p.hunger-relief);
   NS.V032E11?.recordHungerRelief?.(p,v,w,before-p.hunger);
   NS.V032E12?.recordHungerCurve?.(p,v,w,before,before-p.hunger,relief);
@@ -16516,6 +16516,53 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))N
 NS.V034G4=Object.freeze({version:VERSION,techs:ADDED,roadTier,roadFactor,roadCondition,spatialStep,civilianRoadFactor,hydraulicBonus,stats,verify,audit,refresh});
 if(NS.UI){const header=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...args){const r=header.apply(this,args);refresh();return r;};}
 if(NS.UI){const old=NS.UI.prototype.renderTile;NS.UI.prototype.renderTile=function(...args){const r=old.apply(this,args);try{const box=document.querySelector('.v34c-settlement-tile');if(box){const x=box.querySelector('.v034g3b-travel-note');if(x)x.textContent=x.textContent.replace('G3B 신규 병합','G4 신규 병합');}}catch{}return r;};}
+refresh();
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34G4A — Food & Hunger Balance Only.
+ * No additional food logistics, welfare, migration, occupation or economic subsystem.
+ * The 12-calendar-day Hunger=100 fatality gate and physical stock rules are unchanged.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34G4A',PREV='V0.34G4',KEY='village-observer-v034g4a';
+const CONFIG=Object.freeze({childFoodNeed:.28,adultFoodNeed:.39,priorChildNeed:.30,priorAdultNeed:.42,shortfallHungerGainReduction:.15,highHungerRecoveryBonus:.10,highHungerRecoveryStart:70,starvationGraceDays:12});
+const cap=(x,a,b)=>Math.max(a,Math.min(b,Number(x)||0));
+// At full ration, original work/rest Hunger gain is exactly preserved.
+// With short rations, Hunger still grows, just modestly more slowly.
+function hungerGain(gain,ratio){return Math.max(0,Number(gain)||0)*(1-CONFIG.shortfallHungerGainReduction*(1-cap(ratio,0,1)));}
+// No food => zero recovery, as before. Higher Hunger modestly increases effectiveness of real rations.
+function reliefFactor(hunger){return 1+CONFIG.highHungerRecoveryBonus*cap((Number(hunger)-CONFIG.highHungerRecoveryStart)/(100-CONFIG.highHungerRecoveryStart),0,1);}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from;
+NS.World.prototype.serialize=function(){const d=oldSerialize.call(this);d.version=VERSION;d.v034g4a={balance:'FOOD_HUNGER_NUMERIC_V1',...CONFIG};return d;};
+NS.World.from=function(d){return oldFrom(d?.version===VERSION?{...d,version:PREV}:d);};
+const oldJSON=NS.Telemetry.prototype.toJSON;
+NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.v034g4a={balance:'FOOD_HUNGER_NUMERIC_V1',...CONFIG};return d;};
+const oldG4Verify=NS.V034G4.verify;
+function verify(w){const g4=oldG4Verify(w),tests={...g4.tests,version:NS.RELEASE_VERSION===VERSION,
+  foodNeed:Math.abs(NS.V034F0.needFor({age:10})-.28)<1e-8&&Math.abs(NS.V034F0.needFor({age:35})-.39)<1e-8,
+  fullMealGain:Math.abs(hungerGain(6,1)-6)<1e-8,
+  shortMealGain:Math.abs(hungerGain(6,0)-5.1)<1e-8,
+  normalRecovery:reliefFactor(60)===1,highRecovery:Math.abs(reliefFactor(100)-1.1)<1e-8,
+  starvationGrace:CONFIG.starvationGraceDays===12&&typeof NS.V034F2?.dailyStarvation==='function'};
+ return {version:VERSION,build:'g4a-v1',ok:Object.values(tests).every(Boolean),tests};}
+function audit(w){const a=NS.V034G3B.audit(w);return{...a,version:VERSION,integrity:verify(w),g4:NS.V034G4.stats(w),g4a:{...CONFIG}};}
+function download(name,data,mime='application/json'){const u=URL.createObjectURL(new Blob([data],{type:mime})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+NS.SaveSystem={...NS.SaveSystem,
+ save(w){localStorage.setItem(KEY,JSON.stringify(w.serialize()));},
+ load(){const raw=[KEY,'village-observer-v034g4','village-observer-v034g3b','village-observer-v034g3a','village-observer-v034g3'].map(k=>localStorage.getItem(k)).find(Boolean);return raw?NS.World.from(JSON.parse(raw)):null;},
+ export(w){download('village-observer-v034G4A-save-'+w.year+'y.json',JSON.stringify(w.serialize()));},
+ exportDevJSON(w){download('village-observer-v034G4A-devlog-'+w.telemetry.sessionId+'.json',JSON.stringify(w.telemetry.toJSON(w)));},
+ exportG2Routes(w){download('village-observer-v034G4A-relay-routes-'+(w.telemetry?.sessionId||'session')+'.csv','\ufeff'+NS.V034G2A.csv(w),'text/csv;charset=utf-8');}
+};NS.SaveSystem.exportG2ARoutes=NS.SaveSystem.exportG2Routes;
+NS.RELEASE_VERSION=VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-18',title:'식량·허기 수치 밸런스',summary:'신규 구호 메커니즘 없이 기존 3일 배급 수요를 약 7% 줄이고, 식량 부족 시 Hunger 누적을 일부 완화하며, 심각한 Hunger에 실제 식사로 회복하는 효과를 약간 높입니다.',sections:[['식량 수요',['아동 3일 수요 0.30→0.28, 성인 0.42→0.39. 군인 1.09배·정착지별 공동 실물 배급은 유지합니다.','기존 식량 생산·자연 회복·시설·기술 보너스·정착지 물류에 추가 변경이 없습니다.']],['허기',['정상 배급 시 기존 Hunger 증가식을 그대로 유지합니다.','부족한 배급의 비율에 따라 Hunger 증가량을 최대 15% 완화합니다. 식량이 없으면 Hunger는 여전히 증가합니다.','식사 직전 Hunger 70 초과부터 실제 식량을 먹었을 때의 회복량이 최대 10% 높아집니다. 식량을 먹지 못하면 회복하지 않습니다.']],['보존 및 범위',['Hunger=100 유지 12달력일 기아 사망 판정은 그대로 유지합니다.','F3 Health 및 Happiness, 군사·AI·경제·기술·국가 간 물류와 물리 재고·Gold 보존식은 수정하지 않습니다.']]]});
+function refresh(){const check=verify(window.villageObserver?.world);if(typeof document!=='undefined'){document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge){badge.textContent='Village Observer · '+VERSION;badge.setAttribute('data-runtime-version',VERSION);}
+ const status=document.getElementById('g3aRuntimeIntegrity');if(status){status.textContent=check.ok?'✓ G4A 런타임 · 식량·허기 수치 조정 · 물리 재고/12일 유예 유지':'⚠ G4A 무결성: '+Object.keys(check.tests).filter(k=>!check.tests[k]).join(', ');status.style.color=check.ok?'#a9e7ca':'#ffe0a1';status.style.border='1px solid '+(check.ok?'#235a4c':'#a64c39');}}
+ return check;}
+NS.V034G4A=Object.freeze({version:VERSION,config:CONFIG,hungerGain,reliefFactor,verify,audit,refresh});
+if(NS.UI){const prior=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...args){const r=prior.apply(this,args);refresh();return r;};}
 refresh();
 })(window.VSim);
 

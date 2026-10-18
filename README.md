@@ -1,3 +1,7 @@
+# 최신 릴리스: V0.34G4A — 식량·허기 수치 밸런스
+
+변경 사항과 검증 범위: [README-34G4A.md](README-34G4A.md) / [TEST-34G4A.md](TEST-34G4A.md)
+
 # Village Observer V0.34G4 — Transportation Network & Agricultural Engineering
 
 **현재 버전 V0.34G4:** 기존 36개 기술에서 **도로 개량술·역참 제도·수리공학** 3개를 추가하여 39개. 정상 도로 이동비를 0.62 / 0.49 / 0.32(최고 기술 대체)로 연결. 실제 농업시설 자연 식량 회복 +10%p. **G3B의 신규 정착지 병합 왕복 1일 조건과 기존 정착지 공동재고를 유지.**
