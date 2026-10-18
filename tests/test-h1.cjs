@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('node:assert/strict'),{performance}=require('node:perf_hooks');
-const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8');
+const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'tests/baselines/index-H1.html'),'utf8');
 let seed=98765;const rnd=Object.create(Math);rnd.random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296;};
 const storage=new Map();const elt=()=>({style:{},hidden:false,dataset:{},textContent:'',setAttribute(){},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},appendChild(){},click(){},classList:{toggle(){},add(){},remove(){}}});
 const cx={Math:rnd,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},alert(){},confirm(){return false},localStorage:{setItem(k,v){storage.set(k,v);},getItem(k){return storage.get(k)||null;}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};

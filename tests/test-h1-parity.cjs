@@ -2,7 +2,7 @@
 // Deterministic parity of H0/H1 after loading the SAME H0 save. Render-only changes
 // may modify version/diagnostic wall-clock metadata but not actual simulation state.
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),path=require('path'),{performance}=require('perf_hooks');
-const h0=path.resolve(__dirname,'baselines/index-H0.html'),h1=path.resolve(__dirname,'../index-standalone.html');
+const h0=path.resolve(__dirname,'baselines/index-H0.html'),h1=path.resolve(__dirname,'baselines/index-H1.html');
 function engine(source){let seed=0x12345;const m=Object.create(Math);m.random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296;};
  const elt=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute(){},addEventListener(){},querySelector(){return null},querySelectorAll(){return []},appendChild(){},classList:{toggle(){},add(){},remove(){}}});
  const ctx={Math:m,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},alert(){},confirm(){return false},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};

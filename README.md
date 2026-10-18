@@ -1,3 +1,7 @@
+# 최신 버전 V0.34H2 — Nation UI Consolidation V1
+
+변경 사항과 테스트는 [README-34H2.md](README-34H2.md), [TEST-34H2.md](TEST-34H2.md)를 참조하세요.
+
 # 현재 버전: V0.34H1 — 지도 UI · 정착지 시각화 V2
 
 - [H1 변경내역 및 실행 안내](README-34H1.md) / [H1 검증 보고](TEST-34H1.md)
