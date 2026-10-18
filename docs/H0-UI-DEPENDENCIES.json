@@ -1,0 +1,3261 @@
+{
+  "version": "V0.34H0",
+  "scope": "static source inventory; not a runtime profiler or dead-code finding",
+  "protectedBlocks": 169,
+  "sources": 201,
+  "templateIds": [
+    "versionBadge",
+    "timeLabel",
+    "worldMood",
+    "playBtn",
+    "stepBtn",
+    "runtimeStatus",
+    "view-map",
+    "globalStats",
+    "newWorldBtn",
+    "mapImportInput",
+    "mapSourceStatus",
+    "zoomOutBtn",
+    "zoomLabel",
+    "zoomInBtn",
+    "centerVillageBtn",
+    "worldCanvas",
+    "tileInspector",
+    "view-village",
+    "villageCards",
+    "villageSubtabs",
+    "villageContent",
+    "view-tech",
+    "researchSummary",
+    "techTree",
+    "view-codex",
+    "codexContent",
+    "view-stats",
+    "statsScope",
+    "statsNation",
+    "statsSettlement",
+    "statsMetric",
+    "statsPeriod",
+    "statsNote",
+    "statsCanvas",
+    "view-world",
+    "foodBtn",
+    "woodBtn",
+    "goldBtn",
+    "moraleBtn",
+    "stormBtn",
+    "devLogCount",
+    "devNote",
+    "captureBtn",
+    "exportLogJsonBtn",
+    "exportLogCsvBtn",
+    "clearLogBtn",
+    "devLogPreview",
+    "saveBtn",
+    "loadBtn",
+    "exportBtn",
+    "importInput",
+    "saveMessage",
+    "chronicle",
+    "techModal",
+    "techModalClose",
+    "techModalBody"
+  ],
+  "methods": {
+    "render": {
+      "occurrences": 45,
+      "files": [
+        {
+          "file": "src/bootstrap/v034g1b.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 6
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/015.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/019.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/020.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/021.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/033.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/037.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/038.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/089.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/090.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/091.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/092.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/093.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/094.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/095.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/096.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/097.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/101.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/102.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/107.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/114.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/134.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/136.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/137.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/139.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/140.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderHeader": {
+      "occurrences": 169,
+      "files": [
+        {
+          "file": "src/bootstrap/v034d0.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d1a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3a1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3a2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b3a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3b3b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034e.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f0.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f1a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f1a1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034f3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g2a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g3a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g4.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g4a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g4a1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g5.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034h0.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 4
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/015.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/019.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/020.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/021.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/024.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/028.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/029.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/031.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/032.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/033.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/034.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/036.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/037.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/038.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/039.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/042.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/043.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/044.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/045.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/048.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/049.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/050.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/051.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/053.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/054.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/055.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/056.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/059.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/060.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/063.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/064.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/065.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/067.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/068.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/069.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/070.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/071.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/073.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/075.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/076.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/077.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/079.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/080.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/082.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/083.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/084.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/085.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/087.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/089.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/090.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/091.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/092.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/093.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/094.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/095.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/096.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/097.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/101.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/102.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/105.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/106.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/107.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/109.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/110.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/111.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/112.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/113.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/114.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/116.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/117.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/118.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/119.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/120.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/121.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/122.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/123.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/124.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/125.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/126.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/128.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/129.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/130.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/131.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/133.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/134.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/135.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/136.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/137.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/138.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/139.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/140.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/141.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/142.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/144.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/147.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/148.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/149.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/150.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/151.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/152.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/153.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/154.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/155.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/156.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/157.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/158.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/159.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/160.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/161.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/162.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/163.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/164.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderMap": {
+      "occurrences": 39,
+      "files": [
+        {
+          "file": "src/legacy/013.js",
+          "count": 5
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 3
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 5
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/028.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/032.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/037.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/038.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/053.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/063.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/064.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/065.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/090.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/095.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/110.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/113.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/141.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/154.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderTile": {
+      "occurrences": 40,
+      "files": [
+        {
+          "file": "src/bootstrap/v034d1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d1a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g3b.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g4.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/024.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/032.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/053.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/064.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/065.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/067.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/090.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/091.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/092.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/105.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/110.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/113.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/114.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/119.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/141.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/142.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/146.js",
+          "count": 3
+        },
+        {
+          "file": "src/legacy/150.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/154.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderVillageContent": {
+      "occurrences": 108,
+      "files": [
+        {
+          "file": "src/bootstrap/v034d1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d1a.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d2.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034d3.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1.js",
+          "count": 1
+        },
+        {
+          "file": "src/bootstrap/v034g1a.js",
+          "count": 3
+        },
+        {
+          "file": "src/bootstrap/v034g1b.js",
+          "count": 5
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 4
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 3
+        },
+        {
+          "file": "src/legacy/015.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/019.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/020.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/021.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/028.js",
+          "count": 3
+        },
+        {
+          "file": "src/legacy/029.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/031.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/032.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/033.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/034.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/036.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/039.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/042.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/043.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/044.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/050.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/051.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/053.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/054.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/055.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/056.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/059.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/063.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/064.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/065.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/067.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/068.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/069.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/070.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/071.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/073.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/075.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/076.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/077.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/079.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/080.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/082.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/083.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/084.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/085.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/087.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/089.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/092.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/093.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/094.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/095.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/096.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/097.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/101.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/102.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/105.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/106.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/107.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/109.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/114.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/118.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/119.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/122.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/125.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/126.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/128.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/141.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/142.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/144.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderWorld": {
+      "occurrences": 25,
+      "files": [
+        {
+          "file": "src/bootstrap/v034e.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 4
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/042.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/079.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/080.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/083.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/084.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/085.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/087.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/089.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/134.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/136.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/137.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/157.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/159.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/160.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/162.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/163.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/164.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderStats": {
+      "occurrences": 26,
+      "files": [
+        {
+          "file": "src/bootstrap/v034g1.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/013.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/024.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/029.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/036.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/042.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/049.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/059.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/060.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/097.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/120.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/123.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderTech": {
+      "occurrences": 5,
+      "files": [
+        {
+          "file": "src/legacy/013.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 1
+        }
+      ]
+    },
+    "renderCodex": {
+      "occurrences": 24,
+      "files": [
+        {
+          "file": "src/bootstrap/v034d3.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/019.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/021.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/028.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/036.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/064.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/101.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/102.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/105.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/106.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/107.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/126.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/128.js",
+          "count": 1
+        }
+      ]
+    },
+    "setWorld": {
+      "occurrences": 113,
+      "files": [
+        {
+          "file": "src/legacy/013.js",
+          "count": 4
+        },
+        {
+          "file": "src/legacy/014.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/015.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/016.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/018.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/019.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/020.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/021.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/022.js",
+          "count": 3
+        },
+        {
+          "file": "src/legacy/023.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/024.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/025.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/026.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/028.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/029.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/031.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/032.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/033.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/034.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/039.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/040.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/041.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/042.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/043.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/044.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/045.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/047.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/048.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/049.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/050.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/051.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/053.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/054.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/055.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/056.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/059.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/060.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/061.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/065.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/067.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/068.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/069.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/070.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/071.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/073.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/075.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/076.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/077.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/079.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/080.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/082.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/083.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/084.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/085.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/087.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/089.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/090.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/091.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/092.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/093.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/094.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/095.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/096.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/097.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/098.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/099.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/101.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/102.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/103.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/105.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/106.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/107.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/108.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/109.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/110.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/111.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/112.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/113.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/114.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/115.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/116.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/117.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/118.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/119.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/120.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/121.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/122.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/123.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/124.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/125.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/126.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/128.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/129.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/133.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/134.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/135.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/136.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/137.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/139.js",
+          "count": 2
+        },
+        {
+          "file": "src/legacy/140.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/141.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/142.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/147.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/152.js",
+          "count": 1
+        },
+        {
+          "file": "src/legacy/154.js",
+          "count": 1
+        }
+      ]
+    }
+  },
+  "domReferences": {
+    "versionBadge": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034d0.js",
+        "src/bootstrap/v034d1.js",
+        "src/bootstrap/v034d1a.js",
+        "src/bootstrap/v034d2.js",
+        "src/bootstrap/v034d2a.js",
+        "src/bootstrap/v034d2b.js",
+        "src/bootstrap/v034d3.js",
+        "src/bootstrap/v034d3a.js",
+        "src/bootstrap/v034d3a1.js",
+        "src/bootstrap/v034d3a2.js",
+        "src/bootstrap/v034d3b.js",
+        "src/bootstrap/v034d3b1.js",
+        "src/bootstrap/v034d3b2.js",
+        "src/bootstrap/v034d3b3.js",
+        "src/bootstrap/v034d3b3a.js",
+        "src/bootstrap/v034d3b3b.js",
+        "src/bootstrap/v034e.js",
+        "src/bootstrap/v034f0.js",
+        "src/bootstrap/v034f1.js",
+        "src/bootstrap/v034f1a.js",
+        "src/bootstrap/v034f1a1.js",
+        "src/bootstrap/v034f2.js",
+        "src/bootstrap/v034f3.js",
+        "src/bootstrap/v034g1.js",
+        "src/bootstrap/v034g1a.js",
+        "src/bootstrap/v034g1b.js",
+        "src/bootstrap/v034g2.js",
+        "src/bootstrap/v034g2a.js",
+        "src/bootstrap/v034g3.js",
+        "src/bootstrap/v034g3a.js",
+        "src/bootstrap/v034g3b.js",
+        "src/bootstrap/v034g4.js",
+        "src/bootstrap/v034g4a.js",
+        "src/bootstrap/v034g4a1.js",
+        "src/bootstrap/v034g5.js",
+        "src/bootstrap/v034h0.js",
+        "src/legacy/039.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/043.js",
+        "src/legacy/044.js",
+        "src/legacy/045.js",
+        "src/legacy/047.js",
+        "src/legacy/048.js",
+        "src/legacy/049.js",
+        "src/legacy/050.js",
+        "src/legacy/051.js",
+        "src/legacy/053.js",
+        "src/legacy/054.js",
+        "src/legacy/055.js",
+        "src/legacy/056.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/063.js",
+        "src/legacy/064.js",
+        "src/legacy/065.js",
+        "src/legacy/067.js",
+        "src/legacy/068.js",
+        "src/legacy/069.js",
+        "src/legacy/070.js",
+        "src/legacy/071.js",
+        "src/legacy/073.js",
+        "src/legacy/075.js",
+        "src/legacy/076.js",
+        "src/legacy/077.js",
+        "src/legacy/079.js",
+        "src/legacy/080.js",
+        "src/legacy/082.js",
+        "src/legacy/083.js",
+        "src/legacy/084.js",
+        "src/legacy/085.js",
+        "src/legacy/087.js",
+        "src/legacy/089.js",
+        "src/legacy/090.js",
+        "src/legacy/091.js",
+        "src/legacy/092.js",
+        "src/legacy/093.js",
+        "src/legacy/094.js",
+        "src/legacy/095.js",
+        "src/legacy/096.js",
+        "src/legacy/097.js",
+        "src/legacy/098.js",
+        "src/legacy/099.js",
+        "src/legacy/101.js",
+        "src/legacy/102.js",
+        "src/legacy/103.js",
+        "src/legacy/105.js",
+        "src/legacy/106.js",
+        "src/legacy/107.js",
+        "src/legacy/108.js",
+        "src/legacy/109.js",
+        "src/legacy/110.js",
+        "src/legacy/111.js",
+        "src/legacy/112.js",
+        "src/legacy/113.js",
+        "src/legacy/114.js",
+        "src/legacy/115.js",
+        "src/legacy/116.js",
+        "src/legacy/117.js",
+        "src/legacy/118.js",
+        "src/legacy/119.js",
+        "src/legacy/120.js",
+        "src/legacy/121.js",
+        "src/legacy/122.js",
+        "src/legacy/123.js",
+        "src/legacy/124.js",
+        "src/legacy/125.js",
+        "src/legacy/126.js",
+        "src/legacy/128.js",
+        "src/legacy/129.js",
+        "src/legacy/130.js",
+        "src/legacy/131.js",
+        "src/legacy/133.js",
+        "src/legacy/134.js",
+        "src/legacy/135.js",
+        "src/legacy/136.js",
+        "src/legacy/137.js",
+        "src/legacy/138.js",
+        "src/legacy/139.js",
+        "src/legacy/140.js",
+        "src/legacy/141.js",
+        "src/legacy/142.js",
+        "src/legacy/144.js",
+        "src/legacy/145.js",
+        "src/legacy/146.js",
+        "src/legacy/147.js",
+        "src/legacy/148.js",
+        "src/legacy/149.js",
+        "src/legacy/150.js",
+        "src/legacy/151.js",
+        "src/legacy/152.js",
+        "src/legacy/153.js",
+        "src/legacy/154.js",
+        "src/legacy/155.js",
+        "src/legacy/156.js",
+        "src/legacy/157.js",
+        "src/legacy/158.js",
+        "src/legacy/159.js",
+        "src/legacy/160.js",
+        "src/legacy/161.js",
+        "src/legacy/162.js",
+        "src/legacy/163.js",
+        "src/legacy/164.js"
+      ]
+    },
+    "timeLabel": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/020.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js",
+        "src/legacy/043.js",
+        "src/legacy/044.js"
+      ]
+    },
+    "worldMood": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/020.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js",
+        "src/legacy/043.js",
+        "src/legacy/044.js"
+      ]
+    },
+    "playBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/020.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js"
+      ]
+    },
+    "stepBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "runtimeStatus": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034f0.js",
+        "src/bootstrap/v034g3a.js",
+        "src/bootstrap/v034g3b.js",
+        "src/bootstrap/v034h0.js",
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/015.js",
+        "src/legacy/016.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/020.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js",
+        "src/legacy/023.js",
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/028.js",
+        "src/legacy/029.js",
+        "src/legacy/031.js",
+        "src/legacy/032.js",
+        "src/legacy/033.js",
+        "src/legacy/034.js",
+        "src/legacy/036.js",
+        "src/legacy/037.js",
+        "src/legacy/038.js",
+        "src/legacy/039.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/043.js",
+        "src/legacy/044.js",
+        "src/legacy/045.js",
+        "src/legacy/047.js",
+        "src/legacy/048.js",
+        "src/legacy/049.js",
+        "src/legacy/050.js",
+        "src/legacy/051.js",
+        "src/legacy/053.js",
+        "src/legacy/054.js",
+        "src/legacy/055.js",
+        "src/legacy/056.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/063.js",
+        "src/legacy/064.js",
+        "src/legacy/065.js",
+        "src/legacy/067.js",
+        "src/legacy/068.js",
+        "src/legacy/069.js",
+        "src/legacy/070.js",
+        "src/legacy/071.js",
+        "src/legacy/073.js",
+        "src/legacy/075.js",
+        "src/legacy/076.js",
+        "src/legacy/077.js",
+        "src/legacy/079.js",
+        "src/legacy/080.js",
+        "src/legacy/082.js",
+        "src/legacy/083.js",
+        "src/legacy/084.js",
+        "src/legacy/085.js",
+        "src/legacy/087.js",
+        "src/legacy/089.js",
+        "src/legacy/090.js",
+        "src/legacy/091.js",
+        "src/legacy/092.js",
+        "src/legacy/093.js",
+        "src/legacy/094.js",
+        "src/legacy/095.js",
+        "src/legacy/096.js",
+        "src/legacy/097.js",
+        "src/legacy/098.js",
+        "src/legacy/099.js",
+        "src/legacy/101.js",
+        "src/legacy/102.js",
+        "src/legacy/103.js",
+        "src/legacy/105.js",
+        "src/legacy/106.js",
+        "src/legacy/107.js",
+        "src/legacy/108.js",
+        "src/legacy/109.js",
+        "src/legacy/110.js",
+        "src/legacy/111.js",
+        "src/legacy/112.js",
+        "src/legacy/113.js",
+        "src/legacy/114.js",
+        "src/legacy/115.js",
+        "src/legacy/116.js",
+        "src/legacy/117.js",
+        "src/legacy/118.js",
+        "src/legacy/119.js",
+        "src/legacy/120.js",
+        "src/legacy/121.js",
+        "src/legacy/122.js",
+        "src/legacy/123.js",
+        "src/legacy/124.js",
+        "src/legacy/125.js",
+        "src/legacy/126.js",
+        "src/legacy/128.js",
+        "src/legacy/129.js",
+        "src/legacy/130.js",
+        "src/legacy/131.js",
+        "src/legacy/133.js",
+        "src/legacy/134.js",
+        "src/legacy/135.js",
+        "src/legacy/136.js",
+        "src/legacy/137.js",
+        "src/legacy/138.js",
+        "src/legacy/139.js",
+        "src/legacy/140.js",
+        "src/legacy/141.js",
+        "src/legacy/142.js",
+        "src/legacy/144.js",
+        "src/legacy/150.js",
+        "src/legacy/161.js",
+        "src/legacy/162.js",
+        "src/legacy/163.js"
+      ]
+    },
+    "view-map": {
+      "template": true,
+      "files": [
+        "src/legacy/014.js",
+        "src/legacy/023.js",
+        "src/legacy/025.js",
+        "src/legacy/028.js",
+        "src/legacy/061.js",
+        "src/legacy/089.js",
+        "src/legacy/095.js",
+        "src/legacy/137.js",
+        "src/legacy/154.js"
+      ]
+    },
+    "globalStats": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js"
+      ]
+    },
+    "newWorldBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/022.js",
+        "src/legacy/024.js"
+      ]
+    },
+    "mapImportInput": {
+      "template": true,
+      "files": [
+        "src/legacy/022.js"
+      ]
+    },
+    "mapSourceStatus": {
+      "template": true,
+      "files": [
+        "src/legacy/022.js"
+      ]
+    },
+    "zoomOutBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/025.js"
+      ]
+    },
+    "zoomLabel": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/025.js"
+      ]
+    },
+    "zoomInBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/025.js"
+      ]
+    },
+    "centerVillageBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/025.js"
+      ]
+    },
+    "worldCanvas": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/018.js",
+        "src/legacy/023.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/028.js",
+        "src/legacy/032.js",
+        "src/legacy/037.js",
+        "src/legacy/038.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/061.js",
+        "src/legacy/063.js",
+        "src/legacy/064.js",
+        "src/legacy/065.js",
+        "src/legacy/087.js",
+        "src/legacy/089.js",
+        "src/legacy/090.js",
+        "src/legacy/095.js",
+        "src/legacy/108.js",
+        "src/legacy/110.js",
+        "src/legacy/113.js",
+        "src/legacy/115.js",
+        "src/legacy/141.js",
+        "src/legacy/154.js"
+      ]
+    },
+    "tileInspector": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034d1.js",
+        "src/bootstrap/v034d1a.js",
+        "src/bootstrap/v034d2.js",
+        "src/bootstrap/v034d2a.js",
+        "src/bootstrap/v034d2b.js",
+        "src/bootstrap/v034d3.js",
+        "src/bootstrap/v034g1.js",
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/022.js",
+        "src/legacy/023.js",
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/032.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/047.js",
+        "src/legacy/053.js",
+        "src/legacy/061.js",
+        "src/legacy/064.js",
+        "src/legacy/065.js",
+        "src/legacy/067.js",
+        "src/legacy/090.js",
+        "src/legacy/091.js",
+        "src/legacy/092.js",
+        "src/legacy/105.js",
+        "src/legacy/108.js",
+        "src/legacy/110.js",
+        "src/legacy/113.js",
+        "src/legacy/114.js",
+        "src/legacy/119.js",
+        "src/legacy/141.js",
+        "src/legacy/142.js",
+        "src/legacy/146.js",
+        "src/legacy/150.js",
+        "src/legacy/154.js"
+      ]
+    },
+    "view-village": {
+      "template": true,
+      "files": []
+    },
+    "villageCards": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/020.js",
+        "src/legacy/028.js",
+        "src/legacy/037.js",
+        "src/legacy/128.js"
+      ]
+    },
+    "villageSubtabs": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/024.js",
+        "src/legacy/029.js",
+        "src/legacy/054.js"
+      ]
+    },
+    "villageContent": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034d1.js",
+        "src/bootstrap/v034d1a.js",
+        "src/bootstrap/v034d2.js",
+        "src/bootstrap/v034d3.js",
+        "src/bootstrap/v034g1.js",
+        "src/bootstrap/v034g1a.js",
+        "src/bootstrap/v034g1b.js",
+        "src/legacy/013.js",
+        "src/legacy/014.js",
+        "src/legacy/015.js",
+        "src/legacy/016.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/020.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js",
+        "src/legacy/023.js",
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/028.js",
+        "src/legacy/029.js",
+        "src/legacy/031.js",
+        "src/legacy/032.js",
+        "src/legacy/033.js",
+        "src/legacy/034.js",
+        "src/legacy/036.js",
+        "src/legacy/037.js",
+        "src/legacy/039.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/043.js",
+        "src/legacy/044.js",
+        "src/legacy/047.js",
+        "src/legacy/050.js",
+        "src/legacy/051.js",
+        "src/legacy/053.js",
+        "src/legacy/054.js",
+        "src/legacy/055.js",
+        "src/legacy/056.js",
+        "src/legacy/059.js",
+        "src/legacy/061.js",
+        "src/legacy/063.js",
+        "src/legacy/064.js",
+        "src/legacy/065.js",
+        "src/legacy/067.js",
+        "src/legacy/068.js",
+        "src/legacy/069.js",
+        "src/legacy/070.js",
+        "src/legacy/071.js",
+        "src/legacy/073.js",
+        "src/legacy/075.js",
+        "src/legacy/076.js",
+        "src/legacy/077.js",
+        "src/legacy/079.js",
+        "src/legacy/080.js",
+        "src/legacy/082.js",
+        "src/legacy/083.js",
+        "src/legacy/084.js",
+        "src/legacy/085.js",
+        "src/legacy/087.js",
+        "src/legacy/089.js",
+        "src/legacy/092.js",
+        "src/legacy/093.js",
+        "src/legacy/094.js",
+        "src/legacy/095.js",
+        "src/legacy/096.js",
+        "src/legacy/097.js",
+        "src/legacy/098.js",
+        "src/legacy/099.js",
+        "src/legacy/101.js",
+        "src/legacy/102.js",
+        "src/legacy/103.js",
+        "src/legacy/105.js",
+        "src/legacy/106.js",
+        "src/legacy/107.js",
+        "src/legacy/108.js",
+        "src/legacy/109.js",
+        "src/legacy/114.js",
+        "src/legacy/118.js",
+        "src/legacy/119.js",
+        "src/legacy/122.js",
+        "src/legacy/125.js",
+        "src/legacy/141.js",
+        "src/legacy/142.js",
+        "src/legacy/144.js"
+      ]
+    },
+    "view-tech": {
+      "template": true,
+      "files": [
+        "src/legacy/014.js"
+      ]
+    },
+    "researchSummary": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/014.js"
+      ]
+    },
+    "techTree": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/026.js",
+        "src/legacy/059.js"
+      ]
+    },
+    "view-codex": {
+      "template": true,
+      "files": []
+    },
+    "codexContent": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034d3.js",
+        "src/legacy/018.js",
+        "src/legacy/019.js",
+        "src/legacy/021.js",
+        "src/legacy/022.js",
+        "src/legacy/023.js",
+        "src/legacy/028.js",
+        "src/legacy/036.js",
+        "src/legacy/040.js",
+        "src/legacy/041.js",
+        "src/legacy/047.js",
+        "src/legacy/064.js",
+        "src/legacy/098.js",
+        "src/legacy/099.js",
+        "src/legacy/101.js",
+        "src/legacy/102.js",
+        "src/legacy/103.js",
+        "src/legacy/105.js",
+        "src/legacy/106.js",
+        "src/legacy/107.js",
+        "src/legacy/108.js",
+        "src/legacy/126.js",
+        "src/legacy/128.js"
+      ]
+    },
+    "view-stats": {
+      "template": true,
+      "files": [
+        "src/legacy/091.js",
+        "src/legacy/103.js",
+        "src/legacy/123.js"
+      ]
+    },
+    "statsScope": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034g1.js",
+        "src/bootstrap/v034g4a1.js",
+        "src/bootstrap/v034g5.js",
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "statsNation": {
+      "template": true,
+      "files": [
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "statsSettlement": {
+      "template": true,
+      "files": [
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js"
+      ]
+    },
+    "statsMetric": {
+      "template": true,
+      "files": [
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "statsPeriod": {
+      "template": true,
+      "files": [
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/026.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/059.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "statsNote": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034g1.js",
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "statsCanvas": {
+      "template": true,
+      "files": [
+        "src/legacy/024.js",
+        "src/legacy/025.js",
+        "src/legacy/029.js",
+        "src/legacy/036.js",
+        "src/legacy/041.js",
+        "src/legacy/042.js",
+        "src/legacy/049.js",
+        "src/legacy/060.js",
+        "src/legacy/061.js",
+        "src/legacy/120.js"
+      ]
+    },
+    "view-world": {
+      "template": true,
+      "files": [
+        "src/legacy/014.js",
+        "src/legacy/042.js",
+        "src/legacy/134.js",
+        "src/legacy/139.js"
+      ]
+    },
+    "foodBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "woodBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "goldBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "moraleBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "stormBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "devLogCount": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "devNote": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "captureBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "exportLogJsonBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "exportLogCsvBtn": {
+      "template": true,
+      "files": [
+        "src/bootstrap/v034d0.js",
+        "src/bootstrap/v034d1.js",
+        "src/legacy/013.js"
+      ]
+    },
+    "clearLogBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "devLogPreview": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/016.js",
+        "src/legacy/037.js"
+      ]
+    },
+    "saveBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/082.js",
+        "src/legacy/146.js"
+      ]
+    },
+    "loadBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "exportBtn": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/147.js"
+      ]
+    },
+    "importInput": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "saveMessage": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/022.js",
+        "src/legacy/082.js",
+        "src/legacy/134.js"
+      ]
+    },
+    "chronicle": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/025.js",
+        "src/legacy/037.js"
+      ]
+    },
+    "techModal": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/015.js"
+      ]
+    },
+    "techModalClose": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js"
+      ]
+    },
+    "techModalBody": {
+      "template": true,
+      "files": [
+        "src/legacy/013.js",
+        "src/legacy/015.js"
+      ]
+    },
+    "g3aRuntimeIntegrity": {
+      "template": false,
+      "files": [
+        "src/bootstrap/v034g3a.js",
+        "src/bootstrap/v034g3b.js",
+        "src/bootstrap/v034g4.js",
+        "src/bootstrap/v034g4a.js",
+        "src/bootstrap/v034g4a1.js",
+        "src/bootstrap/v034g5.js",
+        "src/bootstrap/v034h0.js"
+      ]
+    },
+    "v034f0PerfPanel": {
+      "template": false,
+      "files": [
+        "src/bootstrap/v034f0.js",
+        "src/bootstrap/v034f1.js"
+      ]
+    },
+    "v034f1FoodPanel": {
+      "template": false,
+      "files": []
+    },
+    "v30aPerfPanel": {
+      "template": false,
+      "files": [
+        "src/bootstrap/v034e.js",
+        "src/bootstrap/v034f0.js",
+        "src/legacy/042.js",
+        "src/legacy/079.js",
+        "src/legacy/080.js",
+        "src/legacy/083.js",
+        "src/legacy/084.js",
+        "src/legacy/085.js",
+        "src/legacy/157.js"
+      ]
+    }
+  },
+  "screens": {
+    "지도": [
+      "renderMap",
+      "renderTile",
+      "worldCanvas",
+      "tileInspector",
+      "runtimeStatus"
+    ],
+    "국가·개요": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·주민": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·경제": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·교역": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·사회": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·군사": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "국가·기술": [
+      "renderVillageContent",
+      "villageContent"
+    ],
+    "통계·교전기록": [
+      "renderStats",
+      "render",
+      "statsScope"
+    ],
+    "세계": [
+      "renderWorld",
+      "chronicle",
+      "devLogPreview"
+    ],
+    "상단 상태": [
+      "renderHeader",
+      "runtimeStatus",
+      "g3aRuntimeIntegrity"
+    ]
+  },
+  "candidates": [
+    {
+      "target": "C1G 고정 성공 문구",
+      "source": "src/legacy/163.js",
+      "status": "H0에서 안전 제거",
+      "engineEffect": "연간 진단 캐시·CSV·World.renderWorld 유지"
+    },
+    {
+      "target": "구형 생활권 지도 레이어",
+      "source": "src/legacy/040.js",
+      "status": "H1에서 UI 제거",
+      "engineEffect": "Settlement/Person 로직 검증 후 별도 유지"
+    },
+    {
+      "target": "V0.33C 지속 교전 패널",
+      "source": "src/legacy/091.js",
+      "status": "H3에서 교체 후 제거",
+      "engineEffect": "현재 전쟁·엔진 engagements33D 유지"
+    },
+    {
+      "target": "0.33 이하 저장 전용 분기",
+      "source": "복수 World.from / SaveSystem",
+      "status": "호환성 의무 해제·물리 삭제 보류",
+      "engineEffect": "0.34 복원 경유 체인이 소비하므로 전체 호출 관계 조사 필요"
+    },
+    {
+      "target": "G5 무결성 정상 메시지",
+      "source": "src/bootstrap/v034g5.js",
+      "status": "H0에서 정상표시만 숨김",
+      "engineEffect": "G5 검사/실패 경고 유지"
+    },
+    {
+      "target": "F0/F1 프로파일러 DOM",
+      "source": "src/bootstrap/v034f0.js / v034f1.js",
+      "status": "H3에서 위치 이동",
+      "engineEffect": "renderHeader 의존 계측 스케줄 유지"
+    }
+  ]
+}

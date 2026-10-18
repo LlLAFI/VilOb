@@ -1,0 +1,126 @@
+[
+  {
+    "distribution": "standalone",
+    "viewport": 1440,
+    "initial": {
+      "version": "V0.34H1",
+      "world": true,
+      "stats": "인구\n103\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n968 G",
+      "controls": true,
+      "mode": "all",
+      "legacy": false,
+      "oldBoundary": false,
+      "groups": 7,
+      "tech": 43,
+      "integrity": true,
+      "save": "V0.34H1",
+      "tile": "🗺 타일 #141 · (8, 7) 평야\n🏳️ 키오\n🏘 st-0000002\n👥 16명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #141\n🏘 정착지·타일 보기\n🏛 국가 개요\n🌿 자연자원·재고·경제\n🏗 주거·건설·정착지\n⚔ 군사·전투\n📋 타일 상세 정보\n문화 · 루엔 100% · 루엔 100%",
+      "tileDetails": 4
+    },
+    "selected": {
+      "basic": "🗺 타일 #72 · (15, 3) 평야\n🏳️ 라엔\n🏘 st-0000001\n👥 14명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #72",
+      "groups": [
+        "resources",
+        "housing",
+        "military",
+        "more"
+      ],
+      "stats": "인구\n103\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n968 G",
+      "old": null
+    },
+    "errors": []
+  },
+  {
+    "distribution": "standalone",
+    "viewport": 390,
+    "initial": {
+      "version": "V0.34H1",
+      "world": true,
+      "stats": "인구\n117\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n874 G",
+      "controls": true,
+      "mode": "all",
+      "legacy": false,
+      "oldBoundary": false,
+      "groups": 7,
+      "tech": 43,
+      "integrity": true,
+      "save": "V0.34H1",
+      "tile": "🗺 타일 #277 · (11, 14) 평야\n🏳️ 키오\n🏘 st-0000006\n👥 18명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #277\n🏘 정착지·타일 보기\n🏛 국가 개요\n🌿 자연자원·재고·경제\n🏗 주거·건설·정착지\n⚔ 군사·전투\n📋 타일 상세 정보\n문화 · 루엔 100% · 루엔 100%",
+      "tileDetails": 4
+    },
+    "selected": {
+      "basic": "🗺 타일 #99 · (4, 5) 평야\n🏳️ 벨른\n🏘 st-0000001\n👥 16명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #99",
+      "groups": [
+        "resources",
+        "housing",
+        "military",
+        "more"
+      ],
+      "stats": "인구\n117\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n874 G",
+      "old": null
+    },
+    "errors": []
+  },
+  {
+    "distribution": "hosted",
+    "viewport": 1440,
+    "initial": {
+      "version": "V0.34H1",
+      "world": true,
+      "stats": "인구\n111\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n985 G",
+      "controls": true,
+      "mode": "all",
+      "legacy": false,
+      "oldBoundary": false,
+      "groups": 7,
+      "tech": 43,
+      "integrity": true,
+      "save": "V0.34H1",
+      "tile": "🗺 타일 #86 · (10, 4) 평야\n🏳️ 키오\n🏘 st-0000001\n👥 15명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #86\n🏘 정착지·타일 보기\n🏛 국가 개요\n🌿 자연자원·재고·경제\n🏗 주거·건설·정착지\n⚔ 군사·전투\n📋 타일 상세 정보\n문화 · 루엔 100% · 루엔 100%",
+      "tileDetails": 4
+    },
+    "selected": {
+      "basic": "🗺 타일 #86 · (10, 4) 평야\n🏳️ 키오\n🏘 st-0000001\n👥 15명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #86",
+      "groups": [
+        "resources",
+        "housing",
+        "military",
+        "more"
+      ],
+      "stats": "인구\n111\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n985 G",
+      "old": null
+    },
+    "errors": []
+  },
+  {
+    "distribution": "hosted",
+    "viewport": 390,
+    "initial": {
+      "version": "V0.34H1",
+      "world": true,
+      "stats": "인구\n112\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n947 G",
+      "controls": true,
+      "mode": "all",
+      "legacy": false,
+      "oldBoundary": false,
+      "groups": 7,
+      "tech": 43,
+      "integrity": true,
+      "save": "V0.34H1",
+      "tile": "🗺 타일 #139 · (6, 7) 평야\n🏳️ 키오\n🏘 st-0000002\n👥 18명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #139\n🏘 정착지·타일 보기\n🏛 국가 개요\n🌿 자연자원·재고·경제\n🏗 주거·건설·정착지\n⚔ 군사·전투\n📋 타일 상세 정보\n문화 · 루엔 100% · 루엔 100%",
+      "tileDetails": 4
+    },
+    "selected": {
+      "basic": "🗺 타일 #108 · (13, 5) 평야\n🏳️ 델마\n🏘 st-0000001\n👥 16명\n🏗 7개 시설\n정착지 전체 1타일 · 중심 #108",
+      "groups": [
+        "resources",
+        "housing",
+        "military",
+        "more"
+      ],
+      "stats": "인구\n112\n국가\n7\n정착지\n7\n영토 타일\n7\n국가 국고 합계\n947 G",
+      "old": null
+    },
+    "errors": []
+  }
+]

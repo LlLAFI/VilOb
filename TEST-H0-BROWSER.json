@@ -1,0 +1,82 @@
+[
+  {
+    "version": "V0.34H0",
+    "tech": 43,
+    "integrity": true,
+    "oldBanner": "none",
+    "secondBanner": "none",
+    "mapFile": true,
+    "newWorld": true,
+    "world": true,
+    "head": "Village Observer V0.34H0",
+    "statsCaption": "타일 (기존 장기 통계)",
+    "f0": true,
+    "f1": true,
+    "saveVersion": "V0.34H0",
+    "mode": "standalone",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "version": "V0.34H0",
+    "tech": 43,
+    "integrity": true,
+    "oldBanner": "none",
+    "secondBanner": "none",
+    "mapFile": true,
+    "newWorld": true,
+    "world": true,
+    "head": "Village Observer V0.34H0",
+    "statsCaption": "타일 (기존 장기 통계)",
+    "f0": true,
+    "f1": true,
+    "saveVersion": "V0.34H0",
+    "mode": "standalone",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "version": "V0.34H0",
+    "tech": 43,
+    "integrity": true,
+    "oldBanner": "none",
+    "secondBanner": "none",
+    "mapFile": true,
+    "newWorld": true,
+    "world": true,
+    "head": "Village Observer V0.34H0",
+    "statsCaption": "타일 (기존 장기 통계)",
+    "f0": true,
+    "f1": true,
+    "saveVersion": "V0.34H0",
+    "mode": "hosted",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "version": "V0.34H0",
+    "tech": 43,
+    "integrity": true,
+    "oldBanner": "none",
+    "secondBanner": "none",
+    "mapFile": true,
+    "newWorld": true,
+    "world": true,
+    "head": "Village Observer V0.34H0",
+    "statsCaption": "타일 (기존 장기 통계)",
+    "f0": true,
+    "f1": true,
+    "saveVersion": "V0.34H0",
+    "mode": "hosted",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]
