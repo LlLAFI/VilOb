@@ -1,3 +1,9 @@
+## 현재 릴리스 V0.34H4
+
+- 빌드 `npm run build`, GitHub Pages 필수 CI `npm test` (H4 10일 동등성 검증 포함).
+- H4 신규 `src/bootstrap/v034h4.js`, `tools/h4-transform.mjs`, D3 공동 용량 조회 최적화가 필요합니다.
+- Standalone/Hosted 모두 지원하며 H3 이전 저장 데이터를 불러옵니다. `README-34H4.md` · `TEST-34H4.md` 참고.
+
 ## 현재 릴리스 V0.34H3
 
 - 실행: `npm run build && npm test`. 최종 버전은 H3이며 최신 패치 문서는 `README-34H3.md`, 테스트는 `TEST-34H3.md`.

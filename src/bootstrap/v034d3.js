@@ -40,13 +40,13 @@ function members(v,id){const w=v?._world,tid=Number(id),t=w?.map?.get(tid);if(!t
  const sid=t.settlementId;if(sid==null)return null;const rec=w._v34bActive?.get(String(sid))||(w.v34b?.settlements||[]).find(r=>eq(r.id,sid)&&r.lifecycle==='ACTIVE');
  if(!rec||!eq(rec.nationId,v.id)||rec.lifecycle!=='ACTIVE')return null;
  const scope=memberScope(w);let m=memberCache.get(rec);
- if(m&&m.source===rec.tileIds&&m.size===rec.tileIds.length&&m.core===Number(rec.coreTileId)&&m.nationId===v.id&&m.epoch===scope.epoch){return m.ids.includes(tid)?m:null;}
+ if(m&&m.source===rec.tileIds&&m.size===rec.tileIds.length&&m.core===Number(rec.coreTileId)&&m.nationId===v.id&&m.epoch===scope.epoch){return m.idSet.has(tid)?m:null;}
  const ids=[];let watched=true;
  for(const raw of rec.tileIds||[]){const mid=Number(raw),x=w.map.get(mid);if(x){if(!watchTile(w,x))watched=false;
   if(eq(x.ownerId,v.id)&&eq(x.settlementId,sid)&&!(x.v33OccupierId!=null&&!eq(x.v33OccupierId,v.id)))ids.push(mid);
  }}
- m={sid,ids,core:Number(rec.coreTileId),nationId:v.id,source:rec.tileIds,size:(rec.tileIds||[]).length,epoch:watched?scope.epoch:-1};
- memberCache.set(rec,m);return ids.includes(tid)?m:null;
+ m={sid,ids,idSet:new Set(ids),core:Number(rec.coreTileId),nationId:v.id,source:rec.tileIds,size:(rec.tileIds||[]).length,epoch:watched?scope.epoch:-1};
+ memberCache.set(rec,m);return m.idSet.has(tid)?m:null;
 }
 function sameSettlement(w,a,b,nationId){if(Number(a)===Number(b))return true;const x=w?.map?.get(Number(a)),y=w?.map?.get(Number(b));return !!(x&&y&&x.settlementId!=null&&eq(x.settlementId,y.settlementId)&&eq(x.ownerId,y.ownerId)&&(nationId==null||eq(x.ownerId,nationId))&&!(x.v33OccupierId!=null&&!eq(x.v33OccupierId,x.ownerId))&&!(y.v33OccupierId!=null&&!eq(y.v33OccupierId,y.ownerId)));}
 function stockRaw(w,id,k){return Math.max(0,N(w?.map?.get(Number(id))?.stocks?.[k]));}
@@ -56,7 +56,7 @@ function physicalCap(v,tid,k){return Math.max(0,N(oldCap.call(v,tid)?.[k]));}
 function capacity(v,tid,k){const m=members(v,tid);return m?m.ids.reduce((s,id)=>s+physicalCap(v,id,k),0):physicalCap(v,tid,k);}
 // Preserve the raw tile getter for observers, transport receipts and audits.
 NS.Village.prototype.stockAt=function(id,k){const m=members(this,id);if(!m||m.ids.length<2)return oldStock.call(this,id,k);return m.ids.reduce((s,tid)=>s+stockRaw(this._world,tid,k),0);};
-NS.Village.prototype.settlementCaps=function(id){const raw=oldCap.call(this,id),m=members(this,id);if(!m||m.ids.length<2)return raw;const o={...raw};for(const k of RES)o[k]=m.ids.reduce((s,tid)=>s+physicalCap(this,tid,k),0);return o;};
+NS.Village.prototype.settlementCaps=function(id){const raw=oldCap.call(this,id),m=members(this,id);if(!m||m.ids.length<2)return raw;const o={...raw};for(const k of RES)o[k]=0;for(const tid of m.ids){const tileCap=oldCap.call(this,tid);for(const k of RES)o[k]+=Math.max(0,N(tileCap?.[k]));}return o;};
 // B3B: capture the D3A observer on the SAME transaction as physical withdrawal.
 // This avoids a second members() call and a second raw-stock/capacity inspection
 // by the former outer observer. No resource, RNG or policy changes.

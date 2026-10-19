@@ -1,12 +1,12 @@
 {
   "name": "village-observer",
-  "version": "0.34.0-h3",
+  "version": "0.34.0-h4",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
-    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a-reserve.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-h2a.cjs && node tests/test-h3.cjs",
+    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a-reserve.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-h2a.cjs && node tests/test-h3.cjs && node tests/test-h4.cjs && node tests/test-h4-parity.cjs",
     "test:year": "node tests/test-d3-year.cjs",
     "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test": "node tools/build.mjs --check-only && npm run test:static",
@@ -32,8 +32,9 @@
     "test:h2": "node tests/test-h2.cjs && node tests/test-h2-parity.cjs",
     "test:h1": "node tests/test-h1.cjs && node tests/test-h1-parity.cjs && node tests/test-h2.cjs && node tests/test-h2-parity.cjs",
     "test:browser:h1": "python tools/browser-h1-smoke.py",
-    "test:extended": "node tests/test-g2a.cjs && node tests/test-g3.cjs && node tests/test-g3a.cjs && node tests/test-g5.cjs && node tests/test-h1.cjs && node tests/test-h1-parity.cjs && node tests/test-h2.cjs && node tests/test-h2-parity.cjs && node tests/test-h2a-parity.cjs && node tests/test-h3-parity.cjs",
-    "test:h3": "node tests/test-h3.cjs && node tests/test-h3-parity.cjs"
+    "test:extended": "node tests/test-g2a.cjs && node tests/test-g3.cjs && node tests/test-g3a.cjs && node tests/test-g5.cjs && node tests/test-h1.cjs && node tests/test-h1-parity.cjs && node tests/test-h2.cjs && node tests/test-h2-parity.cjs && node tests/test-h2a-parity.cjs && node tests/test-h3-parity.cjs && node tests/test-h4-parity.cjs",
+    "test:h3": "node tests/test-h3.cjs && node tests/test-h3-parity.cjs",
+    "test:h4": "node tests/test-h4.cjs && node tests/test-h4-parity.cjs"
   },
   "engines": {
     "node": ">=18"
