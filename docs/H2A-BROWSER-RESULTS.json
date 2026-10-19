@@ -1,0 +1,66 @@
+[
+  {
+    "flavor": "standalone",
+    "width": 1440,
+    "height": 900,
+    "result": {
+      "version": "V0.34H2A",
+      "loaded": true,
+      "verify": true,
+      "tech": 43,
+      "save": "V0.34H2A",
+      "mapBoundary": true,
+      "nationViews": 7,
+      "ghostAudit": true
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "standalone",
+    "width": 390,
+    "height": 844,
+    "result": {
+      "version": "V0.34H2A",
+      "loaded": true,
+      "verify": true,
+      "tech": 43,
+      "save": "V0.34H2A",
+      "mapBoundary": true,
+      "nationViews": 7,
+      "ghostAudit": true
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "hosted",
+    "width": 1440,
+    "height": 900,
+    "result": {
+      "version": "V0.34H2A",
+      "loaded": true,
+      "verify": true,
+      "tech": 43,
+      "save": "V0.34H2A",
+      "mapBoundary": true,
+      "nationViews": 7,
+      "ghostAudit": true
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "hosted",
+    "width": 390,
+    "height": 844,
+    "result": {
+      "version": "V0.34H2A",
+      "loaded": true,
+      "verify": true,
+      "tech": 43,
+      "save": "V0.34H2A",
+      "mapBoundary": true,
+      "nationViews": 7,
+      "ghostAudit": true
+    },
+    "pageErrors": []
+  }
+]

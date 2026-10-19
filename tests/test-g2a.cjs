@@ -8,7 +8,7 @@ function boot(file=path.join(root,'index-standalone.html'),seed=0x19a34d){
  for(const m of fs.readFileSync(file,'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())try{new vm.Script(m[1]).runInContext(ctx,{timeout:50000});}catch(e){if(!/onclick/.test(e.message))throw e;}
  return {NS:ctx.VSim,calls:()=>calls};
 }
-const x=boot(),NS=x.NS;assert.equal(NS.RELEASE_VERSION,'V0.34H2');
+const x=boot(),NS=x.NS;assert.equal(NS.RELEASE_VERSION,'V0.34H2A');
 assert.equal(typeof NS.V034G2.relay,'function');
 // 19x19 subset. Nine plain tiles belong to one Settlement A and an adjacent
 // outside tile (4,2) to Settlement B. All actual shortest costs use tile geometry.
@@ -64,8 +64,8 @@ NS.V034D3=realD3;
 // not numerically identical to G1B now that policy changes.
 const dayCount=Number(process.env.G2A_DAYS||30),world=new NS.World(19,19);for(let i=0;i<dayCount;i++)world.advanceOneDay();
 const d=NS.V034D3.audit(world),f=NS.V034F2.diagnostics(world),g=NS.V034G2.summary(world);
-assert(d.ok,JSON.stringify(d.errors));assert.equal(f.duplicateMetabolismRequests,0);assert.equal(f.missingHomes,0);assert.equal(g.conservationErrors,0);assert.equal(world.serialize().version,'V0.34H2');
-const loaded=NS.World.from(JSON.parse(JSON.stringify(world.serialize())));assert.equal(loaded.serialize().version,'V0.34H2');
-const oldSave={...world.serialize(),version:'V0.34G1B'};delete oldSave.v034g2a;assert.equal(NS.World.from(JSON.parse(JSON.stringify(oldSave))).serialize().version,'V0.34H2');
-assert.equal(NS.Telemetry.prototype.toJSON.call(world.telemetry,world).version,'V0.34H2');
+assert(d.ok,JSON.stringify(d.errors));assert.equal(f.duplicateMetabolismRequests,0);assert.equal(f.missingHomes,0);assert.equal(g.conservationErrors,0);assert.equal(world.serialize().version,'V0.34H2A');
+const loaded=NS.World.from(JSON.parse(JSON.stringify(world.serialize())));assert.equal(loaded.serialize().version,'V0.34H2A');
+const oldSave={...world.serialize(),version:'V0.34G1B'};delete oldSave.v034g2a;assert.equal(NS.World.from(JSON.parse(JSON.stringify(oldSave))).serialize().version,'V0.34H2A');
+assert.equal(NS.Telemetry.prototype.toJSON.call(world.telemetry,world).version,'V0.34H2A');
 console.log(JSON.stringify({status:'PASS',scenario:{from:events[0][2].fromTileId,to:events[0][2].toTileId,qty:events[0][2].qty,actualCost:events[0][2].routeCost,conservationErrors:result.conservationErrors},natural:{days:dayCount,pop:world.villages.reduce((a,v)=>a+v.population(),0),settlementReads:g.settlementReads,routePairs:g.routePairsChecked,shipments:g.shipments,conservationErrors:g.conservationErrors,rngCalls:x.calls(),metabolismDuplicates:f.duplicateMetabolismRequests}},null,2));

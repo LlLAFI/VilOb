@@ -6,7 +6,7 @@ const elt=()=>({style:{},dataset:{},setAttribute(){},parentNode:null,innerHTML:'
 const ctx={Math:randomMath,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,alert(){},confirm(){return false},setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
 const html=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8');
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(match[1].trim())try{new vm.Script(match[1]).runInContext(ctx,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=ctx.VSim,G=NS.V034G5,RELEASE=NS.V034H2?'V0.34H2':NS.V034H1?'V0.34H1':NS.V034H0?'V0.34H0':'V0.34G5';
+const NS=ctx.VSim,G=NS.V034G5,RELEASE=NS.V034H2A?'V0.34H2A':NS.V034H2?'V0.34H2':NS.V034H1?'V0.34H1':NS.V034H0?'V0.34H0':'V0.34G5';
 assert.equal(NS.RELEASE_VERSION,RELEASE);assert.equal(NS.TECH_ORDER.length,43);assert(G.verify().ok,JSON.stringify(G.verify()));
 for(const k of Object.keys(G.techs))assert(NS.TECH[k]&&NS.TECH_ORDER.includes(k));
 const farmer={alive:true,age:26,job:'농부',assignment:null},gatherer={...farmer,job:'채집꾼'},miner={...farmer,job:'광부'},other={...farmer,job:'철공'};

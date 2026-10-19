@@ -1,3 +1,7 @@
+# 최신 패치: V0.34H2A
+
+정착지 중심 타일 포기 이후 생기는 중립 타일 고아 연결 문제를 수정했습니다. [README-34H2A.md](README-34H2A.md) / [TEST-34H2A.md](TEST-34H2A.md) 참고.
+
 # 최신 버전 V0.34H2 — Nation UI Consolidation V1
 
 변경 사항과 테스트는 [README-34H2.md](README-34H2.md), [TEST-34H2.md](TEST-34H2.md)를 참조하세요.

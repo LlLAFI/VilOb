@@ -54,7 +54,10 @@ function retire(w,r,toId=null){r.lifecycle=toId?'MERGED':'ABANDONED';if(toId){r.
  r.tileIds=[];active(w).delete(r.id);clearCache(w);}
 function replaceGroup(w,r,ids){r.tileIds=[...ids].sort((a,b)=>a-b);for(const id of ids)tile(w,id).settlementId=r.id;clearCache(w);}
 function disconnect(w,r){
- // Immediate physical connectivity partition on ownership changes. No remote magic linkage.
+ // When a multi-tile Settlement loses its core (e.g. abandoned outpost),
+ // rebase the core on a real surviving tile BEFORE connectivity/review.
+ // Otherwise the delayed access split recreates a phantom unowned core.
+ if(r.tileIds.length&&!r.tileIds.includes(Number(r.coreTileId))){r.coreTileId=Math.min(...r.tileIds);clearCache(w);}
  const cc=components(w,r.tileIds);if(cc.length<=1)return;
  const keep=cc.find(c=>c.includes(Number(r.coreTileId)))||cc[0];replaceGroup(w,r,keep);r.coreTileId=keep.includes(Number(r.coreTileId))?r.coreTileId:keep[0];
  for(const c of cc){if(c===keep)continue;issue(w,c,r.nationId,c[0]);counters(w).splits++;}
