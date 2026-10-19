@@ -6,14 +6,14 @@ const storage=new Map();const elt=()=>({style:{},hidden:false,dataset:{},textCon
 const cx={Math:rnd,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},alert(){},confirm(){return false},localStorage:{setItem(k,v){storage.set(k,v);},getItem(k){return storage.get(k)||null;}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};
 cx.window=cx;cx.addEventListener=()=>{};vm.createContext(cx);
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(x=>x[1]).filter(Boolean);
-assert.equal(scripts.length,204,'H2A appended after H2');
+assert.equal(scripts.length,205,'H2A appended after H2');
 for(const src of scripts)try{new vm.Script(src).runInContext(cx,{timeout:120000})}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=cx.VSim;assert.equal(NS.RELEASE_VERSION,'V0.34H2A');assert.equal(NS.TECH_ORDER.length,43);assert(NS.V034G5.verify().ok);assert(NS.V034H1.verify().ok);assert(NS.V034H2.verify().ok);
+const NS=cx.VSim;assert.equal(NS.RELEASE_VERSION,'V0.34H3');assert.equal(NS.TECH_ORDER.length,43);assert(NS.V034G5.verify().ok);assert(NS.V034H1.verify().ok);assert(NS.V034H2.verify().ok);
 assert(!html.includes("option value=\"lifezone\">생활권"));assert.deepEqual(Array.from(NS.V034H2.views),['overview','residents','economy','trade','social','military','tech']);assert(html.includes('h1SettlementBoundary')); 
-const w=new NS.World(19,19),save=JSON.parse(JSON.stringify(w.serialize()));assert.equal(save.version,'V0.34H2A');
-for(const v of ['V0.34H2A','V0.34H2','V0.34H1','V0.34H0','V0.34G5'])assert.equal(NS.World.from({...save,version:v}).serialize().version,'V0.34H2A',v);
-NS.SaveSystem.save(w);assert(storage.has('village-observer-v034h2a'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.34H2A');
-storage.delete('village-observer-v034h2a');storage.set('village-observer-v034h0',JSON.stringify({...save,version:'V0.34H0'}));assert.equal(NS.SaveSystem.load().serialize().version,'V0.34H2A');
+const w=new NS.World(19,19),save=JSON.parse(JSON.stringify(w.serialize()));assert.equal(save.version,'V0.34H3');
+for(const v of ['V0.34H3','V0.34H2','V0.34H1','V0.34H0','V0.34G5'])assert.equal(NS.World.from({...save,version:v}).serialize().version,'V0.34H3',v);
+NS.SaveSystem.save(w);assert(storage.has('village-observer-v034h3'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.34H3');
+storage.delete('village-observer-v034h2a');storage.set('village-observer-v034h0',JSON.stringify({...save,version:'V0.34H0'}));assert.equal(NS.SaveSystem.load().serialize().version,'V0.34H3');
 const borders=NS.V034H1.geometryFor(w),active=(w.v34b?.settlements||[]).filter(s=>s.lifecycle==='ACTIVE');
 assert.equal(borders.length,active.length,'render groups equal actual ACTIVE settlements');
 const covered=borders.reduce((n,g)=>n+g.tiles.length,0),owned=w.map.tiles.filter(t=>t.ownerId!=null).length;assert.equal(covered,owned);
@@ -25,6 +25,6 @@ const layout=NS.V034H1.geometryFor(fake);assert.equal(layout.length,2);assert.eq
 const original=NS.V034H1.geometryFor(w);assert.equal(original,NS.V034H1.geometryFor(w),'cached identity');NS.V034H1.invalidate(w);assert.notEqual(original,NS.V034H1.geometryFor(w),'explicit invalidation');
 const day=Number(process.env.H2_DAYS||30);const running=NS.World.from(save);for(let i=0;i<day;i++)running.advanceOneDay();const audit=NS.V034G5.audit(running);
 assert.equal(audit.integrity.ok,true);for(const k of ['physical','settlement','conservation','reserveViolations','metabolismDuplicates','missingHomes'])assert.equal(audit.failures[k],0,k);
-assert.equal(running.telemetry.toJSON(running).version,'V0.34H2A');assert(NS.V034F0.performanceReport(running));assert(NS.V034F1.report(running));
+assert.equal(running.telemetry.toJSON(running).version,'V0.34H3');assert(NS.V034F0.performanceReport(running));assert(NS.V034F1.report(running));
 running.telemetry.snapshot(running,'MANUAL','H2 audit');const csv=NS.V034D0.csvV2(running.telemetry.snapshotsCSV());assert.equal(csv.split('\n')[0].split(',').length,1683);
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,days:day,technologies:NS.TECH_ORDER.length,settlements:borders.length,ownedTiles:owned,save:'H2/H1/H0/G5 PASS',integrity:'PASS',csvColumns:1683}));

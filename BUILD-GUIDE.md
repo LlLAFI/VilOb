@@ -1,3 +1,9 @@
+## 현재 릴리스 V0.34H3
+
+- 실행: `npm run build && npm test`. 최종 버전은 H3이며 최신 패치 문서는 `README-34H3.md`, 테스트는 `TEST-34H3.md`.
+- Standalone/Hosted 신규 `src/bootstrap/v034h3.js`와 `tools/h3-transform.mjs`가 필요함.
+- GitHub Actions 경로는 프로젝트 ZIP의 모든 변경 파일을 Commit/Push해야 하며 `npm test`를 생략하지 않음.
+
 ## 현재 빌드 V0.34G1B
 
 Standalone/Hosted: `npm run build`. 테스트: `npm test`, `python tests/browser-g1b-smoke.py`. G1B 부트스트랩은 G1A 다음 순서이며 버전 메타데이터·세이브/로드를 업데이트한다. 보호 C1H 소스는 변경하지 않는다.

@@ -1,0 +1,36 @@
+
+> village-observer@0.34.0-h2a test
+> node tools/build.mjs --check-only && npm run test:static
+
+{"baselineSHA256":"89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64","blocks":169,"js":165,"css":4,"csvV2Columns":1683,"success":true}
+
+> village-observer@0.34.0-h2a test:static
+> node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a.cjs && node tests/test-g2a-reserve.cjs && node tests/test-g3.cjs && node tests/test-g3a.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-g5.cjs && node tests/test-h1.cjs && node tests/test-h1-parity.cjs && node tests/test-h2.cjs && node tests/test-h2-parity.cjs && node tests/test-h2a.cjs && node tests/test-h2a-parity.cjs
+
+{"result":"PASS","scriptBlocks":204,"hostedBlocks":204,"css":4,"sourceSHA":"89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64","csvV2Columns":1683}
+{"result":"PASS","csvColumns":1683,"duplicateHeadersFixed":72,"rows":7,"valueRowsIdentical":true}
+{
+  "status": "PASS",
+  "scenario": {
+    "from": 24,
+    "to": 23,
+    "qty": 54.02,
+    "actualCost": 0.62,
+    "conservationErrors": 0
+  },
+  "natural": {
+    "days": 30,
+    "pop": 116,
+    "settlementReads": 70,
+    "routePairs": 0,
+    "shipments": 0,
+    "conservationErrors": 0,
+    "rngCalls": 38853,
+    "metabolismDuplicates": 0
+  }
+}
+{"status":"PASS","oneDonor":{"shipments":1,"reserveViolations":0,"remaining":93.60000000000002},"alternate":{"shipments":8,"alternativeDonorsUsed":4,"reserveViolations":0},"blocked":{"shipments":0}}
+{"status":"PASS","geometry":{"disk3":29,"disk4":49,"routeChecks":8},"food":{"baselineG2A":0,"g3":1,"donorAfter":82.32000000000001,"emergency":1},"natural":{"days":90,"pop":115,"settlements":7,"errors":0,"foodShipments":0,"conservationErrors":0,"ms":6647,"rng":65290}}
+{"result":"PASS","days":90,"rngCalls":42886,"population":113,"settlements":7,"integrity":true,"telemetryPure":true,"worldParity":true}
+{"status":"PASS","G3B":"one-day bidirectional gate","oldG3A":"two-step allowed","rejected":2,"preSettlement":7,"postSettlement":7,"allAudits":"PASS"}
+PASS G4A1 static dropdown guard + release signature

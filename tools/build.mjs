@@ -18,6 +18,7 @@ import {h0Transform} from './h0-transform.mjs';
 import {h1Transform} from './h1-transform.mjs';
 import {h2Transform} from './h2-transform.mjs';
 import {h2aTransform} from './h2a-transform.mjs';
+import {h3Transform} from './h3-transform.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const get=p=>fs.readFileSync(path.join(root,p));
@@ -38,7 +39,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.34H2A';
+const VERSION='V0.34H3';
 const g1=get('src/bootstrap/v034g1.js').toString('utf8');
 const g1a=get('src/bootstrap/v034g1a.js').toString('utf8');
 const g1b=get('src/bootstrap/v034g1b.js').toString('utf8');
@@ -50,11 +51,12 @@ const g3b=get('src/bootstrap/v034g3b.js').toString('utf8');
 const g4=get('src/bootstrap/v034g4.js').toString('utf8');
 const g4a=get('src/bootstrap/v034g4a.js').toString('utf8');
 const g4a1=get('src/bootstrap/v034g4a1.js').toString('utf8');
-const g5=h2aTransform('src/bootstrap/v034g5.js',h2Transform('src/bootstrap/v034g5.js',h1Transform('src/bootstrap/v034g5.js',h0Transform('src/bootstrap/v034g5.js',get('src/bootstrap/v034g5.js').toString('utf8')))));
+const g5=h3Transform('src/bootstrap/v034g5.js',h2aTransform('src/bootstrap/v034g5.js',h2Transform('src/bootstrap/v034g5.js',h1Transform('src/bootstrap/v034g5.js',h0Transform('src/bootstrap/v034g5.js',get('src/bootstrap/v034g5.js').toString('utf8'))))));
 const h0=get('src/bootstrap/v034h0.js').toString('utf8');
 const h1=get('src/bootstrap/v034h1.js').toString('utf8');
 const h2=get('src/bootstrap/v034h2.js').toString('utf8');
 const h2a=get('src/bootstrap/v034h2a.js').toString('utf8');
+const h3=get('src/bootstrap/v034h3.js').toString('utf8');
 const B3B_VERSION='V0.34D3B3B';
 const e01=get('src/bootstrap/v034e.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34E-rc5');
 const f0=g4aTransform('src/bootstrap/v034f0.js',f3Transform('src/bootstrap/v034f0.js',get('src/bootstrap/v034f0.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34F0')));
@@ -76,7 +78,7 @@ function render(flavor,assetPrefix='assets/'){
   if(sha(raw)!==block.sha256)throw Error('Protected legacy source changed: '+block.path);
   let transformed=data;
   if(flavor!=='baseline'){transformed=d2Transform(block.path,transformed).data;for(const fn of [e3Transform,e4Transform,e5Transform,f1aTransform,f2Transform,f3Transform,g1Transform,g2Transform,g3Transform,g3bTransform,g4Transform,g4aTransform,g5Transform])transformed=fn(block.path,transformed);
- transformed=h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))));}
+ transformed=h3Transform(block.path,h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))))); }
   // RC2 release-only performance transform; immutable C1H reconstruction stays byte-identical.
   if(flavor!=='baseline' && block.path==='src/legacy/016.js'){
    const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
@@ -105,7 +107,8 @@ function render(flavor,assetPrefix='assets/'){
  const h1Tag=flavor==='standalone'?'<script>\n'+h1+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h1.js?vilob='+VERSION+'"></script>';
  const h2Tag=flavor==='standalone'?'<script>\n'+h2+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h2.js?vilob='+VERSION+'"></script>';
  const h2aTag=flavor==='standalone'?'<script>\n'+h2a+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h2a.js?vilob='+VERSION+'"></script>';
- return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n</body>');
+ const h3Tag=flavor==='standalone'?'<script>\n'+h3+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h3.js?vilob='+VERSION+'"></script>';
+ return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n'+h3Tag+'\n</body>');
 }
 const orig=get('tests/fixtures/v034C1H-index.html');
 const rebuilt=Buffer.from(render('baseline'));
@@ -123,7 +126,7 @@ for(const block of manifest.blocks){
  const dest=path.join(dist,'hosted','assets',block.path.slice(4));
  fs.mkdirSync(path.dirname(dest),{recursive:true});let transformed=d2Transform(block.path,get(block.path).toString('utf8')).data;
  for(const fn of [e3Transform,e4Transform,e5Transform,f1aTransform,f2Transform,f3Transform,g1Transform,g2Transform,g3Transform,g3bTransform,g4Transform,g4aTransform,g5Transform])transformed=fn(block.path,transformed);
- transformed=h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))));
+ transformed=h3Transform(block.path,h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))))); 
  if(block.path==='src/legacy/016.js'){
   const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
   if(!transformed.includes(needle))throw Error('Hosted telemetry anchor missing');
@@ -175,10 +178,11 @@ fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034h0.js'),h0);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034h1.js'),h1);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034h2.js'),h2);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034h2a.js'),h2a);
+fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v034h3.js'),h3);
 // A self-contained off-line validator embeds the exact standalone engine.
-const localValidator=get('tools/local-validator.template.html').toString('utf8').replaceAll('G4','H2').replace('__ENGINE_HTML_JSON__',JSON.stringify(standalone).replace(/</g,'\\u003c'));
-fs.writeFileSync(path.join(root,'local-validator-h2.html'),localValidator);
-fs.writeFileSync(path.join(dist,'hosted','local-validator-h2.html'),localValidator);
+const localValidator=get('tools/local-validator.template.html').toString('utf8').replaceAll('G4','H3').replace('__ENGINE_HTML_JSON__',JSON.stringify(standalone).replace(/</g,'\\u003c'));
+fs.writeFileSync(path.join(root,'local-validator-h3.html'),localValidator);
+fs.writeFileSync(path.join(dist,'hosted','local-validator-h3.html'),localValidator);
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
 fs.writeFileSync(path.join(root,'index-standalone.html'),standalone);
 const result={version:VERSION,baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};

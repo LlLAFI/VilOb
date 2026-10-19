@@ -1,5 +1,5 @@
 'use strict';
-// Deterministic parity of H2/H2A after loading the SAME H0 save. Render-only changes
+// Deterministic parity of H2/H3 after loading the SAME H0 save. Render-only changes
 // may modify version/diagnostic wall-clock metadata but not actual simulation state.
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),path=require('path'),{performance}=require('perf_hooks');
 const h0=path.resolve(__dirname,'baselines/index-H2.html'),h1=path.resolve(__dirname,'../index-standalone.html');
@@ -16,5 +16,5 @@ const a=run(A),b=run(B);delete a.version;delete b.version;
 // Ignore timing-only instrumentation and volatile log timestamps. All physical state must match.
 const keys=['year','quarter','day','map','villages','persons','people','v34b','v34c','v33e','v33f5','v33g','v29Nations'];
 const mismatches=[];for(const key of keys)if(JSON.stringify(a[key])!==JSON.stringify(b[key]))mismatches.push(key);
-if(mismatches.length){const diffs=[];const rec=(x,y,path)=>{if(diffs.length>20)return;if(JSON.stringify(x)===JSON.stringify(y))return;if(x&&y&&typeof x==='object'&&typeof y==='object'){for(const k of new Set([...Object.keys(x),...Object.keys(y)]))rec(x[k],y[k],path+'.'+k);}else diffs.push([path,x,y]);};rec(a.villages,b.villages,'villages');console.log('DIFF',JSON.stringify(diffs).slice(0,4500));}assert.deepEqual(mismatches,[],'H2 vs H2A simulation discrepancy: '+mismatches.join(','));
+if(mismatches.length){const diffs=[];const rec=(x,y,path)=>{if(diffs.length>20)return;if(JSON.stringify(x)===JSON.stringify(y))return;if(x&&y&&typeof x==='object'&&typeof y==='object'){for(const k of new Set([...Object.keys(x),...Object.keys(y)]))rec(x[k],y[k],path+'.'+k);}else diffs.push([path,x,y]);};rec(a.villages,b.villages,'villages');console.log('DIFF',JSON.stringify(diffs).slice(0,4500));}assert.deepEqual(mismatches,[],'H2 vs H3 simulation discrepancy: '+mismatches.join(','));
 console.log(JSON.stringify({status:'PASS',days:30,startingSave:'H2',h0:A.NS.RELEASE_VERSION,h1:B.NS.RELEASE_VERSION,checked:keys.length,nonParityFields:mismatches}));
