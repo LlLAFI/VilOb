@@ -7,7 +7,7 @@ function run(file){let seed=0x12abc345;const m=Object.create(Math);m.random=()=>
  const html=fs.readFileSync(file,'utf8');for(const a of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(a[1].trim())try{new vm.Script(a[1]).runInContext(c,{timeout:120000})}catch(e){if(!/onclick/.test(e.message))throw e;}
  return {ns:c.VSim,seed(x){seed=x;},getSeed(){return seed>>>0;}};
 }
-const A=run(path.join(__dirname,'baselines/index-35A.html')),B=run(path.join(__dirname,'../index-standalone.html'));
+const A=run(path.join(__dirname,'baselines/index-35A.html')),B=run(path.join(__dirname,'baselines/index-35B.html'));
 const original=JSON.parse(JSON.stringify(new A.ns.World(19,19).serialize()));
 function simulation(env,profile){env.seed(0x1234beef);const w=env.ns.World.from(JSON.parse(JSON.stringify(original)));env.seed(0x24681357);if(profile)env.ns.V035A.start(w);
  const n=Number(process.env.V35B_PARITY_DAYS||30);for(let i=0;i<n;i++)w.advanceOneDay();if(profile)env.ns.V035A.stop();const result=JSON.parse(JSON.stringify(w.serialize()));return {result,rng:env.getSeed()};}

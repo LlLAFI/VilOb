@@ -1,3 +1,7 @@
+# V0.35C 최신 패치
+
+[README-35C.md](README-35C.md) / [TEST-35C.md](TEST-35C.md) — 분기 21개 계층 및 행정 모델 세부 계측, 안전한 `byTile` 조회 최적화.
+
 # V0.35B 최신 패치
 
 [README-35B.md](README-35B.md) / [TEST-35B.md](TEST-35B.md)

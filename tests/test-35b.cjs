@@ -9,7 +9,7 @@ function load(filename){
  for(const m of fs.readFileSync(path.join(root,filename),'utf8').matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())try{new vm.Script(m[1]).runInContext(c,{timeout:120000})}catch(e){if(!/onclick/.test(e.message))throw e;}
  return c.VSim;
 }
-const A=load('tests/baselines/index-35A.html'), B=load('index-standalone.html');
+const A=load('tests/baselines/index-35A.html'), B=load('tests/baselines/index-35B.html');
 assert.equal(A.RELEASE_VERSION,'V0.35A');assert.equal(B.RELEASE_VERSION,'V0.35B');
 const serialized=JSON.parse(JSON.stringify(new A.World(19,19).serialize()));
 assert.equal(B.World.from(serialized).serialize().version,'V0.35B');

@@ -1,3 +1,7 @@
+## V0.35C 분기 계측 + 행정권 인덱스 조회
+
+신규 엔트리 `src/bootstrap/v035c.js`, 빌드 변환 `tools/35c-transform.mjs`, 테스트 `tests/test-35c.cjs`, `tests/test-35c-parity.cjs`. `npm run build && npm test` 후 `python tools/browser-35c-smoke.py`. 레거시 169개 보호 블록은 수정하지 않습니다. `README-35C.md` 참조.
+
 ## V0.35B 행정·물류 중복 호출 최적화
 
 [README-35B.md](README-35B.md) 참조. 동일 H35A 세이브에 대한 로컬 A/B: `npm run bench:35b -- --save "<save.json>" --days 30 --runs 3 --output 35b-ab.json`.
