@@ -18,7 +18,7 @@ if(NS.V025?.totalLabor)Object.assign(NS.V025.totalLabor,LABOR32D2);
 /* ---------- administrative efficiency: friction reduction only ---------- */
 function adminModelD2(v,w,force=false){return NS.V032D?.adminModel?.(v,w,force)||{regions:[],byTile:{}};}
 function regionForTileD2(v,w,id){return adminModelD2(v,w).regions?.find(r=>(r.tiles||[]).includes(Number(id)))||null;}
-function sameInstitutionD2(v,w,a,b){const x=regionForTileD2(v,w,a),y=regionForTileD2(v,w,b);return x&&y&&x.code===y.code&&x.institutionalized&&x.officeOperational?x:null;}
+function sameInstitutionD2(v,w,a,b){const model=adminModelD2(v,w),regions=model.regions;const x=regions?.find(r=>(r.tiles||[]).includes(Number(a)))||null,y=regions?.find(r=>(r.tiles||[]).includes(Number(b)))||null;return x&&y&&x.code===y.code&&x.institutionalized&&x.officeOperational?x:null;}
 const logisticsD1=NS.Village.prototype.internalLogisticsCapacity;
 NS.Village.prototype.internalLogisticsCapacity=function(fromId,toId,resource='food',construction=false){const q=logisticsD1.call(this,fromId,toId,resource,construction),w=this._world;if(!w||!Number.isFinite(Number(q?.cost)))return q;const r=sameInstitutionD2(this,w,fromId,toId);if(!r)return q;const eff=clampD2(r.adminEfficiency,0,100)/100,cut=.10*eff,oldCost=Number(q.cost),cost=Math.max(0,oldCost*(1-cut)),oldCap=Number(q.capacity||0),capacity=oldCap*(1+cut*.55);const s=this.v32dAdmin||(this.v32dAdmin={});s.logisticsSavedCost32D2=Number(s.logisticsSavedCost32D2||0)+Math.max(0,oldCost-cost);return{...q,cost,capacity,adminEfficiency32D2:Number(r.adminEfficiency||0),adminFrictionReduction32D2:cut};};
 const maintD1=NS.Village.prototype.processBuildingMaintenance;

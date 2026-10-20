@@ -1,0 +1,35 @@
+{
+  "version": "V0.35B",
+  "test": "Chromium Playwright browser-35b-smoke.py",
+  "note": "4 cases were tested over two runs due environment timeout; output lines are grounded in test logs. The original first run timed out before writing one combined machine report.",
+  "results": [
+    {
+      "flavor": "standalone",
+      "width": 1440,
+      "status": "PASS",
+      "run": "first separate browser run",
+      "logged": "PASS standalone 1440 35B profiler/panels/filters/F0-F1/War map/Alerts/43 tech"
+    },
+    {
+      "flavor": "standalone",
+      "width": 390,
+      "status": "PASS",
+      "run": "first separate browser run",
+      "logged": "PASS standalone 390 35B profiler/panels/filters/F0-F1/War map/Alerts/43 tech"
+    },
+    {
+      "flavor": "hosted",
+      "width": 1440,
+      "status": "PASS",
+      "run": "first separate browser run",
+      "logged": "PASS hosted 1440 35B profiler/panels/filters/F0-F1/War map/Alerts/43 tech"
+    },
+    {
+      "flavor": "hosted",
+      "width": 390,
+      "status": "PASS",
+      "run": "second separate browser run",
+      "logged": "PASS hosted 390 35B profiler/panels/filters/F0-F1/War map/Alerts/43 tech"
+    }
+  ]
+}

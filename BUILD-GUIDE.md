@@ -1,3 +1,7 @@
+## V0.35B 행정·물류 중복 호출 최적화
+
+[README-35B.md](README-35B.md) 참조. 동일 H35A 세이브에 대한 로컬 A/B: `npm run bench:35b -- --save "<save.json>" --days 30 --runs 3 --output 35b-ab.json`.
+
 ## V0.35A 계측 전용 패치
 
 전체 설명: `README-35A.md`. 브라우저의 세계 탭 → 고급 도구에서 계측 시작/종료 후 JSON으로 분석할 수 있습니다. 동일 저장파일 로컬 A/B: `npm run bench:35a -- --save "<save.json>" --days 30 --runs 3 --output 35a-benchmark.json`.

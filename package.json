@@ -1,12 +1,12 @@
 {
   "name": "village-observer",
-  "version": "0.35.0-a",
+  "version": "0.35.0-b",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
-    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a-reserve.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-h2a.cjs && node tests/test-h4b.cjs && node tests/test-h4b-storage.cjs && node tests/test-h4b-border.cjs && node tests/test-h4c.cjs && node tests/test-35a.cjs && H4B_DAYS=1 node tests/test-h4b-parity.cjs",
+    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a-reserve.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-h2a.cjs && node tests/test-h4b.cjs && node tests/test-h4b-storage.cjs && node tests/test-h4b-border.cjs && node tests/test-h4c.cjs && node tests/test-35a.cjs && node tests/test-35b.cjs && H4B_DAYS=1 node tests/test-h4b-parity.cjs",
     "test:year": "node tests/test-d3-year.cjs",
     "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test": "node tools/build.mjs --check-only && npm run test:static",
@@ -39,7 +39,9 @@
     "test:h4b": "node tests/test-h4b.cjs && node tests/test-h4b-parity.cjs",
     "test:h4c": "node tests/test-h4c.cjs",
     "test:35a": "node tests/test-35a.cjs && node tests/test-35a-parity.cjs",
-    "bench:35a": "node tools/bench-35a.cjs"
+    "bench:35a": "node tools/bench-35a.cjs",
+    "test:35b": "node tests/test-35b.cjs && node tests/test-35b-parity.cjs",
+    "bench:35b": "node tools/bench-35b.cjs"
   },
   "engines": {
     "node": ">=18"

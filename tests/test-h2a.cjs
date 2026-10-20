@@ -5,7 +5,7 @@ let seed=54321;const math=Object.create(Math);math.random=()=>{seed^=seed<<13;se
 const storage=new Map(),elt=()=>({style:{},dataset:{},textContent:'',innerHTML:'',addEventListener(){},setAttribute(){},querySelector(){return null},querySelectorAll(){return []},appendChild(){},classList:{add(){},remove(){},toggle(){}}});
 const ctx={Math:math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,ArrayBuffer,Uint8Array,TextEncoder,TextDecoder,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},alert(){},confirm(){return false},localStorage:{getItem(k){return storage.get(k)||null},setItem(k,v){storage.set(k,v)}},document:{head:elt(),body:elt(),documentElement:elt(),createElement:elt,getElementById(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''}};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
 let count=0;for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(match[1].trim()){count++;try{new vm.Script(match[1]).runInContext(ctx,{timeout:120000})}catch(e){if(!/onclick/.test(e.message))throw e;}}
-const NS=ctx.VSim;assert.equal(count,210);assert.equal(NS.RELEASE_VERSION,'V0.35A');assert(NS.V034H2A.verify().ok);
+const NS=ctx.VSim;assert.equal(count,211);assert.equal(NS.RELEASE_VERSION,'V0.35B');assert(NS.V034H2A.verify().ok);
 const w=new NS.World(19,19),v=w.activeVillages[0];NS.V034C.ensure(w);
 const original=w.serialize(),unowned=w.map.tiles.filter(t=>t.ownerId==null&&NS.TERRAIN[t.terrain]?.passable);
 let pair=null;for(const a of unowned){const b=w.map.neighbors4(a.id).find(b=>b.ownerId==null&&NS.TERRAIN[b.terrain]?.passable);if(b){pair=[a,b];break;}}
@@ -37,8 +37,8 @@ const corrected=NS.World.from(dirty);assert(NS.V034C.inspect(corrected).ok,'H2 o
 assert.equal(corrected.map.get(a.id).settlementId,null);
 assert.equal(Number(corrected.map.get(a.id).stocks?.stone||0),originalStone,'no physical stock creation/removal');
 assert.equal(corrected._h2aRepairedGhosts.length,1);
-assert.equal(corrected.serialize().version,'V0.35A');
-NS.SaveSystem.save(corrected);assert(storage.has('village-observer-v035a'));
-assert.equal(NS.SaveSystem.load().serialize().version,'V0.35A');
+assert.equal(corrected.serialize().version,'V0.35B');
+NS.SaveSystem.save(corrected);assert(storage.has('village-observer-v035b'));
+assert.equal(NS.SaveSystem.load().serialize().version,'V0.35B');
 assert.equal(NS.V034H2A.repairImport(original).repairs.length,0,'clean saves stay untouched');
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,ghost:'blocked',coreRebased:true,legacyOrphanRepaired:1,unchangedPhysicalStock:true,scriptCount:count}));
