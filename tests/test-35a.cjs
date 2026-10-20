@@ -1,0 +1,28 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('node:assert/strict'),{performance}=require('node:perf_hooks');
+const html=fs.readFileSync(path.join(__dirname,'../index-standalone.html'),'utf8');
+let seed=0x13579bdf;const math=Object.create(Math);math.random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296;};
+const element=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute(){},addEventListener(){},appendChild(){},querySelector(){return null;},querySelectorAll(){return[];},classList:{add(){},remove(){},toggle(){}}});
+const c={Math:math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null;},setItem(){}},document:{head:element(),body:element(),documentElement:element(),createElement:element,getElementById(){return null;},querySelector(){return null;},querySelectorAll(){return[];},addEventListener(){},title:''}};
+c.window=c;c.addEventListener=()=>{};vm.createContext(c);
+for(const x of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(x[1].trim())try{new vm.Script(x[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
+const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35A');assert.equal(NS.TECH_ORDER.length,43);
+const w=new NS.World(19,19),serialized=w.serialize();assert.equal(serialized.version,'V0.35A');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))));
+const methods=[['World',NS.World.prototype,'advanceOneDay'],['Person',NS.Person.prototype,'act'],['Village',NS.Village.prototype,'seasonalTick']];
+const originals=methods.map(x=>x[1][x[2]]);
+assert.equal(NS.V035A.report(),null,'no automatic profiler is allowed');
+let result=NS.V035A.start(w);assert(result.active&&result.rows.length>5);
+assert(methods.every((x,i)=>x[1][x[2]]!==originals[i]),'starting must install probes');
+for(let i=0;i<6;i++)w.advanceOneDay();
+result=NS.V035A.report();assert.equal(result.observedDays,6);assert(result.rows.some(x=>x.id==='Person.act'&&x.calls>0));
+assert(result.rows.find(x=>x.id==='World.advanceOneDay').calls===6);
+assert(result.top10.length>0&&result.interpretation.overlap.includes('NEVER add'));
+const stats=NS.V034F0.performanceReport(w);assert(result.f0Performance&&result.f0Performance.version===stats.version);
+assert(!Object.keys(w.serialize()).some(x=>x.startsWith('v035a')),'profiler should not enter Save JSON');
+const stopped=NS.V035A.stop();assert(!stopped.active&&stopped.observedDays===6);
+assert(methods.every((x,i)=>x[1][x[2]]===originals[i]),'stopping must restore exact original methods');
+assert(!NS.V035A.isActive());
+const before=JSON.stringify(stopped.rows);w.advanceOneDay();assert.equal(JSON.stringify(NS.V035A.report().rows),before,'disabled profiler must be frozen');
+NS.V035A.start(w,{sampleDivider:2});w.advanceOneDay();NS.V035A.stop();assert(methods.every((x,i)=>x[1][x[2]]===originals[i]));
+assert.equal(NS.World.from(JSON.parse(JSON.stringify(w.serialize()))).serialize().version,'V0.35A');
+console.log(JSON.stringify({status:'PASS',release:NS.RELEASE_VERSION,days:6,probes:stopped.rows.length,top:stopped.top10.map(x=>x.id).slice(0,3),techCount:NS.TECH_ORDER.length,profileSaved:false,restored:true}));
