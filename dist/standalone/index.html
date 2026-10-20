@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.34H4</title><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Village Observer V0.35A</title><style>
 *{box-sizing:border-box}:root{color-scheme:dark;--bg:#07101d;--panel:#101b2c;--card:#14243a;--line:#2a3d58;--text:#eef5ff;--muted:#93a6bf;--accent:#69adff;--good:#5bd79d;--bad:#ff7f89;--warn:#f5ca70}html,body{margin:0;background:#07101d;color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{max-width:1120px;margin:auto;padding:10px 10px 82px}.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;background:#07101ded;backdrop-filter:blur(8px)}.eyebrow{font-size:11px;color:var(--accent);font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}button,.file-btn,textarea{font:inherit}button,.file-btn{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#16263c;color:var(--text);padding:8px 11px}button.active{outline:2px solid var(--accent)}button.primary{background:#326fb8}.danger{border-color:#80303a}.sim-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.runtime{padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--warn);font-size:12px;margin-bottom:8px}.main-view{display:none}.main-view.active{display:block}.panel{background:linear-gradient(145deg,#111e31,#0d1727);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:14px 0 7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}.stat{background:#101d30;border:1px solid var(--line);border-radius:13px;padding:9px}.stat .label{font-size:10px;color:var(--muted)}.stat .value{font-size:19px;font-weight:800}.map-toolbar{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}.canvas-wrap{max-width:760px;margin:auto;border:1px solid var(--line);border-radius:13px;overflow:hidden}.canvas-wrap canvas{width:100%;height:auto;display:block;touch-action:manipulation}.tile-inspector{margin-top:8px;padding:9px;background:#0c1828;border-radius:12px;border:1px solid var(--line);font-size:12px}.tag{font-size:11px;border:1px solid var(--line);padding:4px 7px;border-radius:999px}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#091423f2;border-top:1px solid var(--line)}.bottom-nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:17px}.bottom-nav button span{font-size:10px}.bottom-nav button.active{background:#172a43;outline:0}.village-strip{display:flex;gap:7px;overflow:auto;padding:2px}.village-card{min-width:145px;text-align:left;background:#112139;border:1px solid var(--line);border-radius:13px;padding:9px}.village-card.selected{outline:2px solid var(--accent)}.village-card .name{font-weight:800;font-size:16px}.village-card .brain{font-size:10px;color:#8bd5ca}.subtabs{display:flex;gap:5px;overflow:auto;margin:8px 0}.subtabs button{white-space:nowrap}.subtabs button.active{background:#24466d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.info{background:#13243a;border:1px solid var(--line);border-radius:11px;padding:9px}.big{font-size:19px;font-weight:800}.settlement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.settlement-card{background:#0d1a2b;border:1px solid var(--line);border-radius:13px;padding:10px}.stock{display:grid;grid-template-columns:42px 1fr 70px;gap:6px;align-items:center;margin-top:5px;font-size:11px}.bar{height:7px;background:#273950;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:#69adff}.buildings{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}.building{font-size:10px;padding:3px 6px;border:1px solid #38506f;border-radius:999px}.resident-list,.trade-list,.chronicle{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.resident-row,.trade-row{background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px}.trade-row{font-size:12px}.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}.file-btn{display:flex;align-items:center;justify-content:center}.file-btn input{display:none}textarea{width:100%;background:#0c1828;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px}.tech-branch{margin:12px 0}.tech-branch h3{color:#b9d7ff}.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tech-card{text-align:left;background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.tech-card.researched{border-color:#3d8068;background:#102b27}.tech-card.current{border-color:var(--accent)}.tech-card.locked{opacity:.45}.tech-name{font-weight:800}.research-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.progress{height:8px;background:#273950;border-radius:99px;overflow:hidden;margin-top:5px}.progress span{display:block;height:100%;background:#69adff}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000a;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.modal-card{position:relative;width:min(520px,100%);max-height:80vh;overflow:auto;background:#101d30;border:1px solid #416181;border-radius:17px;padding:18px}.modal-close{position:absolute;right:10px;top:10px}.effect-list{padding-left:20px}.event{border-left:3px solid #43556d;padding-left:8px}.event.major{border-left-color:var(--warn)}.time{font-size:10px;color:var(--muted)}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.settlement-grid,.grid,.research-summary{grid-template-columns:1fr}.tech-grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.sim-controls button{padding:7px 9px;min-height:36px}}
 /* V0.7 UI additions */
 .v07-selected{display:inline-block;background:#eef8ff;color:#0b2740;border-radius:999px;padding:3px 7px;font-weight:800;font-size:10px;margin-bottom:6px}.v07-network{background:#102038;border:1px solid var(--line);border-radius:12px;padding:10px}.v07-route{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:5px;font-size:12px}.v07-ledger{margin-top:5px;padding-top:5px;border-top:1px dashed #31445e;color:#b9d7ff;font-size:11px}.v07-card-selected{outline:2px solid #fff;box-shadow:0 0 0 4px #69adff55}.v07-tech-select{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 12px}.v07-tech-select select{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#13243a;color:var(--text);padding:7px 10px}.v07-nation-comparison{display:flex;flex-direction:column;gap:6px}.v07-nation-row{display:grid;grid-template-columns:minmax(90px,1fr) repeat(4,auto);gap:10px;align-items:center;background:#102038;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12px}.good{color:var(--good)}@media(max-width:600px){.v07-nation-row{grid-template-columns:minmax(82px,1fr) repeat(2,auto)}.v07-nation-row span:nth-of-type(3),.v07-nation-row span:nth-of-type(4){display:none}}
@@ -15,7 +15,7 @@ window.VSim.AIProfileCompat=function(subject,key){
 };
 </script>
 
-<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.34H4</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
+<div class="shell"><header class="topbar"><div><button type="button" class="eyebrow version-badge" id="versionBadge" aria-haspopup="dialog" aria-controls="patchNotesModal" aria-label="버전 및 패치노트 열기">Village Observer · V0.35A</button><strong id="timeLabel">1년 1분기 1일</strong><span id="worldMood" class="muted small"></span></div><div class="sim-controls"><button id="playBtn" class="primary">▶</button><button class="speed active" data-speed="1">×1</button><button class="speed" data-speed="3">×3</button><button class="speed" data-speed="10">×10</button><button class="speed" data-speed="30">×30</button><button id="stepBtn">+1일</button></div></header>
 <div id="runtimeStatus" class="runtime">초기화 중…</div>
 <main>
 <section id="view-map" class="main-view active"><div id="globalStats" class="stats"></div><div class="panel"><div class="section-head"><div><h2>세계 지도</h2><div class="muted small">굵은 선은 국경, 점선은 최근 교역소 간 교역로</div></div><div class="map-file-actions"><button id="newWorldBtn">새 세계</button><label class="file-btn">맵 파일<input id="mapImportInput" type="file" accept=".json,application/json"></label><span id="mapSourceStatus" class="tag"></span></div></div><div class="map-toolbar"><button id="zoomOutBtn">−</button><span id="zoomLabel" class="tag">전체</span><button id="zoomInBtn">＋</button><button id="centerVillageBtn">선택 마을</button></div><div class="canvas-wrap"><canvas id="worldCanvas" width="760" height="760"></canvas></div><div id="tileInspector" class="tile-inspector"></div></div></section>
@@ -4738,7 +4738,7 @@ const daily31=NS.Village.prototype.dailyTick;
 NS.Village.prototype.dailyTick=function(w){wakeIndustrialLabor31(this,w);for(const p of this.residents||[]){if(!p.alive||p.age<16){p._v31ToolFactor=1;continue;}const t=w.map.get(Number(p.workTileId??p.homeTileId))||w.map.get(p.homeTileId);p._v31ToolFactor=(t&&Number(this.stockAt(t.id,'tools')||0)>=.08)?1.08:1;}const r=daily31.call(this,w);const now=CAL31(w),st=stat31(this);if(now-st.lastToolDecayCal>=30){st.lastToolDecayCal=now;for(const id of this.territory){const t=w.map.get(id),adults=(this.tileResidents?.(id)||[]).filter(p=>p.alive&&p.age>=15).length;if(adults>0)this.withdrawAt(id,'tools',Math.min(Number(this.stockAt(id,'tools')||0),adults*.012));}}return r;};
 
 /* ---------- industrial logistics ---------- */
-function move31(v,w,from,to,k,qty,reason){if(from===to||qty<=0)return 0;const cap=Number(v.internalLogisticsCapacity?.(from,to,k,false)?.capacity||10),real=Math.min(qty,cap,Number(v.stockAt(from,k)||0));if(real<=.05)return 0;const took=v.withdrawAt(from,k,real),put=v.depositAt(to,k,took);if(put<took)v.depositAt(from,k,took-put);if(put>0){const s=stat31(v);s.industrialMoves++;s.industrialMoved+=put;w.telemetry?.record?.('INDUSTRIAL_LOGISTICS31',w,{village:v.name,resource:k,qty:+put.toFixed(2),fromTileId:from,toTileId:to,reason});}return put;}
+function move31(v,w,from,to,k,qty,reason){if(from===to||qty<=0)return 0;const cap=Number(v.internalLogisticsCapacity?.(from,to,k,false)?.capacity||10),real=Math.min(qty,cap,Number(v.stockAt(from,k)||0));if(real<=.05)return 0;const took=v.withdrawAt(from,k,real),put=v.depositAt(to,k,took);if(put<took)NS.V034H4C.withReturn(v,()=>v.depositAt(from,k,took-put));if(put>0){const s=stat31(v);s.industrialMoves++;s.industrialMoved+=put;w.telemetry?.record?.('INDUSTRIAL_LOGISTICS31',w,{village:v.name,resource:k,qty:+put.toFixed(2),fromTileId:from,toTileId:to,reason});}return put;}
 function industrialFlows31(v,w){const st=stat31(v),now=CAL31(w);if(now-st.lastFlowCal<15)return;st.lastFlowCal=now;const rows=[...v.territory].map(id=>w.map.get(id)).filter(t=>t&&(v.tileResidents?.(t.id)||[]).some(p=>p.alive));for(const t of rows)ensureTile31(t,w);
  const smelters=rows.filter(t=>hasBuilding31(t,'smelter')),smithies=rows.filter(t=>hasBuilding31(t,'smithy'));
  for(const r of smelters){let need=Math.max(0,28-Number(v.stockAt(r.id,'iron_ore')||0));if(need>0){const d=rows.filter(t=>t.id!==r.id&&Number(v.stockAt(t.id,'iron_ore')||0)>18).sort((a,b)=>Number(v.stockAt(b.id,'iron_ore'))-Number(v.stockAt(a.id,'iron_ore')))[0];if(d)move31(v,w,d.id,r.id,'iron_ore',need,'ORE_TO_SMELTER');}let fuelNeed=Math.max(0,18-Number(v.stockAt(r.id,'wood')||0));if(fuelNeed>0){const d=rows.filter(t=>t.id!==r.id&&Number(v.stockAt(t.id,'wood')||0)>24).sort((a,b)=>Number(v.stockAt(b.id,'wood'))-Number(v.stockAt(a.id,'wood')))[0];if(d)move31(v,w,d.id,r.id,'wood',fuelNeed,'WOOD_TO_SMELTER_FUEL');}}
@@ -6432,7 +6432,7 @@ function recentFunnelD5(v,w){const s=ensureD5(v),b=Math.floor(CAL(w)/30),out={};
 function quoteCacheD5(w,key,make){const day=ODAY(w);if(!w._v32d5QuoteCache||w._v32d5QuoteCache.day!==day)w._v32d5QuoteCache={day,map:new Map()};if(w._v32d5QuoteCache.map.has(key))return w._v32d5QuoteCache.map.get(key);const v=make();w._v32d5QuoteCache.map.set(key,v);return v;}
 function assessTradeD5(w,buyer,seller,k,count=false){const key=`${buyer.id}>${seller.id}:${k}`,out=quoteCacheD5(w,key,()=>{const route=w.routeInfo?.(buyer,seller),plan=quantityPlanD5(buyer,seller,k,w),urg=urgencyD5(buyer,w,k,plan),nominal=Math.max(minQtyD5(k,urg),Math.min(plan.max,Math.max(.5,plan.need||.5))),q=route?.sourceTileId!=null&&route?.targetTileId!=null?quoteD5(w,buyer,seller,k,route,nominal,urg):null;let reason='OK',qty=0;if(!route?.reachable)reason=routeReasonD5(buyer,seller,route);else if(plan.need<=.2)reason='NO_DEMAND';else if(plan.surplus<=.2)reason='NO_SURPLUS';else{qty=Math.min(plan.need,plan.surplus,plan.max,Math.max(.2,roomD5(buyer,w,route.sourceTileId,k)));if(GENERAL.has(k))qty=Math.min(qty,Number(buyer.merchantCapacity?.()||24),Number(seller.merchantCapacity?.()||24));const min=minQtyD5(k,urg);if(qty<min)reason='MIN_QTY';else if(q&&q.landed>q.wtp+1e-9)reason=(q.strategyPrem>0&&q.sellLocal+q.transport<=q.wtp)?'STRATEGIC_PREMIUM':'PRICE';else if(q){const bt=w.map.get(route.sourceTileId),local=Number(bt?.v29Economy?.marketGold||0),network=Math.max(0,marketGoldNation(buyer,w)-local-2),support=supportReasonD5(buyer,w,k,urg)?Math.max(0,Number(buyer.gold||0)-4):0,available=local+network+support;if(available<Math.min(qty*q.landed,min*q.landed))reason='BUDGET';}}
  return{buyer,seller,k,route,plan,urgency:urg,qty,quote:q,reason};});if(count&&out.reason!=='OK'){bumpFunnelD5(buyer,w,out.reason);if(out.reason==='MIN_QTY')ensureD5(buyer).microTradeSuppressed++;}return out;}
-function executeD5(w,a){const{buyer,seller,k,route,quote:q}=a,bt=w.map.get(route.sourceTileId),st=w.map.get(route.targetTileId),be=marketEcon(bt),se=marketEcon(st);if(!bt||!st||!be||!se||!q)return false;if(k==='food'&&NS.V032E10?.foodExportGuard?.(seller,w,st.id))return false;let qty=a.qty,total=qty*q.landed;NS.V034D3?.fundMarketGold?.(buyer,w,bt.id,total-Number(be.marketGold||0));const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);qty=Math.min(qty,Number(be.marketGold||0)/Math.max(.001,q.landed));const min=minQtyD5(k,a.urgency);if(qty<min){bumpFunnelD5(buyer,w,'BUDGET');return false;}const taken=seller.withdrawNetwork?.(k,qty,st.id)??0,put=buyer.depositAt?.(bt.id,k,taken)??0;if(put<=0){if(taken>0)seller.depositAt?.(st.id,k,taken);bumpFunnelD5(buyer,w,'STORAGE');return false;}if(put<taken)seller.depositAt?.(st.id,k,taken-put);const goodsPaid=put*q.ask,transportPaid=put*q.transport,paid=goodsPaid+transportPaid;if(Number(be.marketGold||0)+1e-9<paid){buyer.withdrawAt?.(bt.id,k,put);seller.depositAt?.(st.id,k,put);bumpFunnelD5(buyer,w,'BUDGET');return false;}const bb=Number(be.marketGold||0),sb=Number(se.marketGold||0),moneyBefore=NS.V032E6?.moneyStock?.(w);be.marketGold-=paid;se.marketGold+=goodsPaid;let transportSettle=NS.V032E6?.settleTransportGold?.(w,{buyer,seller,buyerTile:bt,sellerTile:st,amount:transportPaid,route,resource:k,quote:q,moneyBefore});if(!transportSettle){se.marketGold+=transportPaid;transportSettle={buyerIncome:0,sellerIncome:0,marketFallback:transportPaid,merchantIncome:0,auditDelta:0,recipients:0};}const mem=tradeMemD5(w,buyer,seller,k),day=ODAY(w);mem.streak=day-Number(mem.lastDay||-99999)<=180?Number(mem.streak||0)+1:1;mem.lastDay=day;mem.volume=Number(mem.volume||0)+put;mem.trades=Number(mem.trades||0)+1;mem.lastUnit=q.ask;mem.recent.push({day,qty:put,gold:paid,unit:q.ask});mem.recent=mem.recent.filter(x=>day-Number(x.day||0)<=360);
+function executeD5(w,a){const{buyer,seller,k,route,quote:q}=a,bt=w.map.get(route.sourceTileId),st=w.map.get(route.targetTileId),be=marketEcon(bt),se=marketEcon(st);if(!bt||!st||!be||!se||!q)return false;if(k==='food'&&NS.V032E10?.foodExportGuard?.(seller,w,st.id))return false;let qty=a.qty,total=qty*q.landed;NS.V034D3?.fundMarketGold?.(buyer,w,bt.id,total-Number(be.marketGold||0));const fund=fundMarketD5(buyer,w,bt.id,total,a.urgency,k);qty=Math.min(qty,Number(be.marketGold||0)/Math.max(.001,q.landed));const min=minQtyD5(k,a.urgency);if(qty<min){bumpFunnelD5(buyer,w,'BUDGET');return false;}const taken=seller.withdrawNetwork?.(k,qty,st.id)??0,put=buyer.depositAt?.(bt.id,k,taken)??0;if(put<=0){if(taken>0)NS.V034H4C.withReturn(seller,()=>seller.depositAt?.(st.id,k,taken));bumpFunnelD5(buyer,w,'STORAGE');return false;}if(put<taken)NS.V034H4C.withReturn(seller,()=>seller.depositAt?.(st.id,k,taken-put));const goodsPaid=put*q.ask,transportPaid=put*q.transport,paid=goodsPaid+transportPaid;if(Number(be.marketGold||0)+1e-9<paid){buyer.withdrawAt?.(bt.id,k,put);NS.V034H4C.withReturn(seller,()=>seller.depositAt?.(st.id,k,put));bumpFunnelD5(buyer,w,'BUDGET');return false;}const bb=Number(be.marketGold||0),sb=Number(se.marketGold||0),moneyBefore=NS.V032E6?.moneyStock?.(w);be.marketGold-=paid;se.marketGold+=goodsPaid;let transportSettle=NS.V032E6?.settleTransportGold?.(w,{buyer,seller,buyerTile:bt,sellerTile:st,amount:transportPaid,route,resource:k,quote:q,moneyBefore});if(!transportSettle){se.marketGold+=transportPaid;transportSettle={buyerIncome:0,sellerIncome:0,marketFallback:transportPaid,merchantIncome:0,auditDelta:0,recipients:0};}const mem=tradeMemD5(w,buyer,seller,k),day=ODAY(w);mem.streak=day-Number(mem.lastDay||-99999)<=180?Number(mem.streak||0)+1:1;mem.lastDay=day;mem.volume=Number(mem.volume||0)+put;mem.trades=Number(mem.trades||0)+1;mem.lastUnit=q.ask;mem.recent.push({day,qty:put,gold:paid,unit:q.ask});mem.recent=mem.recent.filter(x=>day-Number(x.day||0)<=360);
  const f=buyer.v32d4?.tradeFunnel;if(f){f.executed=Number(f.executed||0)+1;f.volume=Number(f.volume||0)+put;}buyer.tradeStats=buyer.tradeStats||{};seller.tradeStats=seller.tradeStats||{};for(const v of [buyer,seller])v.tradeStats.count=Number(v.tradeStats.count||0)+1;buyer.tradeStats.imports=Number(buyer.tradeStats.imports||0)+put;seller.tradeStats.exports=Number(seller.tradeStats.exports||0)+put;buyer.tradeStats.goldSpent=Number(buyer.tradeStats.goldSpent||0)+paid;seller.tradeStats.goldEarned=Number(seller.tradeStats.goldEarned||0)+goodsPaid;buyer.tradeStats.shippingEarned=Number(buyer.tradeStats.shippingEarned||0)+Number(transportSettle.buyerIncome||0);seller.tradeStats.shippingEarned=Number(seller.tradeStats.shippingEarned||0)+Number(transportSettle.sellerIncome||0)+Number(transportSettle.marketFallback||0);if(INDUSTRIAL.has(k)){for(const v of [buyer,seller]){v.v31Stats=v.v31Stats||{};v.v31Stats.industrialTrades=Number(v.v31Stats.industrialTrades||0)+1;v.v31Stats.industrialTradeVolume=Number(v.v31Stats.industrialTradeVolume||0)+put;}}
  buyer.relations[seller.id]=Number(buyer.relations?.[seller.id]||0)+.22;seller.relations[buyer.id]=Number(seller.relations?.[buyer.id]||0)+.22;const buyerNetOutflow=Math.max(0,paid-Number(transportSettle.buyerIncome||0)),sellerNetInflow=goodsPaid+Number(transportSettle.sellerIncome||0)+Number(transportSettle.marketFallback||0),row={day,time:w.timestamp?.(),buyerId:buyer.id,buyer:buyer.name,sellerId:seller.id,seller:seller.name,resource:k,qty:+put.toFixed(2),price:+goodsPaid.toFixed(2),goodsCost:+goodsPaid.toFixed(3),fee:+transportPaid.toFixed(2),transportCost:+transportPaid.toFixed(3),grossCost:+paid.toFixed(3),unitPrice:+q.ask.toFixed(3),transportUnit:+q.transport.toFixed(3),transportBaseUnit:+Number(q.transportBase??q.transport).toFixed(3),transportFactor:+Number(q.transportFactor??1).toFixed(3),transportMode:q.transportMode||route.mode||'land',harborEfficiency:q.harborEfficiency==null?null:+Number(q.harborEfficiency).toFixed(3),landedUnitPrice:+q.landed.toFixed(3),buyerWillingness:+q.wtp.toFixed(3),routeCost:+Number(route.cost||0).toFixed(2),buyerTileId:bt.id,sellerTileId:st.id,buyerMarketGoldBefore:+bb.toFixed(2),buyerMarketGoldAfter:+Number(be.marketGold||0).toFixed(2),sellerMarketGoldBefore:+sb.toFixed(2),sellerMarketGoldAfter:+Number(se.marketGold||0).toFixed(2),transportBuyerServiceIncome:+Number(transportSettle.buyerIncome||0).toFixed(3),transportSellerServiceIncome:+Number(transportSettle.sellerIncome||0).toFixed(3),transportMarketFallback:+Number(transportSettle.marketFallback||0).toFixed(3),transportMerchantRecipients:Number(transportSettle.recipients||0),buyerNetOutflow32E6:+buyerNetOutflow.toFixed(3),sellerNetInflow32E6:+sellerNetInflow.toFixed(3),transportAuditDelta:+Number(transportSettle.auditDelta||0).toFixed(6),treasurySupport:+fund.treasury.toFixed(2),networkSupport:+fund.network.toFixed(2),supportReason:fund.reason,strategicConcern:+Number(q.concern||0).toFixed(1),strategicPremium:+Number(q.strategyPrem||0).toFixed(3),repeatPremium:+Number(q.repeatPrem||0).toFixed(3),cashDiscount:+Number(q.cashDiscount||0).toFixed(3),model:NS.V032E6?'V0.32E6_TRANSPORT_ACCOUNTING':'V0.32D5_MARKET_GOLD_QUOTE'};buyer.tradeHistory=buyer.tradeHistory||[];seller.tradeHistory=seller.tradeHistory||[];buyer.tradeHistory.push(row);seller.tradeHistory.push(row);buyer.tradeHistory=buyer.tradeHistory.slice(-60);seller.tradeHistory=seller.tradeHistory.slice(-60);w.recentTrades=w.recentTrades||[];w.recentTrades.push(row);w.recentTrades=w.recentTrades.filter(x=>day-Number(x.day||0)<=360);bt.marketState=bt.marketState||{prices:{},lastDay:0,tradeVolume:{}};st.marketState=st.marketState||{prices:{},lastDay:0,tradeVolume:{}};bt.marketState.tradeVolume=bt.marketState.tradeVolume||{};st.marketState.tradeVolume=st.marketState.tradeVolume||{};bt.marketState.tradeVolume[k]=Number(bt.marketState.tradeVolume[k]||0)+put;st.marketState.tradeVolume[k]=Number(st.marketState.tradeVolume[k]||0)+put;if(INDUSTRIAL.has(k)){bt.marketState.prices[k]=q.landed;st.marketState.prices[k]=q.ask;}w.telemetry?.record?.(INDUSTRIAL.has(k)?'INDUSTRIAL_TRADE32D5':'TRADE',w,row);return true;}
 NS.World.prototype.processAutonomousTrade=function(){const t0=nowMs();for(const v of this.activeVillages||[]){d4(v,this);ensureD5(v);}const general=[],industrial=[];for(const buyer of this.activeVillages||[])for(const seller of this.activeVillages||[]){if(buyer.id===seller.id)continue;for(const k of RES()){if(INDUSTRIAL.has(k)){if(k==='iron_ore'&&!buyer.hasTech?.('IRON_MINING'))continue;if(k==='iron'&&!buyer.hasTech?.('SMELTING'))continue;if(k==='tools'&&!buyer.hasTech?.('IRONWORKING'))continue;}const a=assessTradeD5(this,buyer,seller,k,true);if(a.reason==='OK'){a.score=a.urgency*120+a.plan.need*1.1+a.plan.surplus*.12+(a.quote.wtp-a.quote.landed)*a.qty*18;(GENERAL.has(k)?general:industrial).push(a);}}}general.sort((a,b)=>b.score-a.score);industrial.sort((a,b)=>b.score-a.score);const ug=new Set(),ui=new Set();for(const a of general){if(ug.has(a.buyer.id))continue;if(executeD5(this,a))ug.add(a.buyer.id);}for(const a of industrial){if(ui.has(a.buyer.id))continue;if(executeD5(this,a))ui.add(a.buyer.id);}this._v32d5Perf=this._v32d5Perf||{};this._v32d5Perf.trade=(this._v32d5Perf.trade||0)+(nowMs()-t0);};
@@ -14318,7 +14318,7 @@ if(NS.UI){const head=NS.UI.prototype.renderHeader;
  NS.UI.prototype.renderHeader=function(...args){const ret=head.apply(this,args);if(typeof document==='undefined')return ret;document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge)badge.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const near=document.getElementById('exportSettlementEconomyD3Btn');if(near&&!document.getElementById('exportSettlementFoodFlowD3ABtn')){const btn=document.createElement('button');btn.id='exportSettlementFoodFlowD3ABtn';btn.textContent='Food Flow 30일 CSV';btn.title='D3A 30일 단위 식량 흐름·입고/반환·공유 실제량 ('+COL.length+'열)';btn.addEventListener('click',()=>{try{NS.SaveSystem.exportSettlementFoodFlowCSV(this.world);}catch(e){console.error(e);alert(e.message);}});near.insertAdjacentElement('afterend',btn);}return ret;};}
 if(typeof document!=='undefined')document.title='Village Observer '+VERSION;
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-11',title:'Food Supply & Storage Stabilization',summary:'일반 식량·목재·석재 채집물의 미입고 원료를 자연으로 정확히 복구하고, 30일 식량 수지와 실제 Settlement 간격 내 원격 조달·반송을 관측합니다. 생산·소비·자연회복 밸런스는 유지합니다.',sections:[['수확 보존',['창고가 가득 차도 채집 시 사용한 원료 중 입고되지 않은 생산물에 대응하는 양을 자연 자원으로 복원합니다.','실제 생산 효율, 주민 소비, 지형별 자원 회복률은 변경하지 않습니다.']],['관측',['새 Food Flow 30일 CSV에서 Settlement별 주식량 입고·소비·복원·타일 간 원격 조달을 관측합니다.','이전 D3 foodDepositOverflow는 입고 미수용 요청량이며 실제 유실량이 아닙니다.']],['검증',['기존 Snapshot 1,683열, Settlement 48열, Housing 11열, Economy 24열을 유지합니다.','다른 Settlement 재고·시장 Gold·군사 물류는 변경하지 않습니다.']]]});
-NS.V034D3A=Object.freeze({version:VERSION,observeWithdrawFast,observeDepositFast,addMetric:add,harvestAndStore,transferWithReturn,foodCSV,columns:COL,stats:state,rows:windowRows,ensureRow:row,laborIssues,audit:w=>({ok:D3.audit(w).ok,conservedHarvestRestored:state(w).total.harvestRestoredNatural,transferUnrecovered:state(w).total.transferUnrecovered})});
+NS.V034D3A=Object.freeze({version:VERSION,observeWithdrawFast,observeDepositFast,addMetric:add,harvestAndStore,transferWithReturn,isReturning:(w,v)=>{const scope=transferScope.get(w);return !!(scope&&scope.v===v&&scope.kind==='RETURN');},foodCSV,columns:COL,stats:state,rows:windowRows,ensureRow:row,laborIssues,audit:w=>({ok:D3.audit(w).ok,conservedHarvestRestored:state(w).total.harvestRestoredNatural,transferUnrecovered:state(w).total.transferUnrecovered})});
 try{window.villageObserver?.renderHeader?.();}catch(e){console.error('D3A header',e);}
 })(window.VSim);
 
@@ -16187,7 +16187,7 @@ NS.Telemetry.prototype.toJSON=function(w){const j=json.call(this,w);j.version=VE
 if(NS.UI){const header=NS.UI.prototype.renderHeader;NS.UI.prototype.renderHeader=function(...args){const x=header.apply(this,args);document.title='Village Observer '+VERSION;const label=document.getElementById('versionBadge');if(label)label.innerHTML='Village Observer · <strong>'+VERSION+'</strong>';const button=document.getElementById('exportG2RelayBtn');if(button){button.textContent='G2A 정착지 배송 CSV';button.title='실제 정착지 간 배송 + 공급원 보호 비축량 감사 (최근 300건)';}return x;};}
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-17',title:'실시간 공급원 잉여량·보호 비축 안정화',summary:'G2 국가 내 정착지 간 긴급 구호에서 공급원 잉여 식량을 배송마다 재평가하고 비축 보호 위반을 관측합니다.',sections:[['공급원 비축 보호',['정착지 공급원의 24/40 작업주기 보호 비축(최소 8 식량)은 배송할 때마다 실제 물리 재고에서 다시 계산합니다.','같은 작업주기에 여러 정착지에 공급해도 이미 보낸 식량을 중복으로 계산하지 않습니다.']],['대체 공급원 재탐색',['첫 공급원 소진 시 다른 실제 경로의 공급원을 재탐색합니다. 수령 정착지의 실제 공동 재고·저장 여유도 매번 갱신합니다.','한 대상 정착지에 최대 다섯 개의 서로 다른 공급원을 사용할 수 있으며, 기존 한 국가 최대 네 대상·다섯 후보 탐색 제한을 유지합니다.']],['감사·검증',['배송 CSV에 공급 전·후 공동 재고, 보호 비축 하한과 부족 여부를 추가했습니다.','G2의 정착지 단위 수요·출발/도착 타일 경로·D3 물리 회계·F3 개인 신진대사·AI 전쟁은 변경하지 않습니다.']]]});
 NS.RELEASE_VERSION=VERSION;
-NS.V034G2=Object.freeze({...NS.V034G2,version:VERSION,relay,groups,bestPair,summary,csv});NS.V034G2A=Object.freeze({version:VERSION,relay,groups,bestPair,summary,csv});
+NS.V034G2=Object.freeze({...NS.V034G2,version:VERSION,relay,groups,bestPair,summary,csv});NS.V034G2A=Object.freeze({version:VERSION,relay,groups,bestPair,summary,routes:w=>stats(w).retainedRoutes,csv});
 try{window.villageObserver?.renderHeader?.();}catch(_e){}
 })(window.VSim);
 
@@ -16635,7 +16635,7 @@ NS.World.prototype.serialize=function(){const s=oldSave.call(this);s.version=VER
 NS.World.from=function(s){return oldFrom(s?.version===VERSION?{...s,version:PREV}:s);};
 const oldJSON=NS.Telemetry.prototype.toJSON;
 NS.Telemetry.prototype.toJSON=function(w){const d=oldJSON.call(this,w);d.version=VERSION;d.worldSummary=d.worldSummary||{};d.worldSummary.techCount=NS.TECH_ORDER.length;d.worldSummary.v034g5={revision:'specialized-labor-formation-recovery',technologies:Object.keys(ADDED).reduce((a,k)=>(a[k]=(w?.activeVillages||[]).filter(v=>v.hasTech?.(k)).length,a),{}),counters:{...counters},physicalStockPreserved:true};return d;};
-function verify(w){const prev=NS.V034G4A1.verify(w),t={...prev.tests,version:(NS.RELEASE_VERSION===VERSION||(NS.RELEASE_VERSION==='V0.34H0'||(NS.RELEASE_VERSION==='V0.34H1'||NS.RELEASE_VERSION==='V0.34H2'||NS.RELEASE_VERSION==='V0.34H2A'||NS.RELEASE_VERSION==='V0.34H3'||NS.RELEASE_VERSION==='V0.34H4'))),statsCaption:typeof document==='undefined'||!document.getElementById('statsScope')||document.getElementById('statsScope')?.querySelector('option[value="settlement"]')?.textContent==='타일 (기존 장기 통계)',techCount:NS.TECH_ORDER.length===43,newTechs:Object.keys(ADDED).every(k=>NS.TECH_ORDER.includes(k)),additiveFarmer:typeof workerMultiplier==='function'&&typeof oreMultiplier==='function'&&typeof scholarMultiplier==='function',regroupRecovery:Math.round(20*.85)===17};return{version:VERSION,ok:Object.values(t).every(Boolean),tests:t};}
+function verify(w){const prev=NS.V034G4A1.verify(w),t={...prev.tests,version:(NS.RELEASE_VERSION===VERSION||(NS.RELEASE_VERSION==='V0.34H0'||(NS.RELEASE_VERSION==='V0.34H1'||NS.RELEASE_VERSION==='V0.34H2'||NS.RELEASE_VERSION==='V0.34H2A'||NS.RELEASE_VERSION==='V0.34H3'||NS.RELEASE_VERSION==='V0.34H4'||NS.RELEASE_VERSION==='V0.34H4A'||NS.RELEASE_VERSION==='V0.34H4B'||NS.RELEASE_VERSION==='V0.34H4C'||NS.RELEASE_VERSION==='V0.35A'))),statsCaption:typeof document==='undefined'||!document.getElementById('statsScope')||document.getElementById('statsScope')?.querySelector('option[value="settlement"]')?.textContent==='타일 (기존 장기 통계)',techCount:NS.TECH_ORDER.length===43,newTechs:Object.keys(ADDED).every(k=>NS.TECH_ORDER.includes(k)),additiveFarmer:typeof workerMultiplier==='function'&&typeof oreMultiplier==='function'&&typeof scholarMultiplier==='function',regroupRecovery:Math.round(20*.85)===17};return{version:VERSION,ok:Object.values(t).every(Boolean),tests:t};}
 function audit(w){const r=NS.V034G4A1.audit(w);return{...r,version:VERSION,integrity:verify(w)};}
 function status(){const w=window.villageObserver?.world,r=verify(w);document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.setAttribute('data-runtime-version',VERSION);}const s=document.getElementById('g3aRuntimeIntegrity');if(s){s.textContent=r.ok?'✓ G5 · 기술 43개 · 직업 생산/Formation 회복 · G4A1 안정성 유지':'⚠ G5: '+Object.keys(r.tests).filter(k=>!r.tests[k]).join(', ');s.style.color=r.ok?'#a9e7ca':'#ffe0a1';}return r;}
 const prior=NS.SaveSystem;
@@ -16764,10 +16764,10 @@ function drawBoundaries(ui){const w=ui.world,mode=ui.h1BoundaryMode||'all',geo=u
  ctx.globalAlpha=1;
  for(const g of groups){const active=mode==='all'||g.sid===selected;
   if(mode==='selected'&&!active)continue;
-  const width=Math.max(mode==='selected'?2.2:1.6,cell*(mode==='selected'?.105:.075));
+  const baseWidth=Math.max(mode==='selected'?2.2:1.6,cell*(mode==='selected'?.105:.075));const width=mode==='all'?baseWidth*.70:baseWidth;
   function trace(){ctx.beginPath();for(const [x1,y1,x2,y2] of g.edges){ctx.moveTo(ox+x1*cell,oy+y1*cell);ctx.lineTo(ox+x2*cell,oy+y2*cell);}}
   ctx.lineJoin='round';ctx.lineCap='square';
-  trace();ctx.strokeStyle='rgba(7,17,26,.92)';ctx.lineWidth=width+2.1;ctx.stroke();
+  trace();ctx.strokeStyle='rgba(7,17,26,.92)';ctx.lineWidth=mode==='all'?(baseWidth+2.1)*.70:width+2.1;ctx.stroke();
   trace();ctx.strokeStyle=g.color;ctx.lineWidth=width;ctx.stroke();
   if(mode==='selected'&&active&&g.core!=null){const t=w.map.get(g.core);if(t){ctx.beginPath();ctx.arc(ox+(t.x+.5)*cell,oy+(t.y+.5)*cell,Math.max(2.5,cell*.105),0,Math.PI*2);ctx.fillStyle='#fff5cf';ctx.fill();ctx.strokeStyle='#172d40';ctx.lineWidth=1.9;ctx.stroke();}}
  }
@@ -17129,7 +17129,7 @@ function refreshWorld(ui,force=false){if(ui.view!=='world'||!ui.world||!d('h3Wor
  d('h3WorldMetrics').innerHTML=metric('세계 인구',`${fmt(numPeople)}명`)+metric('생존 국가',`${active.length}개`)+metric('정착지',`${fmt(groups)}개`)+metric('소유 영토',`${territory}/${n(w.map?.tiles?.filter(t=>NS.TERRAIN?.[t.terrain]?.passable).length)||'—'}타일`)+metric('전쟁',`${wars.filter(x=>x.status==='ACTIVE').length}건 진행 · ${wars.length}건 누적`);
  const key=d('h3CompareSort')?.value||'population',include=d('h3CompareExtinct')?.checked||false;
  const nationRows=(include?w.villages:active).map(v=>{const people=(v.residents||[]).filter(p=>p.alive!==false),territory=v.territory?.size||0,tech=v.technologies?.size||0,gold=n(v.gold),market=[...(v.territory||[])].reduce((a,id)=>a+n(w.map.get(id)?.v29Economy?.marketGold),0),wallet=people.reduce((a,p)=>a+n(p.gold29),0);return{v,population:people.length,territory,tech,money:gold+market+wallet,gold,market,wallet};}).sort((a,b)=>b[key]-a[key]||a.v.id-b.v.id);
- d('h3CompareTable').innerHTML=`<table class="h3-table"><thead><tr><th>국가</th><th>인구</th><th>영토</th><th>기술</th><th>국고</th><th>시장</th><th>지갑</th><th>전체 Gold</th></tr></thead><tbody>${nationRows.map(r=>`<tr><td><button class="h3-nation-link" data-h3-nation="${Number(r.v.id)}">${esc(r.v.name)}${r.v.status!=='active'?' · 멸망':''}</button></td><td>${fmt(r.population)}</td><td>${fmt(r.territory)}</td><td>${r.tech}/${NS.TECH_ORDER.length}</td><td>${fmt(r.gold,1)}</td><td>${fmt(r.market,1)}</td><td>${fmt(r.wallet,1)}</td><td>${fmt(r.money,1)}</td></tr>`).join('')}</tbody></table>`;
+ d('h3CompareTable').innerHTML=`<table class="h3-table"><thead><tr><th>국가</th><th>인구</th><th>영토</th><th>기술</th><th>국고</th><th>시장</th><th>지갑</th><th>전체 Gold</th></tr></thead><tbody>${nationRows.map(r=>`<tr><td><button class="h3-nation-link" data-h3-nation="${Number(r.v.id)}"><span class="h4a-nation-bar" aria-hidden="true" style="background-color:${esc(String(NS.NATION_COLORS?.[Number(r.v.id)]||'#8293a7'))}"></span>${esc(r.v.name)}${r.v.status!=='active'?' · 멸망':''}</button></td><td>${fmt(r.population)}</td><td>${fmt(r.territory)}</td><td>${r.tech}/${NS.TECH_ORDER.length}</td><td>${fmt(r.gold,1)}</td><td>${fmt(r.market,1)}</td><td>${fmt(r.wallet,1)}</td><td>${fmt(r.money,1)}</td></tr>`).join('')}</tbody></table>`;
  d('h3CompareTable').querySelectorAll('[data-h3-nation]').forEach(b=>b.onclick=()=>{const id=Number(b.dataset.h3Nation);if(!w.villages?.some(v=>Number(v.id)===id&&v.status==='active'))return;ui.goNation?.(id,'overview');});
  refreshChronicle(ui);
 }
@@ -17255,6 +17255,397 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))N
  ['검증',['H3 대비 동일 시드·세이브 30일 parity 및 H2A 복구 회귀를 유지합니다.','150년/실제 88년 장기 성능 목표는 별도 동일 PC·세이브 환경에서 검증해야 합니다.']]
 ]});
 try{refresh();}catch(e){console.warn('H4 header',e);}
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34H4A — storage provenance diagnostics + map/stats polish.
+ * All state tracking is read-only and non-serialized. No resource/AI/RNG mutations.
+ * Historical causes before this release cannot be reconstructed from current stock.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34H4A',PREV='V0.34H4',KEY='village-observer-v034h4a';
+const P=NS.UI?.prototype,track=new WeakMap();
+const n=x=>Number.isFinite(Number(x))?Number(x):0;
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=x=>n(x).toLocaleString('ko-KR',{maximumFractionDigits:2});
+const color=v=>String((NS.NATION_COLORS||[])[Number(v?.id)]||'#8293a7');
+const canonicalDay=w=>Number(w?.calendarOrdinalDay?.()??((Number(w?.year||1)-1)*360+(Number(w?.quarter||w?.season||1)-1)*90+Number(w?.day||1)));
+function topology(w){const c=w?.v34c?.counters||{};return [n(c.ownershipChanges),n(c.merges),n(c.splits)].join('/');}
+function currentRows(w){return NS.V034H4.storageDiagnosis(w);}
+function watch(w,reason='BASELINE',force=false){if(!w)return null;let z=track.get(w);if(!z){z={records:[],last:new Map(),topology:topology(w),lastPeriod:-Infinity};track.set(w,z);force=true;reason='PREEXISTING_AT_FIRST_OBSERVATION';}
+ const day=canonicalDay(w),sig=topology(w),changed=sig!==z.topology,period=day-z.lastPeriod>=30;
+ if(!force&&!changed&&!period)return z;
+ const rows=currentRows(w),now=new Map(rows.map(r=>[String(r.settlementId),r]));
+ for(const r of rows){const previous=z.last.get(String(r.settlementId));if(!previous||r.excess>previous.excess+1e-5||r.excess<previous.excess-1e-5||r.currentCap!==previous.currentCap||r.stock!==previous.stock){
+  const type=!previous?(reason==='PREEXISTING_AT_FIRST_OBSERVATION'?'PREEXISTING_AT_FIRST_OBSERVATION':'NEWLY_OBSERVED_OVERFLOW'):r.excess>previous.excess+1e-5?'OBSERVED_EXCESS_INCREASE':r.excess<previous.excess-1e-5?'OBSERVED_EXCESS_DECREASE':'OBSERVED_STOCK_OR_CAP_CHANGE';
+  z.records.push({day,simTime:w.timestamp?.()||'',type,trigger:reason==='BASELINE'&&changed?'SETTLEMENT_TOPOLOGY_CHANGED':reason==='BASELINE'&&period?'PERIODIC_30D_OBSERVATION':reason,settlementId:r.settlementId,nationId:r.nationId,tileIds:r.tileIds,stock:r.stock,currentCap:r.currentCap,excess:r.excess,classification:r.classification,previous:previous?{stock:previous.stock,currentCap:previous.currentCap,excess:previous.excess}:null});
+ }}
+ for(const [id,old] of z.last)if(!now.has(id))z.records.push({day,type:'OVERFLOW_NO_LONGER_PRESENT',settlementId:id,previousExcess:old.excess,trigger:reason});
+ if(z.records.length>96)z.records.splice(0,z.records.length-96);
+ z.last=now;z.topology=sig;z.lastPeriod=day;return z;
+}
+// Only inspect the economy on a real topology change, a 30-calendar-day cadence,
+// or an explicit user request/export. Do not scan each Person or per UI render.
+const advance=NS.World.prototype.advanceOneDay;
+NS.World.prototype.advanceOneDay=function(...args){watch(this);const out=advance.apply(this,args);watch(this);return out;};
+function relevantEvents(w,tiles,limit=70){const set=new Set(tiles.map(Number));const ev=w?.telemetry?.entries||[];const out=[];for(let i=ev.length-1;i>=0&&out.length<limit;i--){const e=ev[i],p=e.payload||{};if(!/SETTLEMENT|OUTPOST|FRONTIER|TILE_CEDED|TERRITORY|BUILDING|OWNERSHIP|CONQUEST|PEACE_SETTLEMENT/i.test(String(e.type||'')))continue;const ids=[p.tileId,p.fromTileId,p.toTileId,p.targetTileId,...(p.tileIds||[]),...(p.cededTileIds||[])].filter(x=>x!=null).map(Number);if(!ids.some(id=>set.has(id)))continue;out.push({type:e.type,simTime:e.simTime||e.calendarDate24||'',tileIds:ids.filter(x=>set.has(x)),settlementId:p.settlementId??null,building:p.building??p.type??null});}return out.reverse();}
+function diagnosis(w){
+ watch(w,'MANUAL_DIAGNOSTIC',true);
+ const rows=currentRows(w);
+ const tiles=[...new Set(rows.flatMap(r=>r.tileIds||[]))].map(Number);
+ const byNation=new Map((w.villages||[]).map(v=>[Number(v.id),v]));
+ return {
+  format:'vilob-h4a-storage-diagnostic-v1',version:VERSION,simTime:w.timestamp?.()||'',
+  note:'Causes before H4A are unknown; the classification is not proof of how resources arrived. Read-only physical stock.',
+  world:{mapSize:[w.map.width,w.map.height],overflowSettlements:rows.length,overflowStone:rows.reduce((s,r)=>s+r.excess,0)},
+  settlements:rows.map(r=>{
+   const v=byNation.get(Number(r.nationId));
+   return {...r,nationName:v?.name||null,tiles:(r.tileIds||[]).map(raw=>{
+    const t=w.map.get(Number(raw));
+    return {
+     id:Number(raw),ownerId:t?.ownerId,settlementId:t?.settlementId,terrain:t?.terrain,
+     stocks:Object.fromEntries(Object.entries(t?.stocks||{}).map(([k,val])=>[k,n(val)])),
+     stonePhysicalCap:v?NS.V034D3.physicalCap(v,Number(raw),'stone'):null,
+     buildings:(t?.buildings||[]).map((b,i)=>({type:b,condition:n(t?.buildingCondition?.[i]),stoneStorage:n(NS.BUILDINGS?.[b]?.storage?.stone)}))
+    };
+   })};
+  }),
+  observations:[...(track.get(w)?.records||[])],relatedEvents:relevantEvents(w,tiles)
+ };
+}
+
+function saveFile(filename,data){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+function ensureAudit(ui){if(typeof document==='undefined')return;const run=document.getElementById('h3AuditRun'),out=document.getElementById('h3AuditOutput'),host=document.getElementById('h3AuditCheck');if(!run||!out||!host)return;
+ if(!run.dataset.h4aBound){run.dataset.h4aBound='1';run.onclick=()=>{try{const w=ui.world,c=NS.V034C.inspect(w),d2=NS.V034D2.audit(w),h4=NS.V034H4.audit(w),errors=[...(c.errors||[]).map(e=>'C: '+String(e.code||e)),...(d2.errors||[]).map(e=>'D2: '+e),...(h4.errors||[]).map(e=>'D3: '+e)],warnings=[...(h4.warnings||[])];ui._h3LastAudit={world:w,errors,warnings,when:w.timestamp?.()||''};out.innerHTML=`<div>검사 시점 ${esc(ui._h3LastAudit.when)} · <strong>${errors.length?'오류 '+errors.length+'건':'무결성 오류 0건'}</strong> · 주의 ${warnings.length}건</div>`+errors.slice(0,12).map(e=>`<div class="h3-audit-err">${esc(e)}</div>`).join('')+h4.storage.map(r=>`<div class="h3-audit-warn">${esc(r.settlementId)} · ${esc(r.classification)} · 석재 ${fmt(r.stock)} / 용량 ${fmt(r.currentCap)} · 초과 ${fmt(r.excess)}</div>`).join('')+warnings.filter(x=>!String(x).startsWith('STORAGE_OVERFLOW:')).slice(0,12).map(e=>`<div class="h3-audit-warn">${esc(e)}</div>`).join('');watch(w,'MANUAL_AUDIT',true);NS.V034H3?.refreshIntegrity?.(ui);}catch(e){out.textContent='검사 실패: '+String(e?.message||e);}};}
+ if(!document.getElementById('h4aExportStorage')){const btn=document.createElement('button');btn.id='h4aExportStorage';btn.type='button';btn.textContent='석재 저장 경량 진단 JSON 내보내기';btn.style.marginLeft='8px';btn.onclick=()=>{const w=ui.world;saveFile(`vilob-h4a-storage-${w.year}y.json`,diagnosis(w));};run.insertAdjacentElement('afterend',btn);}
+}
+function strokeNationalBorders(ui){if((ui.h1BoundaryMode||'all')!=='all')return;const w=ui.world,g=ui._mapGeom,canvas=ui.q?.('worldCanvas');if(!w||!g||!canvas)return;const ctx=canvas.getContext('2d');if(!ctx||!g.cell)return;
+ const {cell,ox,oy}=g;ctx.save();ctx.beginPath();ctx.rect(ox,oy,w.map.width*cell,w.map.height*cell);ctx.clip();ctx.beginPath();let edges=0;
+ for(const t of w.map.tiles){if(t.ownerId==null)continue;for(const [dx,dy] of [[1,0],[0,1]]){const other=w.map.at(t.x+dx,t.y+dy);if(!other||other.ownerId==null||String(t.ownerId)===String(other.ownerId))continue;
+  const x=ox+(t.x+(dx?1:0))*cell,y=oy+(t.y+(dy?1:0))*cell;ctx.moveTo(x,y);ctx.lineTo(x+(dy?cell:0),y+(dx?cell:0));edges++;}}
+ if(edges){ctx.strokeStyle='#000000';ctx.lineWidth=Math.max(2.3,cell*.115)*.70;ctx.lineJoin='round';ctx.lineCap='square';ctx.globalAlpha=1;ctx.stroke();}ctx.restore();}
+function statsDecorate(ui){if(ui.view!=='stats'||!ui.world)return;const sel=document.getElementById('statsNation');if(!sel)return;
+ let bar=document.getElementById('h4aSelectedNationBar');if(!bar){bar=document.createElement('span');bar.id='h4aSelectedNationBar';bar.className='h4a-nation-bar';bar.setAttribute('aria-hidden','true');sel.insertAdjacentElement('beforebegin',bar);}bar.style.backgroundColor=color(ui.world.villages?.find(v=>Number(v.id)===Number(sel.value)));
+ let legend=document.getElementById('h4aNationLegend');if(!legend){legend=document.createElement('div');legend.id='h4aNationLegend';legend.className='h4a-nation-legend';legend.setAttribute('aria-label','국가별 색상과 통계 선택');const target=sel.closest('.panel')||sel.parentElement;target?.appendChild(legend);}
+ const sig=(ui.world.villages||[]).map(v=>[v.id,v.name,color(v)].join(':')).join('|');if(legend.dataset.signature!==sig){legend.dataset.signature=sig;legend.replaceChildren();for(const v of ui.world.villages||[]){const b=document.createElement('button');b.type='button';b.className='h4a-nation-choice';b.dataset.nation=String(v.id);const mark=document.createElement('span');mark.className='h4a-nation-bar';mark.style.backgroundColor=color(v);mark.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=v.name;b.append(mark,label);b.onclick=()=>{sel.value=String(v.id);sel.dispatchEvent(new Event('change',{bubbles:true}));};legend.appendChild(b);}}
+ const visible=ui.statsScope!=='world';bar.hidden=!visible;legend.hidden=!visible;for(const b of legend.querySelectorAll('[data-nation]'))b.setAttribute('aria-pressed',String(b.dataset.nation===sel.value));}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from,oldJSON=NS.Telemetry.prototype.toJSON,oldSave=NS.SaveSystem;
+NS.World.prototype.serialize=function(...a){const data=oldSerialize.apply(this,a);data.version=VERSION;return data;};
+NS.World.from=function(data,...a){const w=oldFrom.call(this,data?.version===VERSION?{...data,version:PREV}:data,...a);watch(w,'LOADED_WORLD',true);return w;};
+NS.Telemetry.prototype.toJSON=function(...a){const data=oldJSON.apply(this,a);data.version=VERSION;if(data.worldSummary){data.worldSummary.v034h4aRevision='storage-provenance-lightweight-export-and-national-boundary-stats-polish';if(a[0]){const z=watch(a[0],'DEVLOG_EXPORT',true);data.worldSummary.v034h4aStorageObservation={count:z?.records?.length||0,recent:z?.records?.slice(-16)||[]};}}return data;};
+NS.SaveSystem={...oldSave,save(w){try{localStorage.setItem(KEY,JSON.stringify(w.serialize()));}catch(e){throw Error('저장 용량 초과: JSON 파일로 내보내 주세요 ('+e.message+')');}},load(){const s=localStorage.getItem(KEY);return s?NS.World.from(JSON.parse(s)):oldSave.load?.();},export(w){saveFile(`village-observer-v034H4A-save-${w.year}y.json`,w.serialize());},exportDevJSON(w){saveFile(`village-observer-v034H4A-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));}};
+NS.RELEASE_VERSION=VERSION;
+function refresh(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.dataset.runtimeVersion=VERSION;}}
+if(P){const prevMap=P.renderMap,prevStats=P.renderStats,prevViews=P.renderViews,prevWorld=P.renderWorld,prevHeader=P.renderHeader;
+ P.renderMap=function(...a){const out=prevMap.apply(this,a);strokeNationalBorders(this);return out;};
+ P.renderStats=function(...a){const out=prevStats.apply(this,a);statsDecorate(this);return out;};
+ P.renderViews=function(...a){const out=prevViews.apply(this,a);ensureAudit(this);statsDecorate(this);return out;};
+ P.renderWorld=function(...a){const out=prevWorld.apply(this,a);ensureAudit(this);return out;};
+ P.renderHeader=function(...a){const out=prevHeader.apply(this,a);refresh();return out;};
+}
+NS.V034H4A=Object.freeze({version:VERSION,diagnosis,watch,strokeNationalBorders,statsDecorate});
+if(typeof document!=='undefined'){const style=document.createElement('style');style.textContent=`.h4a-nation-legend{display:flex;flex-wrap:wrap;gap:5px 9px;margin:9px 0}.h4a-nation-choice{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--line,#41526b);border-radius:6px;padding:5px 8px;background:transparent;color:inherit;cursor:pointer}.h4a-nation-choice[aria-pressed=true]{border-color:#98c8ff;background:rgba(74,144,220,.15)}.h4a-nation-bar{display:inline-block;flex:none;width:4px;height:16px;border-radius:1px;margin-right:4px;vertical-align:middle}.h4a-nation-legend[hidden],.h4a-nation-bar[hidden]{display:none!important}@media(max-width:650px){.h4a-nation-choice{font-size:11px;padding:5px 7px}}`;document.head.appendChild(style);}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-20',title:'석재 저장 원인 추적·지도 국경·통계 색상',summary:'기존 석재 재고 보존, 저장 초과 경량 진단 JSON, 원인 분류 포함 수동 감사, 국가 간 검은 경계 및 통계 색상 막대',sections:[['저장 무결성',['용량 초과 재고는 삭제·강제 이전하지 않습니다.','이미 발생한 초과는 H4A 최초 관측 이전 원인 확정 불가로 표시합니다.','정착지 소유권·병합·분할 변화와 30일 관측에 의한 초과 변동 추적, 경량 JSON으로 타일 실물 재고·건물·관련 사건 추출합니다.']],['지도',['정착지 경계 전체 모드에서 다른 국가 간 경계는 정착지 테두리 위에 검은 실선으로 표시합니다.','선택 강조·기타 지도 모드는 변경하지 않습니다.']],['통계',['국가명 왼쪽의 세로 국가색 막대와 국가 선택 보조 목록을 제공합니다.','기존 선택 드롭다운·필터·스크롤은 보존하고 사용자 정의 국가색을 반영합니다.']],['검증',['H4 대비 시뮬레이션 RNG 및 세계 상태를 보존합니다.','석재 원인 확정은 실제 이전 시점의 자료가 없는 경우 유보합니다.']]]});
+try{refresh();const ui=window.villageObserver;if(ui){ensureAudit(ui);statsDecorate(ui);}}catch(e){console.warn('H4A init',e);}
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34H4B — settlement/nation border refinement + world nation markers + overflow provenance validation.
+ * Rule changes: NONE. Pre-H4A history is observation-only; do not delete or fabricate resources.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34H4B',PREV='V0.34H4A',KEY='village-observer-v034h4b';
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from,oldSave=NS.SaveSystem,oldToJSON=NS.Telemetry.prototype.toJSON;
+NS.World.prototype.serialize=function(...args){const result=oldSerialize.apply(this,args);result.version=VERSION;return result;};
+NS.World.from=function(data,...args){return oldFrom.call(this,data?.version===VERSION?{...data,version:PREV}:data,...args);};
+const saveFile=(name,obj)=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+NS.SaveSystem={...oldSave,
+ save(w){try{localStorage.setItem(KEY,JSON.stringify(w.serialize()));}catch(e){throw Error('저장 용량 초과: JSON 파일로 내보내 주세요 ('+e.message+')');}},
+ load(){const s=localStorage.getItem(KEY);return s?NS.World.from(JSON.parse(s)):oldSave.load?.();},
+ export(w){saveFile(`village-observer-v034H4B-save-${w.year}y.json`,w.serialize());},
+ exportDevJSON(w){saveFile(`village-observer-v034H4B-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));}
+};
+NS.Telemetry.prototype.toJSON=function(...args){const data=oldToJSON.apply(this,args);data.version=VERSION;
+ if(data.worldSummary){data.worldSummary.v034h4bRevision='border-thickness-minus-30pc-world-nation-color-markers-and-stock-provenance-tests';
+ data.worldSummary.v034h4bStoragePolicy='Over-capacity physical stone remains conserved on tile abandonment/reclaim; no stock correction; use H4A observer for preexisting overflows.';}
+ return data;};
+NS.RELEASE_VERSION=VERSION;
+function refresh(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.dataset.runtimeVersion=VERSION;}}
+const P=NS.UI?.prototype;if(P){const oldHeader=P.renderHeader;P.renderHeader=function(...args){const out=oldHeader.apply(this,args);refresh();return out;};}
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-20',title:'경계 가독성·세계 국가색·석재 저장 경로 검증',summary:'정착지 전체 경계와 검정 국경 모두 약 30% 축소, 세계 국가 비교에 실제 국가색 수직 막대 추가, 석재 재고의 포기·재개척·병합 경로 재현 및 보존 정책 유지.',sections:[['지도',['정착지 경계 전체 모드의 내부 색상선과 외곽 윤곽선은 기존 대비 70%로 조정합니다.','서로 다른 국가 사이의 최종 검은색 테두리도 기존 대비 70%로 줄입니다.','선택 강조 모드와 기타 지도 모드는 유지합니다.']],['세계',['세계 국가 비교의 국가명 왼쪽에 통계 탭과 동일한 국가색 막대를 표시합니다.','실제 국가의 국가색, 정렬, 멸망국 필터, 국가 탭 이동은 유지합니다.']],['석재',['기존 타일의 석재는 영토 포기·재개척 후에도 실물로 남을 수 있습니다.','단순 과잉 재고를 자원 생성 오류로 간주하지 않으며 초과분을 삭제하지 않습니다.','H4A 경량 진단과 신규 초과 관측은 계속 사용할 수 있습니다.']],['검증',['H4A 대비 게임 상태와 RNG 동일성, 건물·정착지 연결·세이브 회귀를 확인합니다.']]]});
+NS.V034H4B=Object.freeze({version:VERSION,boundaryFactor:0.70,storagePolicy:'PRESERVE_STOCK_ON_ABANDONMENT'});
+try{refresh();}catch(e){console.warn('H4B init',e);}
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.34H4C — conserved legacy stone overflow relocation + neutral/water borders.
+ * Existing over-cap stock remains physically stored; NEW ordinary deposits obey the
+ * total active Settlement capacity. Real same-nation routes move only excess stock.
+ */
+(function(NS){'use strict';
+const VERSION='V0.34H4C',PREV='V0.34H4B',KEY='village-observer-v034h4c';
+const EPS=1e-7,n=x=>Number.isFinite(Number(x))?Number(x):0;
+const same=(a,b)=>String(a)===String(b);
+const data=new WeakMap(),bypass=new WeakMap();
+function stats(w){let s=data.get(w);if(!s){s={pulses:0,shipments:0,quantity:0,blockedDeposits:0,blockedQuantity:0,physicalMismatch:0,failedReturns:0,blocked:{},latest:[],lastDay:null};data.set(w,s);}return s;}
+function block(s,why){s.blocked[why]=(s.blocked[why]||0)+1;}
+function tileOK(v,t){return !!(t&&same(t.ownerId,v.id)&&(t.v33OccupierId==null||same(t.v33OccupierId,v.id)));}
+function group(v,tid){const w=v._world,t=w?.map?.get(Number(tid));if(!tileOK(v,t))return null;
+ const m=NS.V034D3?.members?.(v,Number(tid));const ids=m?.ids?.length?m.ids.map(Number):[Number(tid)];
+ return {id:String(m?.sid??'tile:'+tid),ids,anchor:Number(m?.core??ids[0]),nationId:v.id};
+}
+function stock(w,ids){return ids.reduce((s,id)=>s+Math.max(0,n(w.map.get(id)?.stocks?.stone)),0);}
+function cap(v,ids){return ids.reduce((s,id)=>s+n(NS.V034D3?.physicalCap?.(v,id,'stone')??v.settlementCaps(id).stone),0);}
+const previousDeposit=NS.Village.prototype.depositAt;
+// Conserved rollback is permitted ONLY inside an explicit physical transaction.
+// Do not allow a general production call to relabel itself as a return.
+function withReturn(v,fn){const old=bypass.get(v)||0;bypass.set(v,old+1);try{return fn();}finally{if(old)bypass.set(v,old);else bypass.delete(v);}}
+NS.Village.prototype.depositAt=function(id,k,qty){
+ if(k==='stone'&&(bypass.get(this)||NS.V034D3A?.isReturning?.(this._world,this))){
+  // Returning PREEXISTING physical stock to its original owner is legal even
+  // when the ordinary storage capacity shrank. The native tile deposit will
+  // accept what fits; any remaining rollback is restored on the physical tile.
+  const t=this._world?.map.get(Number(id)),allowed=t&&tileOK(this,t)?Math.max(0,n(qty)):0;
+  if(allowed<=EPS)return 0;
+  const put=n(previousDeposit.call(this,id,k,allowed));
+  if(allowed>put+EPS){t.stocks=t.stocks||{};t.stocks.stone=n(t.stocks.stone)+(allowed-put);}
+  return allowed;
+ }
+ if(k!=='stone')return previousDeposit.call(this,id,k,qty);
+ const g=group(this,id);if(!g)return previousDeposit.call(this,id,k,qty);
+ const available=Math.max(0,cap(this,g.ids)-stock(this._world,g.ids));
+ const want=Math.max(0,n(qty)),allowed=Math.min(want,available);
+ if(want>allowed+EPS){const s=stats(this._world);s.blockedDeposits++;s.blockedQuantity+=want-allowed;}
+ return allowed>EPS?previousDeposit.call(this,id,k,allowed):0;
+};
+// V034D3A returns rejected intra-network stones with RETURN context; its handler
+// invokes depositAt again, so preserve that exact already-owned stock as well.
+const originalTransfer=NS.V034D3A?.transferWithReturn;
+if(originalTransfer){
+ // The original D3A handler does not export its internal RETURN context. A
+ // dedicated stone transport path below avoids relying on this legacy behavior.
+}
+function groups(v,w){const map=new Map();for(const raw of v.territory||[]){const tid=Number(raw),t=w.map.get(tid);if(!tileOK(v,t))continue;
+ const g=group(v,tid);if(!g)continue;let row=map.get(g.id);if(!row){row={id:g.id,ids:[],anchor:tid};map.set(g.id,row);}row.ids.push(tid);
+ }
+ return [...map.values()].map(g=>{g.ids.sort((a,b)=>a-b);g.anchor=g.ids[0];g.stock=stock(w,g.ids);g.cap=cap(v,g.ids);g.excess=Math.max(0,g.stock-g.cap);g.room=Math.max(0,g.cap-g.stock);return g;});}
+function route(v,w,source,target){let best=null;
+ for(const a of source.ids)for(const b of target.ids){const ta=w.map.get(a),tb=w.map.get(b);if(!tileOK(v,ta)||!tileOK(v,tb))continue;
+ const q=v.internalLogisticsCapacity?.(a,b,'stone',false),cost=Number(q?.cost),capacity=n(q?.capacity);
+ if(!Number.isFinite(cost)||capacity<=EPS||q.reason==='D3_SHARED_POOL_NO_SHIPMENT')continue;
+ if(!best||cost<best.cost-EPS||Math.abs(cost-best.cost)<EPS&&capacity>best.capacity)best={from:a,to:b,cost,capacity};
+ }
+ return best;
+}
+function restorePhysical(v,oldValues){let restored=0;for(const [id,amount] of oldValues){const t=v._world.map.get(id);if(t){const before=n(t.stocks?.stone);if(!t.stocks)t.stocks={};t.stocks.stone=amount;restored+=Math.max(0,amount-before);}}return restored;}
+function move(v,w,src,dst,choice,limit){
+ if(!choice||src.id===dst.id||!Number.isFinite(choice.cost))return 0;
+ const beforeSrc=stock(w,src.ids),beforeDst=stock(w,dst.ids),allowed=Math.min(beforeSrc-cap(v,src.ids),cap(v,dst.ids)-beforeDst,n(choice.capacity),n(limit));
+ if(allowed<=EPS)return 0;
+ const snapshot=[...new Set([...src.ids,...dst.ids])].map(id=>[id,n(w.map.get(id)?.stocks?.stone)]);
+ // Only the source pool supplies stone; the destination uses the native D3 deposit
+ // so each accepted unit is real physical inventory, never an accounting phantom.
+ const removed=n(v.withdrawAt(choice.from,'stone',allowed));
+ const added=n(v.depositAt(choice.to,'stone',removed));
+ if(removed-added>EPS){const s=stats(w);s.failedReturns++;restorePhysical(v,snapshot);block(s,'TRANSACTION_ROLLBACK');return 0;}
+ const delta=(stock(w,src.ids)+stock(w,dst.ids))-(beforeSrc+beforeDst);
+ if(Math.abs(delta)>1e-5){const s=stats(w);s.physicalMismatch++;restorePhysical(v,snapshot);block(s,'CONSERVATION_ROLLBACK');return 0;}
+ return added;
+}
+const time=w=>n(w.calendarOrdinalDay?.()??((n(w.year)-1)*360+(n(w.quarter)-1)*90+n(w.day)));
+function redistribute(w,{force=false}={}){
+ if(!w)return null;const s=stats(w),day=time(w);if(!force&&(day%3!==0||day===s.lastDay))return s;
+ s.lastDay=day;s.pulses++;
+ for(const v of w.activeVillages||[]){const all=groups(v,w),sources=all.filter(g=>g.excess>EPS).sort((a,b)=>b.excess-a.excess||a.anchor-b.anchor);if(!sources.length)continue;
+ let sent=0;for(const src of sources){if(sent>=3)break;
+  let rem=Math.max(0,stock(w,src.ids)-cap(v,src.ids));if(rem<=EPS)continue;
+  // Cheap geographic shortlist before expensive path search. Retry a second
+  // group if the nearest targets are disconnected/occupied, not every nation tile.
+  const options=all.filter(dst=>dst.id!==src.id&&cap(v,dst.ids)-stock(w,dst.ids)>EPS)
+   .map(dst=>({dst,proximity:Math.min(...src.ids.flatMap(id=>dst.ids.map(j=>{
+    const a=w.map.get(id),b=w.map.get(j);return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+   })))})).sort((a,b)=>a.proximity-b.proximity||a.dst.anchor-b.dst.anchor);
+  let reachable=[];
+  for(let start=0;start<options.length&&reachable.length===0&&start<24;start+=12){
+   reachable=options.slice(start,start+12).map(({dst})=>({dst,way:route(v,w,src,dst)})).filter(x=>x.way);
+  }
+  reachable.sort((a,b)=>a.way.cost-b.way.cost||b.dst.room-a.dst.room||a.dst.anchor-b.dst.anchor);
+  if(!reachable.length){block(s,options.length?'NO_ROUTE':'NO_CAPACITY');continue;}
+  for(const {dst,way} of reachable){if(sent>=3||rem<=EPS)break;
+   // G2/G2A food is processed before this H4C post-day pulse; same endpoint
+   // capacity is shared instead of granting a second full food+stone shipment.
+   const food=NS.V034G2A?.routes?.(w)||[];
+   let spent=0;for(let i=food.length-1;i>=0;i--){const f=food[i];if(n(f.day)!==day)continue;if(same(f.nation,v.name)&&n(f.fromTileId)===way.from&&n(f.toTileId)===way.to)spent+=n(f.qty);}
+   const remaining=Math.max(0,way.capacity-spent);if(remaining<=EPS){block(s,'CARRIER_RESERVED_FOR_FOOD');continue;}
+   const moved=move(v,w,src,dst,way,Math.min(rem,remaining));if(moved<=EPS)continue;
+   sent++;rem-=moved;s.shipments++;s.quantity+=moved;
+   v.logisticsStats=v.logisticsStats||{};v.logisticsStats.moves=n(v.logisticsStats.moves)+1;v.logisticsStats.stoneMoved=n(v.logisticsStats.stoneMoved)+moved;
+   const record={day,simTime:w.timestamp?.()||'',nationId:v.id,nation:v.name,fromSettlementId:src.id,toSettlementId:dst.id,fromTileId:way.from,toTileId:way.to,routeCost:+way.cost.toFixed(3),qty:+moved.toFixed(5),excessAfter:+Math.max(0,rem).toFixed(5)};
+   s.latest.push(record);if(s.latest.length>70)s.latest.shift();
+   w.telemetry?.record?.('STORAGE_OVERFLOW_TRANSFER34H4C',w,record);
+  }
+ }
+ }
+ return s;
+}
+const prevAdvance=NS.World.prototype.advanceOneDay;
+NS.World.prototype.advanceOneDay=function(...args){const out=prevAdvance.apply(this,args);redistribute(this);return out;};
+function summary(w){const s=stats(w),overflow=NS.V034H4?.storageDiagnosis?.(w)||[];return {version:VERSION,shipments:s.shipments,quantity:+s.quantity.toFixed(5),blockedDeposits:s.blockedDeposits,blockedQuantity:+s.blockedQuantity.toFixed(5),physicalMismatch:s.physicalMismatch,failedReturns:s.failedReturns,blocked:s.blocked,latest:s.latest.slice(-20),pending:overflow.length,pendingQuantity:+overflow.reduce((x,r)=>x+n(r.excess),0).toFixed(5)};}
+function strokeNeutralBorders(ui){if((ui.h1BoundaryMode||'all')!=='all')return;const w=ui.world,g=ui._mapGeom,canvas=ui.q?.('worldCanvas');if(!w||!g||!canvas)return;const ctx=canvas.getContext('2d');if(!ctx||!g.cell)return;
+ const {cell,ox,oy}=g;ctx.save();ctx.beginPath();ctx.rect(ox,oy,w.map.width*cell,w.map.height*cell);ctx.clip();ctx.beginPath();let count=0;
+ for(const t of w.map.tiles){if(t.ownerId==null)continue;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const other=w.map.at(t.x+dx,t.y+dy);if(!other||other.ownerId!=null)continue;
+ const x=ox+(t.x+(dx===1?1:0))*cell,y=oy+(t.y+(dy===1?1:0))*cell;
+ ctx.moveTo(x,y);ctx.lineTo(x+(dy!==0?cell:0),y+(dx!==0?cell:0));count++;}}
+ if(count){ctx.strokeStyle='#000000';ctx.lineWidth=Math.max(2.3,cell*.115)*.70;ctx.lineJoin='round';ctx.lineCap='square';ctx.globalAlpha=1;ctx.stroke();}ctx.restore();}
+const proto=NS.UI?.prototype;
+if(proto){const prevMap=proto.renderMap,prevHeader=proto.renderHeader;proto.renderMap=function(...a){const out=prevMap.apply(this,a);strokeNeutralBorders(this);return out;};proto.renderHeader=function(...a){const out=prevHeader.apply(this,a);refresh();return out;};}
+function ensureStorageExport(ui){
+ if(typeof document==='undefined'||!ui?.world)return;
+ const near=document.getElementById('h4aExportStorage');if(!near||document.getElementById('h4cExportStorage'))return;
+ const btn=document.createElement('button');btn.id='h4cExportStorage';btn.type='button';
+ btn.textContent='H4C · 초과 석재 운송 진단 JSON';btn.style.marginLeft='8px';
+ btn.onclick=()=>NS.SaveSystem.exportH4CStorage(ui.world);near.insertAdjacentElement('afterend',btn);
+}
+if(proto){const prior=proto.renderWorld;proto.renderWorld=function(...args){const out=prior.apply(this,args);ensureStorageExport(this);return out;};}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from,oldJSON=NS.Telemetry.prototype.toJSON,oldSave=NS.SaveSystem;
+NS.World.prototype.serialize=function(...a){const d=oldSerialize.apply(this,a);d.version=VERSION;return d;};
+NS.World.from=function(d,...a){return oldFrom.call(this,d?.version===VERSION?{...d,version:PREV}:d,...a);};
+NS.Telemetry.prototype.toJSON=function(...a){const j=oldJSON.apply(this,a);j.version=VERSION;if(a[0]&&j.worldSummary)j.worldSummary.v034h4c=summary(a[0]);return j;};
+const saveFile=(name,obj)=>{const url=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+NS.SaveSystem={...oldSave,
+ save(w){try{localStorage.setItem(KEY,JSON.stringify(w.serialize()));}catch(e){throw Error('저장 공간이 부족합니다. JSON 파일로 내보내 주세요. '+e.message);}},
+ load(){const s=localStorage.getItem(KEY);return s?NS.World.from(JSON.parse(s)):oldSave.load?.();},
+ export(w){saveFile(`village-observer-v034H4C-save-${w.year}y.json`,w.serialize());},
+ exportDevJSON(w){saveFile(`village-observer-v034H4C-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));},
+ exportH4CStorage(w){saveFile(`vilob-h4c-storage-${w.year}y.json`,{version:VERSION,simTime:w.timestamp?.(),summary:summary(w),physical:NS.V034H4A?.diagnosis?.(w)});}
+};
+function refresh(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;const b=document.getElementById('versionBadge');if(b){b.textContent='Village Observer · '+VERSION;b.dataset.runtimeVersion=VERSION;}}
+NS.RELEASE_VERSION=VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-20',title:'석재 초과 재분배·국가 전체 외곽선',summary:'과거의 초과 석재는 보존하되 신규 입고는 Settlement 전체 용량 기준으로 제한하고, 실제 통행 가능한 국가 내 정착지로 초과분을 물리 운송합니다. 중립 육지·수역 접경까지 국가 검은 외곽선을 확장합니다.',sections:[['석재 저장',['이미 존재하는 초과 재고는 삭제하지 않습니다.','일반 석재 입고는 정착지 공동 상한에 따라 차단하고, 3일마다 실제 경로·용량 내에서 최대 3건씩 재분배합니다.','실물 재고의 출발·도착 보존식 검사와 반송 실패 롤백을 시행합니다.']],['지도',['국가-국가 경계뿐 아니라 국가-중립 육지 및 국가-물 접경을 H4B와 같은 검은 두께로 그립니다.','세계 국가 비교 색상 막대와 선택 강조 모드는 변경하지 않습니다.']],['관측',['Devlog v034h4c 항목에 배송량·보존식·차단 건수·잔여 초과량을 표시합니다.']]]});
+NS.V034H4C=Object.freeze({version:VERSION,groups,redistribute,summary,strokeNeutralBorders,withReturn,move});
+try{refresh();}catch(_e){}
+})(window.VSim);
+
+</script>
+<script>
+/* Village Observer V0.35A — opt-in runtime profiler and reproducible measurement foundation.
+ * Does not change simulation rules, PRNG, saves, production, resource flow or scheduling.
+ * No high-frequency wrappers are installed unless the operator explicitly starts profiling.
+ */
+(function(NS){'use strict';
+const VERSION='V0.35A',PREV='V0.34H4C',KEY='village-observer-v035a';
+const catalog=[
+ ['World','advanceOneDay','SIM · 하루 전체',1],
+ ['Person','act','Person · 행동',16],
+ ['Person','metabolism','Person · 신진대사',16],
+ ['Village','dailyTick','국가 · 일일 처리',1],
+ ['Village','seasonalTick','국가 · 분기 처리',1],
+ ['Village','yearlyTick','국가 · 연간 처리',1],
+ ['VillageBrain','seasonalDecision','AI · 분기 판단',1],
+ ['Village','processBuildingMaintenance','경제 · 유지보수',1],
+ ['Village','maintainSettlements','경제 · 유지관리',1],
+ ['Village','progressConstruction','건설 · 공사 진행',8],
+ ['Village','withdrawNetwork','물류 · 공동 출고',8],
+ ['Village','internalPathCost','물류 · 경로 조회',16],
+ ['Village','internalLogisticsCapacity','물류 · 운송 용량',16],
+ ['Village','depositAt','자원 · 입고',16],
+ ['Village','withdrawAt','자원 · 출고',16],
+ ['Village','stockAt','자원 · 재고 조회',32],
+ ['Village','population','정착지 · 인구 조회',32],
+ ['Village','foodReserveDays','식량 · 비축일',16],
+ ['Village','seasonalTick','분기 전체 (참조)',1],
+ ['UI','renderMap','UI · 지도 렌더',1],
+ ['UI','renderWorld','UI · 세계 패널',1],
+ ['UI','renderStats','UI · 통계 패널',1],
+ ['UI','renderHeader','UI · 상단 렌더',1]
+];
+let current=null, last=null;
+function timer(){return (typeof performance!=='undefined'&&typeof performance.now==='function')?performance.now():Date.now();}
+function values(ms){const a=[...ms].sort((x,y)=>x-y);return {p50:a.length?a[Math.floor((a.length-1)*.5)]:0,p95:a.length?a[Math.floor((a.length-1)*.95)]:0};}
+function emptyRow(label,interval){return {label,interval,calls:0,samples:0,sum:0,max:0,latency:[]};}
+function start(w,opts={}){
+ if(!w||!NS.World||!NS.Person||!NS.Village)throw Error('계측할 세계가 없습니다');
+ if(current)stop();
+ const divisor=Math.max(1,Math.min(32,Math.floor(Number(opts.sampleDivider)||1)));
+ const s={world:w,active:true,startedSimTime:w.timestamp?.()||'',startYear:Number(w.year)||0,startNow:timer(),rows:Object.create(null),annual:Object.create(null),dayLatencies:[],dayCount:0,notes:[],restorations:[],inDay:false,divisor};
+ current=s;
+ const defs={World:NS.World,Person:NS.Person,Village:NS.Village,VillageBrain:NS.VillageBrain,UI:NS.UI};
+ const seen=new Set();
+ try{
+  for(const [cls,method,label,baseInterval] of catalog){
+   const key=cls+'.'+method;if(seen.has(key))continue;seen.add(key);
+   const owner=defs[cls]?.prototype,orig=owner?.[method];if(typeof orig!=='function')continue;
+   const interval=key==='World.advanceOneDay'||key.startsWith('UI.')?1:Math.max(1,baseInterval*divisor);
+   s.rows[key]=emptyRow(label,interval);
+   const instrumented=function(...args){
+    const applicable=s.active&&(cls==='UI'?this.world===s.world:s.inDay||key==='World.advanceOneDay')&&(cls==='World'?this===s.world:cls!=='UI'||this.world===s.world);
+    if(!applicable)return orig.apply(this,args);
+    const row=s.rows[key],idx=++row.calls,timed=(idx%interval===0||interval===1),before=timed?timer():0;
+    if(key==='World.advanceOneDay')s.inDay=true;
+    try{return orig.apply(this,args);}finally{
+      if(timed){const elapsed=Math.max(0,timer()-before);row.samples++;row.sum+=elapsed;row.max=Math.max(row.max,elapsed);if(row.latency.length<256)row.latency.push(elapsed);else row.latency[(row.samples-1)%256]=elapsed;
+       if(key==='World.advanceOneDay'){
+        s.dayCount++;const year=Number(s.world.year)||0,a=s.annual[year]||(s.annual[year]={year,days:0,sum:0,max:0,latencies:[]});a.days++;a.sum+=elapsed;a.max=Math.max(a.max,elapsed);
+        if(a.latencies.length<96)a.latencies.push(elapsed);else a.latencies[(a.days-1)%96]=elapsed;
+        if(s.dayLatencies.length<512)s.dayLatencies.push(elapsed);else s.dayLatencies[(s.dayCount-1)%512]=elapsed;
+       }
+      }
+      if(key==='World.advanceOneDay')s.inDay=false;
+    }
+   };
+   owner[method]=instrumented;s.restorations.push([owner,method,orig,instrumented]);
+  }
+ }catch(e){for(const [owner,method,orig,instrumented] of s.restorations.reverse())if(owner[method]===instrumented)owner[method]=orig;current=null;throw e;}
+ return report(s);
+}
+function stop(){if(!current)return last;const s=current;s.active=false;
+ for(const [owner,method,orig,instrumented] of s.restorations.reverse())if(owner[method]===instrumented)owner[method]=orig;
+ s.restorations.length=0;s.finishedNow=timer();s.finishedSimTime=s.world.timestamp?.()||'';last=report(s);current=null;return last;
+}
+function report(s=current){if(!s)return last||null;
+ const rows=Object.entries(s.rows).map(([id,r])=>{
+   const mean=r.samples?r.sum/r.samples:0;
+   return {id,category:r.label,samplingEvery:r.interval,calls:r.calls,timedCalls:r.samples,sampledTotalMs:+r.sum.toFixed(4),estimatedInclusiveMs:+(mean*r.calls).toFixed(4),meanSampleMs:+mean.toFixed(6),maxSampleMs:+r.max.toFixed(5),p95SampleMs:+values(r.latency).p95.toFixed(5)};
+ }).sort((a,b)=>b.estimatedInclusiveMs-a.estimatedInclusiveMs);
+ const total=rows.find(x=>x.id==='World.advanceOneDay')?.sampledTotalMs||0;
+ const annual=Object.values(s.annual).sort((a,b)=>a.year-b.year).map(a=>({year:a.year,days:a.days,meanDailyMs:+(a.sum/a.days).toFixed(4),maxDailyMs:+a.max.toFixed(4),p95DailyMs:+values(a.latencies).p95.toFixed(4)}));
+ let f0=null;try{if(NS.V034F0?.performanceReport)f0=NS.V034F0.performanceReport(s.world);}catch(_){}
+ return {format:'vilob-v035a-profile-v1',version:VERSION,simTime:s.world.timestamp?.()||'',startedSimTime:s.startedSimTime,finishedSimTime:s.finishedSimTime||null,active:!!s.active,observedDays:s.dayCount,sampleDivider:s.divisor,elapsedRealMs:+((s.finishedNow||timer())-s.startNow).toFixed(3),simulationDayTotalMs:total,
+  interpretation:{scope:'World.advanceOneDay: sampled complete simulation days; method probes: inclusive wall-clock sampled at deterministic call intervals',overlap:'Nested method inclusive times overlap; NEVER add row totals or treat each category as exclusive.',sampling:'estimatedInclusiveMs = sampled mean × observed calls; low sample counts / expensive uneven calls need longer runs.',instrumentation:'Enable profiler measures additional wrapper and timer overhead; use unprofiled A/B to assess actual speed.',coverage:'Only explicitly named methods are covered. Unmeasured time and internal lexical functions are not assigned to a category.',device:'Node VM and Chromium UI timings are NOT directly comparable to browser ×10 SIM/BATCH or Wall.'},rows,top10:rows.filter(r=>r.id!=='World.advanceOneDay'&&!r.id.startsWith('UI.')).slice(0,10),annual,f0Performance:f0,memoryHint:typeof performance!=='undefined'&&performance.memory?{usedJSHeapSize:performance.memory.usedJSHeapSize,totalJSHeapSize:performance.memory.totalJSHeapSize}:null};
+}
+const oldSerialize=NS.World.prototype.serialize,oldFrom=NS.World.from,oldDevlog=NS.Telemetry.prototype.toJSON,oldSave=NS.SaveSystem;
+NS.World.prototype.serialize=function(...a){const d=oldSerialize.apply(this,a);d.version=VERSION;return d;};
+NS.World.from=function(d,...a){return oldFrom.call(this,d?.version===VERSION?{...d,version:PREV}:d,...a);};
+NS.Telemetry.prototype.toJSON=function(...a){const d=oldDevlog.apply(this,a);d.version=VERSION;return d;};
+function download(name,value){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+NS.SaveSystem={...oldSave,
+ save(w){try{localStorage.setItem(KEY,JSON.stringify(w.serialize()));}catch(e){throw Error('저장 공간이 부족합니다. JSON으로 내보내 주세요. '+e.message);}},
+ load(){const str=localStorage.getItem(KEY);return str?NS.World.from(JSON.parse(str)):oldSave.load?.();},
+ export(w){download(`village-observer-v035A-save-${w.year}y.json`,w.serialize());},
+ exportDevJSON(w){download(`village-observer-v035A-devlog-${w.telemetry.sessionId}.json`,w.telemetry.toJSON(w));},
+ export35AProfile(w){const data=report();if(!data)throw Error('먼저 계측을 시작해 주세요');download(`vilob-v035A-profile-${w.year}y.json`,data);}
+};
+function panel(ui){if(typeof document==='undefined'||!ui?.world)return;
+ let area=document.getElementById('v035aProfilePanel');if(!area){const host=document.getElementById('h3Diagnostics')||document.getElementById('h3Advanced')||document.getElementById('v034f0PerfPanel');if(!host)return;
+  area=document.createElement('div');area.id='v035aProfilePanel';area.className='panel';area.style.marginTop='8px';area.innerHTML='<div class="section-head"><h3>35A · 정밀 성능 계측</h3><span class="tag">진단 전용</span></div><div class="small muted">기본 비활성 · 시작 시에만 계측 래퍼 설치 · 종료 시 원상 복구</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0"><button type="button" id="v035aStart">계측 시작</button><button type="button" id="v035aStop">계측 종료</button><button type="button" id="v035aExport">계측 JSON</button></div><div id="v035aText" class="small muted">계측 기록 없음</div><div id="v035aTop" class="small muted"></div>';
+  host.appendChild(area);area.querySelector('#v035aStart').onclick=()=>{start(ui.world);panel(ui);};area.querySelector('#v035aStop').onclick=()=>{stop();panel(ui);};area.querySelector('#v035aExport').onclick=()=>NS.SaveSystem.export35AProfile(ui.world);
+ }
+ const r=report(),txt=area.querySelector('#v035aText'),top=area.querySelector('#v035aTop');if(txt)txt.textContent=r?`${r.active?'계측 중':'계측 종료'} · ${r.observedDays}일 · 일일 평균 ${(r.simulationDayTotalMs/Math.max(1,r.observedDays)).toFixed(2)}ms · 측정값에는 계측 오버헤드 포함`:'계측 기록 없음';
+ if(top&&r)top.textContent='추정 상위: '+r.top10.slice(0,3).map(x=>`${x.category} ${x.estimatedInclusiveMs.toFixed(0)}ms (${x.calls}회)`).join(' / ');
+ if(area.querySelector('#v035aStart'))area.querySelector('#v035aStart').disabled=!!current&&current.world===ui.world;
+ if(area.querySelector('#v035aStop'))area.querySelector('#v035aStop').disabled=!current;
+}
+const P=NS.UI?.prototype;
+if(P){const before=P.renderWorld;P.renderWorld=function(...a){const out=before.apply(this,a);panel(this);return out;};}
+function refresh(){if(typeof document==='undefined')return;document.title='Village Observer '+VERSION;const badge=document.getElementById('versionBadge');if(badge){badge.textContent='Village Observer · '+VERSION;badge.dataset.runtimeVersion=VERSION;}}
+if(P){const oldHeader=P.renderHeader;P.renderHeader=function(...a){const out=oldHeader.apply(this,a);refresh();return out;};}
+NS.RELEASE_VERSION=VERSION;
+if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-20',title:'Performance Baseline & Profiler V2',summary:'V0.34H4C의 게임 규칙을 유지하고, 사용자 선택 계측과 함수 호출량·비용·연도별 증가 분석을 도입합니다.',sections:[['실측 기반',['계측 시작 후 Person·Settlement·물류·AI·시즌·렌더 핵심 함수의 호출량과 샘플 시간을 JSON으로 추출합니다.','중첩 함수의 시간은 inclusive이므로 합산하지 않습니다. 프로파일러 자체 오버헤드를 감안해 비계측 A/B 검증을 별도로 수행합니다.']],['안전성',['기본 비활성. 계측 종료 시 메서드를 원본으로 되돌리며 세이브에 진단 상태를 저장하지 않습니다.','생산·물류·Person·AI·전투·RNG·Gold·기술·CSV 스키마를 변경하지 않습니다.']],['기준선',['같은 저장 파일을 사용하는 H4C↔35A 실행 비교 도구를 제공하고 실제 90년 원본 세이브는 사용자 기기에서만 선택할 수 있습니다.']]]});
+NS.V035A=Object.freeze({version:VERSION,start,stop,report:()=>report(),isActive:()=>!!current,probeCatalog:catalog.map(x=>[...x])});
+try{refresh();}catch(_e){}
 })(window.VSim);
 
 </script>

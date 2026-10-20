@@ -1,3 +1,11 @@
+## V0.35A 계측 전용 패치
+
+전체 설명: `README-35A.md`. 브라우저의 세계 탭 → 고급 도구에서 계측 시작/종료 후 JSON으로 분석할 수 있습니다. 동일 저장파일 로컬 A/B: `npm run bench:35a -- --save "<save.json>" --days 30 --runs 3 --output 35a-benchmark.json`.
+
+## 현재 릴리스 V0.34H4B
+
+`npm run build && npm test`를 실행합니다. H4B 엔진 로딩은 H4A bootstrap 다음의 `src/bootstrap/v034h4b.js`입니다. Standalone과 Hosted를 모두 업데이트하고, 루트 `index.html`과 `dist/hosted/assets`를 함께 배포하세요. 상세: `README-34H4B.md`, `TEST-34H4B.md`.
+
 ## 현재 릴리스 V0.34H4
 
 - 빌드 `npm run build`, GitHub Pages 필수 CI `npm test` (H4 10일 동등성 검증 포함).
@@ -116,3 +124,10 @@ D1A 노동 분류 Bootstrap: `src/bootstrap/v034d1a.js` — D1 다음 실행.
 ## V0.34G1A 추가
 
 `src/bootstrap/v034g1a.js`는 G1 부트스트랩 뒤 로드됩니다. G1A는 protected source 불변을 유지하고 `tools/g1-transform.mjs`로 관측 호출만 추가합니다. `npm run build`는 Standalone/Hosted를 동일하게 배포하며 테스트는 `tests/test-g1a.cjs`, `tests/browser-g1a-smoke.py`를 참조합니다.
+
+
+## V0.34H4A 배포
+`npm run build` 후 `npm test` 확인. GitHub Pages는 루트 `index.html`과 `dist/hosted/assets/bootstrap/v034h4a.js`를 포함한 전체 빌드 자산을 함께 업로드합니다. 로컬 `index-standalone.html`은 독립 실행용입니다. 상세 README-34H4A.md 참조.
+
+## V0.34H4C 배포
+`npm run build` 후 `npm test`. GitHub Pages에는 root `index.html`과 `dist/hosted/assets/bootstrap/v034h4c.js`를 포함한 완전한 `dist/hosted/assets` 배포가 필요합니다. 단독 실행용 `index-standalone.html`; [패치노트](README-34H4C.md)·[검증](TEST-34H4C.md).

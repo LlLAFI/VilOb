@@ -60,10 +60,10 @@ function drawBoundaries(ui){const w=ui.world,mode=ui.h1BoundaryMode||'all',geo=u
  ctx.globalAlpha=1;
  for(const g of groups){const active=mode==='all'||g.sid===selected;
   if(mode==='selected'&&!active)continue;
-  const width=Math.max(mode==='selected'?2.2:1.6,cell*(mode==='selected'?.105:.075));
+  const baseWidth=Math.max(mode==='selected'?2.2:1.6,cell*(mode==='selected'?.105:.075));const width=mode==='all'?baseWidth*.70:baseWidth;
   function trace(){ctx.beginPath();for(const [x1,y1,x2,y2] of g.edges){ctx.moveTo(ox+x1*cell,oy+y1*cell);ctx.lineTo(ox+x2*cell,oy+y2*cell);}}
   ctx.lineJoin='round';ctx.lineCap='square';
-  trace();ctx.strokeStyle='rgba(7,17,26,.92)';ctx.lineWidth=width+2.1;ctx.stroke();
+  trace();ctx.strokeStyle='rgba(7,17,26,.92)';ctx.lineWidth=mode==='all'?(baseWidth+2.1)*.70:width+2.1;ctx.stroke();
   trace();ctx.strokeStyle=g.color;ctx.lineWidth=width;ctx.stroke();
   if(mode==='selected'&&active&&g.core!=null){const t=w.map.get(g.core);if(t){ctx.beginPath();ctx.arc(ox+(t.x+.5)*cell,oy+(t.y+.5)*cell,Math.max(2.5,cell*.105),0,Math.PI*2);ctx.fillStyle='#fff5cf';ctx.fill();ctx.strokeStyle='#172d40';ctx.lineWidth=1.9;ctx.stroke();}}
  }

@@ -1,3 +1,19 @@
+## V0.35A 계측 전용 패치
+
+전체 설명: `README-35A.md`. 브라우저의 세계 탭 → 고급 도구에서 계측 시작/종료 후 JSON으로 분석할 수 있습니다. 동일 저장파일 로컬 A/B: `npm run bench:35a -- --save "<save.json>" --days 30 --runs 3 --output 35a-benchmark.json`.
+
+# 최신 패치: V0.34H4C — 석재 초과 물류·국가 외곽선 확장
+
+[H4C 변경사항 및 배포](README-34H4C.md) | [H4C 검증 보고](TEST-34H4C.md)
+
+# 최신 패치: V0.34H4B — 지도 경계 조정·세계 국가색·석재 원인 재현
+
+[H4B 변경사항 및 배포](README-34H4B.md) | [H4B 테스트 보고](TEST-34H4B.md)
+
+# 최신 패치: V0.34H4A
+
+[H4A 변경사항 및 배포](README-34H4A.md) | [H4A 테스트 보고](TEST-34H4A.md)
+
 # 최신 패치: V0.34H4 — 장기 무결성·D3 저장용량 경량화
 
 석재 저장 초과의 원인 후보를 구분하고, 공동 Settlement 창고용량 계산을 중복 없이 수행합니다. 모든 기존 재고·AI·전투·RNG 규칙은 유지하며 실제 88년 Save JSON 재검증은 남아 있습니다. [README-34H4.md](README-34H4.md) · [TEST-34H4.md](TEST-34H4.md).
