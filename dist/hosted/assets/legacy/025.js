@@ -54,6 +54,22 @@ function settlementPressure35DImpl(v,t,w,tradeIndex=null){const people=v.tileRes
  production:clamp(resourceSignal*42+Math.max(...Object.values(prices).map((p,i)=>p/Object.values(BASE_PRICE)[i]))*12,0,100)
  };}
 
+function demandDevelopment35FProfiled(v,w){
+ const p=NS.V035F,measure=(key,fn)=>p.measure(key,fn);if(v.status!=='active')return false;
+ return measure('development',()=>{
+ const tradeIndex=measure('tradeIndex',()=>v.territory.size>=3&&(v.tradeHistory||[]).length>=8?tradeVolumeIndex35D(v,w):null);
+ const rows=measure('rowsBuild',()=>[...v.territory].map(id=>w.map.get(id)).filter(Boolean).map(t=>({t,p:settlementPressure(v,t,w,tradeIndex)})));
+ measure('rowsSort',()=>rows.sort((a,b)=>Math.max(b.p.housing,b.p.storage,b.p.commerce)-Math.max(a.p.housing,a.p.storage,a.p.commerce)));
+ p.count('territoryRows',rows.length);
+ for(const x of rows){const t=x.t;p.count('candidateVisits');
+  if(measure('projectBusy',()=>projectBusy(v,t.id))){p.count('busySkipped');continue;}
+  if(x.p.housing>=82){p.count('housingEligible');if(measure('housingAttempt',()=>v.buildHouse(w))){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'housing',score:+x.p.housing.toFixed(1)});p.count('housingStarted');return true;}p.count('housingFailed');}
+  if(x.p.storage>=84){p.count('storageScoreEligible');if(measure('storageRequirements',()=>!t.hasBuilding('warehouse')&&remainingSpace(v,t)>=buildingFootprint('warehouse'))){p.count('storageAttempt');if(measure('storageConstruction',()=>v.startConstruction(w,t.id,'warehouse','STORAGE_DEMAND'))){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'storage',score:+x.p.storage.toFixed(1)});p.count('storageStarted');return true;}p.count('storageFailed');}}
+  if(x.p.commerce>=76){p.count('commerceScoreEligible');if(measure('commerceRequirements',()=>v.hasTech('BARTER')&&!t.hasBuilding('trading_post')&&remainingSpace(v,t)>=buildingFootprint('trading_post'))){p.count('commerceAttempt');if(measure('commerceConstruction',()=>v.startConstruction(w,t.id,'trading_post','COMMERCE_DEMAND'))){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'commerce',score:+x.p.commerce.toFixed(1)});p.count('commerceStarted');return true;}p.count('commerceFailed');}}
+ }
+ return false;
+ });
+}
 /* ---------- land development ---------- */
 function landProjects(v){v.landDevelopmentProjects=Array.isArray(v.landDevelopmentProjects)?v.landDevelopmentProjects:[];return v.landDevelopmentProjects;}
 function upgradeProjects(v){v.buildingUpgradeProjects=Array.isArray(v.buildingUpgradeProjects)?v.buildingUpgradeProjects:[];return v.buildingUpgradeProjects;}
@@ -91,7 +107,8 @@ NS.Village.prototype.dailyTick=function(w){daily16.call(this,w);progressLandDeve
 /* ---------- demand-driven extra settlement development (one attempt per season) ---------- */
 function demandDevelopment(v,w){const d=NS.V035D;return d?.isMeasuring?.()?d.measure('demandDevelopment',()=>demandDevelopment35DImpl(v,w)):demandDevelopment35DImpl(v,w);}
 function demandDevelopment35DImpl(v,w){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('demandDevelopment',()=>demandDevelopment35DImpl35EImpl(v,w)):demandDevelopment35DImpl35EImpl(v,w);}
-function demandDevelopment35DImpl35EImpl(v,w){if(v.status!=='active')return false;const tradeIndex=v.territory.size>=3&&(v.tradeHistory||[]).length>=8?tradeVolumeIndex35D(v,w):null;const rows=[...v.territory].map(id=>w.map.get(id)).filter(Boolean).map(t=>({t,p:settlementPressure(v,t,w,tradeIndex)}));rows.sort((a,b)=>Math.max(b.p.housing,b.p.storage,b.p.commerce)-Math.max(a.p.housing,a.p.storage,a.p.commerce));for(const x of rows){const t=x.t;if(projectBusy(v,t.id))continue;if(x.p.housing>=82&&v.buildHouse(w)){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'housing',score:+x.p.housing.toFixed(1)});return true;}if(x.p.storage>=84&&!t.hasBuilding('warehouse')&&remainingSpace(v,t)>=buildingFootprint('warehouse')&&v.startConstruction(w,t.id,'warehouse','STORAGE_DEMAND')){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'storage',score:+x.p.storage.toFixed(1)});return true;}if(x.p.commerce>=76&&v.hasTech('BARTER')&&!t.hasBuilding('trading_post')&&remainingSpace(v,t)>=buildingFootprint('trading_post')&&v.startConstruction(w,t.id,'trading_post','COMMERCE_DEMAND')){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'commerce',score:+x.p.commerce.toFixed(1)});return true;}}return false;}
+function demandDevelopment35DImpl35EImpl(v,w){const f=NS.V035F;return f?.isMeasuring?.()?demandDevelopment35FProfiled(v,w):demandDevelopment35FOriginal(v,w);}
+function demandDevelopment35FOriginal(v,w){if(v.status!=='active')return false;const tradeIndex=v.territory.size>=3&&(v.tradeHistory||[]).length>=8?tradeVolumeIndex35D(v,w):null;const rows=[...v.territory].map(id=>w.map.get(id)).filter(Boolean).map(t=>({t,p:settlementPressure(v,t,w,tradeIndex)}));rows.sort((a,b)=>Math.max(b.p.housing,b.p.storage,b.p.commerce)-Math.max(a.p.housing,a.p.storage,a.p.commerce));for(const x of rows){const t=x.t;if(projectBusy(v,t.id))continue;if(x.p.housing>=82&&v.buildHouse(w)){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'housing',score:+x.p.housing.toFixed(1)});return true;}if(x.p.storage>=84&&!t.hasBuilding('warehouse')&&remainingSpace(v,t)>=buildingFootprint('warehouse')&&v.startConstruction(w,t.id,'warehouse','STORAGE_DEMAND')){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'storage',score:+x.p.storage.toFixed(1)});return true;}if(x.p.commerce>=76&&v.hasTech('BARTER')&&!t.hasBuilding('trading_post')&&remainingSpace(v,t)>=buildingFootprint('trading_post')&&v.startConstruction(w,t.id,'trading_post','COMMERCE_DEMAND')){w.telemetry.record('SETTLEMENT_DEMAND_ACTION',w,{village:v.name,tileId:t.id,demand:'commerce',score:+x.p.commerce.toFixed(1)});return true;}}return false;}
 const seasonal16=NS.Village.prototype.seasonalTick;
 NS.Village.prototype.seasonalTick=function(w){seasonal16.call(this,w);demandDevelopment(this,w);};
 

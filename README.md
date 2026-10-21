@@ -1,3 +1,7 @@
+# 최신 릴리스: V0.35F
+
+V0.35F 개발·건설 정밀 계측 및 원본 건설 정책 보존. 변경·검증·배포 안내는 [README-35F.md](README-35F.md), [TEST-35F.md](TEST-35F.md)를 참고하세요.
+
 # Village Observer — V0.35E
 
 최신 패치: [README-35E.md](README-35E.md) · 회귀 검증: [TEST-35E.md](TEST-35E.md)

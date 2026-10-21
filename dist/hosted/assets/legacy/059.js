@@ -168,7 +168,8 @@ function readiness32C1(v,w,ignoreCapacity=false){
  const row=rows.find(x=>Number(x.f?.funding||0)+1e-9>=Number(x.f?.goldCost||0));if(!row){const best=rows[0];return{...n,ready:false,blocker:'GOLD',cap,projects,row:best,funding:best?.f};}
  return{...n,ready:true,blocker:'NONE',cap,projects,row,funding:row.f};
 }
-function shouldReserve32C1(v,w){const r=readiness32C1(v,w,true);return{...r,reserve:!!r.ready&&r.projects>=Math.max(0,r.cap-1)&&r.projects<r.cap};}
+function shouldReserve32C1(v,w){const f=NS.V035F;return f?.isMeasuringDevelopment?.()?f.measure('militaryReserve32C1',()=>shouldReserve32C135FOriginal(v,w)):shouldReserve32C135FOriginal(v,w);}
+function shouldReserve32C135FOriginal(v,w){const r=readiness32C1(v,w,true);return{...r,reserve:!!r.ready&&r.projects>=Math.max(0,r.cap-1)&&r.projects<r.cap};}
 function emergency32C1(v,w,type){if(['iron_mine','smelter','smithy','barracks','training_ground','armory'].includes(type))return true;const fd=Number(v.foodReserveDays?.()||0);if(type==='outpost')return true;if((type==='farmstead'||type==='granary')&&(fd<28||Number(v.avgHunger?.()||0)>48))return true;if(type==='house'){const occ=Number(v.population?.()||0)/Math.max(1,Number(v.capacity?.(w)||1));if(occ>.98)return true;}if(type==='palisade'&&Number(v.threat||0)>=35)return true;return false;}
 
 /* Military buildings can use conserved settlement market surplus just like strategic iron industry. */

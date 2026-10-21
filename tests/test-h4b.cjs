@@ -17,6 +17,6 @@ for(const name of ['maintainSettlements','pruneDisconnectedTerritory']){
 }
 assert.match(read('src/legacy/031.js'),/OUTPOST_ABANDONED/);
 const html=read('index-standalone.html'),hosted=read('dist/hosted/index.html');assert(html.includes('V0.34H4B')&&hosted.includes('v034h4b.js'));
-assert.equal((html.match(/<script(?:\s[^>]*)?>/g)||[]).length,214);
+assert.equal((html.match(/<script(?:\s[^>]*)?>/g)||[]).length,215);
 const baseline=JSON.parse(read('src/manifest.json'));assert.equal(baseline.blocks.length,169);
-console.log(JSON.stringify({status:'PASS',sourceContracts:true,borderScale:0.7,worldColorMarker:true,readOnlyOverflow:true,scriptBlocks:214}));
+console.log(JSON.stringify({status:'PASS',sourceContracts:true,borderScale:0.7,worldColorMarker:true,readOnlyOverflow:true,scriptBlocks:215}));

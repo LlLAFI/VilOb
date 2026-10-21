@@ -1,6 +1,6 @@
 {
   "name": "village-observer",
-  "version": "0.35.0-e",
+  "version": "0.35.0-f",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
@@ -47,7 +47,10 @@
     "test:35d": "node tests/test-35d.cjs && node tests/test-35d-parity.cjs",
     "bench:35d": "node tools/bench-35d.cjs",
     "test:35e": "node tests/test-35e.cjs && node tests/test-35e-parity.cjs",
-    "bench:35e": "node tools/bench-35e.cjs"
+    "bench:35e": "node tools/bench-35e.cjs",
+    "test:35f": "node tests/test-35f.cjs && node tests/test-35f-parity.cjs",
+    "test:35f:long": "node tests/test-35c.cjs && node tests/test-35d.cjs && node tests/test-35e-parity.cjs",
+    "bench:35f": "node tools/bench-35f.cjs"
   },
   "engines": {
     "node": ">=18"
