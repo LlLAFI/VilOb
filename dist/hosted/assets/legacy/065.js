@@ -29,16 +29,20 @@ function ensureD3(v){
 }
 function cloneSafe(x){try{return JSON.parse(JSON.stringify(x));}catch{return x;}}
 function effectiveCapD3(t){if(!t)return 0;if(NS.V011?.effectiveLocalCapacity)return Number(NS.V011.effectiveLocalCapacity(t)||0);let n=0;for(let i=0;i<(t.buildings||[]).length;i++){const b=t.buildings[i],cond=Number(t.buildingCondition?.[i]??100),eff=cond>=70?1:clamp(cond/70,0,1);n+=Number(NS.BUILDINGS?.[b]?.capacity||0)*eff;}return n;}
-function tileBusyD3(v,id){return[...(v.constructionProjects||[]).filter(p=>!p?.v17Marker),...(v.landDevelopmentProjects||[]),...(v.buildingUpgradeProjects||[]),...(v.specializationProjects||[])].some(p=>Number(p.tileId??p.targetTileId)===Number(id));}
-function housingRowsD3(v,w){if(NS.V034D2?.housingRows)return NS.V034D2.housingRows(v,w);
+function tileBusyD3(v,id){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('tileBusyD3',()=>tileBusyD335EImpl(v,id)):tileBusyD335EImpl(v,id);}
+function tileBusyD335EImpl(v,id){return[...(v.constructionProjects||[]).filter(p=>!p?.v17Marker),...(v.landDevelopmentProjects||[]),...(v.buildingUpgradeProjects||[]),...(v.specializationProjects||[])].some(p=>Number(p.tileId??p.targetTileId)===Number(id));}
+function housingRowsD3(v,w){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('housingRowsD3',()=>housingRowsD335EImpl(v,w)):housingRowsD335EImpl(v,w);}
+function housingRowsD335EImpl(v,w){if(NS.V034D2?.housingRows)return NS.V034D2.housingRows(v,w);
  const cal=CAL(w),epoch=Number(v._v26ResidentEpoch||0),cache=v._v32d3HousingRowsCache;if(cache&&cache.cal===cal&&cache.epoch===epoch&&cache.size===v.territory.size)return cache.rows;let src=[];try{src=NS.V028?.urbanSummary?.(v,w,true)?.rows||[];}catch{}
  const by=new Map(src.map(r=>[Number(r.id),r])),rows=[...v.territory].map(id=>{const t=w.map.get(id),base=by.get(Number(id)),pop=(v.tileResidents?.(id)||[]).filter(p=>p.alive).length,cap=Math.max(.1,effectiveCapD3(t)),free=Math.max(0,cap-pop),occ=pop/cap,shortage=Math.max(0,pop-cap);return{id:Number(id),t,pop,cap,free,occupancy:occ,housingShortage:Math.max(Number(base?.housingShortage||0),shortage),urbanity:Number(base?.urbanity||0),rank:base?.rank||'',foodDays:Number(base?.foodDays??v.settlementReserveDays?.(id)??0)};}).filter(r=>r.t);v._v32d3HousingRowsCache={cal,epoch,size:v.territory.size,rows};return rows;
 }
-function adminRegionKeyD3(v,w,id){try{const cal=CAL(w);let c=v._v32d3AdminKeyCache;if(!c||c.cal!==cal||c.size!==v.territory.size){const a=NS.V032D2?.adminModel?.(v,w)||NS.V032D?.adminModel?.(v,w),map=new Map();for(const r of a?.regions||[])for(const tid of r.tiles||[])map.set(Number(tid),`${r.code}:${r.hubTileId}`);c=v._v32d3AdminKeyCache={cal,size:v.territory.size,map};}return c.map.get(Number(id))||null;}catch{return null;}}
+function adminRegionKeyD3(v,w,id){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('adminRegionKeyD3',()=>adminRegionKeyD335EImpl(v,w,id)):adminRegionKeyD335EImpl(v,w,id);}
+function adminRegionKeyD335EImpl(v,w,id){try{const cal=CAL(w);let c=v._v32d3AdminKeyCache;if(!c||c.cal!==cal||c.size!==v.territory.size){const a=NS.V032D2?.adminModel?.(v,w)||NS.V032D?.adminModel?.(v,w),map=new Map();for(const r of a?.regions||[])for(const tid of r.tiles||[])map.set(Number(tid),`${r.code}:${r.hubTileId}`);c=v._v32d3AdminKeyCache={cal,size:v.territory.size,map};}return c.map.get(Number(id))||null;}catch{return null;}}
 function lifeZoneD3(v,w,id){try{const cal=CAL(w),epoch=Number(v._v26ResidentEpoch||0);let c=v._v32d3ZoneCache;if(!c||c.cal!==cal||c.epoch!==epoch){const zones=NS.V028?.urbanSummary?.(v,w)?.zones||[],map=new Map();for(const z of zones)for(const tid of z.members||[])map.set(Number(tid),z);c=v._v32d3ZoneCache={cal,epoch,map};}return c.map.get(Number(id))||null;}catch{return null;}}
-function orderedHousingScopeD3(v,w,sourceId,rows){
+function orderedHousingScopeD3(v,w,sourceId,rows){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('orderedHousingScopeD3',()=>orderedHousingScopeD335EImpl(v,w,sourceId,rows)):orderedHousingScopeD335EImpl(v,w,sourceId,rows);}
+function orderedHousingScopeD335EImpl(v,w,sourceId,rows){
  const src=w.map.get(Number(sourceId)),zone=lifeZoneD3(v,w,sourceId),zoneSet=new Set((zone?.members||[]).map(Number)),admin=adminRegionKeyD3(v,w,sourceId),seen=new Set();
- const rank=[];for(const r of rows){if(r.id===Number(sourceId))continue;let tier=4;if(zoneSet.has(r.id))tier=0;else if(admin&&adminRegionKeyD3(v,w,r.id)===admin)tier=1;else{const d=src?w.map.distance(src.id,r.id):999;if(d<=2)tier=2;else if(d<=4)tier=3;}rank.push({...r,tier,distance:src?w.map.distance(src.id,r.id):999});}
+ const rank=[];for(const r of rows){if(r.id===Number(sourceId))continue;const distance=src?w.map.distance(src.id,r.id):999;let tier=4;if(zoneSet.has(r.id))tier=0;else if(admin&&adminRegionKeyD3(v,w,r.id)===admin)tier=1;else{if(distance<=2)tier=2;else if(distance<=4)tier=3;}rank.push({...r,tier,distance});}
  rank.sort((a,b)=>a.tier-b.tier||b.free-a.free||b.urbanity-a.urbanity||a.distance-b.distance);return rank.filter(r=>{if(seen.has(r.id))return false;seen.add(r.id);return true;});
 }
 function invalidateHousingCachesD3(v){v._v26ResidentEpoch=Number(v._v26ResidentEpoch||0)+1;v._v26ResidentIndex=null;v._v27Shared=null;v._v28Rows=null;v._v28Summary=null;v._v32d3HousingRowsCache=null;v._v32d3ZoneCache=null;v._v32d3AdminKeyCache=null;}
@@ -50,7 +54,8 @@ function relocateHousingD3(v,w,source,dest){
  return moved;
 }
 function nextHousingUpgradeD3(v,type){if(type==='house'&&v.hasTech?.('URBAN_PLANNING'))return'row_house';if(type==='row_house'&&v.hasTech?.('URBANIZATION'))return'collective_house';return null;}
-function tryHousingResolveD3(v,w,sourceId,reason='HOUSING32D3'){if(NS.V034D2?.resolveHousing)return NS.V034D2.resolveHousing(v,w,sourceId,reason);
+function tryHousingResolveD3(v,w,sourceId,reason='HOUSING32D3'){const profiler=NS.V035E;return profiler?.isMeasuring?.()?profiler.measure('tryHousingResolveD3',()=>tryHousingResolveD335EImpl(v,w,sourceId,reason)):tryHousingResolveD335EImpl(v,w,sourceId,reason);}
+function tryHousingResolveD335EImpl(v,w,sourceId,reason='HOUSING32D3'){if(NS.V034D2?.resolveHousing)return NS.V034D2.resolveHousing(v,w,sourceId,reason);
  const rows=housingRowsD3(v,w),source=rows.find(r=>r.id===Number(sourceId))||[...rows].sort((a,b)=>b.occupancy-a.occupancy)[0];if(!source||(Number(source.occupancy||0)<1.12&&Number(source.housingShortage||0)<1))return false;const scope=orderedHousingScopeD3(v,w,source.id,rows);
  // 1) actual spare housing in the same life/admin sphere -> real Person relocation.
  const spare=scope.find(r=>r.free>=1&&!tileBusyD3(v,r.id));if(spare&&relocateHousingD3(v,w,source,spare)>0){ensureD3(v).h.actions++;return true;}
@@ -77,6 +82,8 @@ function housingPulseD3(v,w,force=false){
 const buildHouseD2=NS.Village.prototype.buildHouse;
 NS.Village.prototype.buildHouse=function(w){const rows=housingRowsD3(this,w).filter(r=>r.pop>0).sort((a,b)=>b.occupancy-a.occupancy||b.housingShortage-a.housingShortage),src=rows[0];if(src&&(src.occupancy>=1.12||src.housingShortage>=1)&&tryHousingResolveD3(this,w,src.id,'HOUSING_POLICY32D3'))return true;return buildHouseD2.call(this,w);};
 
+const buildHouseTop35E=NS.Village.prototype.buildHouse;
+NS.Village.prototype.buildHouse=function(w){const e=NS.V035E;return e?.isMeasuring?.()?e.measureHouseCall(this,w,()=>buildHouseTop35E.call(this,w)):buildHouseTop35E.call(this,w);};
 /* Housing reserve also participates in the existing AI reserve plan. */
 const planD2=NS.Village.prototype.updateStrategicPlan;
 if(planD2)NS.Village.prototype.updateStrategicPlan=function(w){const p=planD2.call(this,w),st=updateHousingStateD3(this,w,false);if(st.reserveActive&&p?.reserves){for(const k of ['wood','stone','food','gold'])p.reserves[k]=Math.max(Number(p.reserves[k]||0),Number(st.reserve[k]||0));p.housingReserve32D3=true;}return p;};

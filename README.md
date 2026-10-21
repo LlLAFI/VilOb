@@ -1,6 +1,8 @@
-# Village Observer — V0.35D
+# Village Observer — V0.35E
 
-최신 패치: [README-35D.md](README-35D.md) · 회귀 검증: [TEST-35D.md](TEST-35D.md)
+최신 패치: [README-35E.md](README-35E.md) · 회귀 검증: [TEST-35E.md](TEST-35E.md)
+
+V0.35D: [README-35D.md](README-35D.md) · [TEST-35D.md](TEST-35D.md)
 
 # V0.35C 최신 패치
 

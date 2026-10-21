@@ -16,6 +16,9 @@ with sync_playwright() as pw:
    p.on('pageerror',lambda e:errors.append(str(e)))
    p.set_content(html,wait_until='load',timeout=90000)
    startup=p.evaluate('''() => {const NS=VSim,ui=villageObserver,w=ui.world;return {release:NS.RELEASE_VERSION,serialize:w.serialize().version,tech:NS.TECH_ORDER.length,registry:NS.V034C.inspect(w).ok,panels:['v034f0PerfPanel','v034f1Panel'].map(id=>[id,document.getElementById(id)?.parentElement?.id,typeof document.getElementById(id)?.querySelector('button')?.onclick]),h1:!!document.getElementById('h1SettlementBoundary'),h2Views:NS.V034H2.views.length,cHistory:!!document.getElementById('v33cEngagementHistoryPanel')}}''')
+   # Regression: the initial page used to display V0.35B until renderHeader().
+   initial_version=p.evaluate('''() => ({badge:document.getElementById('versionBadge')?.textContent, title:document.title, data:document.getElementById('versionBadge')?.dataset.runtimeVersion})''')
+   assert initial_version=={'badge':'Village Observer · V0.35D','title':'Village Observer V0.35D','data':'V0.35D'},initial_version
    assert startup['release']=='V0.35D' and startup['serialize']=='V0.35D',startup
    assert startup['tech']==43 and startup['registry'] and startup['h1'] and startup['h2Views']==7,startup
    assert all(pn[1]=='h3Observer' and pn[2]=='function' for pn in startup['panels']),startup

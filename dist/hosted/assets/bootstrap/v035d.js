@@ -41,4 +41,12 @@ const UI=NS.UI?.prototype;if(UI){const original=UI.renderWorld;UI.renderWorld=fu
 NS.RELEASE_VERSION=VERSION;
 if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(p=>p.version===VERSION))NS.PATCH_NOTES.unshift({version:VERSION,date:'2026-10-21',title:'Society18 Hotpath Optimization',summary:'초기 사회·경제 분기 처리에서 반복되는 최근 거래·생산 이력 검색을 국소 최적화하고 함수별 선택 계측을 추가합니다.',sections:[['사회·경제 성능',['정착지 개발 수요 평가에서 최근 거래를 한 번의 순회로 정착지별 집계합니다.','시장 생산 이력의 30일·120일 반복 탐색을 하나의 순회로 통합합니다.']],['정밀 계측',['35D 사회·경제 상세 계측을 추가합니다.','분기 사회 계층 내 대상 함수별 호출·평균·P95·배타적/포괄 시간 비교를 내보냅니다.']],['안정성',['세계 상태·RNG·경제·행정·외교 규칙의 동일성을 유지합니다.','43기술·1683열 CSV·169개 보호 블록을 그대로 유지합니다.']]]});
 NS.V035D=Object.freeze({version:VERSION,start,stop,report,isActive:()=>!!current,isMeasuring,measure});
+// 35B initializes its version badge at bootstrap, while later releases only
+// refresh it on UI.renderHeader(). Initial load must show the actual release
+// even before the user starts the simulation or triggers another render.
+if(typeof document!=='undefined'){
+ document.title='Village Observer '+VERSION;
+ const badge=document.getElementById('versionBadge');
+ if(badge){badge.textContent='Village Observer · '+VERSION;badge.dataset.runtimeVersion=VERSION;}
+}
 })(window.VSim);

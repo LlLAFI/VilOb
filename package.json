@@ -1,12 +1,12 @@
 {
   "name": "village-observer",
-  "version": "0.35.0-d",
+  "version": "0.35.0-e",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
     "build": "node tools/build.mjs",
     "check:source": "node tools/build.mjs --check-only",
-    "test:static": "node tests/test-build.mjs && node tests/test-csv.mjs && node tests/test-g2a-reserve.cjs && node tests/test-g3b.cjs && node tests/test-g4a1.cjs && node tests/test-h2a.cjs && node tests/test-h4b.cjs && node tests/test-h4b-storage.cjs && node tests/test-h4b-border.cjs && node tests/test-h4c.cjs && node tests/test-35a.cjs && node tests/test-35b.cjs && node tests/test-35c.cjs && node tests/test-35d.cjs",
+    "test:static": "node tools/run-static-tests.cjs",
     "test:year": "node tests/test-d3-year.cjs",
     "test:simulation": "node tests/test-d2b.cjs && node tests/test-d2b-focus.cjs && node tests/test-d3.cjs && node tests/test-d3a.cjs && node tests/test-d3a1.cjs && node tests/test-d3a1-natural.cjs && node tests/test-d3a2.cjs && node tests/test-d3b.cjs && node tests/test-d3b1.cjs && node tests/test-d3b2.cjs && node tests/test-d3b3.cjs && node tests/test-d3b3a.cjs && node tests/test-d3b3b.cjs",
     "test": "node tools/build.mjs --check-only && npm run test:static",
@@ -45,7 +45,9 @@
     "bench:35b": "node tools/bench-35b.cjs",
     "bench:35c": "node tools/bench-35c.cjs",
     "test:35d": "node tests/test-35d.cjs && node tests/test-35d-parity.cjs",
-    "bench:35d": "node tools/bench-35d.cjs"
+    "bench:35d": "node tools/bench-35d.cjs",
+    "test:35e": "node tests/test-35e.cjs && node tests/test-35e-parity.cjs",
+    "bench:35e": "node tools/bench-35e.cjs"
   },
   "engines": {
     "node": ">=18"

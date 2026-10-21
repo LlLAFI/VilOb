@@ -38,3 +38,10 @@ npm run bench:35d -- --save "<90y-save.json>" --days 30 --warmup 3 --runs 3 --ou
 ```
 
 GitHub Desktop: ZIP의 파일을 전체 복사해 기존 저장소 작업 폴더 덮어쓰기 → Commit → Push. GitHub Pages 루트 `index.html`, 오프라인 `index-standalone.html`, `dist/standalone/index.html`.
+
+### 2026-10-21 · 초기 버전 표시 UI 수정본 (V0.35D 유지)
+- 최초 실행 화면의 좌상단 버전 배지가 `V0.35B`로 남아 있다가 화면 재렌더링 시 `V0.35D`로 바뀌는 문제를 수정했습니다.
+- 원인: 이전 35B 부트스트랩에서 배지를 먼저 갱신하지만 35D에서는 `renderHeader()` 호출 시에만 덮어썼습니다.
+- `src/bootstrap/v035d.js` 부트스트랩의 마지막에 초기 `document.title` 및 `#versionBadge`를 35D로 즉시 동기화했습니다. Hosted 최신 코드가 재로드되도록 스크립트 URL에 전용 캐시 식별자를 부여했습니다.
+- 기존 세계 시뮬레이션, 저장 버전 `V0.35D`, RNG, 패치노트, CSV, 분기 계측, 게임 밸런스는 변경하지 않았습니다.
+- Standalone/Hosted × PC/모바일의 최초 화면, 렌더 이후 배지, 엔진·세이브 버전 검사 4/4 PASS.
