@@ -1,3 +1,7 @@
+# Village Observer — V0.35D
+
+최신 패치: [README-35D.md](README-35D.md) · 회귀 검증: [TEST-35D.md](TEST-35D.md)
+
 # V0.35C 최신 패치
 
 [README-35C.md](README-35C.md) / [TEST-35C.md](TEST-35C.md) — 분기 21개 계층 및 행정 모델 세부 계측, 안전한 `byTile` 조회 최적화.

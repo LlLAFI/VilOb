@@ -99,7 +99,8 @@ const executeTrade17=NS.World.prototype.executeTrade;
 NS.World.prototype.executeTrade=function(d){const ok=executeTrade17.call(this,d);if(ok&&d.resource==='food'){const e=[...(this.telemetry.entries||[])].reverse().find(x=>x.type==='TRADE'&&x.ordinalDay===this.ordinalDay()&&x.payload?.buyerId===d.buyer?.id&&x.payload?.sellerId===d.seller?.id&&x.payload?.resource==='food');if(e){e.payload.foodTradeReason=d.foodTradeReason||null;e.payload.localFoodDays=d.localFoodDays??null;e.payload.nationalFoodDays=d.nationalFoodDays??null;e.payload.landedUnitPrice=d.landedUnitPrice??null;e.payload.internalDonorTileId=d.internalDonorTileId??null;}}return ok;};
 
 /* ---------- surplus Gold -> public festivals -> temporary happiness ---------- */
-function considerFestival(v,w){
+function considerFestival(v,w){const d=NS.V035D;return d?.isMeasuring?.()?d.measure('festivalDecision',()=>considerFestival35DImpl(v,w)):considerFestival35DImpl(v,w);}
+function considerFestival35DImpl(v,w){
  ensureV18(v);const f=v.festivalState,day=w.ordinalDay();if(f.until>=day||day-f.lastDay<240||v.recoveryState?.active)return false;
  const reserve=Math.max(v.targetGold?.()||0,80),surplus=v.gold-reserve;if(v.gold<Math.max(180,reserve*1.75)||surplus<35||v.foodReserveDays()<75||v.avgHappiness()>81)return false;
  const tiles=[...v.territory].map(id=>w.map.get(id)).filter(Boolean).sort((a,b)=>v.tileResidents(b.id).filter(p=>p.alive).length-v.tileResidents(a.id).filter(p=>p.alive).length),t=tiles[0];if(!t)return false;

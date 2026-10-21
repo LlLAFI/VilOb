@@ -9,7 +9,7 @@ function boot(file=path.join(root,'index-standalone.html'),seed=0x19a34d){
  return {NS:ctx.VSim,calls:()=>calls};
 }
 const x=boot(),NS=x.NS;
-assert.equal(NS.RELEASE_VERSION,'V0.35C');
+assert.equal(NS.RELEASE_VERSION,'V0.35D');
 const realD3=NS.V034D3;
 NS.V034D3={...realD3,stockRaw:(w,id)=>w.map.get(Number(id)).stocks.food,physicalCap:()=>1000};
 function fixture(secondDonor=false,blocked=false){

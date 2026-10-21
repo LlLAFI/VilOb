@@ -53,7 +53,8 @@ NS.Village.prototype.strategicConcernList=function(w){
  this.strategicConcerns=Object.fromEntries(rows.map(r=>[r.target.id,+r.score.toFixed(1)]));this._v13ConcernCache={day,rows};return rows;
 };
 NS.Village.prototype.maxStrategicConcern=function(w){return this.strategicConcernList(w)[0]||null;};
-function updateConcernEvents(v,w){
+function updateConcernEvents(v,w){const d=NS.V035D;return d?.isMeasuring?.()?d.measure('concernEvents',()=>updateConcernEvents35DImpl(v,w)):updateConcernEvents35DImpl(v,w);}
+function updateConcernEvents35DImpl(v,w){
  const active=new Set();
  for(const r of v.strategicConcernList(w)){
   active.add(String(r.target.id));const key=String(r.target.id),was=!!v.strategicConcernStates[key];
@@ -115,7 +116,8 @@ NS.World.prototype.processInternalLogistics=function(){
  }
  logistics12.call(this);
 };
-function processFoodSpoilage(v,w){
+function processFoodSpoilage(v,w){const d=NS.V035D;return d?.isMeasuring?.()?d.measure('foodSpoilage',()=>processFoodSpoilage35DImpl(v,w)):processFoodSpoilage35DImpl(v,w);}
+function processFoodSpoilage35DImpl(v,w){
  ensureV13Nation(v,w);let total=0;
  for(const id of v.territory){const t=w.map.get(id);if(!t?.stocks)continue;const cap=v.settlementCaps(id).food,stock=t.stocks.food||0;if(cap<=0||stock/cap<=FOOD_SPOIL_THRESHOLD)continue;const granary=t.buildingEfficiency?.('granary')||0,excess=Math.max(0,stock-cap*FOOD_SPOIL_SAFE),rate=FOOD_SPOIL_RATE*(1-.55*granary)*(v.hasTech?.('FOOD_PRESERVATION')?.60:1),loss=Math.min(stock,excess*rate);if(loss<=.05)continue;t.stocks.food-=loss;total+=loss;NS.V034D3A1?.spoilage?.(w,v,id,loss);}
  if(total>0){v.foodBalanceStats.spoiled+=total;if(total>=8)w.telemetry.record('FOOD_SPOILAGE',w,{village:v.name,qty:+total.toFixed(1),threshold:FOOD_SPOIL_THRESHOLD,granaryProtection:true});}
