@@ -1,0 +1,250 @@
+[
+  {
+    "flavor": "standalone",
+    "viewport": 1440,
+    "startup": {
+      "release": "V0.35F1",
+      "serialize": "V0.35F1",
+      "tech": 43,
+      "registry": true,
+      "panels": [
+        [
+          "v034f0PerfPanel",
+          "h3Observer",
+          "function"
+        ],
+        [
+          "v034f1Panel",
+          "h3Observer",
+          "function"
+        ]
+      ],
+      "h1": true,
+      "h2Views": 7,
+      "cHistory": false
+    },
+    "world": {
+      "overview": true,
+      "rows": 7,
+      "observer": "h3Observer",
+      "e05": "h3Diagnostics",
+      "chronicle": 8
+    },
+    "war": {
+      "warCards": 1,
+      "siteButtons": 1,
+      "oldC": false
+    },
+    "mapJump": {
+      "view": "map",
+      "selected": 230,
+      "map": true
+    },
+    "integrity": {
+      "shown": true,
+      "cleared": true
+    },
+    "boundary": {
+      "black": [
+        3.2200000286102295
+      ],
+      "cell": 40,
+      "settlement": [
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798
+      ]
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "standalone",
+    "viewport": 390,
+    "startup": {
+      "release": "V0.35F1",
+      "serialize": "V0.35F1",
+      "tech": 43,
+      "registry": true,
+      "panels": [
+        [
+          "v034f0PerfPanel",
+          "h3Observer",
+          "function"
+        ],
+        [
+          "v034f1Panel",
+          "h3Observer",
+          "function"
+        ]
+      ],
+      "h1": true,
+      "h2Views": 7,
+      "cHistory": false
+    },
+    "world": {
+      "overview": true,
+      "rows": 7,
+      "observer": "h3Observer",
+      "e05": "h3Diagnostics",
+      "chronicle": 8
+    },
+    "war": {
+      "warCards": 1,
+      "siteButtons": 1,
+      "oldC": false
+    },
+    "mapJump": {
+      "view": "map",
+      "selected": 204,
+      "map": true
+    },
+    "integrity": {
+      "shown": true,
+      "cleared": true
+    },
+    "boundary": {
+      "black": [
+        3.2200000286102295
+      ],
+      "cell": 40,
+      "settlement": [
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798
+      ]
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "hosted",
+    "viewport": 1440,
+    "startup": {
+      "release": "V0.35F1",
+      "serialize": "V0.35F1",
+      "tech": 43,
+      "registry": true,
+      "panels": [
+        [
+          "v034f0PerfPanel",
+          "h3Observer",
+          "function"
+        ],
+        [
+          "v034f1Panel",
+          "h3Observer",
+          "function"
+        ]
+      ],
+      "h1": true,
+      "h2Views": 7,
+      "cHistory": false
+    },
+    "world": {
+      "overview": true,
+      "rows": 7,
+      "observer": "h3Observer",
+      "e05": "h3Diagnostics",
+      "chronicle": 8
+    },
+    "war": {
+      "warCards": 1,
+      "siteButtons": 1,
+      "oldC": false
+    },
+    "mapJump": {
+      "view": "map",
+      "selected": 299,
+      "map": true
+    },
+    "integrity": {
+      "shown": true,
+      "cleared": true
+    },
+    "boundary": {
+      "black": [
+        3.2200000286102295
+      ],
+      "cell": 40,
+      "settlement": [
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798
+      ]
+    },
+    "pageErrors": []
+  },
+  {
+    "flavor": "hosted",
+    "viewport": 390,
+    "startup": {
+      "release": "V0.35F1",
+      "serialize": "V0.35F1",
+      "tech": 43,
+      "registry": true,
+      "panels": [
+        [
+          "v034f0PerfPanel",
+          "h3Observer",
+          "function"
+        ],
+        [
+          "v034f1Panel",
+          "h3Observer",
+          "function"
+        ]
+      ],
+      "h1": true,
+      "h2Views": 7,
+      "cHistory": false
+    },
+    "world": {
+      "overview": true,
+      "rows": 7,
+      "observer": "h3Observer",
+      "e05": "h3Diagnostics",
+      "chronicle": 8
+    },
+    "war": {
+      "warCards": 1,
+      "siteButtons": 1,
+      "oldC": false
+    },
+    "mapJump": {
+      "view": "map",
+      "selected": 107,
+      "map": true
+    },
+    "integrity": {
+      "shown": true,
+      "cleared": true
+    },
+    "boundary": {
+      "black": [
+        3.2200000286102295
+      ],
+      "cell": 40,
+      "settlement": [
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798,
+        3.569999933242798
+      ]
+    },
+    "pageErrors": []
+  }
+]

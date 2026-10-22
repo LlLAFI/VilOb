@@ -6,8 +6,8 @@ const element=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute
 const c={Math:math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null;},setItem(){}},document:{head:element(),body:element(),documentElement:element(),createElement:element,getElementById(){return null;},querySelector(){return null;},querySelectorAll(){return[];},addEventListener(){},title:''}};
 c.window=c;c.addEventListener=()=>{};vm.createContext(c);
 for(const x of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(x[1].trim())try{new vm.Script(x[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35F');assert.equal(NS.TECH_ORDER.length,43);
-const w=new NS.World(19,19),serialized=w.serialize();assert.equal(serialized.version,'V0.35F');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))));
+const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35F1');assert.equal(NS.TECH_ORDER.length,43);
+const w=new NS.World(19,19),serialized=w.serialize();assert.equal(serialized.version,'V0.35F1');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))));
 const methods=[['World',NS.World.prototype,'advanceOneDay'],['Person',NS.Person.prototype,'act'],['Village',NS.Village.prototype,'seasonalTick']];
 const originals=methods.map(x=>x[1][x[2]]);
 assert.equal(NS.V035A.report(),null,'no automatic profiler is allowed');
@@ -24,5 +24,5 @@ assert(methods.every((x,i)=>x[1][x[2]]===originals[i]),'stopping must restore ex
 assert(!NS.V035A.isActive());
 const before=JSON.stringify(stopped.rows);w.advanceOneDay();assert.equal(JSON.stringify(NS.V035A.report().rows),before,'disabled profiler must be frozen');
 NS.V035A.start(w,{sampleDivider:2});w.advanceOneDay();NS.V035A.stop();assert(methods.every((x,i)=>x[1][x[2]]===originals[i]));
-assert.equal(NS.World.from(JSON.parse(JSON.stringify(w.serialize()))).serialize().version,'V0.35F');
+assert.equal(NS.World.from(JSON.parse(JSON.stringify(w.serialize()))).serialize().version,'V0.35F1');
 console.log(JSON.stringify({status:'PASS',release:NS.RELEASE_VERSION,days:6,probes:stopped.rows.length,top:stopped.top10.map(x=>x.id).slice(0,3),techCount:NS.TECH_ORDER.length,profileSaved:false,restored:true}));

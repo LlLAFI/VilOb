@@ -1,0 +1,87 @@
+{
+  "format": "vilob-35f1-ab-benchmark-v1",
+  "source": "Node VM / World.advanceOneDay only; not browser Wall, Render, or 10x SIM/BATCH",
+  "baseline": "V0.35F",
+  "candidate": "V0.35F1",
+  "save": {
+    "source": "synthetic fresh 19x19 world",
+    "version": "V0.35F1"
+  },
+  "days": 8,
+  "warmup": 0,
+  "runs": 3,
+  "seed": 20261020,
+  "baselineMedianMsPerDay": 30.7416,
+  "candidateMedianMsPerDay": 30.0684,
+  "unprofiledChangePercent": 2.19,
+  "matchedStartEndStateAndRng": true,
+  "rows": [
+    {
+      "run": 1,
+      "variant": "baseline",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 250.725,
+      "msPerDay": 31.3406,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    },
+    {
+      "run": 1,
+      "variant": "candidate",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 246.603,
+      "msPerDay": 30.8254,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    },
+    {
+      "run": 2,
+      "variant": "candidate",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 227.573,
+      "msPerDay": 28.4467,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    },
+    {
+      "run": 2,
+      "variant": "baseline",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 245.932,
+      "msPerDay": 30.7416,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    },
+    {
+      "run": 3,
+      "variant": "baseline",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 224.178,
+      "msPerDay": 28.0222,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    },
+    {
+      "run": 3,
+      "variant": "candidate",
+      "fromYear": 1,
+      "days": 8,
+      "elapsedMs": 240.547,
+      "msPerDay": 30.0684,
+      "startDigest": "7a381e93cd35605481cb5b908c1f70f2d478e7ed130b19498696ae21286c4119",
+      "endDigest": "9b18f0013d562d4e7cf34cde1530a058f164feb1a2935a53bd0410197f1fa0e3",
+      "rngCalls": 4254
+    }
+  ],
+  "instrumentedProfile": null
+}

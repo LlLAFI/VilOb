@@ -1,3 +1,7 @@
+# 현재 릴리스: V0.35F1
+
+상세 변경·사용 방법: [README-35F1.md](README-35F1.md) · 검증 결과: [TEST-35F1.md](TEST-35F1.md)
+
 # 최신 릴리스: V0.35F
 
 V0.35F 개발·건설 정밀 계측 및 원본 건설 정책 보존. 변경·검증·배포 안내는 [README-35F.md](README-35F.md), [TEST-35F.md](TEST-35F.md)를 참고하세요.
