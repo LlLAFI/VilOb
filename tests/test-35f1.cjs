@@ -29,5 +29,5 @@ for(const name of ['demandDevelopment35FOriginal','demandDevelopment35FProfiled'
 // Confirm baseline made a global housing call for each eligible tile.
 const baseline=run(old,'demandDevelopment35FOriginal');assert.equal(baseline.house,55);assert.equal(baseline.storage,55);assert.equal(baseline.commerce,55);
 const transformedBase=fs.readFileSync(path.join(root,'src/legacy/025.js'),'utf8');assert(!transformedBase.includes('housingAttempted35F1'),'protected block unexpectedly modified');
-const site=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8');assert(site.includes('V0.35F1'));assert(site.includes('v035f1.js')||site.includes('Housing construction decision simplification'));
+const site=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8');assert(site.includes('V0.35G'));assert(site.includes('v035f1.js')||site.includes('Housing construction decision simplification'));
 console.log(JSON.stringify({status:'PASS',baselineHouseAttempts:baseline.house,candidateHouseAttempts:1,candidateStorageAttempts:55,profileAndUnprofiledAgree:true,protectedLegacyUntouched:true}));

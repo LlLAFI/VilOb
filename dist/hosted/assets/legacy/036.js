@@ -69,10 +69,48 @@ function foodWorker25(p){return ['농부','채집꾼','사냥꾼'].includes(p.jo
 function maintenanceBusy25(p){return Array.isArray(p.v25MaintenanceQueue)&&p.v25MaintenanceQueue.length>0;}
 function clearCycleTasks25(v){for(const p of v.residents||[])delete p._v25CycleTask;}
 function prepareConstructionTasks25(v,w){
- clearCycleTasks25(v);convertAllProjects25(v);const rows=allBuildProjects25(v).sort((a,b)=>projectPriority25(b.type)-projectPriority25(a.type)||(a.p.startDay||0)-(b.p.startDay||0));const used=new Set();
- for(const row of rows){const p=row.p,t=w.map.get(p.tileId);if(!t||t.ownerId!==v.id)continue;const remain=Math.max(0,p.totalLabor25-p.laborProgress25);if(remain<=0)continue;let adults=v.tileResidents(p.tileId).filter(x=>x.alive&&x.age>=16&&x.assignment!=='PIONEER'&&!maintenanceBusy25(x)&&!used.has(x.id));if(!adults.length)continue;const stressed=v.foodReserveDays()<35||v.settlementReserveDays(p.tileId)<25,fooders=adults.filter(foodWorker25);adults.sort((a,b)=>(b.job==='건축가')-(a.job==='건축가')+(stressed?(foodWorker25(a)-foodWorker25(b)):0)+(Number(b.skills?.building||0)-Number(a.skills?.building||0))/100);
-  let reserve=adults.length>=3?1:0;if(stressed&&fooders.length)reserve=Math.max(reserve,1);const usable=Math.max(1,adults.length-reserve),wanted=Math.min(4,usable,Math.max(1,Math.ceil(remain/3)));let n=0;
-  for(const worker of adults){if(n>=wanted)break;if(stressed&&foodWorker25(worker)&&fooders.length<=1&&adults.length>1)continue;worker._v25CycleTask={kind:'construction',projectKind:row.kind,projectId:p.id,tileId:p.tileId,type:row.type};worker.workTileId=p.tileId;used.add(worker.id);n++;}
+ clearCycleTasks25(v);convertAllProjects25(v);
+ const now=Number(w.calendarOrdinalDay?.()??0),used=new Set();
+ // Index eligible real people once, instead of scanning every nation resident for each project.
+ const byTile=new Map(),bySettlement=new Map(),people=v.residents||[];
+ for(const x of people){if(!x?.alive||x.age<16||x.assignment==='PIONEER'||x.militaryStatus32A==='active')continue;
+  const home=w.map.get(Number(x.homeTileId));if(!home||String(home.ownerId)!==String(v.id))continue;
+  let local=byTile.get(Number(x.homeTileId));if(!local)byTile.set(Number(x.homeTileId),local=[]);local.push(x);
+  const sid=home.settlementId!=null?String(home.settlementId):null;
+  if(sid!=null){let group=bySettlement.get(sid);if(!group)bySettlement.set(sid,group=[]);group.push(x);}
+ }
+ const rows=allBuildProjects25(v).sort((a,b)=>{
+  // At most 10 priority points of fairness support for truly stalled ordinary work.
+  const weight=x=>projectPriority25(x.type)+(/EMERGENCY|SURVIVAL|RECOVERY|DEFENSE|CRITICAL/i.test(String(x.p.reason||''))?0:Math.min(10,Math.floor(Number(x.p._v35gStallCycles||0)/30))); 
+  return weight(b)-weight(a)||(a.p.startDay||0)-(b.p.startDay||0);
+ });
+ for(const row of rows){const p=row.p,t=w.map.get(p.tileId);
+  if(!t||String(t.ownerId)!==String(v.id))continue;
+  const remain=Math.max(0,p.totalLabor25-p.laborProgress25);if(remain<=0)continue;
+  const sid=t.settlementId!=null?String(t.settlementId):null;
+  const local=byTile.get(Number(p.tileId))||[];
+  const all=sid!=null?(bySettlement.get(sid)||[]):local;
+  let adults=all.filter(x=>!maintenanceBusy25(x)&&!used.has(x.id));
+  let reason='PROGRESSED';
+  if(!adults.length){reason=all.length?(all.some(maintenanceBusy25)?'MAINTENANCE_ASSIGNED':'OTHER_PROJECT_ASSIGNED'):'NO_SETTLEMENT_WORKERS';}
+  else{
+   const stressed=v.foodReserveDays()<35||v.settlementReserveDays(p.tileId)<25;
+   const fooders=adults.filter(foodWorker25);
+   adults.sort((a,b)=>((Number(a.homeTileId)===Number(p.tileId)?0:1)-(Number(b.homeTileId)===Number(p.tileId)?0:1)) || (b.job==='건축가')-(a.job==='건축가')+(stressed?(foodWorker25(a)-foodWorker25(b)):0)+(Number(b.skills?.building||0)-Number(a.skills?.building||0))/100);
+   let reserve=adults.length>=3?1:0;
+   if(stressed&&fooders.length)reserve=Math.max(reserve,1);
+   const usable=Math.max(1,adults.length-reserve),wanted=Math.min(4,usable,Math.max(1,Math.ceil(remain/3)));
+   let n=0,remote=0;
+   for(const worker of adults){if(n>=wanted)break;
+    if(stressed&&foodWorker25(worker)&&fooders.length<=1&&adults.length>1)continue;
+    worker._v25CycleTask={kind:'construction',projectKind:row.kind,projectId:p.id,tileId:p.tileId,type:row.type};worker.workTileId=p.tileId;
+    used.add(worker.id);n++;if(Number(worker.homeTileId)!==Number(p.tileId))remote++;
+   }
+   if(n===0)reason='SURVIVAL_LABOR_RESERVE';
+   else NS.V035G?.constructionScheduled?.(v,w,p,local.length,remote,n);
+  }
+  if(reason!=='PROGRESSED')NS.V035G?.constructionBlocked?.(v,w,p,reason,all.length,local.length);
+  p._v35gFirstSeenCal=p._v35gFirstSeenCal??now;p._v35gLastCycleCal=now;
  }
 }
 const startConstruction24=NS.Village.prototype.startConstruction;
@@ -80,10 +118,10 @@ NS.Village.prototype.startConstruction=function(w,tileId,type,reason='AI'){const
 const startHousingUpgrade24=NS.Village.prototype.startHousingUpgrade;
 if(startHousingUpgrade24)NS.Village.prototype.startHousingUpgrade=function(w,tileId,index,reason='HOUSING_DENSITY'){const before=(this.buildingUpgradeProjects||[]).length,ok=startHousingUpgrade24.call(this,w,tileId,index,reason);if(ok){const p=(this.buildingUpgradeProjects||[]).at(-1);if(p&&(this.buildingUpgradeProjects||[]).length>before){p.totalLabor25=projectLabor25(this,p.to);p.laborProgress25=0;p.progress=0;p.duration=p.totalLabor25;p.laborModel25=true;w.telemetry.record('BUILDING_LABOR_PLAN',w,{village:this.name,tileId,type:p.to,from:p.from,totalLabor:p.totalLabor25,laborUnit:'adult-day',reason});}}return ok;};
 function taskWorkers25(v,kind,id){return v.residents.filter(p=>p.alive&&p._v25CycleTask?.kind==='construction'&&p._v25CycleTask.projectKind===kind&&p._v25CycleTask.projectId===id);}
-NS.Village.prototype.progressConstruction=function(w){const arr=this.constructionProjects||[],s=ensureLaborStats25(this);for(let i=arr.length-1;i>=0;i--){const p=convertProject25(this,arr[i],arr[i].type),t=w.map.get(p.tileId);if(!t||t.ownerId!==this.id){w.telemetry.record('BUILDING_CANCELLED',w,{village:this.name,tileId:p.tileId,building:p.type,reason:'territory-lost'});arr.splice(i,1);continue;}if(t.buildings?.includes(p.type)){arr.splice(i,1);continue;}const workers=taskWorkers25(this,'construction',p.id);if(!workers.length){p.stallDays=(p.stallDays||0)+1;continue;}let eff=0;for(const q of workers){s.construction+=3;const e=3*constructionEff25(q);eff+=e;s.constructionEffective+=e;}p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;p.lastProgressDay=w.ordinalDay();p.stallDays=0;if(p.laborProgress25+1e-9>=p.totalLabor25){t.addBuilding(p.type);arr.splice(i,1);if(Array.isArray(t.buildingRuins)){const ri=t.buildingRuins.findIndex(r=>r.building===p.type);if(ri>=0)t.buildingRuins.splice(ri,1);}w.log(`${this.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.type]?.label||p.type} 공사가 완료되었습니다.`,false,'BUILDING_COMPLETED',{village:this.name,tileId:p.tileId,building:p.type,totalLabor:p.totalLabor25,elapsedCalendarDays:(w.calendarOrdinalDay?.()||0)-Number(p.startCalendarDay25||0),cost:p.cost,reason:p.reason,laborModel:'V0.25_ADULT_DAY'});}}};
+NS.Village.prototype.progressConstruction=function(w){const arr=this.constructionProjects||[],s=ensureLaborStats25(this);for(let i=arr.length-1;i>=0;i--){const p=convertProject25(this,arr[i],arr[i].type),t=w.map.get(p.tileId);if(!t||t.ownerId!==this.id){w.telemetry.record('BUILDING_CANCELLED',w,{village:this.name,tileId:p.tileId,building:p.type,reason:'territory-lost'});arr.splice(i,1);continue;}if(t.buildings?.includes(p.type)){arr.splice(i,1);continue;}const workers=taskWorkers25(this,'construction',p.id);if(!workers.length){p.stallDays=(p.stallDays||0)+1;continue;}let eff=0;for(const q of workers){s.construction+=3;const e=3*constructionEff25(q);eff+=e;s.constructionEffective+=e;}p._v35gStallCycles=0;NS.V035G?.constructionProgress?.(this,w,p,eff);p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;p.lastProgressDay=w.ordinalDay();p.stallDays=0;if(p.laborProgress25+1e-9>=p.totalLabor25){t.addBuilding(p.type);arr.splice(i,1);if(Array.isArray(t.buildingRuins)){const ri=t.buildingRuins.findIndex(r=>r.building===p.type);if(ri>=0)t.buildingRuins.splice(ri,1);}w.log(`${this.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.type]?.label||p.type} 공사가 완료되었습니다.`,false,'BUILDING_COMPLETED',{village:this.name,tileId:p.tileId,building:p.type,totalLabor:p.totalLabor25,elapsedCalendarDays:(w.calendarOrdinalDay?.()||0)-Number(p.startCalendarDay25||0),cost:p.cost,reason:p.reason,laborModel:'V0.25_ADULT_DAY'});}}};
 function completeAuxProjects25(v,w){
- const up=v.buildingUpgradeProjects||[];for(let i=up.length-1;i>=0;i--){const p=convertProject25(v,up[i],up[i].to),workers=taskWorkers25(v,'upgrade',p.id),t=w.map.get(p.tileId);if(!t||t.ownerId!==v.id||t.buildings?.[p.index]!==p.from)continue;let eff=0;for(const q of workers){const s=ensureLaborStats25(v);s.construction+=3;const e=3*constructionEff25(q);s.constructionEffective+=e;eff+=e;}p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;if(p.laborProgress25>=p.totalLabor25){const cond=Number(t.buildingCondition?.[p.index]??100);t.buildings[p.index]=p.to;if(t.buildingCondition)t.buildingCondition[p.index]=Math.max(70,Math.min(100,cond));if(t.buildingRepairProgress)t.buildingRepairProgress[p.index]=0;up.splice(i,1);w.log(`${v.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.to]?.label||p.to} 개축이 완료되었습니다.`,false,'BUILDING_UPGRADED',{village:v.name,tileId:p.tileId,from:p.from,to:p.to,totalLabor:p.totalLabor25,laborModel:'V0.25_ADULT_DAY'});}}
- const sp=v.specializationProjects||[];for(let i=sp.length-1;i>=0;i--){const p=convertProject25(v,sp[i],sp[i].to),workers=taskWorkers25(v,'specialization',p.id),t=w.map.get(p.tileId);if(!t||t.ownerId!==v.id||t.buildings?.[p.index]!==p.from)continue;let eff=0;for(const q of workers){const s=ensureLaborStats25(v);s.construction+=3;const e=3*constructionEff25(q);s.constructionEffective+=e;eff+=e;}p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;if(p.laborProgress25>=p.totalLabor25){t.buildings[p.index]=p.to;if(t.buildingCondition)t.buildingCondition[p.index]=Math.max(75,Number(t.buildingCondition[p.index]??100));if(t.buildingRepairProgress)t.buildingRepairProgress[p.index]=0;sp.splice(i,1);w.log(`${v.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.to]?.label||p.to} 고도화가 완료되었습니다.`,false,'BUILDING_SPECIALIZED',{village:v.name,tileId:t.id,from:p.from,to:p.to,totalLabor:p.totalLabor25,laborModel:'V0.25_ADULT_DAY'});}}
+ const up=v.buildingUpgradeProjects||[];for(let i=up.length-1;i>=0;i--){const p=convertProject25(v,up[i],up[i].to),workers=taskWorkers25(v,'upgrade',p.id),t=w.map.get(p.tileId);if(!t||t.ownerId!==v.id||t.buildings?.[p.index]!==p.from)continue;let eff=0;for(const q of workers){const s=ensureLaborStats25(v);s.construction+=3;const e=3*constructionEff25(q);s.constructionEffective+=e;eff+=e;}p._v35gStallCycles=0;NS.V035G?.constructionProgress?.(v,w,p,eff);p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;if(p.laborProgress25>=p.totalLabor25){const cond=Number(t.buildingCondition?.[p.index]??100);t.buildings[p.index]=p.to;if(t.buildingCondition)t.buildingCondition[p.index]=Math.max(70,Math.min(100,cond));if(t.buildingRepairProgress)t.buildingRepairProgress[p.index]=0;up.splice(i,1);w.log(`${v.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.to]?.label||p.to} 개축이 완료되었습니다.`,false,'BUILDING_UPGRADED',{village:v.name,tileId:p.tileId,from:p.from,to:p.to,totalLabor:p.totalLabor25,laborModel:'V0.25_ADULT_DAY'});}}
+ const sp=v.specializationProjects||[];for(let i=sp.length-1;i>=0;i--){const p=convertProject25(v,sp[i],sp[i].to),workers=taskWorkers25(v,'specialization',p.id),t=w.map.get(p.tileId);if(!t||t.ownerId!==v.id||t.buildings?.[p.index]!==p.from)continue;let eff=0;for(const q of workers){const s=ensureLaborStats25(v);s.construction+=3;const e=3*constructionEff25(q);s.constructionEffective+=e;eff+=e;}p._v35gStallCycles=0;NS.V035G?.constructionProgress?.(v,w,p,eff);p.laborProgress25=Math.min(p.totalLabor25,p.laborProgress25+eff);p.progress=p.laborProgress25;p.duration=p.totalLabor25;if(p.laborProgress25>=p.totalLabor25){t.buildings[p.index]=p.to;if(t.buildingCondition)t.buildingCondition[p.index]=Math.max(75,Number(t.buildingCondition[p.index]??100));if(t.buildingRepairProgress)t.buildingRepairProgress[p.index]=0;sp.splice(i,1);w.log(`${v.name}의 (${t.x},${t.y}) ${NS.BUILDINGS[p.to]?.label||p.to} 고도화가 완료되었습니다.`,false,'BUILDING_SPECIALIZED',{village:v.name,tileId:t.id,from:p.from,to:p.to,totalLabor:p.totalLabor25,laborModel:'V0.25_ADULT_DAY'});}}
 }
 
 /* ---------- real-person maintenance missions ---------- */

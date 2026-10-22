@@ -1,3 +1,7 @@
+# V0.35G 최신 배포
+
+최신 패치: [README-35G.md](README-35G.md), 검증: [TEST-35G.md](TEST-35G.md). 동일 Settlement의 실제 건설 노동 공유, 프로젝트 정체 CSV·JSON 추가.
+
 # 현재 릴리스: V0.35F1
 
 상세 변경·사용 방법: [README-35F1.md](README-35F1.md) · 검증 결과: [TEST-35F1.md](TEST-35F1.md)
