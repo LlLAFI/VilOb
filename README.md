@@ -1,3 +1,5 @@
+> **현재 버전 V0.35G1A:** G1 대비 기본 건설력 0.25→0.80/일, 현장 건축가 ×2.5→×3.0. 기존 성인 지역 보정 +5%/명·상한 +25% 유지. 상세: [README-35G1A.md](README-35G1A.md), [TEST-35G1A.md](TEST-35G1A.md).
+
 # V0.35G 최신 배포
 
 최신 패치: [README-35G.md](README-35G.md), 검증: [TEST-35G.md](TEST-35G.md). 동일 Settlement의 실제 건설 노동 공유, 프로젝트 정체 CSV·JSON 추가.
