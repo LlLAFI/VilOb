@@ -1,3 +1,5 @@
+**Current development version:** V0.35H1A — see [README-35H1A.md](README-35H1A.md) for the repeatable performance benchmark protocol and its current save/reload limitation.
+
 > **최신 릴리스 V0.35H0 — Late-Game Simulation Performance V1 (H0)**
 > 이주 경로 BFS 재사용·성능 진단, G1B 이주 판단과 G1A 건설 밸런스 유지. [README-35H0.md](README-35H0.md) · [TEST-35H0.md](TEST-35H0.md).
 
