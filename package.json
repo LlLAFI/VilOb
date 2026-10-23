@@ -1,6 +1,6 @@
 {
   "name": "village-observer",
-  "version": "0.35.0-h1b",
+  "version": "0.35.0-h1b1",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {

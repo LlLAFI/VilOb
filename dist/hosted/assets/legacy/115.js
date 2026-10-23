@@ -70,3 +70,5 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33F1')
 NS.V033F1={version:VERSION,revision:REV,attachWorld:attach,repairEndedWars,chooseOperationalGoal,drawIronOverlay,settlementText,base:'V0.33F',balanceChanged:false};
 try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33F1 startup attach failed',e);}
 })(window.VSim);
+
+;(function(NS){'use strict';if(!NS?.Telemetry?.prototype?.snapshot)return;const prior=NS.Telemetry.prototype.snapshot;NS.Telemetry.prototype.snapshot=function(...args){const api=NS.V035H1B1;if(!api?.measureStage)return prior.apply(this,args);return api.measureStage('F1_SETTLEMENT',args[0],prior,this,args);};})(window.VSim);

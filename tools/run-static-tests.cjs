@@ -1,12 +1,21 @@
-/* H1A-HF fast, source-backed CI regression suite. Archival comparators are kept in earlier backups. */
+/* V0.35H1B1 sequential CI runner, streamed subprocess output with explicit timeout.
+ * Avoid spawnSync pipe stalls and keep terminal/GitHub Actions visibly responsive.
+ */
 'use strict';
-const path=require('node:path'),{spawnSync}=require('node:child_process');
-const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1b.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
-const summary=[];
-for(const name of names){
- const at=Date.now();const r=spawnSync(process.execPath,[path.join(__dirname,'..','tests',name)],{cwd:path.join(__dirname,'..'),encoding:'utf8',timeout:180000,maxBuffer:8e6});
- const status=r.error?.code==='ETIMEDOUT'?'TIMEOUT':r.status===0?'PASS':'FAIL';summary.push({test:name,status,elapsedMs:Date.now()-at});
- console.log(`${status} ${name} ${summary.at(-1).elapsedMs}ms ${(r.stdout||'').trim().split('\n').slice(-1)[0]||''}`);
- if(status!=='PASS'){console.error(r.stderr||'',r.error||'');process.exit(1)}
-}
-console.log(JSON.stringify({status:'PASS',tests:summary.length,summary}));
+const path=require('node:path'),{spawn}=require('node:child_process');
+const root=path.join(__dirname,'..');
+const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1b.cjs','test-35h1b1.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
+function execute(name){return new Promise(resolve=>{
+ const start=Date.now(),child=spawn(process.execPath,[path.join(root,'tests',name)],{cwd:root,stdio:['ignore','pipe','pipe']});
+ let output='',error='',timedOut=false;
+ const timeout=setTimeout(()=>{timedOut=true;child.kill('SIGKILL');},150000);
+ child.stdout.on('data',buf=>{output=(output+buf.toString()).slice(-250000);});
+ child.stderr.on('data',buf=>{error=(error+buf.toString()).slice(-250000);});
+ child.on('error',ex=>{error+='\n'+ex.message;});
+ child.on('close',code=>{clearTimeout(timeout);const status=timedOut?'TIMEOUT':code===0?'PASS':'FAIL';
+ console.log(`${status} ${name} ${Date.now()-start}ms ${(output.trim().split('\n').slice(-1)[0])||''}`);
+ if(status!=='PASS')console.error(error||output||'Test exited with '+code);
+ resolve({test:name,status,elapsedMs:Date.now()-start});});
+ });}
+(async()=>{const results=[];for(const name of names){results.push(await execute(name));if(results.at(-1).status!=='PASS'){process.exitCode=1;break;}}
+ if(!process.exitCode)console.log(JSON.stringify({status:'PASS',tests:results.length,summary:results}));})();

@@ -51,3 +51,5 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33F5A'
 NS.V033F5A={version:VERSION,revision:REV,attachWorld:attach,ensureState:ensure,financeQuote,payFrontierFinance,moneyParts,wageRate:WAGE_RATE,marketRate:MARKET_RATE,sinkRate:SINK_RATE,base:'V0.33F5P2',balanceChanged:true};
 try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33F5A startup attach failed',e);}
 })(window.VSim);
+
+;(function(NS){'use strict';if(!NS?.Telemetry?.prototype?.snapshot)return;const prior=NS.Telemetry.prototype.snapshot;NS.Telemetry.prototype.snapshot=function(...args){const api=NS.V035H1B1;if(!api?.measureStage)return prior.apply(this,args);return api.measureStage('F5A_FRONTIER',args[0],prior,this,args);};})(window.VSim);

@@ -4,7 +4,7 @@
  */
 (function(NS){'use strict';
 if(!NS?.V035H1A||!NS?.V035A||!NS?.V035C||!NS?.V035D)return;
-const VERSION='V0.35H1B';
+const VERSION='V0.35H1B1';
 const clock=()=>typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now();
 const ranks=a=>{const b=a.slice().sort((x,y)=>x-y),at=p=>b.length?b[Math.min(b.length-1,Math.ceil(b.length*p)-1)]:0;return {samples:b.length,meanMs:b.length?a.reduce((x,y)=>x+y,0)/b.length:0,medianMs:at(.5),p95Ms:at(.95),maxMs:b.length?b[b.length-1]:0};};
 let active=null,latest=null;
@@ -18,7 +18,7 @@ function runtimeSnapshot(s){
   interpretation:{profilerOverhead:s.mode!=='BASELINE',baselineOverhead:'Only 2 high-resolution clock reads per day plus one report row; not identical to entirely instrument-free F0',batch:'10 consecutive measured advanceOneDay costs, no rendering/yield; not the browser UI F0 batch metric',snapshot:'Snapshot time includes every nested legacy observation layer; overlaps with World.advanceOneDay, do not add',crossMode:'Each mode must start by loading the same whole-world checkpoint file. Compare same device and world/state signature. Profilers 35A, 35C, 35D are mutually exclusive.',regression:'Signature and RNG are necessary checks, not a substitute for complete-world parity or conserved-resource audits.'}};
 }
 function start(w,mode='BASELINE'){
- if(!catalog[mode])throw Error('H1B 계측 방식이 잘못됐습니다.');if(!w)throw Error('계측할 세계가 없습니다.');if(active)stop();
+ if(!catalog[mode])throw Error('H1B 계측 방식이 잘못됐습니다.');if(!w)throw Error('계측할 세계가 없습니다.');if(NS.V035H1B1?.snapshotReport?.()?.active)throw Error('H1B1 스냅샷 진단을 먼저 종료하세요.');if(active)stop();
  if(NS.V035A.isActive()||NS.V035C.isActive()||NS.V035D.isActive()||NS.V035B?.reportDetail?.()?.active)throw Error('다른 프로파일러를 종료한 뒤 H1B를 시작하세요.');
  const startState=NS.V035H1A.report(w);if(startState.mode!=='FIXED_RNG')throw Error('H1B는 고정 RNG 시나리오 또는 그 체크포인트에서만 실행할 수 있습니다.');
  const s={world:w,mode,active:true,start:{...startState.current},latencies:[],batches:[],batchSum:0,partial:0,snapshotCalls:0,snapshotMs:0,snapshotMax:0,restores:[],profilerStarted:false};

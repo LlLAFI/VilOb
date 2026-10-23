@@ -47,7 +47,7 @@ NS.Telemetry.prototype.snapshot=function(w,reason='AUTO',note=''){
  const s=snapPrev.call(this,w,reason,note);if(!s)return s;
  const keys=['nonCombatDeathRecovered','externalMigrationRecovered','peaceCessionRecovered','preI1A2UntrackedLoss','lifecycleReturnEvents'];
  for(const k of keys)s.global['equipment'+k[0].toUpperCase()+k.slice(1)+'33I1A2']=0;
- for(const row of s.villages||[]){const v=w.villages.find(x=>Number(x.id)===Number(row.id));if(!v)continue;const st=ext(v);for(const k of keys){const name='equipment'+k[0].toUpperCase()+k.slice(1)+'33I1A2',q=Number(st[k]||0);row[name]=q;s.global[name]+=q;}}
+ for(const row of s.villages||[]){const v=(NS.V035H1B1?.lookupVillage?.(w,row.id)??w.villages.find(x=>Number(x.id)===Number(row.id)));if(!v)continue;const st=ext(v);for(const k of keys){const name='equipment'+k[0].toUpperCase()+k.slice(1)+'33I1A2',q=Number(st[k]||0);row[name]=q;s.global[name]+=q;}}
  return s;
 };
 const csvPrev=NS.Telemetry.prototype.snapshotsCSV;
