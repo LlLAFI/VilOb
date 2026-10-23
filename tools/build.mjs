@@ -50,7 +50,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.35H1A';
+const VERSION='V0.35H1A-HF';
 const g1=get('src/bootstrap/v034g1.js').toString('utf8');
 const g1a=get('src/bootstrap/v034g1a.js').toString('utf8');
 const g1b=get('src/bootstrap/v034g1b.js').toString('utf8');
@@ -158,11 +158,13 @@ if(!orig.equals(rebuilt)||sha(rebuilt)!==manifest.sourceSha256)throw Error('C1H 
 if(manifest.blocks.length!==169||manifest.blocks.filter(x=>x.type==='script').length!==165||manifest.blocks.filter(x=>x.type==='style').length!==4)throw Error('C1H block count mismatch');
 if(schema.columnCount!==1683||new Set(schema.v2Columns).size!==schema.columnCount||schema.duplicateExtraColumns!==72)throw Error('Schema V2 identity check failed');
 if(mode==='check-only'){console.log(JSON.stringify({baselineSHA256:sha(rebuilt),blocks:169,js:165,css:4,csvV2Columns:1683,success:true}));process.exit(0);}
-const dist=path.join(root,'dist');fs.mkdirSync(path.join(dist,'standalone'),{recursive:true});
+const dist=path.join(root,'dist');fs.rmSync(dist,{recursive:true,force:true});fs.mkdirSync(path.join(dist,'standalone'),{recursive:true});
 fs.mkdirSync(path.join(dist,'hosted','assets'),{recursive:true});
 const standalone=render('standalone');
 fs.writeFileSync(path.join(dist,'standalone','index.html'),standalone);
 const hosted=render('hosted');fs.writeFileSync(path.join(dist,'hosted','index.html'),hosted);
+// Keep the current AI profile editor available on Pages; no historical HTML copies.
+fs.copyFileSync(path.join(root,'ai-editor.html'),path.join(dist,'hosted','ai-editor.html'));
 const rootHosted=render('hosted','dist/hosted/assets/');fs.writeFileSync(path.join(root,'index.html'),rootHosted);
 for(const block of manifest.blocks){
  const dest=path.join(dist,'hosted','assets',block.path.slice(4));
@@ -237,10 +239,6 @@ fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035g.js'),v35g);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035g1a.js'),v35g1);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h0.js'),v35h0);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1a.js'),v35h1a);
-// A self-contained off-line validator embeds the exact standalone engine.
-const localValidator=get('tools/local-validator.template.html').toString('utf8').replaceAll('G4','35H1A').replace('__ENGINE_HTML_JSON__',JSON.stringify(standalone).replace(/</g,'\\u003c'));
-fs.writeFileSync(path.join(root,'local-validator-35h1a.html'),localValidator);
-fs.writeFileSync(path.join(dist,'hosted','local-validator-35h1a.html'),localValidator);
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
 fs.writeFileSync(path.join(root,'index-standalone.html'),standalone);
 const result={version:VERSION,baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};

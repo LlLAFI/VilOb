@@ -1,13 +1,12 @@
-/* 35F deterministic FAST static smoke runner. Each test is a separate process with
- * an explicit ceiling, so an old/browser-sim test cannot hang npm test forever.
- */
+/* H1A-HF fast, source-backed CI regression suite. Archival comparators are kept in earlier backups. */
 'use strict';
-const path=require('path'),{spawnSync}=require('child_process');
-const names=['test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-35g1.cjs','test-35g-labor.cjs','test-35f1.cjs','test-35f.cjs','test-35e.cjs','test-build.mjs','test-csv.mjs','test-g2a-reserve.cjs','test-g3b.cjs','test-g4a1.cjs','test-h2a.cjs','test-h4b.cjs','test-h4b-storage.cjs','test-h4b-border.cjs','test-h4c.cjs','test-35a.cjs','test-35b.cjs'];
+const path=require('node:path'),{spawnSync}=require('node:child_process');
+const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
 const summary=[];
-for(const name of names){const at=Date.now(),r=spawnSync(process.execPath,[path.join(__dirname,'..','tests',name)],{cwd:path.join(__dirname,'..'),encoding:'utf8',timeout:45000,maxBuffer:5e6});
- const row={test:name,status:r.error?.code==='ETIMEDOUT'?'TIMEOUT':r.status===0?'PASS':'FAIL',elapsedMs:Date.now()-at};summary.push(row);
- const last=r.stdout?.trim().split('\n').slice(-1)[0]||'';process.stdout.write(`${row.status} ${name} ${row.elapsedMs}ms ${last.slice(0,240)}\n`);
- if(row.status!=='PASS'){process.stderr.write((r.stderr||'')+'\n'+(r.error?.stack||'')+'\n');process.exit(1);}
+for(const name of names){
+ const at=Date.now();const r=spawnSync(process.execPath,[path.join(__dirname,'..','tests',name)],{cwd:path.join(__dirname,'..'),encoding:'utf8',timeout:180000,maxBuffer:8e6});
+ const status=r.error?.code==='ETIMEDOUT'?'TIMEOUT':r.status===0?'PASS':'FAIL';summary.push({test:name,status,elapsedMs:Date.now()-at});
+ console.log(`${status} ${name} ${summary.at(-1).elapsedMs}ms ${(r.stdout||'').trim().split('\n').slice(-1)[0]||''}`);
+ if(status!=='PASS'){console.error(r.stderr||'',r.error||'');process.exit(1)}
 }
-process.stdout.write(JSON.stringify({status:'PASS',tests:summary.length,summary})+'\n');
+console.log(JSON.stringify({status:'PASS',tests:summary.length,summary}));

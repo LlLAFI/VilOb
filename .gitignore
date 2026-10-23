@@ -1,0 +1,13 @@
+# Archived executables are separately backed up; not part of the active source.
+/index-*-baseline.html
+/local-validator-*.html
+/tests/baselines/
+/tests/legacy/
+/tests/fixtures-for-*.html
+# Generated standalone duplicates (provided separately as release artifacts)
+/index-standalone.html
+/dist/standalone/
+# Runtime or OS temporary files
+node_modules/
+.DS_Store
+*.log
