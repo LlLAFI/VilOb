@@ -1,3 +1,6 @@
+> **최신 릴리스 V0.35H0 — Late-Game Simulation Performance V1 (H0)**
+> 이주 경로 BFS 재사용·성능 진단, G1B 이주 판단과 G1A 건설 밸런스 유지. [README-35H0.md](README-35H0.md) · [TEST-35H0.md](TEST-35H0.md).
+
 > **최신 릴리스 V0.35G1B — Settlement Housing Migration V1**
 > 빌드/범위: [README-35G1B.md](README-35G1B.md) · 테스트: [TEST-35G1B.md](TEST-35G1B.md). G1A 건설 속도 유지, G1B 주거·국제 이주/진단 추가.
 

@@ -4,7 +4,7 @@ const root=path.join(__dirname,'..');const html=fs.readFileSync(path.join(root,'
 const element=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute(){},addEventListener(){},appendChild(){},querySelector(){return null},querySelectorAll(){return[]},classList:{add(){},remove(){},toggle(){}}});
 const c={Math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:element(),body:element(),documentElement:element(),createElement:element,getElementById(){return null},querySelector(){return null},querySelectorAll(){return[]},addEventListener(){},title:''}};c.window=c;c.addEventListener=()=>{};vm.createContext(c);
 for(const x of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(x[1].trim())try{new vm.Script(x[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35G1B');
+const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35H0');
 const w=new NS.World(19,19),v=w.activeVillages[0],core=w.map.get(v.coreTileId);
 const adj=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>w.map.at(core.x+dx,core.y+dy)).find(x=>x&&x.ownerId==null&&NS.TERRAIN[x.terrain]?.passable);assert(adj,'nearby claimable tile required');
 adj.ownerId=v.id;adj.buildings=['outpost'];adj.settlementId=null;v.territory.add(adj.id);adj.stocks.stone=0;
@@ -36,5 +36,5 @@ assert.equal(adj.stocks.stone,0,'rejected deposit does not create stock');
 const edges=[];const gfx={save(){},restore(){},rect(){},clip(){},beginPath(){},moveTo(x,y){this._pt=[x,y]},lineTo(x,y){edges.push([this._pt,[x,y]])},stroke(){assert.equal(this.strokeStyle,'#000000');assert(Math.abs(this.lineWidth-1.61)<1e-6);}};
 const map={width:3,height:2,tiles:[{x:0,y:0,ownerId:0},{x:1,y:0,ownerId:null},{x:2,y:0,ownerId:1},{x:0,y:1,ownerId:null},{x:1,y:1,ownerId:null},{x:2,y:1,ownerId:1}],at(x,y){return this.tiles.find(t=>t.x===x&&t.y===y)}};
 const ui={world:{map},_mapGeom:{cell:20,ox:0,oy:0},h1BoundaryMode:'all',q:()=>({getContext:()=>gfx})};NS.V034H4C.strokeNeutralBorders(ui);assert(edges.length>=3,'neutral and water outline must be drawn');ui.h1BoundaryMode='selected';const n0=edges.length;NS.V034H4C.strokeNeutralBorders(ui);assert.equal(edges.length,n0,'selected mode unchanged');
-const fresh=new NS.World(19,19);const serialized=fresh.serialize();assert.equal(serialized.version,'V0.35G1B');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))),'H4C save roundtrip');
+const fresh=new NS.World(19,19);const serialized=fresh.serialize();assert.equal(serialized.version,'V0.35H0');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))),'H4C save roundtrip');
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,fromTile:core.id,toTile:adj.id,moved,sourceExcessBefore:65,unchangedTotal:before,neutralBorderEdges:edges.length,saveVersion:serialized.version,blockedDeposits:s.blockedDeposits}));

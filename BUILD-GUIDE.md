@@ -1,3 +1,7 @@
+## 최신 빌드 V0.35H0
+
+`npm run build`, `npm run test:35h0`, `node tools/bench-35h0.cjs`. 단일 HTML `index-standalone.html`, GitHub Pages `index.html` + `dist/hosted/assets`. [README-35H0.md](README-35H0.md).
+
 ## 최신 빌드 V0.35G1B
 
 `npm run build`, `node tests/test-35g1b.cjs`. 독립 실행 `index-standalone.html`, GitHub Pages는 `dist/hosted`. 상세 [README-35G1B.md](README-35G1B.md).
