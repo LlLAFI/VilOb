@@ -1,3 +1,7 @@
+## 최신 빌드 V0.35G1B
+
+`npm run build`, `node tests/test-35g1b.cjs`. 독립 실행 `index-standalone.html`, GitHub Pages는 `dist/hosted`. 상세 [README-35G1B.md](README-35G1B.md).
+
 ## V0.35C 분기 계측 + 행정권 인덱스 조회
 
 신규 엔트리 `src/bootstrap/v035c.js`, 빌드 변환 `tools/35c-transform.mjs`, 테스트 `tests/test-35c.cjs`, `tests/test-35c-parity.cjs`. `npm run build && npm test` 후 `python tools/browser-35c-smoke.py`. 레거시 169개 보호 블록은 수정하지 않습니다. `README-35C.md` 참조.

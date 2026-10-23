@@ -1,3 +1,6 @@
+> **최신 릴리스 V0.35G1B — Settlement Housing Migration V1**
+> 빌드/범위: [README-35G1B.md](README-35G1B.md) · 테스트: [TEST-35G1B.md](TEST-35G1B.md). G1A 건설 속도 유지, G1B 주거·국제 이주/진단 추가.
+
 > **현재 버전 V0.35G1A:** G1 대비 기본 건설력 0.25→0.80/일, 현장 건축가 ×2.5→×3.0. 기존 성인 지역 보정 +5%/명·상한 +25% 유지. 상세: [README-35G1A.md](README-35G1A.md), [TEST-35G1A.md](TEST-35G1A.md).
 
 # V0.35G 최신 배포
