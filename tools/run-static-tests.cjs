@@ -1,7 +1,7 @@
 /* H1A-HF fast, source-backed CI regression suite. Archival comparators are kept in earlier backups. */
 'use strict';
 const path=require('node:path'),{spawnSync}=require('node:child_process');
-const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
+const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1b.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
 const summary=[];
 for(const name of names){
  const at=Date.now();const r=spawnSync(process.execPath,[path.join(__dirname,'..','tests',name)],{cwd:path.join(__dirname,'..'),encoding:'utf8',timeout:180000,maxBuffer:8e6});

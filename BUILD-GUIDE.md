@@ -24,3 +24,11 @@ The runtime badge and export version is `V0.35H1A-HF`. H1A `NS.V035H1A` fixed se
 ## CI scope
 
 `npm test` runs the curated current-build and 11 critical regressions. The complete historical baseline archives and obsolete all-version validator HTML files are no longer distributed. This change is intentional; old-version historical comparisons can still be run from past archived releases as needed.
+
+
+## V0.35H1B
+
+- Build: `npm run build`, CI: `npm test` (12 core regression cases), optional browser: `python tools/browser-35h1b-smoke.py`.
+- H1B diagnostic: World → Advanced Tools → H1B; load the same HF 60-year checkpoint separately for baseline/A/C/D. 180d/360d opt-in measurements; export H1B JSON.
+- Do not package previous `index-standalone.html`, stale `dist/standalone`, or past release HTML in the source ZIP. GitHub Actions deploys `dist/hosted`.
+- `npm run prune:preview` lists old files; `npm run prune:apply` removes only old archives. H1B tests and HF executable parity fixture are protected.
