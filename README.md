@@ -1,9 +1,9 @@
-# Village Observer — V0.35H1B1A
+# Village Observer — V0.35H1B2
 
-Current release: **V0.35H1B1A · Wartime Checkpoint Continuity**.
+Current release: **V0.35H1B2 · Startup & Runtime Consolidation V1**.
 
-- [Patch / limitations](README-35H1B1A.md)
-- [Validation](TEST-35H1B1A.md)
-- [Build and deploy](BUILD-GUIDE.md)
+- [Patch / changes and limitations](README-35H1B2.md)
+- [Validation](TEST-35H1B2.md)
+- [Build / deploy](BUILD-GUIDE.md)
 
-Build GitHub Pages with `npm run build` and verify with `npm test`. The source ZIP and the standalone HTML are separate artifacts. Older H1A-HF/H1B/H1B1 checkpoints remain importable. **Keep the original 60-year wartime checkpoint unchanged** during testing.
+Use `npm run build` then `npm test` before publishing. Hosted JavaScript is **165 base scripts plus one bundle** (59 bootstraps); the original source modules remain in `src/`. Save/checkpoint schema and localStorage save key **remain H1B1A** deliberately to preserve the just-repaired wartime rehydration path. Keep the existing 60-year wartime checkpoint unchanged.

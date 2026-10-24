@@ -32,6 +32,7 @@ import {g351Transform} from './35g1-transform.mjs';
 import {rebalanceG1A} from './35g1a-rebalance.mjs';
 import {h1bTransform} from './35h1b-transform.mjs';
 import {h1b1Transform} from './35h1b1-transform.mjs';
+import {consolidate} from './h1b2-consolidate.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const get=p=>fs.readFileSync(path.join(root,p));
@@ -52,7 +53,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.35H1B1A';
+const VERSION='V0.35H1B2';
 const g1=get('src/bootstrap/v034g1.js').toString('utf8');
 const g1a=get('src/bootstrap/v034g1a.js').toString('utf8');
 const g1b=get('src/bootstrap/v034g1b.js').toString('utf8');
@@ -88,6 +89,7 @@ const v35h1a=get('src/bootstrap/v035h1a.js').toString('utf8');
 const v35h1b=get('src/bootstrap/v035h1b.js').toString('utf8');
 const v35h1b1=get('src/bootstrap/v035h1b1.js').toString('utf8');
 const v35h1b1a=get('src/bootstrap/v035h1b1a.js').toString('utf8');
+const v35h1b2=get('src/bootstrap/v035h1b2.js').toString('utf8');
 const B3B_VERSION='V0.34D3B3B';
 const e01=get('src/bootstrap/v034e.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34E-rc5');
 const f0=g4aTransform('src/bootstrap/v034f0.js',f3Transform('src/bootstrap/v034f0.js',get('src/bootstrap/v034f0.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34F0')));
@@ -157,8 +159,9 @@ function render(flavor,assetPrefix='assets/'){
  const v35h1bTag=flavor==='standalone'?'<script>\n'+v35h1b+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1b.js?vilob='+VERSION+'"></script>';
  const v35g1Tag=flavor==='standalone'?'<script>\n'+v35g1+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035g1a.js?vilob='+VERSION+'"></script>';
  const v35gTag=flavor==='standalone'?'<script>\n'+v35g+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035g.js?vilob='+VERSION+'"></script>';
+ const v35h1b2Tag=flavor==='standalone'?'<script>\n'+v35h1b2+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1b2.js?vilob='+VERSION+'"></script>';
  const h4Tag=flavor==='standalone'?'<script>\n'+h4+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h4.js?vilob='+VERSION+'"></script>';
- return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n'+h3Tag+'\n'+h4Tag+'\n'+h4aTag+'\n'+h4bTag+'\n'+h4cTag+'\n'+v35aTag+'\n'+v35bTag+'\n'+v35cTag+'\n'+v35dTag+'\n'+v35eTag+'\n'+v35fTag+'\n'+v35f1Tag+'\n'+v35gTag+'\n'+v35g1Tag+'\n'+v35h0Tag+'\n'+v35h1aTag+'\n'+v35h1bTag+'\n'+v35h1b1Tag+'\n'+v35h1b1aTag+'\n</body>');
+ return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n'+h3Tag+'\n'+h4Tag+'\n'+h4aTag+'\n'+h4bTag+'\n'+h4cTag+'\n'+v35aTag+'\n'+v35bTag+'\n'+v35cTag+'\n'+v35dTag+'\n'+v35eTag+'\n'+v35fTag+'\n'+v35f1Tag+'\n'+v35gTag+'\n'+v35g1Tag+'\n'+v35h0Tag+'\n'+v35h1aTag+'\n'+v35h1bTag+'\n'+v35h1b1Tag+'\n'+v35h1b1aTag+'\n'+v35h1b2Tag+'\n</body>');
 }
 const orig=get('tests/fixtures/v034C1H-index.html');
 const rebuilt=Buffer.from(render('baseline'));
@@ -250,8 +253,10 @@ fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1a.js'),v35h
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1b.js'),v35h1b);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1b1.js'),v35h1b1);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1b1a.js'),v35h1b1a);
+fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1b2.js'),v35h1b2);
+const h1b2Build=consolidate({root,dist,assetNames:59});
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
-fs.writeFileSync(path.join(root,'index-standalone.html'),standalone);
-const result={version:VERSION,baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:Buffer.byteLength(hosted),standaloneBytes:Buffer.byteLength(standalone),hostedIndexSHA256:sha(Buffer.from(hosted)),standaloneIndexSHA256:sha(Buffer.from(standalone)),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
+// Already written by H1B2 consolidator with the updated inline bootstraps.
+const result={version:VERSION,...h1b2Build,baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:fs.statSync(path.join(dist,'hosted','index.html')).size,standaloneBytes:fs.statSync(path.join(dist,'standalone','index.html')).size,hostedIndexSHA256:sha(get('dist/hosted/index.html')),standaloneIndexSHA256:sha(get('dist/standalone/index.html')),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};
 fs.writeFileSync(path.join(dist,'build-manifest.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));

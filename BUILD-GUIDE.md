@@ -36,3 +36,10 @@ The runtime badge and export version is `V0.35H1B1A`. H1A `NS.V035H1A` fixed see
 ## V0.35H1B1A hotfix
 
 Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Use the H1B1A Source ZIP in GitHub Desktop and run `npm run build` / `npm test` before pushing. `tests/test-35h1b1a.cjs` covers mid-war Formation/occupation roundtrip and follow-on movement; `README-35H1B1A.md` details limitations. Note: this addendum supersedes old version labels above; those sections describe historical releases.
+
+## V0.35H1B2 release note (supersedes earlier release banner instructions)
+
+- Current **UI release**: `V0.35H1B2`. The save/checkpoint **data format remains** `V0.35H1B1A` and localStorage still uses `village-observer-v035h1b1a`; do not confuse this with an older runtime being deployed.
+- Hosted Pages requests **166 JS assets**: 165 legacy modules and `assets/bootstrap/v035h1b2-bundle.js`. Source maintains separate bootstrap files for auditing; the build script creates the optimized distribution bundle automatically. `index-standalone.html` is still a standalone HTML output.
+- Run `npm run build` and `npm test` before committing. Do not copy only `index.html` without its built assets.
+- Verify H1B1A wartime checkpoint movement and occupation, and compare startup on the same device cold/warm. Chrome may cache prior versions until a hard reload.
