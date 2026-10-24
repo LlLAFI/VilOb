@@ -1,9 +1,9 @@
-# Village Observer — V0.35H1C
+# Village Observer — V0.35H1C1
 
-Current runtime release: **V0.35H1C · Save Data Optimization V1**.
+Current runtime: **V0.35H1C1 · Observation Hotpath & Memory Optimization V1**.
 
-- [H1C feature changes, safeguards, and limitations](README-35H1C.md)
-- [H1C tests](TEST-35H1C.md)
+- [H1C1 changes, performance caveats and usage](README-35H1C1.md)
+- [H1C1 validation and outstanding checks](TEST-35H1C1.md)
 - [Build and GitHub Pages](BUILD-GUIDE.md)
 
-Use `npm run build` then `npm test` before publishing. Hosted JavaScript remains **165 base scripts plus one combined bundle** (60 bootstraps). Save/checkpoint schema and localStorage save key **remain V0.35H1B1A**; this is intentional for wartime save compatibility. Keep the original 60-year checkpoint file as a backup.
+Run `npm run build` and `npm test` before pushing via GitHub Desktop. GitHub Pages retains **165 legacy JS modules + one bundled startup script**. Data-format compatibility remains **V0.35H1B1A**, including restored wartime Formation and occupation state and H1C's lossless gzip checkpoints.

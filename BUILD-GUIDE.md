@@ -50,3 +50,10 @@ Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Us
 - Source ZIP -> extract into repository root, run `npm run build` and `npm test`, then commit/push. GitHub Pages hosted entry includes 165 legacy JS modules and `assets/bootstrap/v035h1c-bundle.js` (one bundled 60-script bootstrap).
 - World / Advanced Tools / **H1C · 무손실 체크포인트**: save/load gzip (`.json.gz`), save/load previous `.json`, export field size JSON and timing JSON. gzip requires Chrome/Edge/Firefox versions implementing `CompressionStream` and `DecompressionStream`.
 - Test actual original ~140MB 60-year file locally; never delete that source before inspecting imported gzip's military movements and occupation progression.
+
+## V0.35H1C1 release (current)
+
+- Current UI: **V0.35H1C1**. Save/checkpoint serialization still **V0.35H1B1A**; **H1C gzip remains lossless and backward-compatible**.
+- Hosted Pages: **165 historical base JavaScript assets + `assets/bootstrap/v035h1c1-bundle.js`** (61 constituent bootstraps) = **166 external JavaScript requests**. Do not copy only root `index.html` without `dist/hosted/assets`.
+- `npm run build`, then `npm test` and `npm run benchmark:h1c1` (optional and Node-specific).
+- New **World → Advanced Tools → H1C1 관측 진단** runs 180 days. Capture JSON on the 60y checkpoint before deeper snapshot hotspot changes.

@@ -1,6 +1,6 @@
 {
   "name": "village-observer",
-  "version": "0.35.0-h1c",
+  "version": "0.35.0-h1c1",
   "private": true,
   "description": "Village Observer static dual-build source foundation",
   "scripts": {
@@ -12,6 +12,7 @@
     "test:35g1b": "node tests/test-35g1b.cjs",
     "test:35h0": "node tests/test-35h0.cjs",
     "test:35h1a": "node tests/test-35h1a.cjs && node tests/test-35h1a-parity.cjs",
+    "benchmark:h1c1": "node tools/benchmark-h1c1.cjs",
     "test:35h1a-hf": "node tests/test-35h1a-hf.cjs && node tests/test-35h1a.cjs && node tests/test-35h1a-parity.cjs",
     "prune:preview": "node tools/prune-archive.mjs",
     "prune:apply": "node tools/prune-archive.mjs --apply"
