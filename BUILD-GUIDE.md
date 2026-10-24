@@ -43,3 +43,10 @@ Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Us
 - Hosted Pages requests **166 JS assets**: 165 legacy modules and `assets/bootstrap/v035h1b2-bundle.js`. Source maintains separate bootstrap files for auditing; the build script creates the optimized distribution bundle automatically. `index-standalone.html` is still a standalone HTML output.
 - Run `npm run build` and `npm test` before committing. Do not copy only `index.html` without its built assets.
 - Verify H1B1A wartime checkpoint movement and occupation, and compare startup on the same device cold/warm. Chrome may cache prior versions until a hard reload.
+
+## V0.35H1C release note (supersedes earlier runtime version information)
+
+- Current **runtime badge**: `V0.35H1C`; save/checkpoint internal schema: `V0.35H1B1A` for wartime backward compatibility.
+- Source ZIP -> extract into repository root, run `npm run build` and `npm test`, then commit/push. GitHub Pages hosted entry includes 165 legacy JS modules and `assets/bootstrap/v035h1c-bundle.js` (one bundled 60-script bootstrap).
+- World / Advanced Tools / **H1C · 무손실 체크포인트**: save/load gzip (`.json.gz`), save/load previous `.json`, export field size JSON and timing JSON. gzip requires Chrome/Edge/Firefox versions implementing `CompressionStream` and `DecompressionStream`.
+- Test actual original ~140MB 60-year file locally; never delete that source before inspecting imported gzip's military movements and occupation progression.

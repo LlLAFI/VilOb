@@ -6,7 +6,7 @@ const element=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute
 const c={Math:math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null;},setItem(){}},document:{head:element(),body:element(),documentElement:element(),createElement:element,getElementById(){return null;},querySelector(){return null;},querySelectorAll(){return[];},addEventListener(){},title:''}};
 c.window=c;c.addEventListener=()=>{};vm.createContext(c);
 for(const x of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(x[1].trim())try{new vm.Script(x[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35H1B2');assert.equal(NS.TECH_ORDER.length,43);
+const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35H1C');assert.equal(NS.TECH_ORDER.length,43);
 const w=new NS.World(19,19),serialized=w.serialize();assert.equal(serialized.version,'V0.35H1B1A');assert(NS.World.from(JSON.parse(JSON.stringify(serialized))));
 const methods=[['World',NS.World.prototype,'advanceOneDay'],['Person',NS.Person.prototype,'act'],['Village',NS.Village.prototype,'seasonalTick']];
 const originals=methods.map(x=>x[1][x[2]]);
