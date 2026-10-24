@@ -7,7 +7,7 @@ const storage=new Map();const el=()=>({style:{},dataset:{},classList:{add(){},re
 const ctx={console,Math:rand,Map,Set,WeakMap,JSON,Date,Blob,TextEncoder,TextDecoder,ArrayBuffer,Uint8Array,structuredClone,performance:require('node:perf_hooks').performance,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(k){return storage.get(k)||null},setItem(k,v){storage.set(k,v)}},document:{head:el(),body:el(),documentElement:el(),getElementById(){return null},createElement:el,querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''},URL};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(match[1].trim())try{new vm.Script(match[1]).runInContext(ctx,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
 const NS=ctx.VSim,Engine=NS.V035G1A;
-assert.equal(NS.RELEASE_VERSION,'V0.35H1B1');assert.equal(Engine,NS.V035G1);assert.equal(NS.TECH_ORDER.length,43);
+assert.equal(NS.RELEASE_VERSION,'V0.35H1B1A');assert.equal(Engine,NS.V035G1);assert.equal(NS.TECH_ORDER.length,43);
 assert.deepEqual(JSON.parse(JSON.stringify(Engine.report({villages:[],calendarOrdinalDay:()=>0}).constants)),{baseDaily:0.8,landPerTick:0.55,localPerAdult:0.05,localMax:0.25,architectMultiplier:3,reviewDays:30});
 assert.equal(Engine.constants.BASE_DAILY,.8);assert.equal(Engine.constants.ARCH_MULT,3);
 const w=new NS.World(19,19),v=w.activeVillages[0],tile=w.map.get(v.coreTileId);
@@ -32,11 +32,11 @@ sourceVillage.v35g1={baselineCycles:100,baselineEffective:75,architectEffectiveE
 sourceVillage._v35g1LastReview=60;
 const imported=NS.World.from(before),iv=imported.villages.find(x=>String(x.id)===String(v.id));
 assert.equal(iv.v35g1.baselineCycles,100);assert.equal(iv.v35g1.architectEffectiveExtra,28);assert.equal(iv._v35g1LastReview,60);
-assert.equal(imported.serialize().version,'V0.35H1B1');
+assert.equal(imported.serialize().version,'V0.35H1B1A');
 const after=JSON.parse(JSON.stringify(imported.serialize())),reload=NS.World.from(after);
-assert.equal(reload.serialize().version,'V0.35H1B1');assert.equal(reload.villages.find(x=>String(x.id)===String(v.id)).v35g1.baselineCycles,100);
-storage.set('village-observer-v035g1',JSON.stringify(before));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1');
-NS.SaveSystem.save(reload);assert(storage.has('village-observer-v035h1b1'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1');
+assert.equal(reload.serialize().version,'V0.35H1B1A');assert.equal(reload.villages.find(x=>String(x.id)===String(v.id)).v35g1.baselineCycles,100);
+storage.set('village-observer-v035g1',JSON.stringify(before));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1A');
+NS.SaveSystem.save(reload);assert(storage.has('village-observer-v035h1b1a'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1A');
 assert.equal(reload.telemetry.toJSON(reload).worldSummary.v35g1Construction.constants.architectMultiplier,3);
-assert.equal(NS.PATCH_NOTES[0].version,'V0.35H1B1');assert(NS.PATCH_NOTES.some(x=>x.version==='V0.35G1'));
+assert.equal(NS.PATCH_NOTES[0].version,'V0.35H1B1A');assert(NS.PATCH_NOTES.some(x=>x.version==='V0.35G1'));
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,baseWithoutAdults:2.4,baseWithCap:3,withArchitect:9,landBase:0.55,landArchitect:1.7325,oldG1Save:'PASS',localFallback:'PASS',newSaveKey:'PASS',tech:NS.TECH_ORDER.length}));

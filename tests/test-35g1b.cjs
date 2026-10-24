@@ -6,7 +6,7 @@ const localStorage=new Map(),el=()=>({style:{},dataset:{},classList:{add(){},rem
 const ctx={console,Math:rand,Map,Set,WeakMap,JSON,Date,Blob,TextEncoder,TextDecoder,ArrayBuffer,Uint8Array,structuredClone,performance:require('node:perf_hooks').performance,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(k){return localStorage.get(k)||null},setItem(k,v){localStorage.set(k,v)}},document:{head:el(),body:el(),documentElement:el(),getElementById(){return null},createElement:el,querySelector(){return null},querySelectorAll(){return []},addEventListener(){},title:''},URL};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(match[1].trim())try{new vm.Script(match[1]).runInContext(ctx,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
 const NS=ctx.VSim,E=NS.V035H0,A=NS.V035G1A;
-assert.equal(NS.RELEASE_VERSION,'V0.35H1B1');assert.equal(NS.TECH_ORDER.length,43);assert.equal(A.constants.BASE_DAILY,.8);assert.equal(A.constants.ARCH_MULT,3);assert.equal(E.constants.WAIT,825);assert.equal(E.constants.HAPPINESS_PENALTY,3);
+assert.equal(NS.RELEASE_VERSION,'V0.35H1B1A');assert.equal(NS.TECH_ORDER.length,43);assert.equal(A.constants.BASE_DAILY,.8);assert.equal(A.constants.ARCH_MULT,3);assert.equal(E.constants.WAIT,825);assert.equal(E.constants.HAPPINESS_PENALTY,3);
 const w=new NS.World(19,19),v=w.activeVillages[0];assert(v);const core=w.map.get(v.coreTileId),next=w.map.neighbors4(core.id).find(t=>t.ownerId==null&&t.terrain!=='sea'&&t.terrain!=='ocean');assert(next,'test requires neighboring unclaimed land');w.map.claim(next.id,v.id);v.territory.add(next.id);
 const people=v.residents.filter(p=>p.alive&&p.age>=16&&p.assignment!=='PIONEER');assert(people.length>=2);const p=people[0];p.homeTileId=core.id;p._v35g1bResidenceSinceCal=0;p._v35g1bResidenceSettlementId='A';
 const h1={settlementId:'A',nationId:v.id,tileIds:[core.id],coreTileId:core.id,home:core.id,population:20,capacity:17,short:3,free:0};
@@ -21,12 +21,12 @@ const reserve2=fakeForeign.settlementReserveDays;fakeForeign.settlementReserveDa
 assert.equal(E.admission(fakeForeign,{map:w.map},fh,p),null);
 fh.free=0;assert.equal(E.admission(fakeForeign,{map:w.map},fh,p),'LOCAL_CAPACITY_OR_FOOD');fh.free=2;fakeForeign.settlementReserveDays=()=>5;assert.equal(E.admission(fakeForeign,{map:w.map},fh,p),'LOCAL_CAPACITY_OR_FOOD');
 // Existing G1A import and independent G1B save. Person migration state roundtrips.
-const nativeH0Save=JSON.parse(JSON.stringify(w.serialize()));const oldBSave={...nativeH0Save,version:'V0.35G1B'};assert.equal(NS.World.from(oldBSave).serialize().version,'V0.35H1B1');const saveBefore=JSON.parse(JSON.stringify(w.serialize()));saveBefore.version='V0.35G1A';delete saveBefore.v35g1bLastReview;const importWorld=NS.World.from(saveBefore);assert.equal(importWorld.serialize().version,'V0.35H1B1');
-let reloaded=NS.World.from(JSON.parse(JSON.stringify(w.serialize())));assert.equal(reloaded.serialize().version,'V0.35H1B1');assert.equal(reloaded.villages[0].residents.filter(x=>x._v35g1bResidenceSettlementId==='B').length,1);
-NS.SaveSystem.save(reloaded);assert(localStorage.has('village-observer-v035h1b1'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1');
-localStorage.delete('village-observer-v035h1b1');localStorage.set('village-observer-v035g1a',JSON.stringify(saveBefore));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1');
+const nativeH0Save=JSON.parse(JSON.stringify(w.serialize()));const oldBSave={...nativeH0Save,version:'V0.35G1B'};assert.equal(NS.World.from(oldBSave).serialize().version,'V0.35H1B1A');const saveBefore=JSON.parse(JSON.stringify(w.serialize()));saveBefore.version='V0.35G1A';delete saveBefore.v35g1bLastReview;const importWorld=NS.World.from(saveBefore);assert.equal(importWorld.serialize().version,'V0.35H1B1A');
+let reloaded=NS.World.from(JSON.parse(JSON.stringify(w.serialize())));assert.equal(reloaded.serialize().version,'V0.35H1B1A');assert.equal(reloaded.villages[0].residents.filter(x=>x._v35g1bResidenceSettlementId==='B').length,1);
+NS.SaveSystem.save(reloaded);assert(localStorage.has('village-observer-v035h1b1a'));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1A');
+localStorage.delete('village-observer-v035h1b1a');localStorage.set('village-observer-v035g1a',JSON.stringify(saveBefore));assert.equal(NS.SaveSystem.load().serialize().version,'V0.35H1B1A');
 const pristine=new NS.World(19,19);assert.equal(NS.V034D2.audit(pristine).ok,true);assert.equal(NS.V034D2A.audit(pristine).ok,true);
-assert(NS.PATCH_NOTES.some(x=>x.version==='V0.35H1B1'));
+assert(NS.PATCH_NOTES.some(x=>x.version==='V0.35H1B1A'));
 assert.equal(E.report(reloaded).constants.waitDays,825);
 console.log(JSON.stringify({status:'PASS',version:NS.RELEASE_VERSION,domesticMoved:moved,remainingShortage:h1.short,foreignAcceptance:'PASS',foreignHousingGate:'PASS',saveMigration:'PASS',techCount:43,csvColumns:1683}));
 // Two-stage foreign application under a small deterministic border graph.

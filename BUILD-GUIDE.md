@@ -1,4 +1,4 @@
-# Build & GitHub Pages — V0.35H1A-HF
+# Build & GitHub Pages — V0.35H1B1A
 
 ## Build from a fresh Source ZIP
 
@@ -19,16 +19,20 @@ Don't upload the ZIP binary to the repository as the website. Extract and commit
 
 ## Version, save and scenarios
 
-The runtime badge and export version is `V0.35H1A-HF`. H1A `NS.V035H1A` fixed seed/RNG/checkpoint implementation is unchanged in logic; H1A checkpoint JSON and localStorage save key are accepted. The new save key is `village-observer-v035h1a-hf`.
+The runtime badge and export version is `V0.35H1B1A`. H1A `NS.V035H1A` fixed seed/RNG/checkpoint implementation is unchanged in logic; H1A checkpoint JSON and localStorage save key are accepted. The new save key is `village-observer-v035h1b1a`.
 
 ## CI scope
 
-`npm test` runs the curated current-build and 11 critical regressions. The complete historical baseline archives and obsolete all-version validator HTML files are no longer distributed. This change is intentional; old-version historical comparisons can still be run from past archived releases as needed.
+`npm test` runs the curated current-build and 13 critical regressions. The complete historical baseline archives and obsolete all-version validator HTML files are no longer distributed. This change is intentional; old-version historical comparisons can still be run from past archived releases as needed.
 
 
-## V0.35H1B11
+## V0.35H1B
 
 - Build: `npm run build`, CI: `npm test` (12 core regression cases), optional browser: `python tools/browser-35h1b-smoke.py`.
 - H1B diagnostic: World → Advanced Tools → H1B; load the same HF 60-year checkpoint separately for baseline/A/C/D. 180d/360d opt-in measurements; export H1B JSON.
 - Do not package previous `index-standalone.html`, stale `dist/standalone`, or past release HTML in the source ZIP. GitHub Actions deploys `dist/hosted`.
 - `npm run prune:preview` lists old files; `npm run prune:apply` removes only old archives. H1B tests and HF executable parity fixture are protected.
+
+## V0.35H1B1A hotfix
+
+Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Use the H1B1A Source ZIP in GitHub Desktop and run `npm run build` / `npm test` before pushing. `tests/test-35h1b1a.cjs` covers mid-war Formation/occupation roundtrip and follow-on movement; `README-35H1B1A.md` details limitations. Note: this addendum supersedes old version labels above; those sections describe historical releases.

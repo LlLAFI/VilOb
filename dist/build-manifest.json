@@ -1,13 +1,13 @@
 {
-  "version": "V0.35H1B1",
+  "version": "V0.35H1B1A",
   "baselineSHA256": "89e9863745b5c0dfcf30ecd2b44ec3d1befd28cc8ab1abb2392d3cd495ec8a64",
   "sourceBlocks": 169,
   "scriptBlocks": 165,
   "styleBlocks": 4,
-  "hostedBytes": 20992,
-  "standaloneBytes": 4076285,
-  "hostedIndexSHA256": "11ce4dbd8d3ef43ccad066684e45ea53db24e5337f3b7152d43287cef5a0558d",
-  "standaloneIndexSHA256": "03f75411e122beb148fa1ddb1bfc36401d91e1fbaa6238e79fe510507dd7aaa3",
+  "hostedBytes": 21291,
+  "standaloneBytes": 4084817,
+  "hostedIndexSHA256": "32c85bb38ce23b4e09e688c5c6e90b9e960fd22782913a6a4ee27c06e9669749",
+  "standaloneIndexSHA256": "a82e0091cd0ce9894275f1be1f2f8ccea681319c4add2eb9ee8e2e6fa4d9b045",
   "csvColumns": 1683,
   "csvDuplicateExtraColumnsFixed": 72
 }

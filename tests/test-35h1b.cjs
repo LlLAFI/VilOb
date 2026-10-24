@@ -8,14 +8,14 @@ function boot(html,seed=514){let state=seed;const math=Object.create(Math);math.
  return {N:c.VSim,mem};
 }
 (async()=>{
- const old=boot('tests/fixtures/v035H1A-HF-standalone.html'),cur=boot('index-standalone.html');assert.equal(old.N.RELEASE_VERSION,'V0.35H1A-HF');assert.equal(cur.N.RELEASE_VERSION,'V0.35H1B1');
+ const old=boot('tests/fixtures/v035H1A-HF-standalone.html'),cur=boot('index-standalone.html');assert.equal(old.N.RELEASE_VERSION,'V0.35H1A-HF');assert.equal(cur.N.RELEASE_VERSION,'V0.35H1B1A');
  const a=old.N.V035H1A.createWorld(),b=cur.N.V035H1A.createWorld();
  assert.equal(old.N.V035H1A.fingerprint(a),cur.N.V035H1A.fingerprint(b));
  for(let i=0;i<90;i++){a.advanceOneDay();b.advanceOneDay();if(i%30===29){assert.equal(a.v35h1a.rngState,b.v35h1a.rngState,'RNG '+i);assert.equal(old.N.V035H1A.fingerprint(a),cur.N.V035H1A.fingerprint(b),'state '+i);}}
- const oldCheckpoint=JSON.stringify(old.N.V035H1A.scenario(a));const imported=await cur.N.V035H1A.importCheckpoint(oldCheckpoint);assert.equal(imported.serialize().version,'V0.35H1B1');
+ const oldCheckpoint=JSON.stringify(old.N.V035H1A.scenario(a));const imported=await cur.N.V035H1A.importCheckpoint(oldCheckpoint);assert.equal(imported.serialize().version,'V0.35H1B1A');
  assert.equal(cur.N.V035H1A.fingerprint(imported),old.N.V035H1A.fingerprint(a));
- cur.mem.set('village-observer-v035h1a-hf',JSON.stringify(a.serialize()));assert.equal(cur.N.SaveSystem.load().serialize().version,'V0.35H1B1');
- cur.N.SaveSystem.save(imported);assert(cur.mem.has('village-observer-v035h1b1'));
+ cur.mem.set('village-observer-v035h1a-hf',JSON.stringify(a.serialize()));assert.equal(cur.N.SaveSystem.load().serialize().version,'V0.35H1B1A');
+ cur.N.SaveSystem.save(imported);assert(cur.mem.has('village-observer-v035h1b1a'));
  const P=cur.N.V035H1B;assert(!P.isActive());
  for(const mode of ['BASELINE','A','C','D']){
   const world=await cur.N.V035H1A.importCheckpoint(oldCheckpoint),r0=world.v35h1a.rngState;

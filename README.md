@@ -1,7 +1,9 @@
-> Current release: **V0.35H1B1** (see [README-35H1B1.md](README-35H1B1.md) and [TEST-35H1B1.md](TEST-35H1B1.md)).
+# Village Observer — V0.35H1B1A
 
-# Village Observer — V0.35H1B
+Current release: **V0.35H1B1A · Wartime Checkpoint Continuity**.
 
-See **[README-35H1B.md](README-35H1B.md)** for patch details and reproducible diagnostics, and **[TEST-35H1B.md](TEST-35H1B.md)** for validation.
+- [Patch / limitations](README-35H1B1A.md)
+- [Validation](TEST-35H1B1A.md)
+- [Build and deploy](BUILD-GUIDE.md)
 
-Build static GitHub Pages site: `npm run build`; run source-backed CI: `npm test`. The source ZIP and Pages artifact are separate. H1A-HF checkpoint JSON is still accepted.
+Build GitHub Pages with `npm run build` and verify with `npm test`. The source ZIP and the standalone HTML are separate artifacts. Older H1A-HF/H1B/H1B1 checkpoints remain importable. **Keep the original 60-year wartime checkpoint unchanged** during testing.
