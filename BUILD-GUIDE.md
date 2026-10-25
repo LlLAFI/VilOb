@@ -1,4 +1,4 @@
-# Build & GitHub Pages — V0.35H1B1A
+# Build & GitHub Pages — V0.35H1C2 (historical instructions retained)
 
 ## Build from a fresh Source ZIP
 
@@ -57,3 +57,13 @@ Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Us
 - Hosted Pages: **165 historical base JavaScript assets + `assets/bootstrap/v035h1c1-bundle.js`** (61 constituent bootstraps) = **166 external JavaScript requests**. Do not copy only root `index.html` without `dist/hosted/assets`.
 - `npm run build`, then `npm test` and `npm run benchmark:h1c1` (optional and Node-specific).
 - New **World → Advanced Tools → H1C1 관측 진단** runs 180 days. Capture JSON on the 60y checkpoint before deeper snapshot hotspot changes.
+
+
+## V0.35H1C2 release (current)
+
+- UI label `V0.35H1C2`, internal checkpoint base version `V0.35H1B1A` with additive `v35h1c2` AI-decision state (`schema: 1`).
+- Hosted JS assets: 165 protected JS + `assets/bootstrap/v035h1c2-bundle.js` (62 ordered bootstraps). GitHub Pages also needs all generated CSS and legacy JS assets.
+- Source ZIP is the source of truth; run `npm run build` and `npm test` before deployment.
+- `node tools/telemetry-inventory.mjs` audits the 1,683 V2 CSV columns and regenerates `docs/h1c2-csv-1683-inventory.json` without modifying existing CSV columns.
+- World → Advanced Tools → H1C2 includes the taxonomy / dependency diagnostic JSON. H1C gzip and previous Formation migration fixes remain enabled.
+- **No blanket observability OFF control** is provided: several legacy record wrappers still have simulation side effects. Never disable `Telemetry.record()` globally.

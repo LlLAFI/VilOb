@@ -9,7 +9,7 @@ function boot(htmlName,seed=135){let state=seed;const random=Object.create(Math)
 }
 (async()=>{
  const old=boot('tests/fixtures/v035H1A-standalone.html'),hf=boot('index-standalone.html');
- assert.equal(old.NS.RELEASE_VERSION,'V0.35H1A');assert.equal(hf.NS.RELEASE_VERSION,'V0.35H1C1');
+ assert.equal(old.NS.RELEASE_VERSION,'V0.35H1A');assert.equal(hf.NS.RELEASE_VERSION,'V0.35H1C2');
  assert.equal(hf.NS.V035G1A.constants.BASE_DAILY,.8);assert.equal(hf.NS.V035G1A.constants.ARCH_MULT,3);assert.equal(hf.NS.TECH_ORDER.length,43);
  const a=old.NS.V035H1A.createWorld(),b=hf.NS.V035H1A.createWorld();
  assert.equal(a.v35h1a.rngState,b.v35h1a.rngState);assert.equal(old.NS.V035H1A.fingerprint(a),hf.NS.V035H1A.fingerprint(b));

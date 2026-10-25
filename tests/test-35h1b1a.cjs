@@ -8,7 +8,7 @@ function boot(){let state=514;const math=Object.create(Math);math.random=()=>{st
  return c.VSim;
 }
 (async()=>{
- const N=boot();assert.equal(N.RELEASE_VERSION,'V0.35H1C1');assert.equal(N.TECH_ORDER.length,43);
+ const N=boot();assert.equal(N.RELEASE_VERSION,'V0.35H1C2');assert.equal(N.TECH_ORDER.length,43);
  // Legacy from() conversion must never drop post-0.32D military fields.
  const prototype=N.MilitaryFormation.from({id:'test-form',nationId:0,cohortIds:['c'],tileId:1,status:'SECURING',v33dAssignedWarId:'war33-1',v33c1NextMoveCal:777,v33e3Concentration:{phase:'ADVANCE'}});
  assert(prototype instanceof N.MilitaryFormation);

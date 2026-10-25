@@ -4,7 +4,7 @@ const root=path.join(__dirname,'..');const html=fs.readFileSync(path.join(root,'
 const element=()=>({style:{},dataset:{},textContent:'',innerHTML:'',setAttribute(){},addEventListener(){},appendChild(){},querySelector(){return null},querySelectorAll(){return[]},classList:{add(){},remove(){},toggle(){}}});
 const c={Math,console,performance,Map,Set,WeakMap,JSON,Date,Blob,URL,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,structuredClone,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:element(),body:element(),documentElement:element(),createElement:element,getElementById(){return null},querySelector(){return null},querySelectorAll(){return[]},addEventListener(){},title:''}};c.window=c;c.addEventListener=()=>{};vm.createContext(c);
 for(const x of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(x[1].trim())try{new vm.Script(x[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}
-const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35H1C1');
+const NS=c.VSim;assert.equal(NS.RELEASE_VERSION,'V0.35H1C2');
 const w=new NS.World(19,19),v=w.activeVillages[0],core=w.map.get(v.coreTileId);
 const adj=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>w.map.at(core.x+dx,core.y+dy)).find(x=>x&&x.ownerId==null&&NS.TERRAIN[x.terrain]?.passable);assert(adj,'nearby claimable tile required');
 adj.ownerId=v.id;adj.buildings=['outpost'];adj.settlementId=null;v.territory.add(adj.id);adj.stocks.stone=0;
