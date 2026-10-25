@@ -10,7 +10,7 @@ function boot(html){let seed=514;const math=Object.create(Math);math.random=()=>
 }
 (async()=>{
  const source=fs.readFileSync(path.join(root,'index-standalone.html'),'utf8'),N=boot(source);
- assert.equal(N.RELEASE_VERSION,'V0.35H1C3');assert.equal(N.TECH_ORDER.length,43);
+ assert.equal(N.RELEASE_VERSION,'V0.35H1C4');assert.equal(N.TECH_ORDER.length,43);
  assert(N.V035H1C&&N.V035H1B1A&&N.V035H1B2,'new and old bootstrap intact');
  assert.equal(N.V035H1B2.report().version,'V0.35H1B2','old startup profiler intact');
  const w=N.V035H1A.createWorld();for(let i=0;i<4;i++)w.advanceOneDay();
@@ -35,8 +35,8 @@ function boot(html){let seed=514;const math=Object.create(Math);math.random=()=>
  // Important defense against regression: the H1B1A legacy Formation rehydrator must be retained.
  const f=N.MilitaryFormation.from({id:'H1C-F',tileId:7,v33dAssignedWarId:'war0',v33c1NextMoveCal:889,cohortIds:['c1']});
  assert.equal(f.v33c1NextMoveCal,889);assert.equal(f.v33dAssignedWarId,'war0');
- const bundle=fs.readFileSync(path.join(root,'dist/hosted/assets/bootstrap/v035h1c3-bundle.js'),'utf8');
- assert.equal((bundle.match(/\/\* H1B2 bundled source:/g)||[]).length,63);
+ const bundle=fs.readFileSync(path.join(root,'dist/hosted/assets/bootstrap/v035h1c4-bundle.js'),'utf8');
+ assert.equal((bundle.match(/\/\* H1B2 bundled source:/g)||[]).length,64);
  assert.equal([...fs.readFileSync(path.join(root,'dist/hosted/index.html'),'utf8').matchAll(/<script\b/g)].length,166);
  console.log(JSON.stringify({status:'PASS',version:N.RELEASE_VERSION,originalBytes:Buffer.byteLength(text),gzipBytes:zipped.blob.size,ratio:+(zipped.blob.size/Buffer.byteLength(text)).toFixed(4),gzipUnchanged:true,rawGzipFullStateParity:true,replayDays:4,formation:true,csv:1683,hostedScripts:166}));
 })().catch(e=>{console.error(e.stack||e);process.exit(1)});

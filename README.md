@@ -1,11 +1,12 @@
-# Village Observer — V0.35H1C3
+# Village Observer — V0.35H1C4
 
-Runtime: **V0.35H1C3 · Domain Integrity & Observation Hotpath V1**.
+Runtime: **V0.35H1C4 · Diagnostic Center & Snapshot Attribution V1**.
 
-- [H1C3 scope and migration safety](README-35H1C3.md)
-- [H1C3 test report and limitations](TEST-35H1C3.md)
-- [H1C2 architecture, earlier AI state separation](README-35H1C2.md)
-- [H1C2 Snapshot CSV 1,683-column inventory](docs/h1c2-csv-1683-inventory.json)
-- [Build and GitHub Pages](BUILD-GUIDE.md)
+- [H1C4 Diagnostic Center and profiler attribution](README-35H1C4.md)
+- [H1C4 test report and pending device checks](TEST-35H1C4.md)
+- [H1C3 domain integrity](README-35H1C3.md)
+- [H1C2 Simulation State / Observation separation](README-35H1C2.md)
+- [1,683-column CSV audit](docs/h1c2-csv-1683-inventory.json)
+- [Build / GitHub Pages](BUILD-GUIDE.md)
 
-Build: `npm run build`, then `npm test`, then commit/push. Pages retains **165 protected legacy JS + 1 bundled bootstrap JS (63 source modules)**. Internal checkpoint save schema remains **V0.35H1B1A**. Existing H1C gzip save/load and the additive H1C2 AI state are preserved. Legacy event and Snapshot observation writers are not disabled.
+Build with `npm run build`; then `npm test`; commit and push. Static hosted deployment still has **165 protected legacy JS requests plus 1 bundled bootstrap (64 modules)**. Checkpoint data schema remains **V0.35H1B1A**. H1C gzip / H1C2 simulation state / H1C3 wartime D3 audit remain unchanged.

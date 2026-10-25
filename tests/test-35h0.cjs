@@ -9,7 +9,7 @@ function engine(file,seed=137){let rng=seed;
  return {NS:ctx.VSim,getRng:()=>rng};}
 const old=engine(path.join(root,'tests','fixtures','v035G1B-standalone.html'));
 const next=engine(path.join(root,'index-standalone.html'));
-assert.equal(old.NS.RELEASE_VERSION,'V0.35G1B');assert.equal(next.NS.RELEASE_VERSION,'V0.35H1C3');assert.equal(next.NS.TECH_ORDER.length,43);
+assert.equal(old.NS.RELEASE_VERSION,'V0.35G1B');assert.equal(next.NS.RELEASE_VERSION,'V0.35H1C4');assert.equal(next.NS.TECH_ORDER.length,43);
 assert.equal(next.NS.V035G1A.constants.BASE_DAILY,.8);assert.equal(next.NS.V035G1A.constants.ARCH_MULT,3);
 const E=next.NS.V035H0;
 const w=new next.NS.World(19,19),v=w.activeVillages[0];

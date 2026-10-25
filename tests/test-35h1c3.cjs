@@ -12,7 +12,7 @@ function addOwnedTile(world){const rec=world.v34b.settlements.find(x=>x.lifecycl
  const first=world.map.get(center);first.stocks.food=11;first.stocks.wood=9;t.stocks.food=23;t.stocks.wood=7;
  return {rec,v,first,second:t};}
 (async()=>{
- const old=boot('tests/fixtures/v035H1C2-standalone.html'),cur=boot('index-standalone.html');assert.equal(old.RELEASE_VERSION,'V0.35H1C2');assert.equal(cur.RELEASE_VERSION,'V0.35H1C3');
+ const old=boot('tests/fixtures/v035H1C2-standalone.html'),cur=boot('index-standalone.html');assert.equal(old.RELEASE_VERSION,'V0.35H1C2');assert.equal(cur.RELEASE_VERSION,'V0.35H1C4');
  const a=old.V035H1A.createWorld(),b=cur.V035H1A.createWorld();
  assert.equal(old.V035H1A.fingerprint(a),cur.V035H1A.fingerprint(b));
  for(let i=1;i<=90;i++){a.advanceOneDay();b.advanceOneDay();if(i%15===0){assert.equal(a.v35h1a.rngState,b.v35h1a.rngState,'RNG '+i);assert.equal(old.V035H1A.fingerprint(a),cur.V035H1A.fingerprint(b),'world '+i);}}
@@ -42,7 +42,7 @@ function addOwnedTile(world){const rec=world.v34b.settlements.find(x=>x.lifecycl
  const after=cur.V035H1C3.DomainEvents.report();assert(after.TILE_OCCUPIED33>=1&&after.TILE_LIBERATED33>=1);
  assert.equal(cur.V035H1C3.report(b).at.calendarOrdinalDay,b.calendarOrdinalDay());
  assert.equal(cur.V035H1C3.report(b).saveFormatVersion,'V0.35H1B1A');
- const meta=b.telemetry.toJSON(b);assert.equal(meta.version,'V0.35H1C3');assert.equal(meta.saveFormatVersion,'V0.35H1B1A');
+ const meta=b.telemetry.toJSON(b);assert.equal(meta.version,'V0.35H1C4');assert.equal(meta.saveFormatVersion,'V0.35H1B1A');
  // Explicit DomainEvent dispatch works without writing a Telemetry observation.
  const isolated=cur.V035H1A.createWorld();const legacyLog=isolated.telemetry.entries.length;
  isolated.telemetry.record=function(){};
