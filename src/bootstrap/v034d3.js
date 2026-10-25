@@ -132,11 +132,35 @@ function economyRows(w){const groups=NS.V034D1.all(w),out=[];for(const r of grou
  const history=m.reduce((s,id)=>{const h=stat(w).byTile[Number(id)]||{};for(const k of ['harvested','regen','consumed','mealDemand','depositOverflow'])s[k]=(s[k]||0)+N(h[k]);return s;},{});
  out.push({...r,capacity:cap,foodDemand,foodReserveDays:foodDemand?r.resources.food/foodDemand:999,naturalFoodRemaining:natural,baseFoodRegenPerCycle:baseRegen,...history});
  }return out;}
-function audit(w){const errs=[],warnings=[],rows=economyRows(w),d1=NS.V034D1.audit(w);if(!d1.ok)errs.push(...d1.errors.map(x=>'D1:'+x));const totals=Object.fromEntries(RES.map(k=>[k,0]));for(const r of rows){const v=w.villages.find(x=>eq(x.id,r.nationId));for(const k of RES){const physical=r.tileIds.reduce((s,id)=>s+stockRaw(w,id,k),0);if(Math.abs(physical-r.resources[k])>1e-6)errs.push('STOCK:'+r.settlementId+':'+k);totals[k]+=physical;
- if(r.tileIds.length>1){const p=pool(v,r.tileIds[0],k);if(Math.abs(p-physical)>1e-6)errs.push('POOL:'+r.settlementId+':'+k);}}
- for(const k of ['food','wood','stone'])if(r.resources[k]-r.capacity[k]>1e-5)warnings.push('STORAGE_OVERFLOW:'+r.settlementId+':'+k);
- }for(const k of RES){const real=(w.map?.tiles||[]).filter(t=>t.ownerId!=null).reduce((s,t)=>s+stockRaw(w,t.id,k),0);if(Math.abs(real-totals[k])>1e-5)errs.push('WORLD_'+k);}
- return {ok:errs.length===0,errors:errs,warnings,settlements:rows.length,multiTile:rows.filter(r=>r.tiles>1).length,resources:totals,foodNaturalPotential:rows.reduce((s,r)=>s+r.naturalFoodRemaining,0),foodBaseRegenPerCycle:rows.reduce((s,r)=>s+r.baseFoodRegenPerCycle,0)};
+function audit(w){const errs=[],warnings=[],rows=economyRows(w),d1=NS.V034D1.audit(w);if(!d1.ok)errs.push(...d1.errors.map(x=>'D1:'+x));
+ const totals=Object.fromEntries(RES.map(k=>[k,0]));
+ const accessibleTotals=Object.fromEntries(RES.map(k=>[k,0]));
+ let occupiedMemberTiles=0,fullyBlockedSettlements=0,poolChecks=0;
+ for(const r of rows){const v=w.villages.find(x=>eq(x.id,r.nationId));
+  // Physical stock and civilian-accessible stock are different concepts during
+  // hostile occupation. Use the same D3 members() predicate as real pool reads;
+  // never move, grant, remove or normalize any physical resources here.
+  const accessIds=r.tileIds.filter(id=>!!members(v,id));
+  occupiedMemberTiles+=r.tileIds.length-accessIds.length;
+  if(!accessIds.length)fullyBlockedSettlements++;
+  for(const k of RES){
+   const physical=r.tileIds.reduce((sum,id)=>sum+stockRaw(w,id,k),0);
+   if(Math.abs(physical-r.resources[k])>1e-6)errs.push('STOCK:'+r.settlementId+':'+k);
+   totals[k]+=physical;
+   const accessible=accessIds.reduce((sum,id)=>sum+stockRaw(w,id,k),0);
+   accessibleTotals[k]+=accessible;
+   // A fully occupied Settlement offers no accessible pool; do not fall back
+   // to stockAt(occupiedTile), which deliberately returns raw physical stock.
+   const observed=accessIds.length?pool(v,accessIds[0],k):0;
+   poolChecks++;
+   if(Math.abs(observed-accessible)>1e-6)errs.push('POOL:'+r.settlementId+':'+k);
+  }
+  for(const k of ['food','wood','stone'])if(r.resources[k]-r.capacity[k]>1e-5)warnings.push('STORAGE_OVERFLOW:'+r.settlementId+':'+k);
+ }
+ for(const k of RES){const real=(w.map?.tiles||[]).filter(t=>t.ownerId!=null).reduce((sum,t)=>sum+stockRaw(w,t.id,k),0);if(Math.abs(real-totals[k])>1e-5)errs.push('WORLD_'+k);}
+ return {ok:errs.length===0,errors:errs,warnings,settlements:rows.length,multiTile:rows.filter(r=>r.tiles>1).length,resources:totals,
+  h1c3:{physical:totals,accessible:accessibleTotals,occupiedMemberTiles,fullyBlockedSettlements,poolChecks},
+  foodNaturalPotential:rows.reduce((sum,r)=>sum+r.naturalFoodRemaining,0),foodBaseRegenPerCycle:rows.reduce((sum,r)=>sum+r.baseFoodRegenPerCycle,0)};
 }
 const COL=['settlementId','nationId','nationName','tileIds','population',...RES.map(k=>'stock_'+k),'foodStorageCapacity','woodStorageCapacity','stoneStorageCapacity','foodDemandPerCycle','foodReserveCycles','naturalFoodRemaining','baseFoodRegenPerCycle','foodHarvestedObserved','foodNaturalRegenObserved','mealFoodReceivedObserved','mealFoodRequestedObserved','foodDepositOverflowObserved','marketGold'];
 function csv(w){const lines=[COL.join(',')],esc=x=>'"'+String(x??'').replace(/"/g,'""')+'"';for(const r of economyRows(w)){const o={...r,tileIds:r.tileIds.join('|'),foodStorageCapacity:r.capacity.food,woodStorageCapacity:r.capacity.wood,stoneStorageCapacity:r.capacity.stone,foodDemandPerCycle:r.foodDemand,foodReserveCycles:r.foodReserveDays,foodHarvestedObserved:r.harvested,foodNaturalRegenObserved:r.regen,mealFoodReceivedObserved:r.consumed,mealFoodRequestedObserved:r.mealDemand,foodDepositOverflowObserved:r.depositOverflow,marketGold:r.finance.marketGold};for(const k of RES)o['stock_'+k]=r.resources[k];lines.push(COL.map(k=>esc(o[k])).join(','));}return lines.join('\n');}

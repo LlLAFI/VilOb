@@ -35,6 +35,7 @@ import {h1b1Transform} from './35h1b1-transform.mjs';
 import {consolidate} from './h1b2-consolidate.mjs';
 import {h1c1Transform} from './35h1c1-transform.mjs';
 import {h1c2Transform} from './35h1c2-transform.mjs';
+import {h1c3Transform} from './35h1c3-transform.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const get=p=>fs.readFileSync(path.join(root,p));
@@ -55,7 +56,7 @@ const d3a1=get('src/bootstrap/v034d3a1.js').toString('utf8');
 const d3a2=get('src/bootstrap/v034d3a2.js').toString('utf8');
 const d3b=get('src/bootstrap/v034d3b.js').toString('utf8');
 const d3b1=get('src/bootstrap/v034d3b1.js').toString('utf8');
-const VERSION='V0.35H1C2';
+const VERSION='V0.35H1C3';
 const g1=get('src/bootstrap/v034g1.js').toString('utf8');
 const g1a=get('src/bootstrap/v034g1a.js').toString('utf8');
 const g1b=get('src/bootstrap/v034g1b.js').toString('utf8');
@@ -95,6 +96,7 @@ const v35h1b2=get('src/bootstrap/v035h1b2.js').toString('utf8');
 const v35h1c=get('src/bootstrap/v035h1c.js').toString('utf8');
 const v35h1c1=get('src/bootstrap/v035h1c1.js').toString('utf8');
 const v35h1c2=get('src/bootstrap/v035h1c2.js').toString('utf8');
+const v35h1c3=get('src/bootstrap/v035h1c3.js').toString('utf8');
 const B3B_VERSION='V0.34D3B3B';
 const e01=get('src/bootstrap/v034e.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34E-rc5');
 const f0=g4aTransform('src/bootstrap/v034f0.js',f3Transform('src/bootstrap/v034f0.js',get('src/bootstrap/v034f0.js').toString('utf8').replaceAll('__VILOB_RELEASE_VERSION__','V0.34F0')));
@@ -117,7 +119,7 @@ function render(flavor,assetPrefix='assets/'){
   let transformed=data;
   if(flavor!=='baseline'){transformed=d2Transform(block.path,transformed).data;for(const fn of [e3Transform,e4Transform,e5Transform,f1aTransform,f2Transform,f3Transform,g1Transform,g2Transform,g3Transform,g3bTransform,g4Transform,g4aTransform,g5Transform])transformed=fn(block.path,transformed);
  transformed=h4Transform(block.path,h3Transform(block.path,h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))))));
- for(const fn of [h4cTransform,b35Transform,c35Transform,d35Transform,e35Transform,f35Transform,f135Transform,g35Transform,g351Transform,h1bTransform,h1b1Transform])transformed=fn(block.path,transformed);transformed=h1c2Transform(block.path,transformed); }
+ for(const fn of [h4cTransform,b35Transform,c35Transform,d35Transform,e35Transform,f35Transform,f135Transform,g35Transform,g351Transform,h1bTransform,h1b1Transform])transformed=fn(block.path,transformed);transformed=h1c3Transform(block.path,h1c2Transform(block.path,transformed)); }
   // RC2 release-only performance transform; immutable C1H reconstruction stays byte-identical.
   if(flavor!=='baseline' && block.path==='src/legacy/016.js'){
    const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
@@ -168,8 +170,9 @@ function render(flavor,assetPrefix='assets/'){
  const v35h1cTag=flavor==='standalone'?'<script>\n'+v35h1c+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1c.js?vilob='+VERSION+'"></script>';
  const v35h1c1Tag=flavor==='standalone'?'<script>\n'+v35h1c1+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1c1.js?vilob='+VERSION+'"></script>';
  const v35h1c2Tag=flavor==='standalone'?'<script>\n'+v35h1c2+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1c2.js?vilob='+VERSION+'"></script>';
+ const v35h1c3Tag=flavor==='standalone'?'<script>\n'+v35h1c3+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v035h1c3.js?vilob='+VERSION+'"></script>';
  const h4Tag=flavor==='standalone'?'<script>\n'+h4+'\n</script>':'<script src="'+assetPrefix+'bootstrap/v034h4.js?vilob='+VERSION+'"></script>';
- return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n'+h3Tag+'\n'+h4Tag+'\n'+h4aTag+'\n'+h4bTag+'\n'+h4cTag+'\n'+v35aTag+'\n'+v35bTag+'\n'+v35cTag+'\n'+v35dTag+'\n'+v35eTag+'\n'+v35fTag+'\n'+v35f1Tag+'\n'+v35gTag+'\n'+v35g1Tag+'\n'+v35h0Tag+'\n'+v35h1aTag+'\n'+v35h1bTag+'\n'+v35h1b1Tag+'\n'+v35h1b1aTag+'\n'+v35h1b2Tag+'\n'+v35h1cTag+'\n'+v35h1c1Tag+'\n'+v35h1c2Tag+'\n</body>');
+ return out.replace('</body>',outputTag+'\n'+h0Tag+'\n'+h1Tag+'\n'+h2Tag+'\n'+h2aTag+'\n'+h3Tag+'\n'+h4Tag+'\n'+h4aTag+'\n'+h4bTag+'\n'+h4cTag+'\n'+v35aTag+'\n'+v35bTag+'\n'+v35cTag+'\n'+v35dTag+'\n'+v35eTag+'\n'+v35fTag+'\n'+v35f1Tag+'\n'+v35gTag+'\n'+v35g1Tag+'\n'+v35h0Tag+'\n'+v35h1aTag+'\n'+v35h1bTag+'\n'+v35h1b1Tag+'\n'+v35h1b1aTag+'\n'+v35h1b2Tag+'\n'+v35h1cTag+'\n'+v35h1c1Tag+'\n'+v35h1c2Tag+v35h1c3Tag+'\n</body>');
 }
 const orig=get('tests/fixtures/v034C1H-index.html');
 const rebuilt=Buffer.from(render('baseline'));
@@ -190,7 +193,7 @@ for(const block of manifest.blocks){
  fs.mkdirSync(path.dirname(dest),{recursive:true});let transformed=d2Transform(block.path,get(block.path).toString('utf8')).data;
  for(const fn of [e3Transform,e4Transform,e5Transform,f1aTransform,f2Transform,f3Transform,g1Transform,g2Transform,g3Transform,g3bTransform,g4Transform,g4aTransform,g5Transform])transformed=fn(block.path,transformed);
  transformed=h4Transform(block.path,h3Transform(block.path,h2aTransform(block.path,h2Transform(block.path,h1Transform(block.path,h0Transform(block.path,transformed))))));
- for(const fn of [h4cTransform,b35Transform,c35Transform,d35Transform,e35Transform,f35Transform,f135Transform,g35Transform,g351Transform,h1bTransform,h1b1Transform])transformed=fn(block.path,transformed); transformed=h1c2Transform(block.path,transformed);
+ for(const fn of [h4cTransform,b35Transform,c35Transform,d35Transform,e35Transform,f35Transform,f135Transform,g35Transform,g351Transform,h1bTransform,h1b1Transform])transformed=fn(block.path,transformed); transformed=h1c3Transform(block.path,h1c2Transform(block.path,transformed));
  if(block.path==='src/legacy/016.js'){
   const needle="if(this.entries.length>16000||((this.entries[0]?.ordinalDay||0)<cutoff-120))this.entries=this.entries.filter(x=>(x.ordinalDay||0)>=cutoff||x.type==='MANUAL_NOTE');";
   if(!transformed.includes(needle))throw Error('Hosted telemetry anchor missing');
@@ -265,7 +268,8 @@ fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1b2.js'),v35
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1c.js'),v35h1c);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1c1.js'),v35h1c1);
 fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1c2.js'),v35h1c2);
-const h1b2Build=consolidate({root,dist,assetNames:62});
+fs.writeFileSync(path.join(dist,'hosted','assets','bootstrap','v035h1c3.js'),v35h1c3);
+const h1b2Build=consolidate({root,dist,assetNames:63});
 // Individual downloadable index.html is the standalone build. Project root index is for GitHub Pages.
 // Already written by H1B2 consolidator with the updated inline bootstraps.
 const result={version:VERSION,...h1b2Build,baselineSHA256:sha(rebuilt),sourceBlocks:169,scriptBlocks:165,styleBlocks:4,hostedBytes:fs.statSync(path.join(dist,'hosted','index.html')).size,standaloneBytes:fs.statSync(path.join(dist,'standalone','index.html')).size,hostedIndexSHA256:sha(get('dist/hosted/index.html')),standaloneIndexSHA256:sha(get('dist/standalone/index.html')),csvColumns:schema.columnCount,csvDuplicateExtraColumnsFixed:schema.duplicateExtraColumns};

@@ -1,4 +1,4 @@
-# Build & GitHub Pages — V0.35H1C2 (historical instructions retained)
+# Build & GitHub Pages — V0.35H1C3 (historical addenda retained)
 
 ## Build from a fresh Source ZIP
 
@@ -19,7 +19,7 @@ Don't upload the ZIP binary to the repository as the website. Extract and commit
 
 ## Version, save and scenarios
 
-The runtime badge and export version is `V0.35H1B1A`. H1A `NS.V035H1A` fixed seed/RNG/checkpoint implementation is unchanged in logic; H1A checkpoint JSON and localStorage save key are accepted. The new save key is `village-observer-v035h1b1a`.
+The current runtime badge and Devlog export version is `V0.35H1C3`; the **save data format** remains `V0.35H1B1A`. H1A `NS.V035H1A` fixed seed/RNG/checkpoint implementation is unchanged in logic; H1A checkpoint JSON and localStorage save key are accepted. The new save key is `village-observer-v035h1b1a`.
 
 ## CI scope
 
@@ -67,3 +67,13 @@ Current runtime and new save key: `V0.35H1B1A`, `village-observer-v035h1b1a`. Us
 - `node tools/telemetry-inventory.mjs` audits the 1,683 V2 CSV columns and regenerates `docs/h1c2-csv-1683-inventory.json` without modifying existing CSV columns.
 - World → Advanced Tools → H1C2 includes the taxonomy / dependency diagnostic JSON. H1C gzip and previous Formation migration fixes remain enabled.
 - **No blanket observability OFF control** is provided: several legacy record wrappers still have simulation side effects. Never disable `Telemetry.record()` globally.
+
+
+## V0.35H1C3 release (current; supersedes earlier runtime references)
+
+- Current **runtime / Devlog version**: `V0.35H1C3`. Checkpoint and localStorage save format/key intentionally remain `V0.35H1B1A` / `village-observer-v035h1b1a`.
+- Hosted Pages: 165 preserved legacy JS assets + `assets/bootstrap/v035h1c3-bundle.js` containing 63 ordered bootstraps = 166 JS requests. Both source and standalone builds keep the same order and checksum-protected baseline.
+- `npm run build`, `npm test`. **19 tests PASS** on the completed H1C3 development build; run again on your local GitHub Desktop checkout before push.
+- World → Advanced Tools → **H1C3 · 점령 재고 / 게임 사건 무결성** exports `vilob-v035H1C3-integrity.json` with physical vs civilian-accessible stock and `calendarOrdinalDay`.
+- H1C1 180-day Snapshot profiler remains the way to collect new `E4_CULTURE_METRICS`, `E4_WAR_SCAN`, `F5_MONEY_PARTS`, and `F5_REALIZED_PRICES` leaf timers; normal observation cadence and CSV schema unchanged.
+- DomainEvents callbacks remain mirrored at their legacy event-record timing; do **not** disable `Telemetry.record()` globally. Keep the original ~60-year checkpoint backed up until H1C3's partial/full occupation tests have passed on the user's device.
