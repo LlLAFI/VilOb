@@ -6,7 +6,7 @@ function engine(file){let seed=0x12345567;const math=Object.create(Math);math.ra
  const c={console,Math:math,Map,Set,WeakMap,JSON,Date,Blob,TextEncoder,TextDecoder,ArrayBuffer,Uint8Array,structuredClone,performance:require('perf_hooks').performance,setTimeout(){},clearTimeout(){},requestAnimationFrame(){},localStorage:{getItem(){return null},setItem(){}},document:{head:el(),body:el(),documentElement:el(),getElementById(){return null},createElement:el,querySelector(){return null},querySelectorAll(){return[]},addEventListener(){},title:''},URL};c.window=c;c.addEventListener=()=>{};vm.createContext(c);
  const html=fs.readFileSync(file,'utf8');for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())try{new vm.Script(m[1]).runInContext(c,{timeout:120000});}catch(e){if(!/onclick/.test(e.message))throw e;}return{ns:c.VSim,setSeed:x=>seed=x>>>0,getSeed:()=>seed>>>0};}
 const base=engine(path.join(root,'index-standalone.html'));const next=base;
-const ns=next.ns;assert.equal(ns.RELEASE_VERSION,'V0.35H1C5');assert.equal(ns.V035G1.constants.ARCH_MULT,3);
+const ns=next.ns;assert.equal(ns.RELEASE_VERSION,'V0.35H1C6');assert.equal(ns.V035G1.constants.ARCH_MULT,3);
 const oldSave=JSON.parse(JSON.stringify(new ns.World(19,19).serialize()));oldSave.version='V0.35G';
 const w=ns.World.from(oldSave);assert.equal(w.serialize().version,'V0.35H1B1A');assert.equal(ns.TECH_ORDER.length,43);
 const v=w.activeVillages[0],tile=w.map.get(v.coreTileId);

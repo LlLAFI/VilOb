@@ -19,7 +19,7 @@ const removes={
 export const REMOVALS=Object.values(removes).reduce((n,arr)=>n+arr.length,0);
 export function optimizeBootstrap(name,source){let out=source;for(const target of removes[name]||[]){if(!out.includes(target))throw Error('H1B2 unsafe consolidation; audited header anchor changed: '+name+' '+target.slice(0,64));if(out.split(target).length!==2)throw Error('H1B2 ambiguous consolidation: '+name);out=out.replace(target,'/* H1B2: redundant version-only UI wrapper omitted */');}return out;}
 const extract=(html,base)=>[...html.matchAll(/<script src="([^"]*?bootstrap\/([a-z0-9]+\.js)(?:\?vilob=[^"]*)?)"><\/script>/g)].map(m=>({...{full:m[0],file:m[2],src:m[1]},start:m.index,end:m.index+m[0].length}));
-function hostedBundle(html,files){const m=extract(html);if(m.length!==files.length||m.some((v,i)=>v.file!==files[i]))throw Error('H1B2 unexpected hosted bootstrap order/count');const slice=html.slice(m[0].start,m.at(-1).end);const without=slice.replace(/<script src="[^"]*"><\/script>/g,'').trim();if(without)throw Error('H1B2 non-script element in bootstrap segment');const prefix=m[0].src.slice(0,m[0].src.lastIndexOf('bootstrap/'));const link='<script src="'+prefix+'bootstrap/v035h1c5-bundle.js?vilob=V0.35H1C5"></script>';return html.slice(0,m[0].start)+link+html.slice(m.at(-1).end);}
+function hostedBundle(html,files){const m=extract(html);if(m.length!==files.length||m.some((v,i)=>v.file!==files[i]))throw Error('H1B2 unexpected hosted bootstrap order/count');const slice=html.slice(m[0].start,m.at(-1).end);const without=slice.replace(/<script src="[^"]*"><\/script>/g,'').trim();if(without)throw Error('H1B2 non-script element in bootstrap segment');const prefix=m[0].src.slice(0,m[0].src.lastIndexOf('bootstrap/'));const link='<script src="'+prefix+'bootstrap/v035h1c6-bundle.js?vilob=V0.35H1C6"></script>';return html.slice(0,m[0].start)+link+html.slice(m.at(-1).end);}
 function standaloneOptimize(html,files){const script=[...html.matchAll(/<script>\n([\s\S]*?)\n<\/script>/g)];if(script.length<files.length)throw Error('H1B2 insufficient inline bootstrap scripts');const selected=script.slice(-files.length);let out=html;
  for(let i=selected.length-1;i>=0;i--){const m=selected[i],content=optimizeBootstrap(files[i],m[1]);out=out.slice(0,m.index)+'<script>\n'+content+'\n</script>'+out.slice(m.index+m[0].length);}return out;
 }
@@ -27,13 +27,13 @@ function gate(html){if(!html.includes('</head>'))throw Error('No head for H1B2 s
 export function consolidate({root,dist,assetNames}){
  const sourceHtml=fs.readFileSync(dist+'/hosted/index.html','utf8');const rootHtml=fs.readFileSync(root+'/index.html','utf8');
  const files=extract(sourceHtml).map(x=>x.file);
- if(files.length!==65||files.at(-1)!=='v035h1c5.js'||assetNames!==65)throw Error('H1B2 bootstrap list not expected 65');
+ if(files.length!==66||files.at(-1)!=='v035h1c6.js'||assetNames!==66)throw Error('H1B2 bootstrap list not expected 66');
  const scripts=files.map(name=>optimizeBootstrap(name,fs.readFileSync(dist+'/hosted/assets/bootstrap/'+name,'utf8')));
  for(let i=0;i<scripts.length;i++)if(!scripts[i].trim().endsWith('})(window.VSim);'))throw Error('Bootstrap not isolated IIFE: '+files[i]);
  // Explicit semicolon is a script-boundary separator: no inter-script global
  // declarations, scope nesting, or load order are changed.
  const bundled=scripts.map((s,i)=>'/* H1B2 bundled source: '+files[i]+' */\n'+s+'\n;').join('\n');
- fs.writeFileSync(dist+'/hosted/assets/bootstrap/v035h1c5-bundle.js',bundled);
+ fs.writeFileSync(dist+'/hosted/assets/bootstrap/v035h1c6-bundle.js',bundled);
  // Compiled individual bootstrap assets have no HTML consumers after bundling.
  // Keep their original sources in src/bootstrap/ for audit/rebuild.
  for(const name of files)fs.rmSync(dist+'/hosted/assets/bootstrap/'+name);

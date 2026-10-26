@@ -9,7 +9,7 @@ function boot(file){let seed=514;const math=Object.create(Math);math.random=()=>
 const stable=x=>JSON.stringify(x,(k,v)=>k==='realTime'||/^(?:elapsed|wall|cpu|profile|perf|memory|heap|duration)/i.test(k)||/(?:Ms|milliseconds)(?:\d+[A-Z0-9]*)?$/i.test(k)?undefined:v);
 (async()=>{
  const previous=boot('tests/fixtures/v035H1C4-standalone.html'),updated=boot('index-standalone.html');
- assert.equal(previous.RELEASE_VERSION,'V0.35H1C4');assert.equal(updated.RELEASE_VERSION,'V0.35H1C5');
+ assert.equal(previous.RELEASE_VERSION,'V0.35H1C4');assert.equal(updated.RELEASE_VERSION,'V0.35H1C6');
  assert.equal(updated.V035H1C5.stageNames[0],'C5_F5A_ATTACH');
  let a=previous.V035H1A.createWorld(),b=updated.V035H1A.createWorld();
  const days=30;
