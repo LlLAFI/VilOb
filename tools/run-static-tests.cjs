@@ -4,7 +4,7 @@
 'use strict';
 const path=require('node:path'),{spawn}=require('node:child_process');
 const root=path.join(__dirname,'..');
-const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1b.cjs','test-35h1b1.cjs','test-35h1b1a.cjs','test-35h1b2.cjs','test-35h1c.cjs','test-35h1c1.cjs','test-35h1c2.cjs','test-35h1c3.cjs','test-35h1c4.cjs','test-35h1c4-ui.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
+const names=['test-build.mjs','test-csv.mjs','test-35h1a-hf.cjs','test-35h1b.cjs','test-35h1b1.cjs','test-35h1b1a.cjs','test-35h1b2.cjs','test-35h1c.cjs','test-35h1c1.cjs','test-35h1c2.cjs','test-35h1c3.cjs','test-35h1c4.cjs','test-35h1c4-ui.cjs','test-35h1c5.cjs','test-35h1a.cjs','test-35h1a-parity.cjs','test-35h0.cjs','test-35g1b.cjs','test-35g1a.cjs','test-g2a-reserve.cjs','test-h4c.cjs','test-35a.cjs'];
 function execute(name){return new Promise(resolve=>{
  const start=Date.now(),child=spawn(process.execPath,[path.join(root,'tests',name)],{cwd:root,stdio:['ignore','pipe','pipe']});
  let output='',error='',timedOut=false;

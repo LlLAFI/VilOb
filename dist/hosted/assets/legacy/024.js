@@ -63,7 +63,7 @@ function feasibility(v,w,action){
  }
  return{ok:true};
 }
-function lastDecision(w,v,day=w.ordinalDay()){for(let i=(w.telemetry.entries||[]).length-1;i>=0;i--){const e=w.telemetry.entries[i];if((e.ordinalDay||0)<day-1)break;if(e.type==='AI_DECISION'&&e.payload?.villageId===v.id)return e;}return null;}
+function lastDecision(w,v,day=w.ordinalDay()){if(NS.V035H1C2?.SimulationState)return NS.V035H1C2.SimulationState.lastDecision(w,v,day);for(let i=(w.telemetry.entries||[]).length-1;i>=0;i--){const e=w.telemetry.entries[i];if((e.ordinalDay||0)<day-1)break;if(e.type==='AI_DECISION'&&e.payload?.villageId===v.id)return e;}return null;}
 const decision15=NS.VillageBrain.prototype.seasonalDecision;
 NS.VillageBrain.prototype.seasonalDecision=function(v,w){
  const first=decision15.call(this,v,w);if(v.recoveryState?.active)return first;const e=lastDecision(w,v);if(!e)return first;const scored=(e.payload?.scores||[]).slice().sort((a,b)=>(b.final??b.score??0)-(a.final??a.score??0)),order=[first,...scored.map(x=>x.action)].filter((x,i,a)=>x&&x!=='TRADE'&&a.indexOf(x)===i);let chosen=first,why=feasibility(v,w,first);if(!why.ok){for(const a of order.slice(1)){const f=feasibility(v,w,a);if(f.ok){chosen=a;break;}}if(chosen!==first){e.payload.initialChoice=first;e.payload.choice=chosen;e.payload.fallbackReason=why.reason;e.payload.fallbackResource=why.resource||null;v.focus=chosen;if(v.aiMemory&&e.payload.strategyChoice!=='TRADE'){v.aiMemory.lastAction=chosen;v.aiMemory.streak=1;}w.telemetry.record('AI_ACTION_FALLBACK_PLANNED',w,{village:v.name,from:first,to:chosen,reason:why.reason,resource:why.resource||null});}}

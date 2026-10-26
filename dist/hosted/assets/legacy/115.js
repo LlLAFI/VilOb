@@ -72,3 +72,5 @@ try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHe
 })(window.VSim);
 
 ;(function(NS){'use strict';if(!NS?.Telemetry?.prototype?.snapshot)return;const prior=NS.Telemetry.prototype.snapshot;NS.Telemetry.prototype.snapshot=function(...args){const api=NS.V035H1B1;if(!api?.measureStage)return prior.apply(this,args);return api.measureStage('F1_SETTLEMENT',args[0],prior,this,args);};})(window.VSim);
+
+;(function(NS){'use strict';const old=NS?.Telemetry?.prototype?.snapshot;if(typeof old!=='function')return;NS.Telemetry.prototype.snapshot=function(...args){const probe=NS.V035H1B1?.measureStage;return probe?probe('C4_F1_115',args[0],old,this,args):old.apply(this,args);};})(window.VSim);

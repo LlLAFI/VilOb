@@ -55,3 +55,5 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33E5F1
 NS.V033E5F1={version:VERSION,revision:REV,attachWorld:attach,controlBlocked,hostileOccupiedCore,suppressOccupiedCoreGarrison,base:'V0.33E5F'};
 try{const ui=window.villageObserver;if(ui){ui.world=attach(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33E5F1 startup attach failed',e);}
 })(window.VSim);
+
+;(function(NS){'use strict';const old=NS?.Telemetry?.prototype?.snapshot;if(typeof old!=='function')return;NS.Telemetry.prototype.snapshot=function(...args){const probe=NS.V035H1B1?.measureStage;return probe?probe('C4_E4_TO_F_112',args[0],old,this,args):old.apply(this,args);};})(window.VSim);

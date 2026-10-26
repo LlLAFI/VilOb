@@ -10,7 +10,7 @@ function boot(html){let state=514;const math=Object.create(Math);math.random=()=
 }
 (async()=>{
  const previous=boot('tests/fixtures/v035H1B-standalone.html'),cur=boot('index-standalone.html');
- assert.equal(previous.N.RELEASE_VERSION,'V0.35H1B');assert.equal(cur.N.RELEASE_VERSION,'V0.35H1C4');
+ assert.equal(previous.N.RELEASE_VERSION,'V0.35H1B');assert.equal(cur.N.RELEASE_VERSION,'V0.35H1C5');
  const a=previous.N.V035H1A.createWorld(),b=cur.N.V035H1A.createWorld();
  const snapValue=x=>JSON.stringify(x,(k,v)=>/^(realTime)$|(?:Ms|milliseconds|perf|Performance|Heap|latency|duration|timings)/i.test(k)?undefined:v);
  for(let i=0;i<60;i++){a.advanceOneDay();b.advanceOneDay();if(i%30===29){assert.equal(a.v35h1a.rngState,b.v35h1a.rngState,'RNG '+i);assert.equal(previous.N.V035H1A.fingerprint(a),cur.N.V035H1A.fingerprint(b),'state '+i);}}

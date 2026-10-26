@@ -76,3 +76,5 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33D1C'
 NS.V033D1C={revision:REV33D1C,attachWorld:attachC,renderRecentWars:renderRecentC,backfillWarHistory:backfillWarHistoryC,occupationStats:occupationStatsC,worldOccupationSummary:worldOccupationSummaryC,recoveryEscapeGate:recoveryEscapeGateC,recoveryEscapePulse:recoveryEscapePulseC,warType:warTypeC};
 try{const ui=window.villageObserver;if(ui){ui.world=attachC(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33D1C startup attach failed',e);}
 })(window.VSim);
+
+;(function(NS){'use strict';const old=NS?.Telemetry?.prototype?.snapshot;if(typeof old!=='function')return;NS.Telemetry.prototype.snapshot=function(...args){const probe=NS.V035H1B1?.measureStage;return probe?probe('C4_PRE_E4_099',args[0],old,this,args):old.apply(this,args);};})(window.VSim);

@@ -101,3 +101,5 @@ if(Array.isArray(NS.PATCH_NOTES)&&!NS.PATCH_NOTES.some(x=>x.version==='V0.33E1')
 NS.V033E1={revision:REV33E1,attachWorld:attachE1,ensureState:ensureE1,techMerge:TECH_MERGE,techOrder:TECH_ORDER_E1,techCostTotal:TECH_COST_TOTAL_E1,knowledgeProductionMultiplier:1,migrateTechState,formationPeople,commandScore,commanderPerson,commanderQuality,commanderPulse,commanderCombatMultiplier,commanderMoraleLossMultiplier,adjustRegroupDays,smallUnitCasualtyRate,recordSmallUnitCasualties,warHistorySingleWriter:true};
 try{const ui=window.villageObserver;if(ui){ui.world=attachE1(ui.world);ui.renderHeader?.();ui.render?.();}}catch(e){console.error('V0.33E1 startup attach failed',e);}
 })(window.VSim);
+
+;(function(NS){'use strict';const old=NS?.Telemetry?.prototype?.snapshot;if(typeof old!=='function')return;NS.Telemetry.prototype.snapshot=function(...args){const probe=NS.V035H1B1?.measureStage;return probe?probe('C4_PRE_E4_105',args[0],old,this,args):old.apply(this,args);};})(window.VSim);

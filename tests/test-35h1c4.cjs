@@ -9,7 +9,7 @@ function boot(file){let seed=514;const math=Object.create(Math);math.random=()=>
 const stable=x=>JSON.stringify(x,(k,v)=>k==='realTime'||/^(?:elapsed|wall|cpu|profile|perf|memory|heap|duration)/i.test(k)||/(?:Ms|milliseconds)(?:\d+[A-Z0-9]*)?$/i.test(k)?undefined:v);
 (async()=>{
  const old=boot('tests/fixtures/v035H1C3-standalone.html'),cur=boot('index-standalone.html');
- assert.equal(old.RELEASE_VERSION,'V0.35H1C3');assert.equal(cur.RELEASE_VERSION,'V0.35H1C4');
+ assert.equal(old.RELEASE_VERSION,'V0.35H1C3');assert.equal(cur.RELEASE_VERSION,'V0.35H1C5');
  const a=old.V035H1A.createWorld(),b=cur.V035H1A.createWorld();
  for(let i=1;i<=60;i++){a.advanceOneDay();b.advanceOneDay();if(i%15===0){assert.equal(a.v35h1a.rngState,b.v35h1a.rngState,'RNG day '+i);assert.equal(old.V035H1A.fingerprint(a),cur.V035H1A.fingerprint(b),'world '+i);}}
  assert.equal(stable(a.telemetry.entries),stable(b.telemetry.entries));assert.equal(stable(a.telemetry.snapshots),stable(b.telemetry.snapshots));assert.equal(stable(old.V034D3A.stats(a)),stable(cur.V034D3A.stats(b)));

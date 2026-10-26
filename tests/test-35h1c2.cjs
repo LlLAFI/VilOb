@@ -10,7 +10,7 @@ function boot(file){let seed=514;const math=Object.create(Math);math.random=()=>
 const stable=x=>JSON.stringify(x,(k,v)=>k==='realTime'||/^(?:elapsed|wall|cpu|profile|perf|memory|heap|duration)/i.test(k)||/(?:Ms|milliseconds)(?:\d+[A-Z0-9]*)?$/i.test(k)?undefined:v);
 (async()=>{
  const old=boot('tests/fixtures/v035H1C1-standalone.html'),cur=boot('index-standalone.html');
- assert.equal(old.RELEASE_VERSION,'V0.35H1C1');assert.equal(cur.RELEASE_VERSION,'V0.35H1C4');
+ assert.equal(old.RELEASE_VERSION,'V0.35H1C1');assert.equal(cur.RELEASE_VERSION,'V0.35H1C5');
  assert.equal(cur.TECH_ORDER.length,43);assert.equal(cur.V035H1C2.inventory.categories.length,4);
  const a=old.V035H1A.createWorld(),b=cur.V035H1A.createWorld();
  assert.equal(old.V035H1A.fingerprint(a),cur.V035H1A.fingerprint(b));
